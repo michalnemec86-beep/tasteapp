@@ -1,0 +1,803 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ==================================================
+   TASTEAPP
+   AMBER BREWERY UI
+================================================== */
+
+@layer base {
+  :root {
+    --background: 30 38% 7%;
+    --foreground: 40 30% 94%;
+
+    --card: 30 36% 10%;
+    --card-foreground: 40 30% 94%;
+
+    --popover: 30 34% 10%;
+    --popover-foreground: 40 30% 94%;
+
+    --primary: 38 94% 55%;
+    --primary-foreground: 29 55% 8%;
+
+    --secondary: 31 32% 14%;
+    --secondary-foreground: 40 25% 92%;
+
+    --muted: 31 27% 14%;
+    --muted-foreground: 35 14% 66%;
+
+    --accent: 34 70% 23%;
+    --accent-foreground: 40 35% 96%;
+
+    --destructive: 0 63% 48%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 34 42% 24%;
+    --input: 32 34% 18%;
+    --ring: 38 94% 55%;
+
+    --chart-1: 39 96% 56%;
+    --chart-2: 31 89% 50%;
+    --chart-3: 45 72% 58%;
+    --chart-4: 24 76% 45%;
+    --chart-5: 54 39% 54%;
+
+    --radius: 0.85rem;
+
+    /* ==================================================
+       HLAVNÍ TASTEAPP BARVY
+    ================================================== */
+
+    --taste-bg: #160e08;
+    --taste-bg-deep: #0d0906;
+
+    --taste-surface: #21150c;
+    --taste-surface-raised: #291a0e;
+    --taste-surface-soft: #332012;
+
+    --taste-surface-glass:
+      rgba(40, 25, 13, 0.86);
+
+    --taste-border:
+      rgba(231, 166, 47, 0.25);
+
+    --taste-border-strong:
+      rgba(239, 177, 62, 0.48);
+
+    --taste-border-glow:
+      rgba(245, 184, 63, 0.68);
+
+    --taste-amber: #e7a62f;
+    --taste-amber-bright: #ffc052;
+    --taste-amber-soft: #cf8f29;
+
+    --taste-gold: #f5c16d;
+    --taste-copper: #a86221;
+    --taste-caramel: #714014;
+
+    --taste-text: #f6efe3;
+    --taste-text-soft: #d8c8b1;
+    --taste-text-muted: #a7957c;
+
+    --taste-success: #9fb16c;
+    --taste-danger: #d95c52;
+
+    --taste-radius-sm: 9px;
+    --taste-radius-md: 14px;
+    --taste-radius-lg: 18px;
+    --taste-radius-xl: 24px;
+
+    --taste-shadow:
+      0 22px 60px
+      rgba(0, 0, 0, 0.34);
+
+    --taste-shadow-soft:
+      0 10px 32px
+      rgba(0, 0, 0, 0.24);
+
+    --taste-glow:
+      0 0 28px
+      rgba(231, 166, 47, 0.12);
+
+    --taste-glow-strong:
+      0 0 38px
+      rgba(231, 166, 47, 0.2);
+  }
+
+  .dark {
+    --background: 30 38% 7%;
+    --foreground: 40 30% 94%;
+
+    --card: 30 36% 10%;
+    --card-foreground: 40 30% 94%;
+
+    --popover: 30 34% 10%;
+    --popover-foreground: 40 30% 94%;
+
+    --primary: 38 94% 55%;
+    --primary-foreground: 29 55% 8%;
+
+    --secondary: 31 32% 14%;
+    --secondary-foreground: 40 25% 92%;
+
+    --muted: 31 27% 14%;
+    --muted-foreground: 35 14% 66%;
+
+    --accent: 34 70% 23%;
+    --accent-foreground: 40 35% 96%;
+
+    --destructive: 0 63% 48%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 34 42% 24%;
+    --input: 32 34% 18%;
+    --ring: 38 94% 55%;
+  }
+}
+
+/* ==================================================
+   ZÁKLAD STRÁNKY
+================================================== */
+
+@layer base {
+  * {
+    @apply border-border;
+    box-sizing: border-box;
+
+    scrollbar-width: thin;
+
+    scrollbar-color:
+      rgba(231, 166, 47, 0.48)
+      rgba(255, 255, 255, 0.03);
+  }
+
+  html {
+    color-scheme: dark;
+
+    background:
+      var(--taste-bg-deep);
+  }
+
+  body {
+    @apply text-foreground;
+
+    min-height: 100vh;
+
+    color:
+      var(--taste-text);
+
+    background:
+      radial-gradient(
+        ellipse at 50% -10%,
+        rgba(231, 166, 47, 0.16),
+        transparent 38rem
+      ),
+      radial-gradient(
+        circle at 5% 24%,
+        rgba(175, 91, 20, 0.15),
+        transparent 34rem
+      ),
+      radial-gradient(
+        circle at 95% 20%,
+        rgba(231, 166, 47, 0.12),
+        transparent 30rem
+      ),
+      linear-gradient(
+        180deg,
+        #1b1009 0%,
+        #150d08 34%,
+        #100a06 72%,
+        #0b0805 100%
+      );
+
+    background-attachment:
+      fixed;
+  }
+
+  /*
+   * Jemná textura.
+   * Není výrazná, jen zabraňuje tomu,
+   * aby velké tmavé plochy působily ploše.
+   */
+
+  body::before {
+    content: "";
+
+    position: fixed;
+
+    inset: 0;
+
+    z-index: -2;
+
+    pointer-events: none;
+
+    opacity: 0.26;
+
+    background-image:
+      linear-gradient(
+        rgba(255, 220, 160, 0.015) 1px,
+        transparent 1px
+      ),
+      linear-gradient(
+        90deg,
+        rgba(255, 220, 160, 0.011) 1px,
+        transparent 1px
+      );
+
+    background-size:
+      38px 38px;
+  }
+
+  /*
+   * Velmi jemný jantarový světelný závoj.
+   */
+
+  body::after {
+    content: "";
+
+    position: fixed;
+
+    left: 8%;
+    right: 8%;
+    top: 54px;
+
+    height: 280px;
+
+    z-index: -1;
+
+    pointer-events: none;
+
+    filter:
+      blur(80px);
+
+    opacity: 0.18;
+
+    background:
+      radial-gradient(
+        ellipse at center,
+        rgba(231, 166, 47, 0.38),
+        transparent 66%
+      );
+  }
+
+  a {
+    transition:
+      color 160ms ease,
+      border-color 160ms ease,
+      background-color 160ms ease,
+      opacity 160ms ease,
+      transform 160ms ease,
+      box-shadow 160ms ease;
+  }
+
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
+  }
+
+  button {
+    transition:
+      background-color 160ms ease,
+      border-color 160ms ease,
+      color 160ms ease,
+      transform 160ms ease,
+      opacity 160ms ease,
+      box-shadow 160ms ease,
+      filter 160ms ease;
+  }
+
+  button:not(:disabled):active {
+    transform:
+      translateY(1px);
+  }
+
+  input,
+  textarea,
+  select {
+    color:
+      var(--taste-text);
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color:
+      var(--taste-text-muted);
+
+    opacity:
+      0.76;
+  }
+
+  select option {
+    background:
+      var(--taste-surface-raised);
+
+    color:
+      var(--taste-text);
+  }
+
+  ::selection {
+    background:
+      rgba(231, 166, 47, 0.38);
+
+    color:
+      #fff8e9;
+  }
+
+  :focus-visible {
+    outline:
+      2px solid
+      var(--taste-amber);
+
+    outline-offset:
+      2px;
+  }
+
+  hr {
+    border-color:
+      var(--taste-border);
+  }
+
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background:
+      rgba(255, 255, 255, 0.025);
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background:
+      linear-gradient(
+        180deg,
+        rgba(245, 184, 63, 0.5),
+        rgba(168, 98, 33, 0.45)
+      );
+
+    border-radius:
+      999px;
+
+    border:
+      2px solid
+      var(--taste-bg);
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background:
+      rgba(245, 184, 63, 0.68);
+  }
+}
+
+/* ==================================================
+   TASTEAPP KARTY
+================================================== */
+
+@layer components {
+  .taste-card {
+    position:
+      relative;
+
+    background:
+      radial-gradient(
+        circle at 15% 0%,
+        rgba(231, 166, 47, 0.08),
+        transparent 17rem
+      ),
+      linear-gradient(
+        145deg,
+        rgba(255, 218, 152, 0.045),
+        rgba(255, 255, 255, 0.006) 45%
+      ),
+      var(--taste-surface);
+
+    border:
+      1px solid
+      var(--taste-border);
+
+    border-radius:
+      var(--taste-radius-lg);
+
+    box-shadow:
+      inset 0 1px 0
+      rgba(255, 226, 174, 0.025),
+      var(--taste-shadow-soft);
+  }
+
+  .taste-card-raised {
+    position:
+      relative;
+
+    background:
+      radial-gradient(
+        circle at 18% 0%,
+        rgba(231, 166, 47, 0.11),
+        transparent 19rem
+      ),
+      linear-gradient(
+        145deg,
+        rgba(231, 166, 47, 0.065),
+        transparent 46%
+      ),
+      var(--taste-surface-raised);
+
+    border:
+      1px solid
+      var(--taste-border);
+
+    border-radius:
+      var(--taste-radius-lg);
+
+    box-shadow:
+      inset 0 1px 0
+      rgba(255, 220, 155, 0.035),
+      var(--taste-shadow);
+  }
+
+  /*
+   * Lze použít na důležité dashboardové bloky.
+   */
+
+  .taste-card-glow {
+    position:
+      relative;
+
+    background:
+      radial-gradient(
+        circle at 22% 0%,
+        rgba(245, 184, 63, 0.16),
+        transparent 18rem
+      ),
+      linear-gradient(
+        145deg,
+        rgba(168, 98, 33, 0.12),
+        rgba(231, 166, 47, 0.035)
+      ),
+      var(--taste-surface);
+
+    border:
+      1px solid
+      rgba(231, 166, 47, 0.38);
+
+    border-radius:
+      var(--taste-radius-lg);
+
+    box-shadow:
+      inset 0 1px 0
+      rgba(255, 225, 170, 0.05),
+      0 16px 46px
+      rgba(0, 0, 0, 0.3),
+      0 0 32px
+      rgba(231, 166, 47, 0.055);
+  }
+
+  .taste-label {
+    color:
+      var(--taste-amber);
+
+    font-size:
+      11px;
+
+    font-weight:
+      750;
+
+    letter-spacing:
+      0.11em;
+
+    text-transform:
+      uppercase;
+  }
+
+  .taste-muted {
+    color:
+      var(--taste-text-muted);
+  }
+
+  /* ==================================================
+     TLAČÍTKA
+  ================================================== */
+
+  .taste-button-primary {
+    display:
+      inline-flex;
+
+    align-items:
+      center;
+
+    justify-content:
+      center;
+
+    gap:
+      8px;
+
+    padding:
+      11px 17px;
+
+    border:
+      1px solid
+      rgba(255, 210, 112, 0.58);
+
+    border-radius:
+      var(--taste-radius-sm);
+
+    background:
+      linear-gradient(
+        180deg,
+        #ffc65a 0%,
+        #e79f27 54%,
+        #c67b18 100%
+      );
+
+    color:
+      #1c1106;
+
+    font-weight:
+      800;
+
+    text-decoration:
+      none;
+
+    cursor:
+      pointer;
+
+    text-shadow:
+      0 1px 0
+      rgba(255, 255, 255, 0.18);
+
+    box-shadow:
+      inset 0 1px 0
+      rgba(255, 245, 205, 0.42),
+      0 8px 24px
+      rgba(202, 132, 24, 0.24),
+      0 0 22px
+      rgba(231, 166, 47, 0.12);
+  }
+
+  .taste-button-primary:hover {
+    filter:
+      brightness(1.08);
+
+    transform:
+      translateY(-1px);
+
+    box-shadow:
+      inset 0 1px 0
+      rgba(255, 245, 205, 0.48),
+      0 12px 30px
+      rgba(202, 132, 24, 0.32),
+      0 0 28px
+      rgba(231, 166, 47, 0.18);
+  }
+
+  .taste-button-secondary {
+    display:
+      inline-flex;
+
+    align-items:
+      center;
+
+    justify-content:
+      center;
+
+    gap:
+      7px;
+
+    padding:
+      9px 13px;
+
+    border:
+      1px solid
+      var(--taste-border-strong);
+
+    border-radius:
+      var(--taste-radius-sm);
+
+    background:
+      linear-gradient(
+        180deg,
+        rgba(231, 166, 47, 0.07),
+        rgba(255, 255, 255, 0.012)
+      );
+
+    color:
+      var(--taste-text-soft);
+
+    text-decoration:
+      none;
+
+    cursor:
+      pointer;
+
+    box-shadow:
+      inset 0 1px 0
+      rgba(255, 221, 164, 0.025);
+  }
+
+  .taste-button-secondary:hover {
+    border-color:
+      rgba(245, 184, 63, 0.68);
+
+    background:
+      rgba(231, 166, 47, 0.11);
+
+    color:
+      var(--taste-text);
+
+    box-shadow:
+      0 0 18px
+      rgba(231, 166, 47, 0.08);
+  }
+
+  /* ==================================================
+     BADGE
+  ================================================== */
+
+  .taste-badge {
+    display:
+      inline-flex;
+
+    align-items:
+      center;
+
+    gap:
+      5px;
+
+    padding:
+      4px 8px;
+
+    border:
+      1px solid
+      rgba(231, 166, 47, 0.25);
+
+    border-radius:
+      999px;
+
+    background:
+      linear-gradient(
+        180deg,
+        rgba(231, 166, 47, 0.09),
+        rgba(168, 98, 33, 0.035)
+      );
+
+    color:
+      var(--taste-text-soft);
+
+    font-size:
+      12px;
+  }
+
+  /* ==================================================
+     INPUT
+  ================================================== */
+
+  .taste-input {
+    width:
+      100%;
+
+    padding:
+      11px 12px;
+
+    border:
+      1px solid
+      var(--taste-border);
+
+    border-radius:
+      var(--taste-radius-sm);
+
+    background:
+      linear-gradient(
+        180deg,
+        rgba(255, 214, 145, 0.025),
+        rgba(0, 0, 0, 0.08)
+      ),
+      rgba(24, 15, 9, 0.78);
+
+    color:
+      var(--taste-text);
+
+    box-shadow:
+      inset 0 1px 2px
+      rgba(0, 0, 0, 0.18);
+  }
+
+  .taste-input:hover {
+    border-color:
+      rgba(231, 166, 47, 0.4);
+  }
+
+  .taste-input:focus {
+    border-color:
+      var(--taste-amber);
+
+    box-shadow:
+      0 0 0 3px
+      rgba(231, 166, 47, 0.11),
+      0 0 20px
+      rgba(231, 166, 47, 0.07);
+
+    outline:
+      none;
+  }
+}
+
+/* TasteApp organic stat glows */
+
+.taste-hero-stat {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.taste-hero-stat > * {
+  position: relative;
+  z-index: 1;
+}
+
+.taste-hero-stat::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  width: 150px;
+  height: 150px;
+  border-radius: 999px;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      circle,
+      rgba(
+        231,
+        166,
+        47,
+        var(--stat-glow-opacity, 0.12)
+      ) 0%,
+      rgba(
+        231,
+        166,
+        47,
+        calc(
+          var(--stat-glow-opacity, 0.12)
+          * 0.42
+        )
+      ) 34%,
+      transparent 72%
+    );
+  filter: blur(8px);
+}
+
+/* 1. box: silnější světlo vlevo nahoře */
+.taste-hero-stat:nth-child(5n + 1)::before {
+  --stat-glow-opacity: 0.19;
+  left: -52px;
+  top: -68px;
+}
+
+/* 2. box: jemnější světlo zprava */
+.taste-hero-stat:nth-child(5n + 2)::before {
+  --stat-glow-opacity: 0.11;
+  right: -48px;
+  top: -24px;
+}
+
+/* 3. box: teplý odlesk ze spodní části */
+.taste-hero-stat:nth-child(5n + 3)::before {
+  --stat-glow-opacity: 0.15;
+  left: 26%;
+  bottom: -105px;
+}
+
+/* 4. box: výraznější pravý spodní roh */
+.taste-hero-stat:nth-child(5n + 4)::before {
+  --stat-glow-opacity: 0.18;
+  right: -66px;
+  bottom: -76px;
+}
+
+/* 5. box: velmi subtilní světlo vlevo */
+.taste-hero-stat:nth-child(5n + 5)::before {
+  --stat-glow-opacity: 0.09;
+  left: -30px;
+  bottom: -50px;
+}
