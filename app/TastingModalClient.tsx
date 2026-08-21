@@ -4,6 +4,7 @@ import {
   useEffect,
   useState,
 } from "react";
+import { createPortal } from "react-dom";
 
 import {
   useRouter,
@@ -193,7 +194,7 @@ export default function TastingModalClient({
           MODAL
       ================================================== */}
 
-      {open && (
+      {open && createPortal(
         <div
           role="dialog"
           aria-modal="true"
@@ -422,7 +423,8 @@ export default function TastingModalClient({
               />
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
