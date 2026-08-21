@@ -429,6 +429,14 @@ export default function TastingForm({
   return (
     <form
       action={saveTastingAction}
+      onKeyDown={(event) => {
+        if (
+          event.key === "Enter" &&
+          event.target instanceof HTMLInputElement
+        ) {
+          event.preventDefault();
+        }
+      }}
     >
       <input
         type="hidden"

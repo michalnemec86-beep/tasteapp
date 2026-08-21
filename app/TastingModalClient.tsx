@@ -129,7 +129,6 @@ export default function TastingModalClient({
 
     if (result.success) {
       setOpen(false);
-
       router.refresh();
     }
   }
@@ -199,9 +198,14 @@ export default function TastingModalClient({
           role="dialog"
           aria-modal="true"
           aria-labelledby="new-tasting-title"
-          onClick={() =>
-            setOpen(false)
-          }
+          onClick={(event) => {
+            if (
+              event.target ===
+              event.currentTarget
+            ) {
+              setOpen(false);
+            }
+          }}
           style={{
             position: "fixed",
             inset: 0,
