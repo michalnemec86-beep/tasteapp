@@ -219,7 +219,7 @@ export default async function ProfilePage({
     supabase
       .from("hops")
       .select(
-        "id, name"
+        "id, name, aliases"
       )
       .order("name");
 

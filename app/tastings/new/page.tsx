@@ -183,7 +183,7 @@ export default async function NewTastingPage() {
     await supabase
       .from("hops")
       .select(
-        "id, name"
+        "id, name, aliases"
       )
       .order("name");
 

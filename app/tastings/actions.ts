@@ -748,7 +748,7 @@ async function resolveHopIds(
     await supabase
       .from("hops")
       .select(
-        "id, name"
+        "id, name, aliases"
       );
 
   if (
@@ -763,45 +763,32 @@ async function resolveHopIds(
     const hopName
     of hopNames
   ) {
-    let hop =
+    const hop =
       allHops?.find(
-        (item) =>
-          normalizeText(
-            item.name
-          ) ===
-          normalizeText(
-            hopName
-          )
+        (item) => {
+          const query =
+            normalizeText(
+              hopName
+            );
+
+          return (
+            normalizeText(
+              item.name
+            ) === query ||
+            item.aliases.some(
+              (alias: string) =>
+                normalizeText(
+                  alias
+                ) === query
+            )
+          );
+        }
       ) ?? null;
 
     if (!hop) {
-      const {
-        data:
-          newHop,
-        error:
-          hopError,
-      } =
-        await supabase
-          .from("hops")
-          .insert({
-            name:
-              hopName,
-          })
-          .select(
-            "id, name"
-          )
-          .single();
-
-      if (
-        hopError
-      ) {
-        throw new Error(
-          hopError.message
-        );
-      }
-
-      hop =
-        newHop;
+      throw new Error(
+        `Chmel "${hopName}" není v katalogu. Vyberte existující chmel.`
+      );
     }
 
     if (

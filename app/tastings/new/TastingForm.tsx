@@ -23,6 +23,7 @@ type BeerStyle = {
 type Hop = {
   id: number;
   name: string;
+  aliases: string[];
 };
 
 type ExistingBeer = {
@@ -337,7 +338,9 @@ export default function TastingForm({
   const hopSuggestions =
     hops.filter(
       (hop) => {
-        if (!hopValue.trim()) {
+        if (
+          hopValue.trim().length < 3
+        ) {
           return false;
         }
 
@@ -356,11 +359,18 @@ export default function TastingForm({
           return false;
         }
 
-        return normalizeText(
-          hop.name
-        ).includes(
+        const query =
+          normalizeText(hopValue);
+
+        return (
           normalizeText(
-            hopValue
+            hop.name
+          ).includes(query) ||
+          hop.aliases.some(
+            (alias) =>
+              normalizeText(
+                alias
+              ).includes(query)
           )
         );
       }
@@ -981,10 +991,6 @@ export default function TastingForm({
                     hopSuggestions[0]
                       .name
                   );
-                } else {
-                  addHop(
-                    hopValue
-                  );
                 }
               }
             }}
@@ -994,7 +1000,8 @@ export default function TastingForm({
           />
 
           {hopOpen &&
-            hopValue.trim() &&
+            hopValue.trim().length >=
+              3 &&
             hopSuggestions.length >
               0 && (
               <div style={dropdownStyle}>
@@ -1018,6 +1025,11 @@ export default function TastingForm({
                       }
                     >
                       {hop.name}
+                      {hop.aliases.length >
+                        0 &&
+                        ` (${hop.aliases.join(
+                          ", "
+                        )})`}
                     </button>
                   )
                 )}
@@ -1025,29 +1037,21 @@ export default function TastingForm({
             )}
 
           {hopOpen &&
-            hopValue.trim() &&
+            hopValue.trim().length >=
+              3 &&
             hopSuggestions.length ===
               0 && (
               <div style={dropdownStyle}>
-                <button
-                  type="button"
-                  onMouseDown={(event) =>
-                    event.preventDefault()
-                  }
-                  onClick={() =>
-                    addHop(
-                      hopValue
-                    )
-                  }
-                  style={
-                    suggestionButtonStyle
-                  }
+                <div
+                  style={{
+                    padding:
+                      "10px 12px",
+                    color:
+                      "var(--taste-text-muted)",
+                  }}
                 >
-                  ＋ Nový chmel:{" "}
-                  <strong>
-                    {hopValue}
-                  </strong>
-                </button>
+                  Tento chmel není v katalogu.
+                </div>
               </div>
             )}
         </div>

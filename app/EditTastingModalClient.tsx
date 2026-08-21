@@ -25,6 +25,7 @@ type BeerStyle = {
 type Hop = {
   id: number;
   name: string;
+  aliases: string[];
 };
 
 type Beer = {
@@ -211,20 +212,101 @@ export default function EditTastingModalClient({
       .filter(
         (name): name is string =>
           Boolean(name)
-      )
-      .join(", ") ?? "";
+      ) ?? [];
 
-  const [hopText, setHopText] =
-    useState(initialHops);
+  const [
+    selectedHops,
+    setSelectedHops,
+  ] = useState<string[]>(
+    initialHops
+  );
 
-  const hopNames =
-    hopText
-      .split(",")
-      .map(
-        (hop) =>
-          hop.trim()
-      )
-      .filter(Boolean);
+  const [
+    hopValue,
+    setHopValue,
+  ] = useState("");
+
+  const [
+    hopOpen,
+    setHopOpen,
+  ] = useState(false);
+
+  const hopSuggestions =
+    hops.filter((hop) => {
+      if (
+        hopValue.trim().length < 3
+      ) {
+        return false;
+      }
+
+      const alreadySelected =
+        selectedHops.some(
+          (selectedHop) =>
+            normalizeText(
+              selectedHop
+            ) ===
+            normalizeText(
+              hop.name
+            )
+        );
+
+      if (alreadySelected) {
+        return false;
+      }
+
+      const query =
+        normalizeText(hopValue);
+
+      return (
+        normalizeText(
+          hop.name
+        ).includes(query) ||
+        hop.aliases.some(
+          (alias) =>
+            normalizeText(
+              alias
+            ).includes(query)
+        )
+      );
+    });
+
+  function addHop(hop: Hop) {
+    const alreadySelected =
+      selectedHops.some(
+        (selectedHop) =>
+          normalizeText(
+            selectedHop
+          ) ===
+          normalizeText(
+            hop.name
+          )
+      );
+
+    if (!alreadySelected) {
+      setSelectedHops(
+        (current) => [
+          ...current,
+          hop.name,
+        ]
+      );
+    }
+
+    setHopValue("");
+    setHopOpen(false);
+  }
+
+  function removeHop(
+    name: string
+  ) {
+    setSelectedHops(
+      (current) =>
+        current.filter(
+          (hop) =>
+            normalizeText(hop) !==
+            normalizeText(name)
+        )
+    );
+  }
 
   const countrySuggestions =
     countries.filter((country) => {
@@ -952,38 +1034,224 @@ export default function EditTastingModalClient({
                   Chmely
                 </label>
 
-                <input
-                  value={hopText}
-                  onChange={(event) =>
-                    setHopText(
-                      event.target.value
-                    )
-                  }
-                  placeholder="Např. Citra, Mosaic, Saaz"
-                  style={inputStyle}
-                />
+                {selectedHops.length >
+                  0 && (
+                  <div
+                    style={{
+                      display: "flex",
+                      flexWrap: "wrap",
+                      gap: "8px",
+                      marginBottom:
+                        "10px",
+                    }}
+                  >
+                    {selectedHops.map(
+                      (hop) => (
+                        <div
+                          key={hop}
+                          style={{
+                            display:
+                              "inline-flex",
+                            alignItems:
+                              "center",
+                            gap: "6px",
+                            padding:
+                              "6px 10px",
+                            border:
+                              "1px solid rgba(127,127,127,0.5)",
+                            borderRadius:
+                              "999px",
+                            fontSize:
+                              "14px",
+                          }}
+                        >
+                          {hop}
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              removeHop(
+                                hop
+                              )
+                            }
+                            style={{
+                              border: 0,
+                              background:
+                                "transparent",
+                              cursor:
+                                "pointer",
+                              color:
+                                "inherit",
+                              padding: 0,
+                              fontSize:
+                                "16px",
+                            }}
+                          >
+                            ×
+                          </button>
+
+                          <input
+                            type="hidden"
+                            name="hops"
+                            value={hop}
+                          />
+                        </div>
+                      )
+                    )}
+                  </div>
+                )}
 
                 <div
                   style={{
-                    marginTop: "6px",
-                    fontSize: "12px",
-                    opacity: 0.55,
+                    position: "relative",
                   }}
                 >
-                  Více chmelů oddělte
-                  čárkou.
-                </div>
+                  <input
+                    value={hopValue}
+                    onChange={(event) => {
+                      setHopValue(
+                        event.target.value
+                      );
+                      setHopOpen(true);
+                    }}
+                    onFocus={() =>
+                      setHopOpen(true)
+                    }
+                    onBlur={() => {
+                      setTimeout(() => {
+                        setHopOpen(false);
+                      }, 150);
+                    }}
+                    onKeyDown={(event) => {
+                      if (
+                        event.key ===
+                          "Enter" &&
+                        hopValue.trim()
+                      ) {
+                        event.preventDefault();
 
-                {hopNames.map(
-                  (hopName, index) => (
-                    <input
-                      key={`${hopName}-${index}`}
-                      type="hidden"
-                      name="hops"
-                      value={hopName}
-                    />
-                  )
-                )}
+                        if (
+                          hopSuggestions.length >
+                          0
+                        ) {
+                          addHop(
+                            hopSuggestions[0]
+                          );
+                        }
+                      }
+                    }}
+                    placeholder="Např. Citra"
+                    autoComplete="off"
+                    style={inputStyle}
+                  />
+
+                  {hopOpen &&
+                    hopValue.trim()
+                      .length >= 3 &&
+                    hopSuggestions.length >
+                      0 && (
+                      <div
+                        style={{
+                          position:
+                            "absolute",
+                          zIndex: 40,
+                          top:
+                            "calc(100% + 6px)",
+                          left: 0,
+                          right: 0,
+                          maxHeight:
+                            "220px",
+                          overflowY:
+                            "auto",
+                          border:
+                            "1px solid var(--taste-border)",
+                          borderRadius:
+                            "10px",
+                          background:
+                            "var(--taste-surface-raised)",
+                          boxShadow:
+                            "0 18px 45px rgba(0,0,0,0.45)",
+                        }}
+                      >
+                        {hopSuggestions.map(
+                          (hop) => (
+                            <button
+                              key={
+                                hop.id
+                              }
+                              type="button"
+                              onMouseDown={(
+                                event
+                              ) =>
+                                event.preventDefault()
+                              }
+                              onClick={() =>
+                                addHop(hop)
+                              }
+                              style={{
+                                width:
+                                  "100%",
+                                padding:
+                                  "10px 12px",
+                                border: 0,
+                                borderBottom:
+                                  "1px solid var(--taste-border)",
+                                background:
+                                  "transparent",
+                                color:
+                                  "var(--taste-text)",
+                                textAlign:
+                                  "left",
+                                cursor:
+                                  "pointer",
+                              }}
+                            >
+                              {hop.name}
+                              {hop.aliases
+                                .length >
+                                0 &&
+                                ` (${hop.aliases.join(
+                                  ", "
+                                )})`}
+                            </button>
+                          )
+                        )}
+                      </div>
+                    )}
+
+                  {hopOpen &&
+                    hopValue.trim()
+                      .length >= 3 &&
+                    hopSuggestions.length ===
+                      0 && (
+                      <div
+                        style={{
+                          position:
+                            "absolute",
+                          zIndex: 40,
+                          top:
+                            "calc(100% + 6px)",
+                          left: 0,
+                          right: 0,
+                          padding:
+                            "10px 12px",
+                          border:
+                            "1px solid var(--taste-border)",
+                          borderRadius:
+                            "10px",
+                          background:
+                            "var(--taste-surface-raised)",
+                          color:
+                            "var(--taste-text-muted)",
+                          boxShadow:
+                            "0 18px 45px rgba(0,0,0,0.45)",
+                        }}
+                      >
+                        Tento chmel není
+                        v katalogu.
+                      </div>
+                    )}
+                </div>
               </div>
 
               <hr

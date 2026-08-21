@@ -62,6 +62,7 @@ type BeerStyleRow = {
 type HopRow = {
   id: number;
   name: string;
+  aliases: string[];
 };
 
 type CatalogBeerRow = {
@@ -314,7 +315,7 @@ export default async function HomePage() {
     supabase
       .from("hops")
       .select(
-        "id, name"
+        "id, name, aliases"
       )
       .order("name");
 

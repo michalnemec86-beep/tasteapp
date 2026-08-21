@@ -20,6 +20,7 @@ type BeerStyle = {
 type Hop = {
   id: number;
   name: string;
+  aliases: string[];
 };
 
 type ExistingBeer = {
