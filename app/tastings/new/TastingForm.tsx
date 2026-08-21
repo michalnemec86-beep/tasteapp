@@ -9,14 +9,21 @@ type Brewery = {
   country?: string | null;
 };
 
+type Country = {
+  id: number;
+  name: string;
+};
+
 type BeerStyle = {
   id: number;
   name: string;
+  aliases: string[];
 };
 
 type Hop = {
   id: number;
   name: string;
+  aliases: string[];
 };
 
 type ExistingBeer = {
@@ -45,6 +52,7 @@ type TastingFormProps = {
 
   beers: ExistingBeer[];
   breweries: Brewery[];
+  countries: Country[];
   styles: BeerStyle[];
   hops: Hop[];
 };
@@ -61,6 +69,7 @@ export default function TastingForm({
   saveTastingAction,
   beers,
   breweries,
+  countries,
   styles,
   hops,
 }: TastingFormProps) {
@@ -262,55 +271,23 @@ export default function TastingForm({
   // ZEMĚ
   // ==================================================
 
-  const knownCountries =
-    Array.from(
-      new Map(
-        breweries
-          .filter(
-            (
-              brewery
-            ): brewery is Brewery & {
-              country: string;
-            } =>
-              Boolean(
-                brewery.country?.trim()
-              )
-          )
-          .map(
-            (brewery) => [
-              normalizeText(
-                brewery.country
-              ),
-              brewery.country,
-            ]
-          )
-      ).values()
-    ).sort(
-      (a, b) =>
-        a.localeCompare(
-          b,
-          "cs"
-        )
-    );
-
   const countrySuggestions =
-    knownCountries.filter(
-      (country) => {
-        if (
-          !breweryCountry.trim()
-        ) {
-          return false;
-        }
-
-        return normalizeText(
-          country
-        ).includes(
-          normalizeText(
-            breweryCountry
-          )
-        );
+    countries.filter((country) => {
+      if (
+        breweryCountry.trim().length <
+        3
+      ) {
+        return false;
       }
-    );
+
+      return normalizeText(
+        country.name
+      ).includes(
+        normalizeText(
+          breweryCountry
+        )
+      );
+    });
 
   // ==================================================
   // STYL
@@ -319,15 +296,26 @@ export default function TastingForm({
   const styleSuggestions =
     styles.filter(
       (style) => {
-        if (!styleName.trim()) {
+        if (
+          styleName.trim().length < 3
+        ) {
           return false;
         }
 
-        return normalizeText(
-          style.name
-        ).includes(
+        const query =
           normalizeText(
             styleName
+          );
+
+        return (
+          normalizeText(
+            style.name
+          ).includes(query) ||
+          style.aliases.some(
+            (alias) =>
+              normalizeText(
+                alias
+              ).includes(query)
           )
         );
       }
@@ -350,7 +338,9 @@ export default function TastingForm({
   const hopSuggestions =
     hops.filter(
       (hop) => {
-        if (!hopValue.trim()) {
+        if (
+          hopValue.trim().length < 3
+        ) {
           return false;
         }
 
@@ -369,11 +359,18 @@ export default function TastingForm({
           return false;
         }
 
-        return normalizeText(
-          hop.name
-        ).includes(
+        const query =
+          normalizeText(hopValue);
+
+        return (
           normalizeText(
-            hopValue
+            hop.name
+          ).includes(query) ||
+          hop.aliases.some(
+            (alias) =>
+              normalizeText(
+                alias
+              ).includes(query)
           )
         );
       }
@@ -678,14 +675,15 @@ export default function TastingForm({
           />
 
           {countryOpen &&
-            breweryCountry.trim() &&
+            breweryCountry.trim().length >=
+              3 &&
             countrySuggestions.length >
               0 && (
               <div style={dropdownStyle}>
                 {countrySuggestions.map(
                   (country) => (
                     <button
-                      key={country}
+                      key={country.id}
                       type="button"
                       onMouseDown={(
                         event
@@ -694,7 +692,7 @@ export default function TastingForm({
                       }
                       onClick={() => {
                         setBreweryCountry(
-                          country
+                          country.name
                         );
 
                         setCountryOpen(
@@ -705,7 +703,7 @@ export default function TastingForm({
                         suggestionButtonStyle
                       }
                     >
-                      {country}
+                      {country.name}
                     </button>
                   )
                 )}
@@ -752,7 +750,8 @@ export default function TastingForm({
           />
 
           {styleOpen &&
-            styleName.trim() &&
+            styleName.trim().length >=
+              3 &&
             styleSuggestions.length >
               0 && (
               <div style={dropdownStyle}>
@@ -776,6 +775,11 @@ export default function TastingForm({
                       }
                     >
                       {style.name}
+                      {style.aliases.length >
+                        0 &&
+                        ` (${style.aliases.join(
+                          ", "
+                        )})`}
                     </button>
                   )
                 )}
@@ -783,7 +787,8 @@ export default function TastingForm({
             )}
 
           {styleOpen &&
-            styleName.trim() &&
+            styleName.trim().length >=
+              3 &&
             styleSuggestions.length ===
               0 && (
               <div style={dropdownStyle}>
@@ -791,12 +796,11 @@ export default function TastingForm({
                   style={{
                     padding:
                       "10px 12px",
+                    color:
+                      "var(--taste-text-muted)",
                   }}
                 >
-                  ＋ Nový styl:{" "}
-                  <strong>
-                    {styleName}
-                  </strong>
+                  Tento styl není v katalogu.
                 </div>
               </div>
             )}
@@ -987,10 +991,6 @@ export default function TastingForm({
                     hopSuggestions[0]
                       .name
                   );
-                } else {
-                  addHop(
-                    hopValue
-                  );
                 }
               }
             }}
@@ -1000,7 +1000,8 @@ export default function TastingForm({
           />
 
           {hopOpen &&
-            hopValue.trim() &&
+            hopValue.trim().length >=
+              3 &&
             hopSuggestions.length >
               0 && (
               <div style={dropdownStyle}>
@@ -1024,6 +1025,11 @@ export default function TastingForm({
                       }
                     >
                       {hop.name}
+                      {hop.aliases.length >
+                        0 &&
+                        ` (${hop.aliases.join(
+                          ", "
+                        )})`}
                     </button>
                   )
                 )}
@@ -1031,29 +1037,21 @@ export default function TastingForm({
             )}
 
           {hopOpen &&
-            hopValue.trim() &&
+            hopValue.trim().length >=
+              3 &&
             hopSuggestions.length ===
               0 && (
               <div style={dropdownStyle}>
-                <button
-                  type="button"
-                  onMouseDown={(event) =>
-                    event.preventDefault()
-                  }
-                  onClick={() =>
-                    addHop(
-                      hopValue
-                    )
-                  }
-                  style={
-                    suggestionButtonStyle
-                  }
+                <div
+                  style={{
+                    padding:
+                      "10px 12px",
+                    color:
+                      "var(--taste-text-muted)",
+                  }}
                 >
-                  ＋ Nový chmel:{" "}
-                  <strong>
-                    {hopValue}
-                  </strong>
-                </button>
+                  Tento chmel není v katalogu.
+                </div>
               </div>
             )}
         </div>

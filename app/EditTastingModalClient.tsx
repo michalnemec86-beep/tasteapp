@@ -11,14 +11,21 @@ type Brewery = {
   country: string | null;
 };
 
+type Country = {
+  id: number;
+  name: string;
+};
+
 type BeerStyle = {
   id: number;
   name: string;
+  aliases: string[];
 };
 
 type Hop = {
   id: number;
   name: string;
+  aliases: string[];
 };
 
 type Beer = {
@@ -82,6 +89,7 @@ type Props = {
 
   beers: Beer[];
   breweries: Brewery[];
+  countries: Country[];
   styles: BeerStyle[];
   hops: Hop[];
 
@@ -110,6 +118,7 @@ export default function EditTastingModalClient({
   tasting,
   beers,
   breweries,
+  countries,
   styles,
   hops,
   updateTastingAction,
@@ -167,6 +176,12 @@ export default function EditTastingModalClient({
         ""
     );
 
+  const [countryOpen, setCountryOpen] =
+    useState(false);
+
+  const [styleOpen, setStyleOpen] =
+    useState(false);
+
   const [plato, setPlato] =
     useState(
       tasting.plato !== null
@@ -197,20 +212,156 @@ export default function EditTastingModalClient({
       .filter(
         (name): name is string =>
           Boolean(name)
-      )
-      .join(", ") ?? "";
+      ) ?? [];
 
-  const [hopText, setHopText] =
-    useState(initialHops);
+  const [
+    selectedHops,
+    setSelectedHops,
+  ] = useState<string[]>(
+    initialHops
+  );
 
-  const hopNames =
-    hopText
-      .split(",")
-      .map(
-        (hop) =>
-          hop.trim()
-      )
-      .filter(Boolean);
+  const [
+    hopValue,
+    setHopValue,
+  ] = useState("");
+
+  const [
+    hopOpen,
+    setHopOpen,
+  ] = useState(false);
+
+  const hopSuggestions =
+    hops.filter((hop) => {
+      if (
+        hopValue.trim().length < 3
+      ) {
+        return false;
+      }
+
+      const alreadySelected =
+        selectedHops.some(
+          (selectedHop) =>
+            normalizeText(
+              selectedHop
+            ) ===
+            normalizeText(
+              hop.name
+            )
+        );
+
+      if (alreadySelected) {
+        return false;
+      }
+
+      const query =
+        normalizeText(hopValue);
+
+      return (
+        normalizeText(
+          hop.name
+        ).includes(query) ||
+        hop.aliases.some(
+          (alias) =>
+            normalizeText(
+              alias
+            ).includes(query)
+        )
+      );
+    });
+
+  function addHop(hop: Hop) {
+    const alreadySelected =
+      selectedHops.some(
+        (selectedHop) =>
+          normalizeText(
+            selectedHop
+          ) ===
+          normalizeText(
+            hop.name
+          )
+      );
+
+    if (!alreadySelected) {
+      setSelectedHops(
+        (current) => [
+          ...current,
+          hop.name,
+        ]
+      );
+    }
+
+    setHopValue("");
+    setHopOpen(false);
+  }
+
+  function removeHop(
+    name: string
+  ) {
+    setSelectedHops(
+      (current) =>
+        current.filter(
+          (hop) =>
+            normalizeText(hop) !==
+            normalizeText(name)
+        )
+    );
+  }
+
+  const countrySuggestions =
+    countries.filter((country) => {
+      if (
+        breweryCountry.trim().length < 3
+      ) {
+        return false;
+      }
+
+      return normalizeText(
+        country.name
+      ).includes(
+        normalizeText(
+          breweryCountry
+        )
+      );
+    });
+
+  function selectCountry(
+    country: Country
+  ) {
+    setBreweryCountry(country.name);
+    setCountryOpen(false);
+  }
+
+  const styleSuggestions =
+    styles.filter((style) => {
+      if (
+        styleName.trim().length < 3
+      ) {
+        return false;
+      }
+
+      const query =
+        normalizeText(styleName);
+
+      return (
+        normalizeText(
+          style.name
+        ).includes(query) ||
+        style.aliases.some(
+          (alias) =>
+            normalizeText(
+              alias
+            ).includes(query)
+        )
+      );
+    });
+
+  function selectStyle(
+    style: BeerStyle
+  ) {
+    setStyleName(style.name);
+    setStyleOpen(false);
+  }
 
   function handleBeerNameChange(
     value: string
@@ -522,45 +673,137 @@ export default function EditTastingModalClient({
                   Země původu pivovaru
                 </label>
 
-                <input
-                  list={`edit-countries-${tasting.id}`}
-                  name="breweryCountry"
-                  value={breweryCountry}
-                  onChange={(event) =>
-                    setBreweryCountry(
-                      event.target.value
-                    )
-                  }
-                  autoComplete="off"
-                  style={inputStyle}
-                />
-
-                <datalist
-                  id={`edit-countries-${tasting.id}`}
+                <div
+                  style={{
+                    position: "relative",
+                  }}
                 >
-                  {Array.from(
-                    new Set(
-                      breweries
-                        .map(
-                          (brewery) =>
-                            brewery.country
-                        )
-                        .filter(
-                          (
-                            country
-                          ): country is string =>
-                            Boolean(
-                              country
-                            )
-                        )
-                    )
-                  ).map((country) => (
-                    <option
-                      key={country}
-                      value={country}
-                    />
-                  ))}
-                </datalist>
+                  <input
+                    name="breweryCountry"
+                    value={breweryCountry}
+                    onChange={(event) => {
+                      setBreweryCountry(
+                        event.target.value
+                      );
+                      setCountryOpen(true);
+                    }}
+                    onFocus={() =>
+                      setCountryOpen(true)
+                    }
+                    onBlur={() => {
+                      setTimeout(() => {
+                        setCountryOpen(false);
+                      }, 150);
+                    }}
+                    autoComplete="off"
+                    style={inputStyle}
+                  />
+
+                  {countryOpen &&
+                    breweryCountry.trim()
+                      .length >= 3 &&
+                    countrySuggestions.length >
+                      0 && (
+                      <div
+                        style={{
+                          position:
+                            "absolute",
+                          zIndex: 40,
+                          top:
+                            "calc(100% + 6px)",
+                          left: 0,
+                          right: 0,
+                          maxHeight:
+                            "220px",
+                          overflowY:
+                            "auto",
+                          border:
+                            "1px solid var(--taste-border)",
+                          borderRadius:
+                            "10px",
+                          background:
+                            "var(--taste-surface-raised)",
+                          boxShadow:
+                            "0 18px 45px rgba(0,0,0,0.45)",
+                        }}
+                      >
+                        {countrySuggestions.map(
+                          (country) => (
+                            <button
+                              key={
+                                country.id
+                              }
+                              type="button"
+                              onMouseDown={(
+                                event
+                              ) =>
+                                event.preventDefault()
+                              }
+                              onClick={() =>
+                                selectCountry(
+                                  country
+                                )
+                              }
+                              style={{
+                                width:
+                                  "100%",
+                                padding:
+                                  "10px 12px",
+                                border: 0,
+                                borderBottom:
+                                  "1px solid var(--taste-border)",
+                                background:
+                                  "transparent",
+                                color:
+                                  "var(--taste-text)",
+                                textAlign:
+                                  "left",
+                                cursor:
+                                  "pointer",
+                              }}
+                            >
+                              {
+                                country.name
+                              }
+                            </button>
+                          )
+                        )}
+                      </div>
+                    )}
+
+                  {countryOpen &&
+                    breweryCountry.trim()
+                      .length >= 3 &&
+                    countrySuggestions.length ===
+                      0 && (
+                      <div
+                        style={{
+                          position:
+                            "absolute",
+                          zIndex: 40,
+                          top:
+                            "calc(100% + 6px)",
+                          left: 0,
+                          right: 0,
+                          padding:
+                            "10px 12px",
+                          border:
+                            "1px solid var(--taste-border)",
+                          borderRadius:
+                            "10px",
+                          background:
+                            "var(--taste-surface-raised)",
+                          color:
+                            "var(--taste-text-muted)",
+                          boxShadow:
+                            "0 18px 45px rgba(0,0,0,0.45)",
+                        }}
+                      >
+                        Tato země není
+                        v katalogu.
+                      </div>
+                    )}
+                </div>
               </div>
 
               {/* STYL */}
@@ -570,29 +813,144 @@ export default function EditTastingModalClient({
                   Pivní styl
                 </label>
 
-                <input
-                  list={`edit-styles-${tasting.id}`}
-                  name="style"
-                  value={styleName}
-                  onChange={(event) =>
-                    setStyleName(
-                      event.target.value
-                    )
-                  }
-                  autoComplete="off"
-                  style={inputStyle}
-                />
-
-                <datalist
-                  id={`edit-styles-${tasting.id}`}
+                <div
+                  style={{
+                    position: "relative",
+                  }}
                 >
-                  {styles.map((style) => (
-                    <option
-                      key={style.id}
-                      value={style.name}
-                    />
-                  ))}
-                </datalist>
+                  <input
+                    name="style"
+                    value={styleName}
+                    onChange={(event) => {
+                      setStyleName(
+                        event.target.value
+                      );
+                      setStyleOpen(true);
+                    }}
+                    onFocus={() =>
+                      setStyleOpen(true)
+                    }
+                    onBlur={() => {
+                      setTimeout(() => {
+                        setStyleOpen(false);
+                      }, 150);
+                    }}
+                    autoComplete="off"
+                    style={inputStyle}
+                  />
+
+                  {styleOpen &&
+                    styleName.trim()
+                      .length >= 3 &&
+                    styleSuggestions.length >
+                      0 && (
+                      <div
+                        style={{
+                          position:
+                            "absolute",
+                          zIndex: 40,
+                          top:
+                            "calc(100% + 6px)",
+                          left: 0,
+                          right: 0,
+                          maxHeight:
+                            "220px",
+                          overflowY:
+                            "auto",
+                          border:
+                            "1px solid var(--taste-border)",
+                          borderRadius:
+                            "10px",
+                          background:
+                            "var(--taste-surface-raised)",
+                          boxShadow:
+                            "0 18px 45px rgba(0,0,0,0.45)",
+                        }}
+                      >
+                        {styleSuggestions.map(
+                          (style) => (
+                            <button
+                              key={
+                                style.id
+                              }
+                              type="button"
+                              onMouseDown={(
+                                event
+                              ) =>
+                                event.preventDefault()
+                              }
+                              onClick={() =>
+                                selectStyle(
+                                  style
+                                )
+                              }
+                              style={{
+                                width:
+                                  "100%",
+                                padding:
+                                  "10px 12px",
+                                border: 0,
+                                borderBottom:
+                                  "1px solid var(--taste-border)",
+                                background:
+                                  "transparent",
+                                color:
+                                  "var(--taste-text)",
+                                textAlign:
+                                  "left",
+                                cursor:
+                                  "pointer",
+                              }}
+                            >
+                              {
+                                style.name
+                              }
+                              {style
+                                .aliases
+                                .length >
+                                0 &&
+                                ` (${style.aliases.join(
+                                  ", "
+                                )})`}
+                            </button>
+                          )
+                        )}
+                      </div>
+                    )}
+
+                  {styleOpen &&
+                    styleName.trim()
+                      .length >= 3 &&
+                    styleSuggestions.length ===
+                      0 && (
+                      <div
+                        style={{
+                          position:
+                            "absolute",
+                          zIndex: 40,
+                          top:
+                            "calc(100% + 6px)",
+                          left: 0,
+                          right: 0,
+                          padding:
+                            "10px 12px",
+                          border:
+                            "1px solid var(--taste-border)",
+                          borderRadius:
+                            "10px",
+                          background:
+                            "var(--taste-surface-raised)",
+                          color:
+                            "var(--taste-text-muted)",
+                          boxShadow:
+                            "0 18px 45px rgba(0,0,0,0.45)",
+                        }}
+                      >
+                        Tento styl není
+                        v katalogu.
+                      </div>
+                    )}
+                </div>
               </div>
 
               {/* PARAMETRY */}
@@ -676,38 +1034,224 @@ export default function EditTastingModalClient({
                   Chmely
                 </label>
 
-                <input
-                  value={hopText}
-                  onChange={(event) =>
-                    setHopText(
-                      event.target.value
-                    )
-                  }
-                  placeholder="Např. Citra, Mosaic, Saaz"
-                  style={inputStyle}
-                />
+                {selectedHops.length >
+                  0 && (
+                  <div
+                    style={{
+                      display: "flex",
+                      flexWrap: "wrap",
+                      gap: "8px",
+                      marginBottom:
+                        "10px",
+                    }}
+                  >
+                    {selectedHops.map(
+                      (hop) => (
+                        <div
+                          key={hop}
+                          style={{
+                            display:
+                              "inline-flex",
+                            alignItems:
+                              "center",
+                            gap: "6px",
+                            padding:
+                              "6px 10px",
+                            border:
+                              "1px solid rgba(127,127,127,0.5)",
+                            borderRadius:
+                              "999px",
+                            fontSize:
+                              "14px",
+                          }}
+                        >
+                          {hop}
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              removeHop(
+                                hop
+                              )
+                            }
+                            style={{
+                              border: 0,
+                              background:
+                                "transparent",
+                              cursor:
+                                "pointer",
+                              color:
+                                "inherit",
+                              padding: 0,
+                              fontSize:
+                                "16px",
+                            }}
+                          >
+                            ×
+                          </button>
+
+                          <input
+                            type="hidden"
+                            name="hops"
+                            value={hop}
+                          />
+                        </div>
+                      )
+                    )}
+                  </div>
+                )}
 
                 <div
                   style={{
-                    marginTop: "6px",
-                    fontSize: "12px",
-                    opacity: 0.55,
+                    position: "relative",
                   }}
                 >
-                  Více chmelů oddělte
-                  čárkou.
-                </div>
+                  <input
+                    value={hopValue}
+                    onChange={(event) => {
+                      setHopValue(
+                        event.target.value
+                      );
+                      setHopOpen(true);
+                    }}
+                    onFocus={() =>
+                      setHopOpen(true)
+                    }
+                    onBlur={() => {
+                      setTimeout(() => {
+                        setHopOpen(false);
+                      }, 150);
+                    }}
+                    onKeyDown={(event) => {
+                      if (
+                        event.key ===
+                          "Enter" &&
+                        hopValue.trim()
+                      ) {
+                        event.preventDefault();
 
-                {hopNames.map(
-                  (hopName, index) => (
-                    <input
-                      key={`${hopName}-${index}`}
-                      type="hidden"
-                      name="hops"
-                      value={hopName}
-                    />
-                  )
-                )}
+                        if (
+                          hopSuggestions.length >
+                          0
+                        ) {
+                          addHop(
+                            hopSuggestions[0]
+                          );
+                        }
+                      }
+                    }}
+                    placeholder="Např. Citra"
+                    autoComplete="off"
+                    style={inputStyle}
+                  />
+
+                  {hopOpen &&
+                    hopValue.trim()
+                      .length >= 3 &&
+                    hopSuggestions.length >
+                      0 && (
+                      <div
+                        style={{
+                          position:
+                            "absolute",
+                          zIndex: 40,
+                          top:
+                            "calc(100% + 6px)",
+                          left: 0,
+                          right: 0,
+                          maxHeight:
+                            "220px",
+                          overflowY:
+                            "auto",
+                          border:
+                            "1px solid var(--taste-border)",
+                          borderRadius:
+                            "10px",
+                          background:
+                            "var(--taste-surface-raised)",
+                          boxShadow:
+                            "0 18px 45px rgba(0,0,0,0.45)",
+                        }}
+                      >
+                        {hopSuggestions.map(
+                          (hop) => (
+                            <button
+                              key={
+                                hop.id
+                              }
+                              type="button"
+                              onMouseDown={(
+                                event
+                              ) =>
+                                event.preventDefault()
+                              }
+                              onClick={() =>
+                                addHop(hop)
+                              }
+                              style={{
+                                width:
+                                  "100%",
+                                padding:
+                                  "10px 12px",
+                                border: 0,
+                                borderBottom:
+                                  "1px solid var(--taste-border)",
+                                background:
+                                  "transparent",
+                                color:
+                                  "var(--taste-text)",
+                                textAlign:
+                                  "left",
+                                cursor:
+                                  "pointer",
+                              }}
+                            >
+                              {hop.name}
+                              {hop.aliases
+                                .length >
+                                0 &&
+                                ` (${hop.aliases.join(
+                                  ", "
+                                )})`}
+                            </button>
+                          )
+                        )}
+                      </div>
+                    )}
+
+                  {hopOpen &&
+                    hopValue.trim()
+                      .length >= 3 &&
+                    hopSuggestions.length ===
+                      0 && (
+                      <div
+                        style={{
+                          position:
+                            "absolute",
+                          zIndex: 40,
+                          top:
+                            "calc(100% + 6px)",
+                          left: 0,
+                          right: 0,
+                          padding:
+                            "10px 12px",
+                          border:
+                            "1px solid var(--taste-border)",
+                          borderRadius:
+                            "10px",
+                          background:
+                            "var(--taste-surface-raised)",
+                          color:
+                            "var(--taste-text-muted)",
+                          boxShadow:
+                            "0 18px 45px rgba(0,0,0,0.45)",
+                        }}
+                      >
+                        Tento chmel není
+                        v katalogu.
+                      </div>
+                    )}
+                </div>
               </div>
 
               <hr
