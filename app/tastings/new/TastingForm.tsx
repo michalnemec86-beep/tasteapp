@@ -155,7 +155,9 @@ export default function TastingForm({
   const beerSuggestions =
     beers.filter(
       (beer) => {
-        if (!beerName.trim()) {
+        if (
+          beerName.trim().length < 3
+        ) {
           return false;
         }
 
@@ -239,7 +241,9 @@ export default function TastingForm({
   const brewerySuggestions =
     breweries.filter(
       (brewery) => {
-        if (!breweryName.trim()) {
+        if (
+          breweryName.trim().length < 3
+        ) {
           return false;
         }
 
@@ -478,7 +482,8 @@ export default function TastingForm({
           />
 
           {beerOpen &&
-            beerName.trim() &&
+            beerName.trim().length >=
+              3 &&
             beerSuggestions.length >
               0 && (
               <div style={dropdownStyle}>
@@ -570,7 +575,8 @@ export default function TastingForm({
           />
 
           {breweryOpen &&
-            breweryName.trim() &&
+            breweryName.trim().length >=
+              3 &&
             brewerySuggestions.length >
               0 && (
               <div style={dropdownStyle}>
@@ -617,7 +623,8 @@ export default function TastingForm({
             )}
 
           {breweryOpen &&
-            breweryName.trim() &&
+            breweryName.trim().length >=
+              3 &&
             brewerySuggestions.length ===
               0 && (
               <div style={dropdownStyle}>

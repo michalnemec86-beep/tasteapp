@@ -601,7 +601,11 @@ export default function EditTastingModalClient({
                 </label>
 
                 <input
-                  list={`edit-beers-${tasting.id}`}
+                  list={
+                    beerName.trim().length >= 3
+                      ? `edit-beers-${tasting.id}`
+                      : undefined
+                  }
                   name="beerName"
                   value={beerName}
                   onChange={(event) =>
@@ -637,7 +641,11 @@ export default function EditTastingModalClient({
                 </label>
 
                 <input
-                  list={`edit-breweries-${tasting.id}`}
+                  list={
+                    breweryName.trim().length >= 3
+                      ? `edit-breweries-${tasting.id}`
+                      : undefined
+                  }
                   name="brewery"
                   value={breweryName}
                   onChange={(event) =>
