@@ -409,7 +409,7 @@ async function resolveStyle(
         "beer_styles"
       )
       .select(
-        "id, name"
+        "id, name, aliases"
       );
 
   if (
@@ -420,47 +420,27 @@ async function resolveStyle(
     );
   }
 
-  let style =
+  const normalizedStyleName =
+    normalizeText(styleName);
+
+  const style =
     allStyles?.find(
       (item) =>
         normalizeText(
           item.name
         ) ===
-        normalizeText(
-          styleName
+          normalizedStyleName ||
+        (item.aliases ?? []).some(
+          (alias: string) =>
+            normalizeText(alias) ===
+            normalizedStyleName
         )
     ) ?? null;
 
   if (!style) {
-    const {
-      data:
-        newStyle,
-      error:
-        styleError,
-    } =
-      await supabase
-        .from(
-          "beer_styles"
-        )
-        .insert({
-          name:
-            styleName,
-        })
-        .select(
-          "id, name"
-        )
-        .single();
-
-    if (
-      styleError
-    ) {
-      throw new Error(
-        styleError.message
-      );
-    }
-
-    style =
-      newStyle;
+    throw new Error(
+      "Zadaný pivní styl není v katalogu. Vyberte existující styl."
+    );
   }
 
   return style.id;

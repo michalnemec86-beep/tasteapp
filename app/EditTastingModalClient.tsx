@@ -14,6 +14,7 @@ type Brewery = {
 type BeerStyle = {
   id: number;
   name: string;
+  aliases: string[];
 };
 
 type Hop = {
@@ -167,6 +168,9 @@ export default function EditTastingModalClient({
         ""
     );
 
+  const [styleOpen, setStyleOpen] =
+    useState(false);
+
   const [plato, setPlato] =
     useState(
       tasting.plato !== null
@@ -211,6 +215,37 @@ export default function EditTastingModalClient({
           hop.trim()
       )
       .filter(Boolean);
+
+  const styleSuggestions =
+    styles.filter((style) => {
+      if (
+        styleName.trim().length < 3
+      ) {
+        return false;
+      }
+
+      const query =
+        normalizeText(styleName);
+
+      return (
+        normalizeText(
+          style.name
+        ).includes(query) ||
+        style.aliases.some(
+          (alias) =>
+            normalizeText(
+              alias
+            ).includes(query)
+        )
+      );
+    });
+
+  function selectStyle(
+    style: BeerStyle
+  ) {
+    setStyleName(style.name);
+    setStyleOpen(false);
+  }
 
   function handleBeerNameChange(
     value: string
@@ -570,29 +605,144 @@ export default function EditTastingModalClient({
                   Pivní styl
                 </label>
 
-                <input
-                  list={`edit-styles-${tasting.id}`}
-                  name="style"
-                  value={styleName}
-                  onChange={(event) =>
-                    setStyleName(
-                      event.target.value
-                    )
-                  }
-                  autoComplete="off"
-                  style={inputStyle}
-                />
-
-                <datalist
-                  id={`edit-styles-${tasting.id}`}
+                <div
+                  style={{
+                    position: "relative",
+                  }}
                 >
-                  {styles.map((style) => (
-                    <option
-                      key={style.id}
-                      value={style.name}
-                    />
-                  ))}
-                </datalist>
+                  <input
+                    name="style"
+                    value={styleName}
+                    onChange={(event) => {
+                      setStyleName(
+                        event.target.value
+                      );
+                      setStyleOpen(true);
+                    }}
+                    onFocus={() =>
+                      setStyleOpen(true)
+                    }
+                    onBlur={() => {
+                      setTimeout(() => {
+                        setStyleOpen(false);
+                      }, 150);
+                    }}
+                    autoComplete="off"
+                    style={inputStyle}
+                  />
+
+                  {styleOpen &&
+                    styleName.trim()
+                      .length >= 3 &&
+                    styleSuggestions.length >
+                      0 && (
+                      <div
+                        style={{
+                          position:
+                            "absolute",
+                          zIndex: 40,
+                          top:
+                            "calc(100% + 6px)",
+                          left: 0,
+                          right: 0,
+                          maxHeight:
+                            "220px",
+                          overflowY:
+                            "auto",
+                          border:
+                            "1px solid var(--taste-border)",
+                          borderRadius:
+                            "10px",
+                          background:
+                            "var(--taste-surface-raised)",
+                          boxShadow:
+                            "0 18px 45px rgba(0,0,0,0.45)",
+                        }}
+                      >
+                        {styleSuggestions.map(
+                          (style) => (
+                            <button
+                              key={
+                                style.id
+                              }
+                              type="button"
+                              onMouseDown={(
+                                event
+                              ) =>
+                                event.preventDefault()
+                              }
+                              onClick={() =>
+                                selectStyle(
+                                  style
+                                )
+                              }
+                              style={{
+                                width:
+                                  "100%",
+                                padding:
+                                  "10px 12px",
+                                border: 0,
+                                borderBottom:
+                                  "1px solid var(--taste-border)",
+                                background:
+                                  "transparent",
+                                color:
+                                  "var(--taste-text)",
+                                textAlign:
+                                  "left",
+                                cursor:
+                                  "pointer",
+                              }}
+                            >
+                              {
+                                style.name
+                              }
+                              {style
+                                .aliases
+                                .length >
+                                0 &&
+                                ` (${style.aliases.join(
+                                  ", "
+                                )})`}
+                            </button>
+                          )
+                        )}
+                      </div>
+                    )}
+
+                  {styleOpen &&
+                    styleName.trim()
+                      .length >= 3 &&
+                    styleSuggestions.length ===
+                      0 && (
+                      <div
+                        style={{
+                          position:
+                            "absolute",
+                          zIndex: 40,
+                          top:
+                            "calc(100% + 6px)",
+                          left: 0,
+                          right: 0,
+                          padding:
+                            "10px 12px",
+                          border:
+                            "1px solid var(--taste-border)",
+                          borderRadius:
+                            "10px",
+                          background:
+                            "var(--taste-surface-raised)",
+                          color:
+                            "var(--taste-text-muted)",
+                          boxShadow:
+                            "0 18px 45px rgba(0,0,0,0.45)",
+                        }}
+                      >
+                        Tento styl není
+                        v katalogu.
+                      </div>
+                    )}
+                </div>
               </div>
 
               {/* PARAMETRY */}

@@ -12,6 +12,7 @@ type Brewery = {
 type BeerStyle = {
   id: number;
   name: string;
+  aliases: string[];
 };
 
 type Hop = {
@@ -319,15 +320,26 @@ export default function TastingForm({
   const styleSuggestions =
     styles.filter(
       (style) => {
-        if (!styleName.trim()) {
+        if (
+          styleName.trim().length < 3
+        ) {
           return false;
         }
 
-        return normalizeText(
-          style.name
-        ).includes(
+        const query =
           normalizeText(
             styleName
+          );
+
+        return (
+          normalizeText(
+            style.name
+          ).includes(query) ||
+          style.aliases.some(
+            (alias) =>
+              normalizeText(
+                alias
+              ).includes(query)
           )
         );
       }
@@ -752,7 +764,8 @@ export default function TastingForm({
           />
 
           {styleOpen &&
-            styleName.trim() &&
+            styleName.trim().length >=
+              3 &&
             styleSuggestions.length >
               0 && (
               <div style={dropdownStyle}>
@@ -776,6 +789,11 @@ export default function TastingForm({
                       }
                     >
                       {style.name}
+                      {style.aliases.length >
+                        0 &&
+                        ` (${style.aliases.join(
+                          ", "
+                        )})`}
                     </button>
                   )
                 )}
@@ -783,7 +801,8 @@ export default function TastingForm({
             )}
 
           {styleOpen &&
-            styleName.trim() &&
+            styleName.trim().length >=
+              3 &&
             styleSuggestions.length ===
               0 && (
               <div style={dropdownStyle}>
@@ -791,12 +810,11 @@ export default function TastingForm({
                   style={{
                     padding:
                       "10px 12px",
+                    color:
+                      "var(--taste-text-muted)",
                   }}
                 >
-                  ＋ Nový styl:{" "}
-                  <strong>
-                    {styleName}
-                  </strong>
+                  Tento styl není v katalogu.
                 </div>
               </div>
             )}

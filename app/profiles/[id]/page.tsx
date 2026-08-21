@@ -203,7 +203,7 @@ export default async function ProfilePage({
     supabase
       .from("beer_styles")
       .select(
-        "id, name"
+        "id, name, aliases"
       )
       .order("name");
 

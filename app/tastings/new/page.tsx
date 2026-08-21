@@ -141,7 +141,7 @@ export default async function NewTastingPage() {
     await supabase
       .from("beer_styles")
       .select(
-        "id, name"
+        "id, name, aliases"
       )
       .order("name");
 

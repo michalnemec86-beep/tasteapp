@@ -9,6 +9,7 @@ type Brewery = {
 type BeerStyle = {
   id: number;
   name: string;
+  aliases: string[];
 };
 
 type Hop = {
