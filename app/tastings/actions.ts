@@ -272,6 +272,44 @@ async function resolveBrewery(
   supabase: SupabaseClient,
   values: TastingFormValues
 ) {
+  let canonicalCountry =
+    "";
+
+  if (values.breweryCountry) {
+    const {
+      data: countries,
+      error: countriesError,
+    } =
+      await supabase
+        .from("countries")
+        .select("name");
+
+    if (countriesError) {
+      throw new Error(
+        countriesError.message
+      );
+    }
+
+    const country =
+      countries?.find(
+        (item) =>
+          normalizeText(
+            item.name
+          ) ===
+          normalizeText(
+            values.breweryCountry
+          )
+      ) ?? null;
+
+    if (!country) {
+      throw new Error(
+        "Zadaná země není v katalogu. Vyberte existující zemi."
+      );
+    }
+
+    canonicalCountry =
+      country.name;
+  }
   const {
     data: allBreweries,
     error:
@@ -322,7 +360,7 @@ async function resolveBrewery(
             values.breweryName,
 
           country:
-            values.breweryCountry ||
+            canonicalCountry ||
             null,
         })
         .select(
@@ -347,7 +385,7 @@ async function resolveBrewery(
   // ==================================================
 
   else if (
-    values.breweryCountry
+    canonicalCountry
   ) {
     const {
       data:
@@ -361,7 +399,7 @@ async function resolveBrewery(
         )
         .update({
           country:
-            values.breweryCountry,
+            canonicalCountry,
         })
         .eq(
           "id",

@@ -17,6 +17,11 @@ type Brewery = {
   name: string;
 };
 
+type Country = {
+  id: number;
+  name: string;
+};
+
 type BeerStyle = {
   id: number;
   name: string;
@@ -49,6 +54,7 @@ type ExistingBeer = {
 type TastingModalClientProps = {
   beers: ExistingBeer[];
   breweries: Brewery[];
+  countries: Country[];
   styles: BeerStyle[];
   hops: Hop[];
 
@@ -62,6 +68,7 @@ type TastingModalClientProps = {
 export default function TastingModalClient({
   beers,
   breweries,
+  countries,
   styles,
   hops,
   saveTastingAction,
@@ -422,6 +429,9 @@ export default function TastingModalClient({
                 beers={beers}
                 breweries={
                   breweries
+                }
+                countries={
+                  countries
                 }
                 styles={styles}
                 hops={hops}

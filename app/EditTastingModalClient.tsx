@@ -11,6 +11,11 @@ type Brewery = {
   country: string | null;
 };
 
+type Country = {
+  id: number;
+  name: string;
+};
+
 type BeerStyle = {
   id: number;
   name: string;
@@ -83,6 +88,7 @@ type Props = {
 
   beers: Beer[];
   breweries: Brewery[];
+  countries: Country[];
   styles: BeerStyle[];
   hops: Hop[];
 
@@ -111,6 +117,7 @@ export default function EditTastingModalClient({
   tasting,
   beers,
   breweries,
+  countries,
   styles,
   hops,
   updateTastingAction,
@@ -168,6 +175,9 @@ export default function EditTastingModalClient({
         ""
     );
 
+  const [countryOpen, setCountryOpen] =
+    useState(false);
+
   const [styleOpen, setStyleOpen] =
     useState(false);
 
@@ -215,6 +225,30 @@ export default function EditTastingModalClient({
           hop.trim()
       )
       .filter(Boolean);
+
+  const countrySuggestions =
+    countries.filter((country) => {
+      if (
+        breweryCountry.trim().length < 3
+      ) {
+        return false;
+      }
+
+      return normalizeText(
+        country.name
+      ).includes(
+        normalizeText(
+          breweryCountry
+        )
+      );
+    });
+
+  function selectCountry(
+    country: Country
+  ) {
+    setBreweryCountry(country.name);
+    setCountryOpen(false);
+  }
 
   const styleSuggestions =
     styles.filter((style) => {
@@ -557,45 +591,137 @@ export default function EditTastingModalClient({
                   Země původu pivovaru
                 </label>
 
-                <input
-                  list={`edit-countries-${tasting.id}`}
-                  name="breweryCountry"
-                  value={breweryCountry}
-                  onChange={(event) =>
-                    setBreweryCountry(
-                      event.target.value
-                    )
-                  }
-                  autoComplete="off"
-                  style={inputStyle}
-                />
-
-                <datalist
-                  id={`edit-countries-${tasting.id}`}
+                <div
+                  style={{
+                    position: "relative",
+                  }}
                 >
-                  {Array.from(
-                    new Set(
-                      breweries
-                        .map(
-                          (brewery) =>
-                            brewery.country
-                        )
-                        .filter(
-                          (
-                            country
-                          ): country is string =>
-                            Boolean(
-                              country
-                            )
-                        )
-                    )
-                  ).map((country) => (
-                    <option
-                      key={country}
-                      value={country}
-                    />
-                  ))}
-                </datalist>
+                  <input
+                    name="breweryCountry"
+                    value={breweryCountry}
+                    onChange={(event) => {
+                      setBreweryCountry(
+                        event.target.value
+                      );
+                      setCountryOpen(true);
+                    }}
+                    onFocus={() =>
+                      setCountryOpen(true)
+                    }
+                    onBlur={() => {
+                      setTimeout(() => {
+                        setCountryOpen(false);
+                      }, 150);
+                    }}
+                    autoComplete="off"
+                    style={inputStyle}
+                  />
+
+                  {countryOpen &&
+                    breweryCountry.trim()
+                      .length >= 3 &&
+                    countrySuggestions.length >
+                      0 && (
+                      <div
+                        style={{
+                          position:
+                            "absolute",
+                          zIndex: 40,
+                          top:
+                            "calc(100% + 6px)",
+                          left: 0,
+                          right: 0,
+                          maxHeight:
+                            "220px",
+                          overflowY:
+                            "auto",
+                          border:
+                            "1px solid var(--taste-border)",
+                          borderRadius:
+                            "10px",
+                          background:
+                            "var(--taste-surface-raised)",
+                          boxShadow:
+                            "0 18px 45px rgba(0,0,0,0.45)",
+                        }}
+                      >
+                        {countrySuggestions.map(
+                          (country) => (
+                            <button
+                              key={
+                                country.id
+                              }
+                              type="button"
+                              onMouseDown={(
+                                event
+                              ) =>
+                                event.preventDefault()
+                              }
+                              onClick={() =>
+                                selectCountry(
+                                  country
+                                )
+                              }
+                              style={{
+                                width:
+                                  "100%",
+                                padding:
+                                  "10px 12px",
+                                border: 0,
+                                borderBottom:
+                                  "1px solid var(--taste-border)",
+                                background:
+                                  "transparent",
+                                color:
+                                  "var(--taste-text)",
+                                textAlign:
+                                  "left",
+                                cursor:
+                                  "pointer",
+                              }}
+                            >
+                              {
+                                country.name
+                              }
+                            </button>
+                          )
+                        )}
+                      </div>
+                    )}
+
+                  {countryOpen &&
+                    breweryCountry.trim()
+                      .length >= 3 &&
+                    countrySuggestions.length ===
+                      0 && (
+                      <div
+                        style={{
+                          position:
+                            "absolute",
+                          zIndex: 40,
+                          top:
+                            "calc(100% + 6px)",
+                          left: 0,
+                          right: 0,
+                          padding:
+                            "10px 12px",
+                          border:
+                            "1px solid var(--taste-border)",
+                          borderRadius:
+                            "10px",
+                          background:
+                            "var(--taste-surface-raised)",
+                          color:
+                            "var(--taste-text-muted)",
+                          boxShadow:
+                            "0 18px 45px rgba(0,0,0,0.45)",
+                        }}
+                      >
+                        Tato země není
+                        v katalogu.
+                      </div>
+                    )}
+                </div>
               </div>
 
               {/* STYL */}

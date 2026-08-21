@@ -9,6 +9,11 @@ type Brewery = {
   country?: string | null;
 };
 
+type Country = {
+  id: number;
+  name: string;
+};
+
 type BeerStyle = {
   id: number;
   name: string;
@@ -46,6 +51,7 @@ type TastingFormProps = {
 
   beers: ExistingBeer[];
   breweries: Brewery[];
+  countries: Country[];
   styles: BeerStyle[];
   hops: Hop[];
 };
@@ -62,6 +68,7 @@ export default function TastingForm({
   saveTastingAction,
   beers,
   breweries,
+  countries,
   styles,
   hops,
 }: TastingFormProps) {
@@ -263,55 +270,23 @@ export default function TastingForm({
   // ZEMĚ
   // ==================================================
 
-  const knownCountries =
-    Array.from(
-      new Map(
-        breweries
-          .filter(
-            (
-              brewery
-            ): brewery is Brewery & {
-              country: string;
-            } =>
-              Boolean(
-                brewery.country?.trim()
-              )
-          )
-          .map(
-            (brewery) => [
-              normalizeText(
-                brewery.country
-              ),
-              brewery.country,
-            ]
-          )
-      ).values()
-    ).sort(
-      (a, b) =>
-        a.localeCompare(
-          b,
-          "cs"
-        )
-    );
-
   const countrySuggestions =
-    knownCountries.filter(
-      (country) => {
-        if (
-          !breweryCountry.trim()
-        ) {
-          return false;
-        }
-
-        return normalizeText(
-          country
-        ).includes(
-          normalizeText(
-            breweryCountry
-          )
-        );
+    countries.filter((country) => {
+      if (
+        breweryCountry.trim().length <
+        3
+      ) {
+        return false;
       }
-    );
+
+      return normalizeText(
+        country.name
+      ).includes(
+        normalizeText(
+          breweryCountry
+        )
+      );
+    });
 
   // ==================================================
   // STYL
@@ -690,14 +665,15 @@ export default function TastingForm({
           />
 
           {countryOpen &&
-            breweryCountry.trim() &&
+            breweryCountry.trim().length >=
+              3 &&
             countrySuggestions.length >
               0 && (
               <div style={dropdownStyle}>
                 {countrySuggestions.map(
                   (country) => (
                     <button
-                      key={country}
+                      key={country.id}
                       type="button"
                       onMouseDown={(
                         event
@@ -706,7 +682,7 @@ export default function TastingForm({
                       }
                       onClick={() => {
                         setBreweryCountry(
-                          country
+                          country.name
                         );
 
                         setCountryOpen(
@@ -717,7 +693,7 @@ export default function TastingForm({
                         suggestionButtonStyle
                       }
                     >
-                      {country}
+                      {country.name}
                     </button>
                   )
                 )}

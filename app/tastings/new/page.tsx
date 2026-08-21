@@ -131,6 +131,27 @@ export default async function NewTastingPage() {
   }
 
   // ==================================================
+  // ZEMĚ
+  // ==================================================
+
+  const {
+    data: countries,
+    error: countriesError,
+  } =
+    await supabase
+      .from("countries")
+      .select(
+        "id, name"
+      )
+      .order("name");
+
+  if (countriesError) {
+    throw new Error(
+      countriesError.message
+    );
+  }
+
+  // ==================================================
   // STYLY
   // ==================================================
 
@@ -217,6 +238,9 @@ export default async function NewTastingPage() {
         }
         breweries={
           breweries ?? []
+        }
+        countries={
+          countries ?? []
         }
         styles={
           styles ?? []

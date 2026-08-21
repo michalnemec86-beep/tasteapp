@@ -48,6 +48,11 @@ type BreweryRow = {
   country: string | null;
 };
 
+type CountryRow = {
+  id: number;
+  name: string;
+};
+
 type BeerStyleRow = {
   id: number;
   name: string;
@@ -289,6 +294,14 @@ export default async function HomePage() {
       )
       .order("name");
 
+  const countriesPromise =
+    supabase
+      .from("countries")
+      .select(
+        "id, name"
+      )
+      .order("name");
+
   const stylesPromise =
     supabase
       .from("beer_styles")
@@ -311,6 +324,7 @@ export default async function HomePage() {
     achievementsResult,
     beersResult,
     breweriesResult,
+    countriesResult,
     stylesResult,
     hopsResult,
   ] =
@@ -320,6 +334,7 @@ export default async function HomePage() {
       achievementsPromise,
       beersPromise,
       breweriesPromise,
+      countriesPromise,
       stylesPromise,
       hopsPromise,
     ]);
@@ -353,6 +368,12 @@ export default async function HomePage() {
     error: breweriesError,
   } =
     breweriesResult;
+
+  const {
+    data: countries,
+    error: countriesError,
+  } =
+    countriesResult;
 
   const {
     data: styles,
@@ -393,6 +414,12 @@ export default async function HomePage() {
   if (breweriesError) {
     throw new Error(
       breweriesError.message
+    );
+  }
+
+  if (countriesError) {
+    throw new Error(
+      countriesError.message
     );
   }
 
@@ -634,6 +661,9 @@ export default async function HomePage() {
             }
             breweries={
               allBreweries
+            }
+            countries={
+              countries ?? []
             }
             styles={
               allStyles
@@ -903,7 +933,8 @@ export default async function HomePage() {
                     breweries={
                       allBreweries
                     }
-                    styles={
+                    countries={countries ?? []}
+                styles={
                       allStyles
                     }
                     hops={
@@ -966,6 +997,7 @@ function TastingTimelineCard({
   isOwn,
   beers,
   breweries,
+  countries,
   styles,
   hops,
 }: {
@@ -974,6 +1006,7 @@ function TastingTimelineCard({
   isOwn: boolean;
   beers: CatalogBeerRow[];
   breweries: BreweryRow[];
+  countries: CountryRow[];
   styles: BeerStyleRow[];
   hops: HopRow[];
 }) {
@@ -1228,6 +1261,9 @@ function TastingTimelineCard({
                 }
                 breweries={
                   breweries
+                }
+                countries={
+                  countries ?? []
                 }
                 styles={
                   styles

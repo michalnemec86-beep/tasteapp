@@ -199,6 +199,14 @@ export default async function ProfilePage({
       )
       .order("name");
 
+  const countriesPromise =
+    supabase
+      .from("countries")
+      .select(
+        "id, name"
+      )
+      .order("name");
+
   const stylesPromise =
     supabase
       .from("beer_styles")
@@ -219,6 +227,7 @@ export default async function ProfilePage({
     tastingsResult,
     beersResult,
     breweriesResult,
+    countriesResult,
     stylesResult,
     hopsResult,
   ] =
@@ -226,6 +235,7 @@ export default async function ProfilePage({
       tastingsPromise,
       beersPromise,
       breweriesPromise,
+      countriesPromise,
       stylesPromise,
       hopsPromise,
     ]);
@@ -244,6 +254,11 @@ export default async function ProfilePage({
     data: breweries,
     error: breweriesError,
   } = breweriesResult;
+
+  const {
+    data: countries,
+    error: countriesError,
+  } = countriesResult;
 
   const {
     data: styles,
@@ -270,6 +285,12 @@ export default async function ProfilePage({
   if (breweriesError) {
     throw new Error(
       breweriesError.message
+    );
+  }
+
+  if (countriesError) {
+    throw new Error(
+      countriesError.message
     );
   }
 
@@ -1199,6 +1220,10 @@ export default async function ProfilePage({
                         }
                         breweries={
                           breweries ??
+                          []
+                        }
+                        countries={
+                          countries ??
                           []
                         }
                         styles={
