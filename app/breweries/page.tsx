@@ -7,6 +7,8 @@ import AppIcon from "@/components/ui/AppIcon";
 import BreweryTableClient, {
   type BreweryTableRow,
 } from "./BreweryTableClient";
+import BreweryCreateModalClient from "./BreweryCreateModalClient";
+import { createBrewery } from "./actions";
 
 export default async function BreweriesPage() {
   const supabase = await createClient();
@@ -22,6 +24,7 @@ export default async function BreweriesPage() {
   const [
     { data: breweries, error },
     { data: profiles, error: profilesError },
+    { data: countries, error: countriesError },
   ] = await Promise.all([
     supabase
       .from("breweries")
@@ -59,6 +62,12 @@ export default async function BreweriesPage() {
       .order("display_name", {
         ascending: true,
       }),
+    supabase
+      .from("countries")
+      .select("id, name")
+      .order("name", {
+        ascending: true,
+      }),
   ]);
 
   if (error) {
@@ -67,6 +76,10 @@ export default async function BreweriesPage() {
 
   if (profilesError) {
     throw new Error(profilesError.message);
+  }
+
+  if (countriesError) {
+    throw new Error(countriesError.message);
   }
 
   const allBreweries = breweries ?? [];
@@ -248,14 +261,29 @@ export default async function BreweriesPage() {
 
           <div
             style={{
-              color: "var(--taste-text-muted)",
-              fontSize: "11px",
+              display: "flex",
+              alignItems: "center",
+              gap: "12px",
+              flexWrap: "wrap",
+              justifyContent: "flex-end",
             }}
           >
-            {allBreweries.length}{" "}
-            {allBreweries.length === 1
-              ? "položka"
-              : "položek"}
+            <div
+              style={{
+                color: "var(--taste-text-muted)",
+                fontSize: "11px",
+              }}
+            >
+              {allBreweries.length}{" "}
+              {allBreweries.length === 1
+                ? "položka"
+                : "položek"}
+            </div>
+
+            <BreweryCreateModalClient
+              countries={countries ?? []}
+              createBreweryAction={createBrewery}
+            />
           </div>
         </div>
 
