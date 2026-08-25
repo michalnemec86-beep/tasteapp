@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 
+import { createClient } from "@/lib/supabase/client";
+
 import {
   usePathname,
 } from "next/navigation";
@@ -13,6 +15,17 @@ import {
 export default function AppNav() {
   const pathname =
     usePathname();
+
+  async function handleLogout() {
+    const supabase =
+      createClient();
+
+    await supabase.auth.signOut();
+
+    window.location.replace(
+      "/auth/login"
+    );
+  }
 
   if (
     pathname.startsWith(
@@ -441,6 +454,26 @@ export default function AppNav() {
             Můj profil
           </span>
         </Link>
+
+        <button
+          type="button"
+          onClick={handleLogout}
+          style={{
+            flexShrink: 0,
+            padding: "9px 11px",
+            border:
+              "1px solid rgba(231,166,47,0.18)",
+            borderRadius: "10px",
+            background: "transparent",
+            color:
+              "var(--taste-text-muted)",
+            fontSize: "11px",
+            fontWeight: 650,
+            cursor: "pointer",
+          }}
+        >
+          Odhlásit
+        </button>
       </div>
     </nav>
   );
