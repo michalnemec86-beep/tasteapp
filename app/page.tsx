@@ -745,6 +745,9 @@ export default async function HomePage() {
             items={
               globalStats.breweries
             }
+            getItemHref={(item) =>
+              `/breweries/${item.id}`
+            }
           />
 
           <StatsRankingCard

@@ -7,11 +7,23 @@ import {
   type CSSProperties,
 } from "react";
 
-import WorldMap, {
-  type CountryContext,
-  type Data,
-  type ISOCode,
+import dynamic from "next/dynamic";
+
+import type {
+  CountryContext,
+  Data,
+  ISOCode,
 } from "react-svg-worldmap";
+
+const WorldMap = dynamic(
+  () =>
+    import("react-svg-worldmap").then(
+      (module) => module.default
+    ),
+  {
+    ssr: false,
+  }
+);
 
 import countries from "i18n-iso-countries";
 import csLocale from "i18n-iso-countries/langs/cs.json";
@@ -265,7 +277,7 @@ export default function BeerWorldMap({
     minValue,
     maxValue,
     color,
-  }: CountryContext): CSSProperties {
+  }: CountryContext<string | number>): CSSProperties {
     const value =
       typeof countryValue ===
       "number"
@@ -351,7 +363,7 @@ export default function BeerWorldMap({
     countryCode,
     countryName,
     countryValue,
-  }: CountryContext) {
+  }: CountryContext<string | number>) {
     const code =
       String(
         countryCode

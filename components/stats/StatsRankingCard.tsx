@@ -9,6 +9,9 @@ type StatsRankingCardProps = {
   icon: ReactNode;
   accent: string;
   items: RankingItem[];
+  getItemHref?: (
+    item: RankingItem
+  ) => string;
 };
 
 export default function StatsRankingCard({
@@ -17,6 +20,7 @@ export default function StatsRankingCard({
   icon,
   accent,
   items,
+  getItemHref,
 }: StatsRankingCardProps) {
   const topItems =
     items.slice(0, 5);
@@ -258,7 +262,21 @@ export default function StatsRankingCard({
                           : 600,
                     }}
                   >
-                    {item.name}
+                    {getItemHref ? (
+                      <Link
+                        href={getItemHref(item)}
+                        style={{
+                          color: "inherit",
+                          textDecoration: "none",
+                          borderBottom:
+                            "1px solid rgba(231,166,47,0.28)",
+                        }}
+                      >
+                        {item.name}
+                      </Link>
+                    ) : (
+                      item.name
+                    )}
                   </div>
 
                   <div
