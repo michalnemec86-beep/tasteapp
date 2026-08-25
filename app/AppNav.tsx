@@ -347,6 +347,17 @@ export default function AppNav() {
           </NavLink>
 
           <NavLink
+            href="/breweries"
+            active={
+              isActive(
+                "/breweries"
+              )
+            }
+          >
+            Pivovary
+          </NavLink>
+
+          <NavLink
             href="/profiles"
             active={
               isActive(
