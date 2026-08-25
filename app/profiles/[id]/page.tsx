@@ -1188,11 +1188,22 @@ export default async function ProfilePage({
                             "12px",
                         }}
                       >
-                        {tasting
-                          .beers
-                          ?.breweries
-                          ?.name ??
-                          "Neznámý pivovar"}
+                        {tasting.beers?.breweries ? (
+                          <Link
+                            href={`/breweries/${tasting.beers.breweries.id}`}
+                            style={{
+                              color: "inherit",
+                              textDecoration:
+                                "none",
+                              borderBottom:
+                                "1px solid rgba(231,166,47,0.28)",
+                            }}
+                          >
+                            {tasting.beers.breweries.name}
+                          </Link>
+                        ) : (
+                          "Neznámý pivovar"
+                        )}
 
                         {tasting
                           .beers
