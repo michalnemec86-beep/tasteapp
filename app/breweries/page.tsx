@@ -8,7 +8,10 @@ import BreweryTableClient, {
   type BreweryTableRow,
 } from "./BreweryTableClient";
 import BreweryCreateModalClient from "./BreweryCreateModalClient";
-import { createBrewery } from "./actions";
+import {
+  createBrewery,
+  updateBrewery,
+} from "./actions";
 
 export default async function BreweriesPage() {
   const supabase = await createClient();
@@ -153,6 +156,8 @@ export default async function BreweriesPage() {
         name: brewery.name,
         city: brewery.city,
         country: brewery.country,
+        address: brewery.address,
+        website: brewery.website,
         beerCount: brewery.beers?.length ?? 0,
         foundedYear: brewery.founded_year,
         tastingCount,
@@ -303,6 +308,8 @@ export default async function BreweriesPage() {
           <BreweryTableClient
             rows={tableRows}
             profiles={profiles ?? []}
+            countries={countries ?? []}
+            updateBreweryAction={updateBrewery}
           />
         )}
       </section>

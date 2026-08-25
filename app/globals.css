@@ -801,3 +801,8 @@
   left: -30px;
   bottom: -50px;
 }
+
+/* Malá editační akce v katalogu pivovarů */
+.brewery-edit-trigger {
+  cursor: pointer !important;
+}

@@ -1,6 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
+
+import BreweryEditModalClient from "./BreweryEditModalClient";
 
 type UserBreweryStats = {
   beerCount: number;
@@ -12,6 +15,8 @@ export type BreweryTableRow = {
   name: string;
   city: string | null;
   country: string | null;
+  address: string | null;
+  website: string | null;
   beerCount: number;
   foundedYear: number | null;
   tastingCount: number;
@@ -24,6 +29,11 @@ export type BreweryTableRow = {
 type ProfileOption = {
   id: string;
   display_name: string | null;
+};
+
+type CountryOption = {
+  id: number;
+  name: string;
 };
 
 type SortKey =
@@ -41,6 +51,11 @@ type SortDirection = "asc" | "desc";
 type BreweryTableClientProps = {
   rows: BreweryTableRow[];
   profiles: ProfileOption[];
+  countries: CountryOption[];
+  updateBreweryAction: (
+    breweryId: number,
+    formData: FormData
+  ) => Promise<void>;
 };
 
 const columns: {
@@ -97,6 +112,8 @@ function normalizeText(value: string | null | undefined) {
 export default function BreweryTableClient({
   rows,
   profiles,
+  countries,
+  updateBreweryAction,
 }: BreweryTableClientProps) {
   const [sortKey, setSortKey] =
     useState<SortKey>("name");
@@ -647,7 +664,40 @@ export default function BreweryTableClient({
                           "nowrap",
                       }}
                     >
-                      {brewery.name}
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "9px",
+                        }}
+                      >
+                        <Link
+                          href={`/breweries/${brewery.id}`}
+                          style={{
+                            color: "var(--taste-text)",
+                            textDecoration: "none",
+                            borderBottom:
+                              "1px solid rgba(231,166,47,0.22)",
+                          }}
+                        >
+                          {brewery.name}
+                        </Link>
+
+                        <BreweryEditModalClient
+                          brewery={{
+                            id: brewery.id,
+                            name: brewery.name,
+                            city: brewery.city,
+                            country: brewery.country,
+                            address: brewery.address,
+                            website: brewery.website,
+                            foundedYear: brewery.foundedYear,
+                            closedYear: brewery.closedYear,
+                          }}
+                          countries={countries}
+                          updateBreweryAction={updateBreweryAction}
+                        />
+                      </div>
                     </td>
 
                     <td
