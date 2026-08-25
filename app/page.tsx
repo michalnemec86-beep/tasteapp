@@ -1039,10 +1039,11 @@ function TastingTimelineCard({
       ?.name ??
     null;
 
-  const beerTitle =
-    breweryName
-      ? `${breweryName} – ${beerName}`
-      : beerName;
+  const breweryId =
+    tasting.beers
+      ?.breweries
+      ?.id ??
+    null;
 
   const metadata = [
     tasting.beers
@@ -1367,7 +1368,27 @@ function TastingTimelineCard({
                     "-0.02em",
                 }}
               >
-                {beerTitle}
+                {breweryName &&
+                breweryId ? (
+                  <>
+                    <Link
+                      href={`/breweries/${breweryId}`}
+                      style={{
+                        color: "inherit",
+                        textDecoration:
+                          "none",
+                        borderBottom:
+                          "1px solid rgba(231,166,47,0.28)",
+                      }}
+                    >
+                      {breweryName}
+                    </Link>
+                    {" – "}
+                    {beerName}
+                  </>
+                ) : (
+                  beerName
+                )}
               </div>
 
               {quantity > 1 && (
