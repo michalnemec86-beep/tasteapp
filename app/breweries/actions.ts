@@ -427,3 +427,159 @@ export async function updateBrewery(
     "/"
   );
 }
+
+// ==================================================
+// HISTORIE NÁZVU PIVOVARU
+// ==================================================
+
+export async function addBreweryNameHistory(
+  breweryId: number,
+  formData: FormData
+) {
+  const {
+    supabase,
+  } = await requireUser();
+
+  if (
+    !Number.isInteger(
+      breweryId
+    ) ||
+    breweryId < 1
+  ) {
+    throw new Error(
+      "Neplatné ID pivovaru."
+    );
+  }
+
+  const previousName =
+    String(
+      formData.get(
+        "previousName"
+      ) || ""
+    ).trim();
+
+  const changedYear =
+    readOptionalInteger(
+      formData,
+      "changedYear"
+    );
+
+  if (!previousName) {
+    throw new Error(
+      "Předchozí název je povinný."
+    );
+  }
+
+  if (
+    changedYear !== null &&
+    (
+      changedYear < 1000 ||
+      changedYear > 2100
+    )
+  ) {
+    throw new Error(
+      "Rok změny není platný."
+    );
+  }
+
+  const {
+    data: brewery,
+    error: breweryError,
+  } = await supabase
+    .from("breweries")
+    .select("id, name")
+    .eq("id", breweryId)
+    .single();
+
+  if (
+    breweryError ||
+    !brewery
+  ) {
+    throw new Error(
+      breweryError?.message ||
+        "Pivovar nebyl nalezen."
+    );
+  }
+
+  if (
+    normalizeText(
+      brewery.name
+    ) ===
+    normalizeText(
+      previousName
+    )
+  ) {
+    throw new Error(
+      "Historický název nemůže být stejný jako současný název pivovaru."
+    );
+  }
+
+  const {
+    data: existingHistory,
+    error: historyError,
+  } = await supabase
+    .from(
+      "brewery_name_history"
+    )
+    .select(
+      "id, previous_name, changed_year"
+    )
+    .eq(
+      "brewery_id",
+      breweryId
+    );
+
+  if (historyError) {
+    throw new Error(
+      historyError.message
+    );
+  }
+
+  const duplicate =
+    existingHistory?.find(
+      (item) =>
+        normalizeText(
+          item.previous_name
+        ) ===
+          normalizeText(
+            previousName
+          ) &&
+        item.changed_year ===
+          changedYear
+    );
+
+  if (duplicate) {
+    throw new Error(
+      "Tento historický název už je u pivovaru uložený."
+    );
+  }
+
+  const {
+    error: insertError,
+  } = await supabase
+    .from(
+      "brewery_name_history"
+    )
+    .insert({
+      brewery_id:
+        breweryId,
+      previous_name:
+        previousName,
+      changed_year:
+        changedYear,
+    });
+
+  if (insertError) {
+    throw new Error(
+      insertError.message
+    );
+  }
+
+  revalidatePath(
+    "/breweries"
+  );
+
+  revalidatePath(
+    `/breweries/${breweryId}`
+  );
+}

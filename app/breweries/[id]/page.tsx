@@ -7,7 +7,10 @@ import {
 import { createClient } from "@/lib/supabase/server";
 import PageHero from "@/components/ui/PageHero";
 import BreweryEditModalClient from "../BreweryEditModalClient";
-import { updateBrewery } from "../actions";
+import {
+  addBreweryNameHistory,
+  updateBrewery,
+} from "../actions";
 
 type BreweryDetailPageProps = {
   params: Promise<{
@@ -223,44 +226,178 @@ export default async function BreweryDetailPage({
           />
         </div>
 
-        {history.length > 0 && (
+        <div
+          style={{
+            marginTop: "24px",
+            paddingTop: "18px",
+            borderTop:
+              "1px solid var(--taste-border)",
+          }}
+        >
           <div
+            className="taste-label"
             style={{
-              marginTop: "24px",
-              paddingTop: "18px",
-              borderTop:
-                "1px solid var(--taste-border)",
+              marginBottom: "8px",
             }}
           >
+            Historie názvů
+          </div>
+
+          {history.length > 0 ? (
             <div
-              className="taste-label"
               style={{
-                marginBottom: "8px",
+                display: "grid",
+                gap: "5px",
+                marginBottom: "16px",
               }}
             >
-              Historie názvů
+              {history.map(
+                (item) => (
+                  <div
+                    key={item.id}
+                    style={{
+                      color:
+                        "var(--taste-text-soft)",
+                      fontSize: "13px",
+                      lineHeight: 1.6,
+                    }}
+                  >
+                    {item.changed_year
+                      ? `${item.changed_year}: `
+                      : ""}
+                    {item.previous_name}
+                  </div>
+                )
+              )}
             </div>
+          ) : (
+            <div
+              style={{
+                marginBottom: "16px",
+                color:
+                  "var(--taste-text-muted)",
+                fontSize: "12px",
+              }}
+            >
+              Zatím není evidována žádná změna názvu.
+            </div>
+          )}
 
-            {history.map(
-              (item) => (
-                <div
-                  key={item.id}
-                  style={{
-                    color:
-                      "var(--taste-text-soft)",
-                    fontSize: "13px",
-                    lineHeight: 1.6,
-                  }}
-                >
-                  {item.changed_year
-                    ? `${item.changed_year}: `
-                    : ""}
-                  {item.previous_name}
-                </div>
-              )
+          <form
+            action={addBreweryNameHistory.bind(
+              null,
+              brewery.id
             )}
-          </div>
-        )}
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: "8px",
+              alignItems: "flex-end",
+            }}
+          >
+            <label
+              style={{
+                display: "grid",
+                gap: "5px",
+                flex: "1 1 240px",
+              }}
+            >
+              <span
+                style={{
+                  color:
+                    "var(--taste-text-muted)",
+                  fontSize: "10px",
+                  fontWeight: 700,
+                  textTransform:
+                    "uppercase",
+                  letterSpacing:
+                    "0.055em",
+                }}
+              >
+                Předchozí název
+              </span>
+
+              <input
+                name="previousName"
+                required
+                style={{
+                  width: "100%",
+                  height: "38px",
+                  boxSizing: "border-box",
+                  padding: "0 11px",
+                  border:
+                    "1px solid var(--taste-border)",
+                  borderRadius: "9px",
+                  background:
+                    "var(--taste-surface)",
+                  color:
+                    "var(--taste-text)",
+                  fontSize: "12px",
+                  outline: "none",
+                }}
+              />
+            </label>
+
+            <label
+              style={{
+                display: "grid",
+                gap: "5px",
+                flex: "0 1 145px",
+              }}
+            >
+              <span
+                style={{
+                  color:
+                    "var(--taste-text-muted)",
+                  fontSize: "10px",
+                  fontWeight: 700,
+                  textTransform:
+                    "uppercase",
+                  letterSpacing:
+                    "0.055em",
+                }}
+              >
+                Rok změny
+              </span>
+
+              <input
+                name="changedYear"
+                type="number"
+                min="1000"
+                max="2100"
+                inputMode="numeric"
+                style={{
+                  width: "100%",
+                  height: "38px",
+                  boxSizing: "border-box",
+                  padding: "0 11px",
+                  border:
+                    "1px solid var(--taste-border)",
+                  borderRadius: "9px",
+                  background:
+                    "var(--taste-surface)",
+                  color:
+                    "var(--taste-text)",
+                  fontSize: "12px",
+                  outline: "none",
+                }}
+              />
+            </label>
+
+            <button
+              type="submit"
+              className="taste-button-secondary"
+              style={{
+                height: "38px",
+                fontSize: "11px",
+                fontWeight: 650,
+                whiteSpace: "nowrap",
+              }}
+            >
+              + Přidat historický název
+            </button>
+          </form>
+        </div>
       </section>
     </main>
   );
