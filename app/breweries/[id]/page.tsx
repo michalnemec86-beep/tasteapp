@@ -67,7 +67,10 @@ export default async function BreweryDetailPage({
       closed_year,
       beers (
         id,
-        name
+        name,
+        tastings (
+          id
+        )
       ),
       brewery_name_history (
         id,
@@ -94,6 +97,18 @@ export default async function BreweryDetailPage({
       countriesError.message
     );
   }
+
+  const breweryBeers = [
+    ...(brewery.beers ?? []),
+  ].sort((a, b) =>
+    a.name.localeCompare(
+      b.name,
+      "cs",
+      {
+        sensitivity: "base",
+      }
+    )
+  );
 
   const history = [
     ...(brewery.brewery_name_history ?? []),
@@ -224,6 +239,119 @@ export default async function BreweryDetailPage({
               brewery.closed_year
             }
           />
+        </div>
+
+        <div
+          style={{
+            marginTop: "24px",
+            paddingTop: "18px",
+            borderTop:
+              "1px solid var(--taste-border)",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "baseline",
+              justifyContent:
+                "space-between",
+              gap: "14px",
+              marginBottom: "12px",
+            }}
+          >
+            <div
+              className="taste-label"
+            >
+              Zaznamenaná piva
+            </div>
+
+            <div
+              style={{
+                color:
+                  "var(--taste-text-muted)",
+                fontSize: "10px",
+              }}
+            >
+              {breweryBeers.length}{" "}
+              {breweryBeers.length === 1
+                ? "pivo"
+                : "piv"}
+            </div>
+          </div>
+
+          {breweryBeers.length > 0 ? (
+            <div
+              style={{
+                display: "grid",
+                gap: "0",
+              }}
+            >
+              {breweryBeers.map(
+                (beer, index) => (
+                  <div
+                    key={beer.id}
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns:
+                        "minmax(0,1fr) auto",
+                      alignItems:
+                        "center",
+                      gap: "14px",
+                      padding:
+                        "10px 0",
+                      borderBottom:
+                        index <
+                        breweryBeers.length -
+                          1
+                          ? "1px solid rgba(255,255,255,0.055)"
+                          : "none",
+                    }}
+                  >
+                    <div
+                      style={{
+                        minWidth: 0,
+                        color:
+                          "var(--taste-text)",
+                        fontSize:
+                          "13px",
+                        fontWeight:
+                          700,
+                      }}
+                    >
+                      {beer.name}
+                    </div>
+
+                    <div
+                      style={{
+                        color:
+                          "var(--taste-amber-bright)",
+                        fontSize:
+                          "11px",
+                        fontWeight:
+                          750,
+                        whiteSpace:
+                          "nowrap",
+                      }}
+                    >
+                      {beer.tastings?.length ??
+                        0}
+                      ×
+                    </div>
+                  </div>
+                )
+              )}
+            </div>
+          ) : (
+            <div
+              style={{
+                color:
+                  "var(--taste-text-muted)",
+                fontSize: "12px",
+              }}
+            >
+              Zatím není zaznamenané žádné pivo.
+            </div>
+          )}
         </div>
 
         <div
