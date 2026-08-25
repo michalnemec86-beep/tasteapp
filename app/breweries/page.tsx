@@ -45,6 +45,13 @@ export default async function BreweriesPage() {
       beers (
         id,
         name,
+        plato,
+        abv,
+        ibu,
+        beer_styles (
+          id,
+          name
+        ),
         tastings (
           id,
           user_id
@@ -139,9 +146,23 @@ export default async function BreweriesPage() {
               (userTastingCounts[userId] ?? 0) + 1;
           }
 
+          const beerStyle =
+            Array.isArray(
+              beer.beer_styles
+            )
+              ? beer.beer_styles[0] ??
+                null
+              : beer.beer_styles ??
+                null;
+
           return {
             id: beer.id,
             name: beer.name,
+            styleName:
+              beerStyle?.name ?? null,
+            plato: beer.plato,
+            abv: beer.abv,
+            ibu: beer.ibu,
             tastingCount:
               beer.tastings?.length ?? 0,
             userTastingCounts,

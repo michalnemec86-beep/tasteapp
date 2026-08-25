@@ -18,6 +18,10 @@ type UserBreweryStats = {
 export type BreweryBeerItem = {
   id: number;
   name: string;
+  styleName: string | null;
+  plato: number | null;
+  abv: number | null;
+  ibu: number | null;
   tastingCount: number;
   userTastingCounts: Record<string, number>;
 };
@@ -1098,58 +1102,99 @@ function BreweryBeersModal({
               <div
                 key={beer.id}
                 style={{
-                  display:
-                    "grid",
+                  display: "grid",
                   gridTemplateColumns:
-                    "28px minmax(0,1fr) auto",
-                  gap: "10px",
+                    "minmax(0,1fr) auto",
+                  gap: "14px",
                   alignItems:
                     "center",
                   padding:
-                    "12px 0",
+                    "13px 0",
                   borderBottom:
                     index <
-                    beers.length -
-                      1
+                    beers.length - 1
                       ? "1px solid rgba(255,255,255,0.055)"
                       : "none",
                 }}
               >
-                <span
-                  style={{
-                    color:
-                      "var(--taste-text-muted)",
-                    fontSize:
-                      "10px",
-                    fontWeight:
-                      700,
-                  }}
-                >
-                  {index + 1}.
-                </span>
-
-                <span
+                <div
                   style={{
                     minWidth: 0,
-                    color:
-                      "var(--taste-text)",
-                    fontSize:
-                      "13px",
-                    fontWeight:
-                      700,
                   }}
                 >
-                  {beer.name}
-                </span>
+                  <div
+                    style={{
+                      color:
+                        "var(--taste-text)",
+                      fontSize:
+                        "13px",
+                      fontWeight:
+                        750,
+                      lineHeight:
+                        1.3,
+                    }}
+                  >
+                    {beer.name}
+                  </div>
+
+                  <div
+                    style={{
+                      display:
+                        "flex",
+                      flexWrap:
+                        "wrap",
+                      alignItems:
+                        "center",
+                      gap:
+                        "5px",
+                      marginTop:
+                        "6px",
+                    }}
+                  >
+                    {beer.styleName && (
+                      <span
+                        style={{
+                          color:
+                            "var(--taste-text-soft)",
+                          fontSize:
+                            "10px",
+                          fontWeight:
+                            650,
+                        }}
+                      >
+                        {beer.styleName}
+                      </span>
+                    )}
+
+                    {beer.plato != null && (
+                      <BeerMetaBadge>
+                        {beer.plato} °P
+                      </BeerMetaBadge>
+                    )}
+
+                    {beer.abv != null && (
+                      <BeerMetaBadge>
+                        {beer.abv} %
+                      </BeerMetaBadge>
+                    )}
+
+                    {beer.ibu != null && (
+                      <BeerMetaBadge>
+                        IBU {beer.ibu}
+                      </BeerMetaBadge>
+                    )}
+                  </div>
+                </div>
 
                 <span
+                  title="Počet ochutnávek"
                   style={{
                     color:
                       "var(--taste-amber-bright)",
                     fontSize:
-                      "11px",
+                      "12px",
                     fontWeight:
-                      750,
+                      800,
                     whiteSpace:
                       "nowrap",
                   }}
@@ -1163,6 +1208,36 @@ function BreweryBeersModal({
       </section>
     </div>,
     document.body
+  );
+}
+
+function BeerMetaBadge({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <span
+      style={{
+        padding: "2px 6px",
+        border:
+          "1px solid rgba(231,166,47,0.18)",
+        borderRadius:
+          "999px",
+        background:
+          "rgba(231,166,47,0.055)",
+        color:
+          "var(--taste-text-muted)",
+        fontSize:
+          "9px",
+        fontWeight:
+          700,
+        whiteSpace:
+          "nowrap",
+      }}
+    >
+      {children}
+    </span>
   );
 }
 

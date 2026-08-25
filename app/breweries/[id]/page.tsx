@@ -12,6 +12,16 @@ import {
   updateBrewery,
 } from "../actions";
 
+function singleRelation<T>(
+  value: T | T[] | null | undefined
+): T | null {
+  if (Array.isArray(value)) {
+    return value[0] ?? null;
+  }
+
+  return value ?? null;
+}
+
 type BreweryDetailPageProps = {
   params: Promise<{
     id: string;
@@ -68,6 +78,12 @@ export default async function BreweryDetailPage({
       beers (
         id,
         name,
+        plato,
+        abv,
+        ibu,
+        beer_styles (
+          name
+        ),
         tastings (
           id
         )
@@ -98,17 +114,24 @@ export default async function BreweryDetailPage({
     );
   }
 
-  const breweryBeers = [
-    ...(brewery.beers ?? []),
-  ].sort((a, b) =>
-    a.name.localeCompare(
-      b.name,
-      "cs",
-      {
-        sensitivity: "base",
-      }
-    )
-  );
+  const breweryBeers =
+    (brewery.beers ?? [])
+      .map((beer) => ({
+        ...beer,
+        beer_styles:
+          singleRelation(
+            beer.beer_styles
+          ),
+      }))
+      .sort((a, b) =>
+        a.name.localeCompare(
+          b.name,
+          "cs",
+          {
+            sensitivity: "base",
+          }
+        )
+      );
 
   const history = [
     ...(brewery.brewery_name_history ?? []),
@@ -310,15 +333,121 @@ export default async function BreweryDetailPage({
                     <div
                       style={{
                         minWidth: 0,
-                        color:
-                          "var(--taste-text)",
-                        fontSize:
-                          "13px",
-                        fontWeight:
-                          700,
                       }}
                     >
-                      {beer.name}
+                      <div
+                        style={{
+                          color:
+                            "var(--taste-text)",
+                          fontSize:
+                            "13px",
+                          fontWeight:
+                            700,
+                          lineHeight:
+                            1.3,
+                        }}
+                      >
+                        {beer.name}
+                      </div>
+
+                      <div
+                        style={{
+                          display:
+                            "flex",
+                          flexWrap:
+                            "wrap",
+                          alignItems:
+                            "center",
+                          gap:
+                            "5px",
+                          marginTop:
+                            "6px",
+                        }}
+                      >
+                        {beer.beer_styles?.name && (
+                          <span
+                            style={{
+                              color:
+                                "var(--taste-text-soft)",
+                              fontSize:
+                                "10px",
+                              fontWeight:
+                                650,
+                            }}
+                          >
+                            {beer.beer_styles.name}
+                          </span>
+                        )}
+
+                        {beer.plato != null && (
+                          <span
+                            style={{
+                              padding:
+                                "2px 6px",
+                              borderRadius:
+                                "999px",
+                              border:
+                                "1px solid var(--taste-border)",
+                              color:
+                                "var(--taste-text-muted)",
+                              fontSize:
+                                "9px",
+                              fontWeight:
+                                700,
+                              whiteSpace:
+                                "nowrap",
+                            }}
+                          >
+                            {beer.plato} °P
+                          </span>
+                        )}
+
+                        {beer.abv != null && (
+                          <span
+                            style={{
+                              padding:
+                                "2px 6px",
+                              borderRadius:
+                                "999px",
+                              border:
+                                "1px solid var(--taste-border)",
+                              color:
+                                "var(--taste-text-muted)",
+                              fontSize:
+                                "9px",
+                              fontWeight:
+                                700,
+                              whiteSpace:
+                                "nowrap",
+                            }}
+                          >
+                            {beer.abv} %
+                          </span>
+                        )}
+
+                        {beer.ibu != null && (
+                          <span
+                            style={{
+                              padding:
+                                "2px 6px",
+                              borderRadius:
+                                "999px",
+                              border:
+                                "1px solid var(--taste-border)",
+                              color:
+                                "var(--taste-text-muted)",
+                              fontSize:
+                                "9px",
+                              fontWeight:
+                                700,
+                              whiteSpace:
+                                "nowrap",
+                            }}
+                          >
+                            IBU {beer.ibu}
+                          </span>
+                        )}
+                      </div>
                     </div>
 
                     <div
