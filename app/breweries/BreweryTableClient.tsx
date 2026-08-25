@@ -1,6 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 
 import BreweryEditModalClient from "./BreweryEditModalClient";
@@ -8,6 +13,13 @@ import BreweryEditModalClient from "./BreweryEditModalClient";
 type UserBreweryStats = {
   beerCount: number;
   tastingCount: number;
+};
+
+export type BreweryBeerItem = {
+  id: number;
+  name: string;
+  tastingCount: number;
+  userTastingCounts: Record<string, number>;
 };
 
 export type BreweryTableRow = {
@@ -23,6 +35,7 @@ export type BreweryTableRow = {
   closedYear: number | null;
   historyText: string;
   historySortYear: number | null;
+  beers: BreweryBeerItem[];
   userStats: Record<string, UserBreweryStats>;
 };
 
@@ -132,6 +145,14 @@ export default function BreweryTableClient({
 
   const [selectedCity, setSelectedCity] =
     useState("");
+
+  const [
+    beerListBrewery,
+    setBeerListBrewery,
+  ] =
+    useState<BreweryTableRow | null>(
+      null
+    );
 
   function handleSort(key: SortKey) {
     if (key === sortKey) {
@@ -266,6 +287,16 @@ export default function BreweryTableClient({
             stats?.beerCount ?? 0,
           tastingCount:
             stats?.tastingCount ?? 0,
+          beers: row.beers
+            .filter(
+              (beer) =>
+                (beer.userTastingCounts[selectedUserId] ?? 0) > 0
+            )
+            .map((beer) => ({
+              ...beer,
+              tastingCount:
+                beer.userTastingCounts[selectedUserId] ?? 0,
+            })),
         };
       });
 
@@ -740,9 +771,36 @@ export default function BreweryTableClient({
                           "center",
                       }}
                     >
-                      {
-                        brewery.beerCount
-                      }
+                      {brewery.beerCount > 0 ? (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setBeerListBrewery(
+                              brewery
+                            )
+                          }
+                          title="Zobrazit zaznamenaná piva"
+                          style={{
+                            padding: 0,
+                            border: 0,
+                            borderBottom:
+                              "1px solid rgba(231,166,47,0.38)",
+                            background:
+                              "transparent",
+                            color:
+                              "inherit",
+                            font: "inherit",
+                            fontWeight:
+                              "inherit",
+                            cursor:
+                              "pointer",
+                          }}
+                        >
+                          {brewery.beerCount}
+                        </button>
+                      ) : (
+                        0
+                      )}
                     </td>
 
                     <td
@@ -814,7 +872,297 @@ export default function BreweryTableClient({
           </tbody>
         </table>
       </div>
+      {beerListBrewery && (
+        <BreweryBeersModal
+          brewery={beerListBrewery}
+          userName={
+            selectedUserId
+              ? profiles.find(
+                  (profile) =>
+                    profile.id ===
+                    selectedUserId
+                )?.display_name ??
+                null
+              : null
+          }
+          onClose={() =>
+            setBeerListBrewery(
+              null
+            )
+          }
+        />
+      )}
     </>
+  );
+}
+
+// ==================================================
+// MODAL ZAZNAMENANÝCH PIV
+// ==================================================
+
+function BreweryBeersModal({
+  brewery,
+  userName,
+  onClose,
+}: {
+  brewery: BreweryTableRow;
+  userName: string | null;
+  onClose: () => void;
+}) {
+  useEffect(() => {
+    function handleKeyDown(
+      event: KeyboardEvent
+    ) {
+      if (
+        event.key === "Escape"
+      ) {
+        onClose();
+      }
+    }
+
+    const previousOverflow =
+      document.body.style.overflow;
+
+    document.body.style.overflow =
+      "hidden";
+
+    window.addEventListener(
+      "keydown",
+      handleKeyDown
+    );
+
+    return () => {
+      document.body.style.overflow =
+        previousOverflow;
+
+      window.removeEventListener(
+        "keydown",
+        handleKeyDown
+      );
+    };
+  }, [onClose]);
+
+  const beers = [
+    ...brewery.beers,
+  ].sort((a, b) =>
+    a.name.localeCompare(
+      b.name,
+      "cs",
+      {
+        sensitivity: "base",
+      }
+    )
+  );
+
+  return createPortal(
+    <div
+      role="presentation"
+      onMouseDown={(event) => {
+        if (
+          event.target ===
+          event.currentTarget
+        ) {
+          onClose();
+        }
+      }}
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 1000,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "20px",
+        background:
+          "rgba(8,5,3,0.78)",
+        backdropFilter:
+          "blur(8px)",
+      }}
+    >
+      <section
+        role="dialog"
+        aria-modal="true"
+        aria-label={`Piva pivovaru ${brewery.name}`}
+        style={{
+          width: "min(560px, 100%)",
+          maxHeight: "82vh",
+          overflow: "hidden",
+          border:
+            "1px solid rgba(231,166,47,0.30)",
+          borderRadius:
+            "var(--taste-radius-xl)",
+          background:
+            "var(--taste-surface)",
+          boxShadow:
+            "0 24px 80px rgba(0,0,0,0.55)",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            justifyContent:
+              "space-between",
+            alignItems:
+              "flex-start",
+            gap: "20px",
+            padding:
+              "20px 22px 16px",
+            borderBottom:
+              "1px solid var(--taste-border)",
+          }}
+        >
+          <div>
+            <div
+              className="taste-label"
+              style={{
+                marginBottom:
+                  "5px",
+              }}
+            >
+              Zaznamenaná piva
+            </div>
+
+            <h2
+              style={{
+                margin: 0,
+                fontSize:
+                  "21px",
+                lineHeight:
+                  1.15,
+                fontWeight:
+                  800,
+              }}
+            >
+              {brewery.name}
+            </h2>
+
+            <div
+              style={{
+                marginTop:
+                  "6px",
+                color:
+                  "var(--taste-text-muted)",
+                fontSize:
+                  "11px",
+              }}
+            >
+              {beers.length}{" "}
+              {beers.length === 1
+                ? "pivo"
+                : "piv"}
+
+              {userName
+                ? ` · ${userName}`
+                : ""}
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Zavřít"
+            style={{
+              width: "32px",
+              height: "32px",
+              flexShrink: 0,
+              border:
+                "1px solid var(--taste-border)",
+              borderRadius:
+                "9px",
+              background:
+                "rgba(255,255,255,0.025)",
+              color:
+                "var(--taste-text-muted)",
+              cursor:
+                "pointer",
+              fontSize:
+                "17px",
+            }}
+          >
+            ×
+          </button>
+        </div>
+
+        <div
+          style={{
+            maxHeight:
+              "calc(82vh - 105px)",
+            overflowY:
+              "auto",
+            padding:
+              "8px 22px 18px",
+          }}
+        >
+          {beers.map(
+            (beer, index) => (
+              <div
+                key={beer.id}
+                style={{
+                  display:
+                    "grid",
+                  gridTemplateColumns:
+                    "28px minmax(0,1fr) auto",
+                  gap: "10px",
+                  alignItems:
+                    "center",
+                  padding:
+                    "12px 0",
+                  borderBottom:
+                    index <
+                    beers.length -
+                      1
+                      ? "1px solid rgba(255,255,255,0.055)"
+                      : "none",
+                }}
+              >
+                <span
+                  style={{
+                    color:
+                      "var(--taste-text-muted)",
+                    fontSize:
+                      "10px",
+                    fontWeight:
+                      700,
+                  }}
+                >
+                  {index + 1}.
+                </span>
+
+                <span
+                  style={{
+                    minWidth: 0,
+                    color:
+                      "var(--taste-text)",
+                    fontSize:
+                      "13px",
+                    fontWeight:
+                      700,
+                  }}
+                >
+                  {beer.name}
+                </span>
+
+                <span
+                  style={{
+                    color:
+                      "var(--taste-amber-bright)",
+                    fontSize:
+                      "11px",
+                    fontWeight:
+                      750,
+                    whiteSpace:
+                      "nowrap",
+                  }}
+                >
+                  {beer.tastingCount}×
+                </span>
+              </div>
+            )
+          )}
+        </div>
+      </section>
+    </div>,
+    document.body
   );
 }
 

@@ -124,6 +124,31 @@ export default async function BreweriesPage() {
 
       const userStats: BreweryTableRow["userStats"] = {};
 
+      const beerItems = (brewery.beers ?? []).map(
+        (beer) => {
+          const userTastingCounts: Record<string, number> = {};
+
+          for (const tasting of beer.tastings ?? []) {
+            const userId = tasting.user_id;
+
+            if (!userId) {
+              continue;
+            }
+
+            userTastingCounts[userId] =
+              (userTastingCounts[userId] ?? 0) + 1;
+          }
+
+          return {
+            id: beer.id,
+            name: beer.name,
+            tastingCount:
+              beer.tastings?.length ?? 0,
+            userTastingCounts,
+          };
+        }
+      );
+
       for (const beer of brewery.beers ?? []) {
         const usersWithBeer = new Set<string>();
 
@@ -173,6 +198,7 @@ export default async function BreweriesPage() {
                 .join(", ")
             : "—",
         historySortYear: history[0]?.changed_year ?? null,
+        beers: beerItems,
         userStats,
       };
     }
