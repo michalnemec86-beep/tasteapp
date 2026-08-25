@@ -40,6 +40,9 @@ type CountryRankingItem = {
 
 type BeerWorldMapProps = {
   items: CountryRankingItem[];
+  eyebrow?: string;
+  title?: string;
+  countLabel?: string;
 };
 
 // ==================================================
@@ -128,6 +131,9 @@ function getCountryCode(
 
 export default function BeerWorldMap({
   items,
+  eyebrow = "Pivní svět",
+  title = "Mapa ochutnaných zemí",
+  countLabel = "ochutnaných zemí",
 }: BeerWorldMapProps) {
   const mapStageRef =
     useRef<HTMLDivElement>(
@@ -471,7 +477,7 @@ export default function BeerWorldMap({
                 "5px",
             }}
           >
-            Pivní svět
+            {eyebrow}
           </div>
 
           <h2
@@ -491,7 +497,7 @@ export default function BeerWorldMap({
                 "-0.025em",
             }}
           >
-            Mapa ochutnaných zemí
+            {title}
           </h2>
         </div>
 
@@ -536,7 +542,7 @@ export default function BeerWorldMap({
                 "10px",
             }}
           >
-            ochutnaných zemí
+            {countLabel}
           </div>
         </div>
       </div>

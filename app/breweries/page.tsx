@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import PageHero from "@/components/ui/PageHero";
 import AppIcon from "@/components/ui/AppIcon";
+import BeerWorldMap from "../stats/BeerWorldMap";
 import BreweryTableClient, {
   type BreweryTableRow,
 } from "./BreweryTableClient";
@@ -109,6 +110,42 @@ export default async function BreweriesPage() {
       )
       .filter(Boolean)
   ).size;
+
+  const breweryCountryItems = Array.from(
+    allBreweries.reduce(
+      (map, brewery) => {
+        const country = brewery.country?.trim();
+
+        if (!country) {
+          return map;
+        }
+
+        map.set(
+          country,
+          (map.get(country) ?? 0) + 1
+        );
+
+        return map;
+      },
+      new Map<string, number>()
+    )
+  )
+    .map(([name, count]) => ({
+      id: name,
+      name,
+      count,
+    }))
+    .sort((a, b) =>
+      b.count !== a.count
+        ? b.count - a.count
+        : a.name.localeCompare(
+            b.name,
+            "cs",
+            {
+              sensitivity: "base",
+            }
+          )
+    );
 
   const recordedBeerCount = allBreweries.reduce(
     (sum, brewery) => sum + (brewery.beers?.length ?? 0),
@@ -277,6 +314,21 @@ export default async function BreweriesPage() {
           },
         ]}
       />
+
+      {breweryCountryItems.length > 0 && (
+        <div
+          style={{
+            marginBottom: "30px",
+          }}
+        >
+          <BeerWorldMap
+            items={breweryCountryItems}
+            eyebrow="Pivovarský svět"
+            title="Mapa evidovaných pivovarů"
+            countLabel="států s pivovary"
+          />
+        </div>
+      )}
 
       <section>
         <div
