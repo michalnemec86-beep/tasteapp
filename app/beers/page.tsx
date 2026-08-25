@@ -558,10 +558,22 @@ export default async function BeersPage() {
                             1.45,
                         }}
                       >
-                        {beer
-                          .breweries
-                          ?.name ??
-                          "Neznámý pivovar"}
+                        {beer.breweries ? (
+                          <Link
+                            href={`/breweries/${beer.breweries.id}`}
+                            style={{
+                              color: "inherit",
+                              textDecoration:
+                                "none",
+                              borderBottom:
+                                "1px solid rgba(231,166,47,0.28)",
+                            }}
+                          >
+                            {beer.breweries.name}
+                          </Link>
+                        ) : (
+                          "Neznámý pivovar"
+                        )}
 
                         {beer
                           .breweries
