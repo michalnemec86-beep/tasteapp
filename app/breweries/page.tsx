@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import PageHero from "@/components/ui/PageHero";
 import AppIcon from "@/components/ui/AppIcon";
 import BeerWorldMap from "../stats/BeerWorldMap";
+import BreweryCzechMapClient from "./BreweryCzechMapClient";
 import BreweryTableClient, {
   type BreweryTableRow,
 } from "./BreweryTableClient";
@@ -145,6 +146,29 @@ export default async function BreweriesPage() {
               sensitivity: "base",
             }
           )
+    );
+
+  const czechBreweryMapItems =
+    allBreweries.flatMap(
+      (brewery) => {
+        if (
+          brewery.country !== "Česko" ||
+          brewery.latitude == null ||
+          brewery.longitude == null
+        ) {
+          return [];
+        }
+
+        return [
+          {
+            id: brewery.id,
+            name: brewery.name,
+            city: brewery.city,
+            latitude: brewery.latitude,
+            longitude: brewery.longitude,
+          },
+        ];
+      }
     );
 
   const recordedBeerCount = allBreweries.reduce(
@@ -315,21 +339,6 @@ export default async function BreweriesPage() {
         ]}
       />
 
-      {breweryCountryItems.length > 0 && (
-        <div
-          style={{
-            marginBottom: "30px",
-          }}
-        >
-          <BeerWorldMap
-            items={breweryCountryItems}
-            eyebrow="Pivovarský svět"
-            title="Mapa evidovaných pivovarů"
-            countLabel="států s pivovary"
-          />
-        </div>
-      )}
-
       <section>
         <div
           style={{
@@ -412,6 +421,41 @@ export default async function BreweriesPage() {
           />
         )}
       </section>
+      <div
+        style={{
+          marginTop: "30px",
+        }}
+      >
+      {breweryCountryItems.length > 0 && (
+        <div
+          style={{
+            marginBottom: "30px",
+          }}
+        >
+          <BeerWorldMap
+            items={breweryCountryItems}
+            eyebrow="Pivovarský svět"
+            title="Mapa evidovaných pivovarů"
+            countLabel="států s pivovary"
+            focusEurope
+          />
+        </div>
+      )}
+
+      {czechBreweryMapItems.length > 0 && (
+        <div
+          style={{
+            marginBottom: "30px",
+          }}
+        >
+          <BreweryCzechMapClient
+            items={czechBreweryMapItems}
+          />
+        </div>
+      )}
+
+      </div>
+
     </main>
   );
 }

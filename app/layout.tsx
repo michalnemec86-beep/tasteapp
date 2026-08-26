@@ -3,6 +3,7 @@ import { Geist } from "next/font/google";
 
 import AppNav from "./AppNav";
 
+import "leaflet/dist/leaflet.css";
 import "./globals.css";
 
 const defaultUrl =

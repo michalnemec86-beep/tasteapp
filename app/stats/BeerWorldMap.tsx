@@ -5,6 +5,7 @@ import {
   useRef,
   useState,
   type CSSProperties,
+  type PointerEvent as ReactPointerEvent,
 } from "react";
 
 import dynamic from "next/dynamic";
@@ -43,6 +44,7 @@ type BeerWorldMapProps = {
   eyebrow?: string;
   title?: string;
   countLabel?: string;
+  focusEurope?: boolean;
 };
 
 // ==================================================
@@ -134,6 +136,7 @@ export default function BeerWorldMap({
   eyebrow = "Pivní svět",
   title = "Mapa ochutnaných zemí",
   countLabel = "ochutnaných zemí",
+  focusEurope = false,
 }: BeerWorldMapProps) {
   const mapStageRef =
     useRef<HTMLDivElement>(
@@ -145,6 +148,120 @@ export default function BeerWorldMap({
     setMapSize,
   ] =
     useState(900);
+
+  const [
+    europeZoom,
+    setEuropeZoom,
+  ] =
+    useState(1);
+
+  const [
+    mapPan,
+    setMapPan,
+  ] =
+    useState({
+      x: 0,
+      y: 0,
+    });
+
+  const [
+    isDragging,
+    setIsDragging,
+  ] =
+    useState(false);
+
+  const dragRef =
+    useRef<{
+      pointerId: number;
+      startX: number;
+      startY: number;
+      originX: number;
+      originY: number;
+    } | null>(null);
+
+  function handleMapPointerDown(
+    event:
+      ReactPointerEvent<HTMLDivElement>
+  ) {
+    if (
+      !focusEurope ||
+      europeZoom <= 1
+    ) {
+      return;
+    }
+
+    event.currentTarget.setPointerCapture(
+      event.pointerId
+    );
+
+    dragRef.current = {
+      pointerId:
+        event.pointerId,
+      startX:
+        event.clientX,
+      startY:
+        event.clientY,
+      originX:
+        mapPan.x,
+      originY:
+        mapPan.y,
+    };
+
+    setIsDragging(true);
+  }
+
+  function handleMapPointerMove(
+    event:
+      ReactPointerEvent<HTMLDivElement>
+  ) {
+    const drag =
+      dragRef.current;
+
+    if (
+      !drag ||
+      drag.pointerId !==
+        event.pointerId
+    ) {
+      return;
+    }
+
+    setMapPan({
+      x:
+        drag.originX +
+        event.clientX -
+        drag.startX,
+      y:
+        drag.originY +
+        event.clientY -
+        drag.startY,
+    });
+  }
+
+  function handleMapPointerUp(
+    event:
+      ReactPointerEvent<HTMLDivElement>
+  ) {
+    if (
+      dragRef.current?.pointerId !==
+      event.pointerId
+    ) {
+      return;
+    }
+
+    dragRef.current = null;
+    setIsDragging(false);
+
+    if (
+      event.currentTarget.hasPointerCapture(
+        event.pointerId
+      )
+    ) {
+      event.currentTarget.releasePointerCapture(
+        event.pointerId
+      );
+    }
+  }
+
 
   // ==================================================
   // VELIKOST MAPY PODLE RÁMEČKU
@@ -418,7 +535,9 @@ export default function BeerWorldMap({
           "hidden",
 
         padding:
-          "22px 24px 18px",
+          focusEurope
+            ? "18px 20px 10px"
+            : "22px 24px 18px",
 
         border:
           "1px solid var(--taste-border)",
@@ -559,8 +678,18 @@ export default function BeerWorldMap({
           width:
             "100%",
 
+          position:
+            "relative",
+
+          height:
+            focusEurope
+              ? "375px"
+              : undefined,
+
           minHeight:
-            "310px",
+            focusEurope
+              ? undefined
+              : "310px",
 
           display:
             "flex",
@@ -575,8 +704,105 @@ export default function BeerWorldMap({
             "hidden",
         }}
       >
+        {focusEurope && (
+          <div
+            style={{
+              position: "absolute",
+              top: "10px",
+              right: "10px",
+              zIndex: 10,
+              display: "flex",
+              flexDirection: "column",
+              border:
+                "1px solid var(--taste-border)",
+              borderRadius: "8px",
+              overflow: "hidden",
+              background:
+                "rgba(24, 18, 13, 0.92)",
+              boxShadow:
+                "0 4px 14px rgba(0,0,0,0.35)",
+            }}
+          >
+            <button
+              type="button"
+              aria-label="Přiblížit mapu"
+              onClick={() =>
+                setEuropeZoom(
+                  (value) =>
+                    Math.min(
+                      1.35,
+                      Number(
+                        (
+                          value + 0.1
+                        ).toFixed(2)
+                      )
+                    )
+                )
+              }
+              style={{
+                width: "34px",
+                height: "34px",
+                border: 0,
+                borderBottom:
+                  "1px solid var(--taste-border)",
+                background:
+                  "transparent",
+                color:
+                  "var(--taste-text)",
+                fontSize: "20px",
+                cursor: "pointer",
+              }}
+            >
+              +
+            </button>
+
+            <button
+              type="button"
+              aria-label="Oddálit mapu"
+              onClick={() =>
+                setEuropeZoom(
+                  (value) =>
+                    Math.max(
+                      0.8,
+                      Number(
+                        (
+                          value - 0.1
+                        ).toFixed(2)
+                      )
+                    )
+                )
+              }
+              style={{
+                width: "34px",
+                height: "34px",
+                border: 0,
+                background:
+                  "transparent",
+                color:
+                  "var(--taste-text)",
+                fontSize: "20px",
+                cursor: "pointer",
+              }}
+            >
+              −
+            </button>
+          </div>
+        )}
+
         {data.length > 0 ? (
           <div
+            onPointerDown={
+              handleMapPointerDown
+            }
+            onPointerMove={
+              handleMapPointerMove
+            }
+            onPointerUp={
+              handleMapPointerUp
+            }
+            onPointerCancel={
+              handleMapPointerUp
+            }
             style={{
               display:
                 "flex",
@@ -595,6 +821,40 @@ export default function BeerWorldMap({
 
               margin:
                 "0 auto",
+
+              transform:
+                focusEurope
+                  ? `translate3d(${mapPan.x}px, ${mapPan.y - 28}px, 0) scale(${1.12 * europeZoom})`
+                  : undefined,
+
+              transformOrigin:
+                focusEurope
+                  ? "center center"
+                  : undefined,
+
+              transition:
+                focusEurope &&
+                !isDragging
+                  ? "transform 180ms ease-out"
+                  : "none",
+
+              cursor:
+                focusEurope &&
+                europeZoom > 1
+                  ? isDragging
+                    ? "grabbing"
+                    : "grab"
+                  : "default",
+
+              userSelect:
+                focusEurope
+                  ? "none"
+                  : undefined,
+
+              touchAction:
+                focusEurope
+                  ? "none"
+                  : undefined,
             }}
           >
             <WorldMap
