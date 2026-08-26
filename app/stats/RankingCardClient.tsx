@@ -14,12 +14,21 @@ type RankingItem = {
   count: number;
 };
 
+type RankingTone =
+  | "gold"
+  | "honey"
+  | "amber"
+  | "copper"
+  | "malt"
+  | "bronze";
+
 type RankingCardClientProps = {
   title: string;
   subtitle: string;
   icon: ReactNode;
   items: RankingItem[];
   itemHrefPrefix?: string;
+  tone?: RankingTone;
 };
 
 const PREVIEW_LIMIT = 10;
@@ -30,6 +39,7 @@ export default function RankingCardClient({
   icon,
   items,
   itemHrefPrefix,
+  tone = "gold",
 }: RankingCardClientProps) {
   const [isOpen, setIsOpen] =
     useState(false);
@@ -48,6 +58,54 @@ export default function RankingCardClient({
       0,
       PREVIEW_LIMIT
     );
+
+  const toneStyles: Record<
+    RankingTone,
+    {
+      glow: string;
+      border: string;
+    }
+  > = {
+    gold: {
+      glow:
+        "radial-gradient(circle at 100% 0%, rgba(241,180,58,0.11), transparent 13rem)",
+      border:
+        "rgba(241,180,58,0.20)",
+    },
+    honey: {
+      glow:
+        "radial-gradient(circle at 88% 8%, rgba(218,148,43,0.105), transparent 14rem)",
+      border:
+        "rgba(218,148,43,0.19)",
+    },
+    amber: {
+      glow:
+        "radial-gradient(circle at 72% -8%, rgba(236,171,66,0.10), transparent 14rem)",
+      border:
+        "rgba(236,171,66,0.18)",
+    },
+    copper: {
+      glow:
+        "radial-gradient(circle at 100% 22%, rgba(197,112,55,0.11), transparent 14rem)",
+      border:
+        "rgba(197,112,55,0.20)",
+    },
+    malt: {
+      glow:
+        "radial-gradient(circle at 82% 0%, rgba(190,135,52,0.10), transparent 13rem)",
+      border:
+        "rgba(190,135,52,0.18)",
+    },
+    bronze: {
+      glow:
+        "radial-gradient(circle at 96% 12%, rgba(180,121,64,0.105), transparent 15rem)",
+      border:
+        "rgba(180,121,64,0.19)",
+    },
+  };
+
+  const cardTone =
+    toneStyles[tone];
 
   useEffect(() => {
     if (!isOpen) {
@@ -94,15 +152,11 @@ export default function RankingCardClient({
           overflow: "hidden",
           padding: "20px",
           border:
-            "1px solid var(--taste-border)",
+            `1px solid ${cardTone.border}`,
           borderRadius:
             "var(--taste-radius-lg)",
           background: `
-            radial-gradient(
-              circle at 100% 0%,
-              rgba(231,166,47,0.055),
-              transparent 13rem
-            ),
+            ${cardTone.glow},
             var(--taste-surface)
           `,
           boxShadow:

@@ -678,6 +678,7 @@ export default async function StatsPage({
         >
           <RankingCardClient
             title="Piva"
+            tone="gold"
             subtitle="Konkrétní ochutnaná piva"
             icon={
               <AppIcon
@@ -692,6 +693,7 @@ export default async function StatsPage({
 
           <RankingCardClient
             title="Pivovary"
+            tone="honey"
             subtitle="Podle počtu vypitých piv"
             icon={
               <AppIcon
@@ -707,6 +709,7 @@ export default async function StatsPage({
 
           <RankingCardClient
             title="Pivní styly"
+            tone="amber"
             subtitle="Nejčastěji zastoupené styly"
             icon={
               <AppIcon
@@ -721,6 +724,7 @@ export default async function StatsPage({
 
           <RankingCardClient
             title="Státy"
+            tone="copper"
             subtitle="Země původu pivovarů"
             icon={
               <AppIcon
@@ -735,6 +739,7 @@ export default async function StatsPage({
 
           <RankingCardClient
             title="Chmely"
+            tone="malt"
             subtitle="Chmely použitých piv"
             icon={
               <AppIcon
@@ -749,6 +754,7 @@ export default async function StatsPage({
 
           <RankingCardClient
             title="Podání / obal"
+            tone="bronze"
             subtitle="Podle počtu vypitých piv"
             icon={
               <AppIcon
