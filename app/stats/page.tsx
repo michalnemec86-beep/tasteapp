@@ -472,17 +472,6 @@ export default async function StatsPage({
         .filter(Boolean)
     ).size;
 
-  const selectedUserTitle =
-    selectedProfile
-      ? selectedProfile.display_name
-      : "Všichni uživatelé";
-
-  const periodTitle =
-    getPeriodLabel(
-      selectedYear,
-      selectedMonth
-    );
-
   // ==================================================
   // VÝSTUP
   // ==================================================
@@ -597,128 +586,6 @@ export default async function StatsPage({
         sortMode={sortMode}
         firstYear={FIRST_YEAR}
       />
-
-      {/* ==================================================
-          AKTUÁLNÍ POHLED
-      ================================================== */}
-
-      <section
-        style={{
-          display:
-            "flex",
-
-          justifyContent:
-            "space-between",
-
-          alignItems:
-            "center",
-
-          gap:
-            "20px",
-
-          flexWrap:
-            "wrap",
-
-          padding:
-            "15px 18px",
-
-          marginBottom:
-            "25px",
-
-          border:
-            "1px solid rgba(231,166,47,0.15)",
-
-          borderRadius:
-            "var(--taste-radius-md)",
-
-          background:
-            "rgba(231,166,47,0.025)",
-        }}
-      >
-        <div>
-          <div
-            className="taste-label"
-            style={{
-              marginBottom:
-                "4px",
-            }}
-          >
-            Aktuální pohled
-          </div>
-
-          <div
-            style={{
-              display:
-                "flex",
-
-              alignItems:
-                "baseline",
-
-              flexWrap:
-                "wrap",
-
-              gap:
-                "6px 10px",
-            }}
-          >
-            <strong
-              style={{
-                color:
-                  "var(--taste-text)",
-
-                fontSize:
-                  "19px",
-              }}
-            >
-              {
-                selectedUserTitle
-              }
-            </strong>
-
-            <span
-              style={{
-                color:
-                  "var(--taste-text-muted)",
-              }}
-            >
-              ·
-            </span>
-
-            <span
-              style={{
-                color:
-                  "var(--taste-text-soft)",
-
-                fontSize:
-                  "14px",
-
-                fontWeight:
-                  600,
-              }}
-            >
-              {
-                periodTitle
-              }
-            </span>
-          </div>
-        </div>
-
-        <div
-          style={{
-            color:
-              "var(--taste-text-muted)",
-
-            fontSize:
-              "10px",
-        }}
-        >
-          {
-            getSortLabel(
-              sortMode
-            )
-          }
-        </div>
-      </section>
 
       {/* ==================================================
           PRÁZDNÝ VÝBĚR
@@ -1125,38 +992,6 @@ function sortRanking(
       )
   );
 }
-
-function getSortLabel(
-  sortMode: SortMode
-) {
-  if (
-    sortMode ===
-    "count-asc"
-  ) {
-    return "Řazeno od nejméně vypitých";
-  }
-
-  if (
-    sortMode ===
-    "name-asc"
-  ) {
-    return "Řazeno abecedně A–Z";
-  }
-
-  if (
-    sortMode ===
-    "name-desc"
-  ) {
-    return "Řazeno abecedně Z–A";
-  }
-
-  return "Řazeno od nejvíce vypitých";
-}
-
-
-// ==================================================
-// FILTRY
-// ==================================================
 
 // ==================================================
 // SOUHRNNÁ KARTA
