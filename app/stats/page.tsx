@@ -10,6 +10,7 @@ import {
 
 import YearSelect from "./YearSelect";
 import BeerWorldMap from "./BeerWorldMap";
+import RankingCardClient from "./RankingCardClient";
 import PageHero from "@/components/ui/PageHero";
 import AppIcon from "@/components/ui/AppIcon";
 
@@ -1081,7 +1082,7 @@ export default async function StatsPage({
               "start",
           }}
         >
-          <FullRankingCard
+          <RankingCardClient
             title="Piva"
             subtitle="Konkrétní ochutnaná piva"
             icon={
@@ -1095,7 +1096,7 @@ export default async function StatsPage({
             }
           />
 
-          <FullRankingCard
+          <RankingCardClient
             title="Pivovary"
             subtitle="Podle počtu vypitých piv"
             icon={
@@ -1107,9 +1108,10 @@ export default async function StatsPage({
             items={
               stats.breweries
             }
+            itemHrefPrefix="/breweries"
           />
 
-          <FullRankingCard
+          <RankingCardClient
             title="Pivní styly"
             subtitle="Nejčastěji zastoupené styly"
             icon={
@@ -1123,7 +1125,7 @@ export default async function StatsPage({
             }
           />
 
-          <FullRankingCard
+          <RankingCardClient
             title="Státy"
             subtitle="Země původu pivovarů"
             icon={
@@ -1137,7 +1139,7 @@ export default async function StatsPage({
             }
           />
 
-          <FullRankingCard
+          <RankingCardClient
             title="Chmely"
             subtitle="Chmely použitých piv"
             icon={
@@ -1151,7 +1153,7 @@ export default async function StatsPage({
             }
           />
 
-          <FullRankingCard
+          <RankingCardClient
             title="Podání / obal"
             subtitle="Podle počtu vypitých piv"
             icon={
@@ -1664,368 +1666,5 @@ function SummaryCard({
         {label}
       </div>
     </div>
-  );
-}
-
-// ==================================================
-// ŽEBŘÍČEK
-// ==================================================
-
-function FullRankingCard({
-  title,
-  subtitle,
-  icon,
-  items,
-}: {
-  title: string;
-  subtitle: string;
-  icon: React.ReactNode;
-  items: RankingItem[];
-}) {
-  const maximum =
-    items.length > 0
-      ? Math.max(
-          ...items.map(
-            (item) =>
-              item.count
-          )
-        )
-      : 1;
-
-  return (
-    <section
-      style={{
-        position:
-          "relative",
-
-        overflow:
-          "hidden",
-
-        padding:
-          "20px",
-
-        border:
-          "1px solid var(--taste-border)",
-
-        borderRadius:
-          "var(--taste-radius-lg)",
-
-        background: `
-          radial-gradient(
-            circle at 100% 0%,
-            rgba(231,166,47,0.055),
-            transparent 13rem
-          ),
-          var(--taste-surface)
-        `,
-
-        boxShadow:
-          "var(--taste-shadow-soft)",
-      }}
-    >
-      <div
-        style={{
-          display:
-            "flex",
-
-          alignItems:
-            "center",
-
-          gap:
-            "10px",
-
-          marginBottom:
-            "3px",
-        }}
-      >
-        <div
-          style={{
-            width:
-              "34px",
-
-            height:
-              "34px",
-
-            display:
-              "flex",
-
-            alignItems:
-              "center",
-
-            justifyContent:
-              "center",
-
-            flexShrink:
-              0,
-
-            border:
-              "1px solid rgba(231,166,47,0.18)",
-
-            borderRadius:
-              "10px",
-
-            background:
-              "rgba(231,166,47,0.055)",
-
-            color:
-              "var(--taste-amber-bright)",
-
-            fontSize:
-              "15px",
-          }}
-        >
-          {icon}
-        </div>
-
-        <h3
-          style={{
-            margin:
-              0,
-
-            color:
-              "var(--taste-text)",
-
-            fontSize:
-              "17px",
-
-            fontWeight:
-              750,
-
-            letterSpacing:
-              "-0.015em",
-          }}
-        >
-          {title}
-        </h3>
-      </div>
-
-      <div
-        style={{
-          marginLeft:
-            "44px",
-
-          marginBottom:
-            "18px",
-
-          color:
-            "var(--taste-text-muted)",
-
-          fontSize:
-            "10px",
-        }}
-      >
-        {subtitle}
-      </div>
-
-      {items.length ===
-        0 && (
-        <div
-          style={{
-            padding:
-              "18px 0",
-
-            color:
-              "var(--taste-text-muted)",
-
-            fontSize:
-              "12px",
-          }}
-        >
-          Zatím nejsou
-          žádná data.
-        </div>
-      )}
-
-      <div
-        style={{
-          display:
-            "grid",
-
-          gap:
-            "13px",
-        }}
-      >
-        {items.map(
-          (
-            item,
-            index
-          ) => {
-            const percentage =
-              maximum > 0
-                ? Math.max(
-                    5,
-                    (
-                      item.count /
-                      maximum
-                    ) * 100
-                  )
-                : 0;
-
-            return (
-              <div
-                key={
-                  item.id
-                }
-              >
-                <div
-                  style={{
-                    display:
-                      "grid",
-
-                    gridTemplateColumns:
-                      "25px minmax(0,1fr) auto",
-
-                    alignItems:
-                      "center",
-
-                    gap:
-                      "8px",
-
-                    marginBottom:
-                      "6px",
-                  }}
-                >
-                  <div
-                    style={{
-                      color:
-                        index === 0
-                          ? "var(--taste-amber)"
-                          : "var(--taste-text-muted)",
-
-                      fontSize:
-                        "10px",
-
-                      fontWeight:
-                        700,
-                    }}
-                  >
-                    {
-                      index + 1
-                    }.
-                  </div>
-
-                  <div
-                    title={
-                      item.name
-                    }
-                    style={{
-                      minWidth:
-                        0,
-
-                      overflow:
-                        "hidden",
-
-                      textOverflow:
-                        "ellipsis",
-
-                      whiteSpace:
-                        "nowrap",
-
-                      color:
-                        index === 0
-                          ? "var(--taste-text)"
-                          : "var(--taste-text-soft)",
-
-                      fontSize:
-                        "12px",
-
-                      fontWeight:
-                        index === 0
-                          ? 700
-                          : 550,
-                    }}
-                  >
-                    {
-                      item.name
-                    }
-                  </div>
-
-                  <div
-                    style={{
-                      color:
-                        "var(--taste-amber-bright)",
-
-                      fontSize:
-                        "11px",
-
-                      fontWeight:
-                        750,
-                    }}
-                  >
-                    {
-                      item.count
-                    }
-                    ×
-                  </div>
-                </div>
-
-                <div
-                  style={{
-                    marginLeft:
-                      "33px",
-
-                    height:
-                      "4px",
-
-                    overflow:
-                      "hidden",
-
-                    borderRadius:
-                      "999px",
-
-                    background:
-                      "rgba(255,255,255,0.045)",
-                  }}
-                >
-                  <div
-                    style={{
-                      width:
-                        `${percentage}%`,
-
-                      height:
-                        "100%",
-
-                      borderRadius:
-                        "999px",
-
-                      background:
-                        index === 0
-                          ? "var(--taste-amber-bright)"
-                          : "rgba(231,166,47,0.62)",
-                    }}
-                  />
-                </div>
-              </div>
-            );
-          }
-        )}
-      </div>
-
-      {items.length > 0 && (
-        <div
-          style={{
-            marginTop:
-              "18px",
-
-            paddingTop:
-              "11px",
-
-            borderTop:
-              "1px solid rgba(231,166,47,0.08)",
-
-            color:
-              "var(--taste-text-muted)",
-
-            fontSize:
-              "9px",
-          }}
-        >
-          Celkem položek:{" "}
-          {
-            items.length
-          }
-        </div>
-      )}
-    </section>
   );
 }
