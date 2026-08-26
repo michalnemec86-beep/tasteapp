@@ -993,26 +993,6 @@ export default async function StatsPage({
       </section>
 
       {/* ==================================================
-          MAPA
-      ================================================== */}
-
-      {filteredTastings.length >
-        0 && (
-        <div
-          style={{
-            marginBottom:
-              "30px",
-          }}
-        >
-          <BeerWorldMap
-            items={
-              rawStats.countries
-            }
-          />
-        </div>
-      )}
-
-      {/* ==================================================
           PRÁZDNÝ VÝBĚR
       ================================================== */}
 
@@ -1186,6 +1166,27 @@ export default async function StatsPage({
           />
         </div>
       </section>
+
+      {/* ==================================================
+          MAPA
+      ================================================== */}
+
+      {filteredTastings.length >
+        0 && (
+        <div
+          style={{
+            marginBottom:
+              "30px",
+          }}
+        >
+          <BeerWorldMap
+            items={
+              rawStats.countries
+            }
+          />
+        </div>
+      )}
+
     </main>
   );
 }
