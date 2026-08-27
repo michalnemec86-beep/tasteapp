@@ -14,6 +14,10 @@ import {
 } from "@/lib/packaging";
 
 import {
+  buildProfileStats,
+} from "@/lib/profileStats";
+
+import {
   buildAchievementProgress,
   type AchievementTasting,
   type AchievementProgress,
@@ -372,82 +376,9 @@ export default async function ProfilePage({
   // STATISTIKY
   // ==================================================
 
-  const totalBeers =
-    allTastings.reduce(
-      (
-        sum,
-        tasting
-      ) =>
-        sum +
-        (
-          tasting.quantity ??
-          1
-        ),
-      0
-    );
-
-  const uniqueBeerIds =
-    new Set(
+  const profileStats =
+    buildProfileStats(
       allTastings
-        .map(
-          (tasting) =>
-            tasting.beers?.id
-        )
-        .filter(
-          (beerId) =>
-            beerId != null
-        )
-    );
-
-  const uniqueBreweryIds =
-    new Set(
-      allTastings
-        .map(
-          (tasting) =>
-            tasting.beers
-              ?.breweries
-              ?.id
-        )
-        .filter(
-          (breweryId) =>
-            breweryId != null
-        )
-    );
-
-  const uniqueStyleIds =
-    new Set(
-      allTastings
-        .map(
-          (tasting) =>
-            tasting.beers
-              ?.beer_styles
-              ?.id
-        )
-        .filter(
-          (styleId) =>
-            styleId != null
-        )
-    );
-
-  const uniqueCountries =
-    new Set(
-      allTastings
-        .map(
-          (tasting) =>
-            tasting.beers
-              ?.breweries
-              ?.country
-              ?.normalize(
-                "NFD"
-              )
-              .replace(
-                /[\u0300-\u036f]/g,
-                ""
-              )
-              .toLowerCase()
-              .trim()
-        )
-        .filter(Boolean)
     );
 
   // ==================================================
@@ -732,7 +663,7 @@ export default async function ProfilePage({
               />
             ),
             accent: "#f3b43f",
-            value: totalBeers,
+            value: profileStats.totalQuantity,
             label: "Vypitých piv",
           },
           {
@@ -743,7 +674,7 @@ export default async function ProfilePage({
               />
             ),
             accent: "#d98945",
-            value: uniqueBeerIds.size,
+            value: profileStats.uniqueBeers,
             label: "Různých piv",
           },
           {
@@ -754,12 +685,12 @@ export default async function ProfilePage({
               />
             ),
             accent: "#d5a13c",
-            value: uniqueBreweryIds.size,
+            value: profileStats.uniqueBreweries,
             label: "Pivovarů",
           },
           {
             icon: "◐",
-            value: uniqueStyleIds.size,
+            value: profileStats.uniqueStyles,
             label: "Pivních stylů",
           },
           {
@@ -770,7 +701,7 @@ export default async function ProfilePage({
               />
             ),
             accent: "#d37f43",
-            value: uniqueCountries.size,
+            value: profileStats.uniqueCountries,
             label: "Států",
           },
         ]}
