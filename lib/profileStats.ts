@@ -228,17 +228,53 @@ export function buildProfileStats(
 
   dates.sort();
 
-  const monthlyActivity =
-    Array.from(
-      monthlyMap.entries()
-    )
-      .map(([key, count]) => ({
+  const monthlyActivity:
+    ProfileActivityPoint[] = [];
+
+  if (dates.length > 0) {
+    const first =
+      dates[0];
+
+    const last =
+      dates[dates.length - 1];
+
+    let year =
+      Number(first.slice(0, 4));
+
+    let month =
+      Number(first.slice(5, 7));
+
+    const lastYear =
+      Number(last.slice(0, 4));
+
+    const lastMonth =
+      Number(last.slice(5, 7));
+
+    while (
+      year < lastYear ||
+      (
+        year === lastYear &&
+        month <= lastMonth
+      )
+    ) {
+      const key =
+        `${year}-${String(month).padStart(2, "0")}`;
+
+      monthlyActivity.push({
         key,
-        count,
-      }))
-      .sort((a, b) =>
-        a.key.localeCompare(b.key)
-      );
+        count:
+          monthlyMap.get(key) ??
+          0,
+      });
+
+      month += 1;
+
+      if (month > 12) {
+        month = 1;
+        year += 1;
+      }
+    }
+  }
 
   const yearlyActivity =
     Array.from(
@@ -276,32 +312,8 @@ export function buildProfileStats(
       null
     );
 
-  let monthSpan = 0;
-
-  if (dates.length > 0) {
-    const first =
-      dates[0];
-
-    const last =
-      dates[dates.length - 1];
-
-    const firstYear =
-      Number(first.slice(0, 4));
-
-    const firstMonth =
-      Number(first.slice(5, 7));
-
-    const lastYear =
-      Number(last.slice(0, 4));
-
-    const lastMonth =
-      Number(last.slice(5, 7));
-
-    monthSpan =
-      (lastYear - firstYear) * 12 +
-      (lastMonth - firstMonth) +
-      1;
-  }
+  const monthSpan =
+    monthlyActivity.length;
 
   return {
     totalQuantity,
