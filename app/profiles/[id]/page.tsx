@@ -18,6 +18,10 @@ import {
 } from "@/lib/profileStats";
 
 import {
+  buildTasteStats,
+} from "@/lib/stats";
+
+import {
   buildAchievementProgress,
   type AchievementTasting,
   type AchievementProgress,
@@ -381,6 +385,96 @@ export default async function ProfilePage({
       allTastings
     );
 
+  const tasteStats =
+    buildTasteStats(
+      allTastings
+    );
+
+  const quickProfileItems = [
+    {
+      label: "Top styl",
+      value:
+        tasteStats.styles[0]
+          ?.name ?? "—",
+      detail:
+        tasteStats.styles[0]
+          ? `${tasteStats.styles[0].count}× v ochutnávkách`
+          : "Zatím bez dat",
+      accent: "#f2b544",
+      border:
+        "rgba(242,181,68,0.38)",
+      glow:
+        "rgba(242,181,68,0.16)",
+      wash:
+        "rgba(242,181,68,0.075)",
+    },
+    {
+      label: "Top pivovar",
+      value:
+        tasteStats.breweries[0]
+          ?.name ?? "—",
+      detail:
+        tasteStats.breweries[0]
+          ? `${tasteStats.breweries[0].count}× v ochutnávkách`
+          : "Zatím bez dat",
+      accent: "#df7f32",
+      border:
+        "rgba(223,127,50,0.38)",
+      glow:
+        "rgba(223,127,50,0.16)",
+      wash:
+        "rgba(223,127,50,0.075)",
+    },
+    {
+      label: "Top stát",
+      value:
+        tasteStats.countries[0]
+          ?.name ?? "—",
+      detail:
+        tasteStats.countries[0]
+          ? `${tasteStats.countries[0].count}× v ochutnávkách`
+          : "Zatím bez dat",
+      accent: "#c2553f",
+      border:
+        "rgba(194,85,63,0.38)",
+      glow:
+        "rgba(194,85,63,0.16)",
+      wash:
+        "rgba(194,85,63,0.075)",
+    },
+    {
+      label: "Nejčastější podání",
+      value:
+        tasteStats.packaging[0]
+          ?.name ?? "—",
+      detail:
+        tasteStats.packaging[0]
+          ? `${tasteStats.packaging[0].count}× v ochutnávkách`
+          : "Zatím bez dat",
+      accent: "#a96f32",
+      border:
+        "rgba(169,111,50,0.38)",
+      glow:
+        "rgba(169,111,50,0.16)",
+      wash:
+        "rgba(169,111,50,0.075)",
+    },
+    {
+      label: "Chmelový záběr",
+      value:
+        profileStats.uniqueHops,
+      detail:
+        "různých odrůd",
+      accent: "#879a43",
+      border:
+        "rgba(135,154,67,0.40)",
+      glow:
+        "rgba(135,154,67,0.17)",
+      wash:
+        "rgba(135,154,67,0.075)",
+    },
+  ];
+
   // ==================================================
   // MEDAILOVÉ CESTY
   // ==================================================
@@ -706,6 +800,169 @@ export default async function ProfilePage({
           },
         ]}
       />
+      {/* ==================================================
+          PIVNÍ OTISK
+      ================================================== */}
+
+      <section
+        style={{
+          marginBottom: "38px",
+        }}
+      >
+        <div
+          style={{
+            marginBottom: "14px",
+          }}
+        >
+          <div
+            className="taste-label"
+            style={{
+              marginBottom: "5px",
+            }}
+          >
+            Osobní profil
+          </div>
+
+          <h2
+            style={{
+              margin: 0,
+              fontSize: "24px",
+              letterSpacing:
+                "-0.025em",
+            }}
+          >
+            Pivní otisk
+          </h2>
+
+          <p
+            style={{
+              maxWidth: "620px",
+              margin:
+                "6px 0 0",
+              color:
+                "var(--taste-text-muted)",
+              fontSize: "11px",
+              lineHeight: 1.55,
+            }}
+          >
+            Rychlý pohled na to,
+            co se v ochutnávkách
+            tohoto profilu objevuje
+            nejčastěji.
+          </p>
+        </div>
+
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns:
+              "repeat(auto-fit, minmax(180px, 1fr))",
+            gap: "10px",
+          }}
+        >
+          {quickProfileItems.map(
+            (item) => (
+              <article
+                key={item.label}
+                style={{
+                  position:
+                    "relative",
+                  overflow:
+                    "hidden",
+                  minHeight:
+                    "112px",
+                  padding:
+                    "15px 16px",
+                  border:
+                    `1px solid ${item.border}`,
+                  borderRadius:
+                    "var(--taste-radius-lg)",
+                  background: `
+                    radial-gradient(
+                      circle at 100% 0%,
+                      ${item.glow},
+                      transparent 9rem
+                    ),
+                    linear-gradient(
+                      145deg,
+                      ${item.wash},
+                      transparent 72%
+                    ),
+                    var(--taste-surface)
+                  `,
+                  boxShadow:
+                    "inset 0 1px 0 rgba(255,235,200,0.025)",
+                }}
+              >
+                <div
+                  style={{
+                    width: "25px",
+                    height: "3px",
+                    marginBottom:
+                      "13px",
+                    borderRadius:
+                      "999px",
+                    background:
+                      item.accent,
+                    boxShadow:
+                      `0 0 13px ${item.glow}`,
+                  }}
+                />
+
+                <div
+                  style={{
+                    color:
+                      "var(--taste-text-muted)",
+                    fontSize:
+                      "9px",
+                    fontWeight:
+                      750,
+                    letterSpacing:
+                      "0.075em",
+                    textTransform:
+                      "uppercase",
+                  }}
+                >
+                  {item.label}
+                </div>
+
+                <div
+                  style={{
+                    marginTop:
+                      "6px",
+                    color:
+                      "var(--taste-text)",
+                    fontSize:
+                      "16px",
+                    lineHeight:
+                      1.2,
+                    fontWeight:
+                      800,
+                    letterSpacing:
+                      "-0.02em",
+                  }}
+                >
+                  {item.value}
+                </div>
+
+                <div
+                  style={{
+                    marginTop:
+                      "5px",
+                    color:
+                      "var(--taste-text-muted)",
+                    fontSize:
+                      "10px",
+                  }}
+                >
+                  {item.detail}
+                </div>
+              </article>
+            )
+          )}
+        </div>
+      </section>
+
       {/* ==================================================
           MEDAILOVÉ CESTY
       ================================================== */}
