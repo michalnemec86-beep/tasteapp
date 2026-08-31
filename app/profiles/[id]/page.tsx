@@ -32,6 +32,7 @@ import {
 import PageHero from "@/components/ui/PageHero";
 import AppIcon from "@/components/ui/AppIcon";
 import EditTastingModalClient from "@/app/EditTastingModalClient";
+import ProfileActivityCard from "./ProfileActivityCard";
 
 import {
   updateTastingInModal,
@@ -962,6 +963,21 @@ export default async function ProfilePage({
           )}
         </div>
       </section>
+
+      <ProfileActivityCard
+        monthlyActivity={
+          profileStats.monthlyActivity
+        }
+        mostActiveMonth={
+          profileStats.mostActiveMonth
+        }
+        mostActiveYear={
+          profileStats.mostActiveYear
+        }
+        averagePerMonth={
+          profileStats.averagePerMonth
+        }
+      />
 
       {/* ==================================================
           MEDAILOVÉ CESTY
