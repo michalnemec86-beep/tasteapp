@@ -34,6 +34,7 @@ import AppIcon from "@/components/ui/AppIcon";
 import EditTastingModalClient from "@/app/EditTastingModalClient";
 import ProfileActivityCard from "./ProfileActivityCard";
 import ProfileBeerDnaCard from "./ProfileBeerDnaCard";
+import ProfileTechnicalCard from "./ProfileTechnicalCard";
 
 import {
   updateTastingInModal,
@@ -983,6 +984,18 @@ export default async function ProfilePage({
       <ProfileBeerDnaCard
         styles={
           tasteStats.styles
+        }
+      />
+
+      <ProfileTechnicalCard
+        plato={
+          profileStats.plato
+        }
+        abv={
+          profileStats.abv
+        }
+        ibu={
+          profileStats.ibu
         }
       />
 
