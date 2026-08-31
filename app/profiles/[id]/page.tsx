@@ -37,6 +37,7 @@ import ProfileBeerDnaCard from "./ProfileBeerDnaCard";
 import ProfileTechnicalCard from "./ProfileTechnicalCard";
 import ProfilePackagingCard from "./ProfilePackagingCard";
 import ProfileBreweriesCard from "./ProfileBreweriesCard";
+import ProfileWorldCard from "./ProfileWorldCard";
 
 import {
   updateTastingInModal,
@@ -1010,6 +1011,12 @@ export default async function ProfilePage({
       <ProfileBreweriesCard
         items={
           tasteStats.breweries
+        }
+      />
+
+      <ProfileWorldCard
+        items={
+          tasteStats.countries
         }
       />
 
