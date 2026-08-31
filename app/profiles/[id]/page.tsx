@@ -40,6 +40,7 @@ import ProfileBreweriesCard from "./ProfileBreweriesCard";
 import ProfileWorldCard from "./ProfileWorldCard";
 import ProfileHopsCard from "./ProfileHopsCard";
 import ProfileRecordsCard from "./ProfileRecordsCard";
+import ProfileAchievementJourneys from "./ProfileAchievementJourneys";
 
 import {
   updateTastingInModal,
@@ -673,6 +674,7 @@ export default async function ProfilePage({
           progressCurrent,
           earned,
           next,
+          levels,
         };
       }
     );
@@ -1053,138 +1055,14 @@ export default async function ProfilePage({
           MEDAILOVÉ CESTY
       ================================================== */}
 
-      <section
-        style={{
-          marginBottom:
-            "42px",
-        }}
-      >
-        <div
-          style={{
-            display:
-              "flex",
-            justifyContent:
-              "space-between",
-            alignItems:
-              "flex-end",
-            gap:
-              "16px",
-            marginBottom:
-              "15px",
-          }}
-        >
-          <div>
-            <div
-              className="taste-label"
-              style={{
-                marginBottom:
-                  "5px",
-              }}
-            >
-              Achievementy
-            </div>
-
-            <h2
-              style={{
-                margin:
-                  0,
-                fontSize:
-                  "24px",
-                letterSpacing:
-                  "-0.025em",
-              }}
-            >
-              Medailové cesty
-            </h2>
-          </div>
-
-          <div
-            style={{
-              textAlign:
-                "right",
-            }}
-          >
-            <div
-              style={{
-                color:
-                  "var(--taste-amber-bright)",
-                fontSize:
-                  "20px",
-                lineHeight:
-                  1,
-                fontWeight:
-                  800,
-              }}
-            >
-              {
-                earnedSeriesCount
-              }
-              /
-              {
-                achievementSeries.length
-              }
-            </div>
-
-            <div
-              style={{
-                marginTop:
-                  "4px",
-                color:
-                  "var(--taste-text-muted)",
-                fontSize:
-                  "9px",
-                textTransform:
-                  "uppercase",
-                letterSpacing:
-                  "0.06em",
-              }}
-            >
-              cest s medailí
-            </div>
-          </div>
-        </div>
-
-        <div
-          style={{
-            display:
-              "grid",
-            gridTemplateColumns:
-              "repeat(auto-fit, minmax(220px, 1fr))",
-            gap:
-              "11px",
-          }}
-        >
-          {achievementSeries.map(
-            (series) => (
-              <AchievementSeriesCard
-                key={
-                  series.series
-                }
-                seriesName={
-                  series.seriesName
-                }
-                unit={
-                  series.unit
-                }
-                current={
-                  series.current
-                }
-                progressCurrent={
-                  series.progressCurrent
-                }
-                earned={
-                  series.earned
-                }
-                next={
-                  series.next
-                }
-              />
-            )
-          )}
-        </div>
-      </section>
-
-
+      <ProfileAchievementJourneys
+        series={
+          achievementSeries
+        }
+        earnedSeriesCount={
+          earnedSeriesCount
+        }
+      />
 
       {/* ==================================================
           HISTORIE
