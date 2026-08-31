@@ -38,6 +38,7 @@ import ProfileTechnicalCard from "./ProfileTechnicalCard";
 import ProfilePackagingCard from "./ProfilePackagingCard";
 import ProfileBreweriesCard from "./ProfileBreweriesCard";
 import ProfileWorldCard from "./ProfileWorldCard";
+import ProfileHopsCard from "./ProfileHopsCard";
 
 import {
   updateTastingInModal,
@@ -1017,6 +1018,12 @@ export default async function ProfilePage({
       <ProfileWorldCard
         items={
           tasteStats.countries
+        }
+      />
+
+      <ProfileHopsCard
+        items={
+          tasteStats.hops
         }
       />
 
