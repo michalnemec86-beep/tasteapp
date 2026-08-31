@@ -35,6 +35,7 @@ import EditTastingModalClient from "@/app/EditTastingModalClient";
 import ProfileActivityCard from "./ProfileActivityCard";
 import ProfileBeerDnaCard from "./ProfileBeerDnaCard";
 import ProfileTechnicalCard from "./ProfileTechnicalCard";
+import ProfilePackagingCard from "./ProfilePackagingCard";
 
 import {
   updateTastingInModal,
@@ -996,6 +997,12 @@ export default async function ProfilePage({
         }
         ibu={
           profileStats.ibu
+        }
+      />
+
+      <ProfilePackagingCard
+        items={
+          tasteStats.packaging
         }
       />
 
