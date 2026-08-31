@@ -40,6 +40,7 @@ import ProfileWorldCard from "./ProfileWorldCard";
 import ProfileHopsCard from "./ProfileHopsCard";
 import ProfileRecordsCard from "./ProfileRecordsCard";
 import ProfileAchievementJourneys from "./ProfileAchievementJourneys";
+import ProfileHeroIdentity from "./ProfileHeroIdentity";
 
 import {
   updateTastingInModal,
@@ -730,32 +731,20 @@ export default async function ProfilePage({
             : `Pivní cesta uživatele ${profile.display_name}. Ochutnávky, objevené pivovary, styly a získané odznaky.`
         }
         action={
-          <div
-            style={{
-              display: "grid",
-              gap: "8px",
-            }}
-          >
-            <Link
-              href={`/stats?user=${profile.id}`}
-              className="taste-button-primary"
-              style={{
-                fontSize: "12px",
-              }}
-            >
-              Statistiky profilu
-            </Link>
-
-            <Link
-              href="/profiles"
-              className="taste-button-secondary"
-              style={{
-                fontSize: "11px",
-              }}
-            >
-              ← Všichni uživatelé
-            </Link>
-          </div>
+          <ProfileHeroIdentity
+            displayName={
+              profile.display_name
+            }
+            avatarUrl={
+              profile.avatar_url
+            }
+            profileId={
+              profile.id
+            }
+            isMe={
+              isMe
+            }
+          />
         }
         stats={[
           {
@@ -793,6 +782,7 @@ export default async function ProfilePage({
           },
           {
             icon: "◐",
+            accent: "#8ea348",
             value: profileStats.uniqueStyles,
             label: "Pivních stylů",
           },
