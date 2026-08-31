@@ -806,3 +806,15 @@
 .brewery-edit-trigger {
   cursor: pointer !important;
 }
+
+.brewery-map-tiles {
+  filter:
+    grayscale(0.78)
+    invert(0.92)
+    sepia(0.16)
+    saturate(0.55)
+    hue-rotate(345deg)
+    brightness(0.58)
+    contrast(1.14);
+}
+
