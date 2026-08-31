@@ -10,6 +10,12 @@ export type ProfileNumericSummary = {
   count: number;
 };
 
+export type ProfileBeerRecord = {
+  beerId: number;
+  beerName: string;
+  value: number;
+};
+
 export type ProfileStats = {
   totalQuantity: number;
   uniqueBeers: number;
@@ -27,6 +33,9 @@ export type ProfileStats = {
   abv: ProfileNumericSummary;
   ibu: ProfileNumericSummary;
   plato: ProfileNumericSummary;
+  strongestBeer: ProfileBeerRecord | null;
+  bitterestBeer: ProfileBeerRecord | null;
+  highestPlatoBeer: ProfileBeerRecord | null;
 };
 
 type ProfileStatsTasting = {
@@ -38,6 +47,7 @@ type ProfileStatsTasting = {
   ibu: number | null;
   beers: {
     id: number;
+    name: string;
     breweries: {
       id: number;
       country: string | null;
@@ -121,6 +131,39 @@ function buildNumericSummary(
     max,
     count: quantityTotal,
   };
+}
+
+function findHighestBeerRecord(
+  tastings: ProfileStatsTasting[],
+  field: "abv" | "ibu" | "plato"
+): ProfileBeerRecord | null {
+  let record: ProfileBeerRecord | null = null;
+
+  for (const tasting of tastings) {
+    const value = tasting[field];
+    const beer = tasting.beers;
+
+    if (
+      value == null ||
+      !Number.isFinite(value) ||
+      !beer
+    ) {
+      continue;
+    }
+
+    if (
+      record == null ||
+      value > record.value
+    ) {
+      record = {
+        beerId: beer.id,
+        beerName: beer.name,
+        value,
+      };
+    }
+  }
+
+  return record;
 }
 
 export function buildProfileStats(
@@ -353,6 +396,21 @@ export function buildProfileStats(
       ),
     plato:
       buildNumericSummary(
+        tastings,
+        "plato"
+      ),
+    strongestBeer:
+      findHighestBeerRecord(
+        tastings,
+        "abv"
+      ),
+    bitterestBeer:
+      findHighestBeerRecord(
+        tastings,
+        "ibu"
+      ),
+    highestPlatoBeer:
+      findHighestBeerRecord(
         tastings,
         "plato"
       ),
