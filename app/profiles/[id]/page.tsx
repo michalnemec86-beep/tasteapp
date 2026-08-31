@@ -39,6 +39,7 @@ import ProfilePackagingCard from "./ProfilePackagingCard";
 import ProfileBreweriesCard from "./ProfileBreweriesCard";
 import ProfileWorldCard from "./ProfileWorldCard";
 import ProfileHopsCard from "./ProfileHopsCard";
+import ProfileRecordsCard from "./ProfileRecordsCard";
 
 import {
   updateTastingInModal,
@@ -1024,6 +1025,27 @@ export default async function ProfilePage({
       <ProfileHopsCard
         items={
           tasteStats.hops
+        }
+      />
+
+      <ProfileRecordsCard
+        strongestBeer={
+          profileStats.strongestBeer
+        }
+        bitterestBeer={
+          profileStats.bitterestBeer
+        }
+        highestPlatoBeer={
+          profileStats.highestPlatoBeer
+        }
+        mostActiveMonth={
+          profileStats.mostActiveMonth
+        }
+        mostActiveYear={
+          profileStats.mostActiveYear
+        }
+        firstTasting={
+          profileStats.firstTasting
         }
       />
 
