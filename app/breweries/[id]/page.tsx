@@ -75,6 +75,8 @@ export default async function BreweryDetailPage({
       website,
       founded_year,
       closed_year,
+      latitude,
+      longitude,
       beers (
         id,
         name,
@@ -190,6 +192,8 @@ export default async function BreweryDetailPage({
                 website: brewery.website,
                 foundedYear: brewery.founded_year,
                 closedYear: brewery.closed_year,
+                latitude: brewery.latitude,
+                longitude: brewery.longitude,
               }}
               countries={countries ?? []}
               updateBreweryAction={updateBrewery}

@@ -21,6 +21,8 @@ type BreweryEditData = {
   website: string | null;
   foundedYear: number | null;
   closedYear: number | null;
+  latitude: number | null;
+  longitude: number | null;
 };
 
 type BreweryEditModalClientProps = {
@@ -430,6 +432,38 @@ export default function BreweryEditModalClient({
                       min="1000"
                       max="2100"
                       inputMode="numeric"
+                      style={
+                        inputStyle
+                      }
+                    />
+                  </Field>
+
+                  <Field label="Zeměpisná šířka">
+                    <input
+                      name="latitude"
+                      type="number"
+                      defaultValue={brewery.latitude ?? ""}
+                      min="-90"
+                      max="90"
+                      step="any"
+                      inputMode="decimal"
+                      placeholder="např. 50.123456"
+                      style={
+                        inputStyle
+                      }
+                    />
+                  </Field>
+
+                  <Field label="Zeměpisná délka">
+                    <input
+                      name="longitude"
+                      type="number"
+                      defaultValue={brewery.longitude ?? ""}
+                      min="-180"
+                      max="180"
+                      step="any"
+                      inputMode="decimal"
+                      placeholder="např. 14.123456"
                       style={
                         inputStyle
                       }

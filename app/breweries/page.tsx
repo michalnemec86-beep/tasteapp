@@ -265,6 +265,8 @@ export default async function BreweriesPage() {
         country: brewery.country,
         address: brewery.address,
         website: brewery.website,
+        latitude: brewery.latitude,
+        longitude: brewery.longitude,
         beerCount: brewery.beers?.length ?? 0,
         foundedYear: brewery.founded_year,
         tastingCount,

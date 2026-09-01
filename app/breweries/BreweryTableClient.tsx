@@ -33,6 +33,8 @@ export type BreweryTableRow = {
   country: string | null;
   address: string | null;
   website: string | null;
+  latitude: number | null;
+  longitude: number | null;
   beerCount: number;
   foundedYear: number | null;
   tastingCount: number;
@@ -728,6 +730,8 @@ export default function BreweryTableClient({
                             website: brewery.website,
                             foundedYear: brewery.foundedYear,
                             closedYear: brewery.closedYear,
+                            latitude: brewery.latitude,
+                            longitude: brewery.longitude,
                           }}
                           countries={countries}
                           updateBreweryAction={updateBreweryAction}

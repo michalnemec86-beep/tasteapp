@@ -401,6 +401,36 @@ export default function BreweryCreateModalClient({
                       }
                     />
                   </Field>
+
+                  <Field label="Zeměpisná šířka">
+                    <input
+                      name="latitude"
+                      type="number"
+                      min="-90"
+                      max="90"
+                      step="any"
+                      inputMode="decimal"
+                      placeholder="např. 50.123456"
+                      style={
+                        inputStyle
+                      }
+                    />
+                  </Field>
+
+                  <Field label="Zeměpisná délka">
+                    <input
+                      name="longitude"
+                      type="number"
+                      min="-180"
+                      max="180"
+                      step="any"
+                      inputMode="decimal"
+                      placeholder="např. 14.123456"
+                      style={
+                        inputStyle
+                      }
+                    />
+                  </Field>
                 </div>
 
                 {error && (
