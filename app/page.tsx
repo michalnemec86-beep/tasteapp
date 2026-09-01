@@ -23,6 +23,7 @@ import TastingModal from "./TastingModal";
 import EditTastingModalClient from "./EditTastingModalClient";
 
 import StatsRankingCard from "@/components/stats/StatsRankingCard";
+import BreweryOfDayCard from "@/components/home/BreweryOfDayCard";
 import PageHero from "@/components/ui/PageHero";
 import AppIcon from "@/components/ui/AppIcon";
 import { getTimelineVisual } from "@/lib/timeline-visual";
@@ -161,6 +162,56 @@ type TimelineEvent =
       sortAt: number;
       achievement: AchievementRow;
     };
+
+// ==================================================
+// PIVOVAR DNE
+// ==================================================
+
+function getPragueDateKey(
+  date = new Date()
+) {
+  const parts =
+    new Intl.DateTimeFormat(
+      "en-GB",
+      {
+        timeZone:
+          "Europe/Prague",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      }
+    ).formatToParts(date);
+
+  const year =
+    parts.find(
+      (part) =>
+        part.type === "year"
+    )?.value;
+
+  const month =
+    parts.find(
+      (part) =>
+        part.type === "month"
+    )?.value;
+
+  const day =
+    parts.find(
+      (part) =>
+        part.type === "day"
+    )?.value;
+
+  if (
+    !year ||
+    !month ||
+    !day
+  ) {
+    throw new Error(
+      "Nepodařilo se určit dnešní datum."
+    );
+  }
+
+  return `${year}-${month}-${day}`;
+}
 
 // ==================================================
 // HOMEPAGE
@@ -473,6 +524,138 @@ export default async function HomePage() {
         user.id
     );
 
+  const todayKey =
+    getPragueDateKey();
+
+  const {
+    data: breweryOfDayHistory,
+    error: breweryOfDayHistoryError,
+  } =
+    await supabase
+      .from("brewery_of_day")
+      .select(
+        "day, brewery_id"
+      )
+      .order(
+        "day",
+        {
+          ascending: false,
+        }
+      );
+
+  if (breweryOfDayHistoryError) {
+    throw new Error(
+      breweryOfDayHistoryError.message
+    );
+  }
+
+  let breweryOfDayId =
+    breweryOfDayHistory?.find(
+      (row) =>
+        row.day ===
+        todayKey
+    )?.brewery_id ?? null;
+
+  if (
+    breweryOfDayId == null &&
+    allBreweries.length > 0
+  ) {
+    const usedBreweryIds =
+      new Set(
+        (
+          breweryOfDayHistory ??
+          []
+        ).map(
+          (row) =>
+            row.brewery_id
+        )
+      );
+
+    let candidates =
+      allBreweries.filter(
+        (brewery) =>
+          !usedBreweryIds.has(
+            brewery.id
+          )
+      );
+
+    if (
+      candidates.length === 0
+    ) {
+      candidates =
+        allBreweries;
+    }
+
+    const selected =
+      candidates[
+        Math.floor(
+          Math.random() *
+            candidates.length
+        )
+      ];
+
+    const {
+      error: insertError,
+    } =
+      await supabase
+        .from(
+          "brewery_of_day"
+        )
+        .insert({
+          day: todayKey,
+          brewery_id:
+            selected.id,
+        });
+
+    if (!insertError) {
+      breweryOfDayId =
+        selected.id;
+    } else if (
+      insertError.code ===
+      "23505"
+    ) {
+      const {
+        data: existingDay,
+        error:
+          existingDayError,
+      } =
+        await supabase
+          .from(
+            "brewery_of_day"
+          )
+          .select(
+            "brewery_id"
+          )
+          .eq(
+            "day",
+            todayKey
+          )
+          .single();
+
+      if (
+        existingDayError
+      ) {
+        throw new Error(
+          existingDayError.message
+        );
+      }
+
+      breweryOfDayId =
+        existingDay.brewery_id;
+    } else {
+      throw new Error(
+        insertError.message
+      );
+    }
+  }
+
+  const breweryOfDay =
+    allBreweries.find(
+      (brewery) =>
+        brewery.id ===
+        breweryOfDayId
+    ) ?? null;
+
   // ==================================================
   // STATISTIKY
   // ==================================================
@@ -656,23 +839,37 @@ export default async function HomePage() {
         }
         subtitle="Zapiš další ochutnávku, sleduj svoje pivní objevy a nech TasteApp skládat příběh z pivovarů, stylů, zemí a chmelů."
         action={
-          <TastingModal
-            beers={
-              allBeers
-            }
-            breweries={
-              allBreweries
-            }
-            countries={
-              countries ?? []
-            }
-            styles={
-              allStyles
-            }
-            hops={
-              allHops
-            }
-          />
+          <div
+            style={{
+              width: "100%",
+              display: "grid",
+              gap: "9px",
+            }}
+          >
+            <BreweryOfDayCard
+              brewery={
+                breweryOfDay
+              }
+            />
+
+            <TastingModal
+              beers={
+                allBeers
+              }
+              breweries={
+                allBreweries
+              }
+              countries={
+                countries ?? []
+              }
+              styles={
+                allStyles
+              }
+              hops={
+                allHops
+              }
+            />
+          </div>
         }
         stats={[
           {
