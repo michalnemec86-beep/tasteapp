@@ -251,6 +251,7 @@ export default function PageHero({
         >
           {action ? (
             <div
+              className="taste-page-hero-action"
               style={{
                 width: "100%",
                 maxWidth: "250px",
