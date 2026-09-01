@@ -105,6 +105,7 @@ const SERIES_ACCENTS:
   > = {
   beers: "#f2b63f",
   breweries: "#e17d32",
+  brewery_of_day: "#d99a3e",
   styles: "#cb5940",
   countries: "#b77a36",
   hops: "#8ea348",

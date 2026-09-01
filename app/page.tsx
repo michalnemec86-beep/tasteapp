@@ -19,6 +19,10 @@ import {
   type AchievementDefinition,
 } from "@/lib/achievements";
 
+import {
+  syncUserAchievements,
+} from "@/lib/achievement-sync";
+
 import TastingModal from "./TastingModal";
 import EditTastingModalClient from "./EditTastingModalClient";
 
@@ -655,6 +659,31 @@ export default async function HomePage() {
         brewery.id ===
         breweryOfDayId
     ) ?? null;
+
+  const newlyUnlockedAchievements =
+    await syncUserAchievements(
+      user.id
+    );
+
+  if (
+    newlyUnlockedAchievements.length >
+    0
+  ) {
+    allAchievements.push(
+      ...newlyUnlockedAchievements
+        .filter(
+          (achievement) =>
+            achievement.show_in_timeline
+        )
+        .map(
+          (achievement) => ({
+            ...achievement,
+            user_id:
+              user.id,
+          })
+        )
+    );
+  }
 
   // ==================================================
   // STATISTIKY

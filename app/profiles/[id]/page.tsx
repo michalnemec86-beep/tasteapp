@@ -488,10 +488,44 @@ export default async function ProfilePage({
   // MEDAILOVÉ CESTY
   // ==================================================
 
+  const {
+    data: breweryOfDayRows,
+    error: breweryOfDayError,
+  } =
+    await supabase
+      .from(
+        "brewery_of_day"
+      )
+      .select(
+        "brewery_id"
+      );
+
+  if (breweryOfDayError) {
+    throw new Error(
+      breweryOfDayError.message
+    );
+  }
+
+  const breweryOfDayIds =
+    [
+      ...new Set(
+        (
+          breweryOfDayRows ??
+          []
+        ).map(
+          (row) =>
+            row.brewery_id
+        )
+      ),
+    ];
+
   const achievements =
     buildAchievementProgress(
       allTastings as unknown as
-        AchievementTasting[]
+        AchievementTasting[],
+      {
+        breweryOfDayIds,
+      }
     );
 
   /*
@@ -543,6 +577,7 @@ export default async function ProfilePage({
     AchievementSeries[] = [
     "beers",
     "breweries",
+    "brewery_of_day",
     "styles",
     "countries",
     "hops",
@@ -557,6 +592,8 @@ export default async function ProfilePage({
       "různých piv",
     breweries:
       "různých pivovarů",
+    brewery_of_day:
+      "pivovarů dne",
     styles:
       "pivních stylů",
     countries:

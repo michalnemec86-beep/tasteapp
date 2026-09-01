@@ -81,6 +81,37 @@ export async function syncUserAchievements(
       []) as unknown as
       AchievementTastingWithDate[];
 
+  const {
+    data: breweryOfDayRows,
+    error: breweryOfDayError,
+  } =
+    await supabase
+      .from(
+        "brewery_of_day"
+      )
+      .select(
+        "brewery_id"
+      );
+
+  if (breweryOfDayError) {
+    throw new Error(
+      breweryOfDayError.message
+    );
+  }
+
+  const breweryOfDayIds =
+    [
+      ...new Set(
+        (
+          breweryOfDayRows ??
+          []
+        ).map(
+          (row) =>
+            row.brewery_id
+        )
+      ),
+    ];
+
   // ==================================================
   // HISTORICKÝ STAV
   // ==================================================
@@ -105,7 +136,10 @@ export async function syncUserAchievements(
 
   const currentProgress =
     buildAchievementProgress(
-      allTastings
+      allTastings,
+      {
+        breweryOfDayIds,
+      }
     );
 
   const historicalProgress =
@@ -241,6 +275,7 @@ export async function syncUserAchievements(
     AchievementSeries[] = [
     "beers",
     "breweries",
+    "brewery_of_day",
     "styles",
     "countries",
     "hops",
