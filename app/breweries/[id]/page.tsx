@@ -22,6 +22,31 @@ function singleRelation<T>(
   return value ?? null;
 }
 
+function breweryRelationLabel(
+  relationType: string,
+  direction: "from" | "to"
+) {
+  if (relationType === "continues_as") {
+    return direction === "from"
+      ? "Pokračuje jako"
+      : "Navazuje na";
+  }
+
+  if (relationType === "branches_into") {
+    return direction === "from"
+      ? "Vznikl z něj"
+      : "Vznikl z";
+  }
+
+  if (relationType === "merges_into") {
+    return direction === "from"
+      ? "Sloučil se do"
+      : "Navazuje sloučením na";
+  }
+
+  return "Historická vazba";
+}
+
 type BreweryDetailPageProps = {
   params: Promise<{
     id: string;
@@ -62,6 +87,14 @@ export default async function BreweryDetailPage({
     {
       data: countries,
       error: countriesError,
+    },
+    {
+      data: outgoingRelations,
+      error: outgoingRelationsError,
+    },
+    {
+      data: incomingRelations,
+      error: incomingRelationsError,
     },
   ] = await Promise.all([
     supabase
@@ -105,6 +138,34 @@ export default async function BreweryDetailPage({
       .order("name", {
         ascending: true,
       }),
+    supabase
+      .from("brewery_relations")
+      .select(`
+        id,
+        from_brewery_id,
+        to_brewery_id,
+        relation_type,
+        relation_year,
+        note
+      `)
+      .eq(
+        "from_brewery_id",
+        breweryId
+      ),
+    supabase
+      .from("brewery_relations")
+      .select(`
+        id,
+        from_brewery_id,
+        to_brewery_id,
+        relation_type,
+        relation_year,
+        note
+      `)
+      .eq(
+        "to_brewery_id",
+        breweryId
+      ),
   ]);
 
   if (error || !brewery) {
@@ -114,6 +175,18 @@ export default async function BreweryDetailPage({
   if (countriesError) {
     throw new Error(
       countriesError.message
+    );
+  }
+
+  if (outgoingRelationsError) {
+    throw new Error(
+      outgoingRelationsError.message
+    );
+  }
+
+  if (incomingRelationsError) {
+    throw new Error(
+      incomingRelationsError.message
     );
   }
 
@@ -161,6 +234,96 @@ export default async function BreweryDetailPage({
           : earliest;
       },
       null
+    );
+
+  const relatedBreweryIds =
+    Array.from(
+      new Set([
+        ...(outgoingRelations ?? []).map(
+          (relation) =>
+            relation.to_brewery_id
+        ),
+        ...(incomingRelations ?? []).map(
+          (relation) =>
+            relation.from_brewery_id
+        ),
+      ])
+    );
+
+  let relatedBreweries: {
+    id: number;
+    name: string;
+  }[] = [];
+
+  if (relatedBreweryIds.length > 0) {
+    const {
+      data,
+      error: relatedBreweriesError,
+    } = await supabase
+      .from("breweries")
+      .select("id, name")
+      .in("id", relatedBreweryIds);
+
+    if (relatedBreweriesError) {
+      throw new Error(
+        relatedBreweriesError.message
+      );
+    }
+
+    relatedBreweries = data ?? [];
+  }
+
+  const relatedBreweryById =
+    new Map(
+      relatedBreweries.map(
+        (item) => [
+          item.id,
+          item,
+        ]
+      )
+    );
+
+  const relationItems = [
+    ...(outgoingRelations ?? []).map(
+      (relation) => ({
+        ...relation,
+        direction:
+          "from" as const,
+        relatedBreweryId:
+          relation.to_brewery_id,
+      })
+    ),
+    ...(incomingRelations ?? []).map(
+      (relation) => ({
+        ...relation,
+        direction:
+          "to" as const,
+        relatedBreweryId:
+          relation.from_brewery_id,
+      })
+    ),
+  ]
+    .flatMap((relation) => {
+      const relatedBrewery =
+        relatedBreweryById.get(
+          relation.relatedBreweryId
+        );
+
+      if (!relatedBrewery) {
+        return [];
+      }
+
+      return [
+        {
+          ...relation,
+          relatedBrewery,
+        },
+      ];
+    })
+    .sort(
+      (a, b) =>
+        (a.relation_year ?? 0) -
+        (b.relation_year ?? 0)
     );
 
   return (
@@ -514,6 +677,123 @@ export default async function BreweryDetailPage({
             </div>
           )}
         </div>
+
+        {relationItems.length > 0 && (
+          <div
+            style={{
+              marginTop: "24px",
+              paddingTop: "18px",
+              borderTop:
+                "1px solid var(--taste-border)",
+            }}
+          >
+            <div
+              className="taste-label"
+              style={{
+                marginBottom: "10px",
+              }}
+            >
+              Historické vazby
+            </div>
+
+            <div
+              style={{
+                display: "grid",
+                gap: "10px",
+              }}
+            >
+              {relationItems.map(
+                (relation) => (
+                  <div
+                    key={`${relation.direction}-${relation.id}`}
+                    style={{
+                      padding: "11px 12px",
+                      border:
+                        "1px solid var(--taste-border)",
+                      borderRadius: "10px",
+                      background:
+                        "rgba(255,255,255,0.018)",
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        flexWrap: "wrap",
+                        alignItems:
+                          "baseline",
+                        gap: "6px",
+                        fontSize: "12px",
+                        lineHeight: 1.45,
+                      }}
+                    >
+                      <span
+                        style={{
+                          color:
+                            "var(--taste-text-muted)",
+                        }}
+                      >
+                        {breweryRelationLabel(
+                          relation.relation_type,
+                          relation.direction
+                        )}
+                        :
+                      </span>
+
+                      <Link
+                        href={`/breweries/${relation.relatedBrewery.id}`}
+                        style={{
+                          color:
+                            "var(--taste-amber-bright)",
+                          fontWeight: 700,
+                          textDecoration:
+                            "none",
+                        }}
+                      >
+                        {
+                          relation
+                            .relatedBrewery
+                            .name
+                        }
+                      </Link>
+
+                      {relation.relation_year !=
+                        null && (
+                        <span
+                          style={{
+                            color:
+                              "var(--taste-text-muted)",
+                            fontSize:
+                              "10px",
+                          }}
+                        >
+                          (
+                          {
+                            relation.relation_year
+                          }
+                          )
+                        </span>
+                      )}
+                    </div>
+
+                    {relation.note && (
+                      <div
+                        style={{
+                          marginTop: "5px",
+                          color:
+                            "var(--taste-text-muted)",
+                          fontSize: "10px",
+                          lineHeight: 1.5,
+                        }}
+                      >
+                        {relation.note}
+                      </div>
+                    )}
+                  </div>
+                )
+              )}
+            </div>
+          </div>
+        )}
 
         <div
           style={{
