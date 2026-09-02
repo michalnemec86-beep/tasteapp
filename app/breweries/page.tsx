@@ -62,6 +62,7 @@ export default async function BreweriesPage() {
       brewery_name_history (
         id,
         previous_name,
+        from_year,
         changed_year
       )
     `)
@@ -187,8 +188,34 @@ export default async function BreweriesPage() {
         ...(brewery.brewery_name_history ?? []),
       ].sort(
         (a, b) =>
-          (b.changed_year ?? 0) - (a.changed_year ?? 0)
+          (a.from_year ??
+            a.changed_year ??
+            Number.MAX_SAFE_INTEGER) -
+          (b.from_year ??
+            b.changed_year ??
+            Number.MAX_SAFE_INTEGER)
       );
+
+      const historyFromYear =
+        history.reduce<number | null>(
+          (earliest, item) => {
+            if (item.from_year == null) {
+              return earliest;
+            }
+
+            return earliest == null ||
+              item.from_year < earliest
+              ? item.from_year
+              : earliest;
+          },
+          null
+        );
+
+      const currentNameFromYear =
+        brewery.founded_year ??
+        history[history.length - 1]
+          ?.changed_year ??
+        null;
 
       const userStats: BreweryTableRow["userStats"] = {};
 
@@ -269,19 +296,20 @@ export default async function BreweriesPage() {
         longitude: brewery.longitude,
         beerCount: brewery.beers?.length ?? 0,
         foundedYear: brewery.founded_year,
+        historyFromYear,
         tastingCount,
         closedYear: brewery.closed_year,
         historyText:
           history.length > 0
             ? history
-                .map((item) =>
-                  item.changed_year
-                    ? `${item.changed_year}: ${item.previous_name}`
-                    : item.previous_name
+                .map(
+                  (item) =>
+                    item.previous_name
                 )
-                .join(", ")
+                .join("\n")
             : "—",
-        historySortYear: history[0]?.changed_year ?? null,
+        historySortYear:
+          historyFromYear,
         beers: beerItems,
         userStats,
       };

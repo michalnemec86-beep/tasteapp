@@ -93,6 +93,7 @@ export default async function BreweryDetailPage({
       brewery_name_history (
         id,
         previous_name,
+        from_year,
         changed_year
       )
     `)
@@ -139,9 +140,28 @@ export default async function BreweryDetailPage({
     ...(brewery.brewery_name_history ?? []),
   ].sort(
     (a, b) =>
-      (b.changed_year ?? 0) -
-      (a.changed_year ?? 0)
+      (a.from_year ??
+        a.changed_year ??
+        Number.MAX_SAFE_INTEGER) -
+      (b.from_year ??
+        b.changed_year ??
+        Number.MAX_SAFE_INTEGER)
   );
+
+  const historyFromYear =
+    history.reduce<number | null>(
+      (earliest, item) => {
+        if (item.from_year == null) {
+          return earliest;
+        }
+
+        return earliest == null ||
+          item.from_year < earliest
+          ? item.from_year
+          : earliest;
+      },
+      null
+    );
 
   return (
     <main
@@ -256,7 +276,15 @@ export default async function BreweryDetailPage({
           <DetailItem
             label="Rok založení"
             value={
-              brewery.founded_year
+              brewery.founded_year != null
+                ? historyFromYear != null &&
+                  historyFromYear <
+                    brewery.founded_year
+                  ? `${brewery.founded_year} (historie od ${historyFromYear})`
+                  : brewery.founded_year
+                : historyFromYear != null
+                  ? `Historie od ${historyFromYear}`
+                  : null
             }
           />
 
@@ -517,19 +545,68 @@ export default async function BreweryDetailPage({
                   <div
                     key={item.id}
                     style={{
+                      display: "grid",
+                      gridTemplateColumns:
+                        "92px minmax(0, 1fr)",
+                      gap: "10px",
                       color:
                         "var(--taste-text-soft)",
                       fontSize: "13px",
                       lineHeight: 1.6,
                     }}
                   >
-                    {item.changed_year
-                      ? `${item.changed_year}: `
-                      : ""}
-                    {item.previous_name}
+                    <span
+                      style={{
+                        color:
+                          "var(--taste-text-muted)",
+                        fontVariantNumeric:
+                          "tabular-nums",
+                      }}
+                    >
+                      {item.from_year ?? "?"}–
+                      {item.changed_year ?? "?"}
+                    </span>
+
+                    <span>
+                      {item.previous_name}
+                    </span>
                   </div>
                 )
               )}
+
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns:
+                    "92px minmax(0, 1fr)",
+                  gap: "10px",
+                  color:
+                    "var(--taste-text)",
+                  fontSize: "13px",
+                  fontWeight: 700,
+                  lineHeight: 1.6,
+                }}
+              >
+                <span
+                  style={{
+                    color:
+                      "var(--taste-amber-bright)",
+                    fontVariantNumeric:
+                      "tabular-nums",
+                  }}
+                >
+                  {brewery.founded_year ??
+                    history[
+                      history.length - 1
+                    ]?.changed_year ??
+                    "?"}
+                  –
+                </span>
+
+                <span>
+                  {brewery.name}
+                </span>
+              </div>
             </div>
           ) : (
             <div
@@ -575,12 +652,58 @@ export default async function BreweryDetailPage({
                     "0.055em",
                 }}
               >
-                Předchozí název
+                Historický název
               </span>
 
               <input
                 name="previousName"
                 required
+                style={{
+                  width: "100%",
+                  height: "38px",
+                  boxSizing: "border-box",
+                  padding: "0 11px",
+                  border:
+                    "1px solid var(--taste-border)",
+                  borderRadius: "9px",
+                  background:
+                    "var(--taste-surface)",
+                  color:
+                    "var(--taste-text)",
+                  fontSize: "12px",
+                  outline: "none",
+                }}
+              />
+            </label>
+
+            <label
+              style={{
+                display: "grid",
+                gap: "5px",
+                flex: "0 1 125px",
+              }}
+            >
+              <span
+                style={{
+                  color:
+                    "var(--taste-text-muted)",
+                  fontSize: "10px",
+                  fontWeight: 700,
+                  textTransform:
+                    "uppercase",
+                  letterSpacing:
+                    "0.055em",
+                }}
+              >
+                Od roku
+              </span>
+
+              <input
+                name="fromYear"
+                type="number"
+                min="1000"
+                max="2100"
+                inputMode="numeric"
                 style={{
                   width: "100%",
                   height: "38px",
@@ -618,7 +741,7 @@ export default async function BreweryDetailPage({
                     "0.055em",
                 }}
               >
-                Rok změny
+                Do roku
               </span>
 
               <input

@@ -458,6 +458,12 @@ export async function addBreweryNameHistory(
       ) || ""
     ).trim();
 
+  const fromYear =
+    readOptionalInteger(
+      formData,
+      "fromYear"
+    );
+
   const changedYear =
     readOptionalInteger(
       formData,
@@ -471,6 +477,18 @@ export async function addBreweryNameHistory(
   }
 
   if (
+    fromYear !== null &&
+    (
+      fromYear < 1000 ||
+      fromYear > 2100
+    )
+  ) {
+    throw new Error(
+      "Počáteční rok není platný."
+    );
+  }
+
+  if (
     changedYear !== null &&
     (
       changedYear < 1000 ||
@@ -478,7 +496,17 @@ export async function addBreweryNameHistory(
     )
   ) {
     throw new Error(
-      "Rok změny není platný."
+      "Koncový rok není platný."
+    );
+  }
+
+  if (
+    fromYear !== null &&
+    changedYear !== null &&
+    changedYear < fromYear
+  ) {
+    throw new Error(
+      "Koncový rok nemůže být před počátečním rokem."
     );
   }
 
@@ -522,7 +550,7 @@ export async function addBreweryNameHistory(
       "brewery_name_history"
     )
     .select(
-      "id, previous_name, changed_year"
+      "id, previous_name, from_year, changed_year"
     )
     .eq(
       "brewery_id",
@@ -544,6 +572,8 @@ export async function addBreweryNameHistory(
           normalizeText(
             previousName
           ) &&
+        item.from_year ===
+          fromYear &&
         item.changed_year ===
           changedYear
     );
@@ -565,6 +595,8 @@ export async function addBreweryNameHistory(
         breweryId,
       previous_name:
         previousName,
+      from_year:
+        fromYear,
       changed_year:
         changedYear,
     });

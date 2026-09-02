@@ -37,6 +37,7 @@ export type BreweryTableRow = {
   longitude: number | null;
   beerCount: number;
   foundedYear: number | null;
+  historyFromYear: number | null;
   tastingCount: number;
   closedYear: number | null;
   historyText: string;
@@ -116,7 +117,7 @@ const columns: {
   },
   {
     key: "historySortYear",
-    label: "Změna názvu",
+    label: "Historie názvů",
   },
 ];
 
@@ -821,8 +822,33 @@ export default function BreweryTableClient({
                           "center",
                       }}
                     >
-                      {brewery.foundedYear ??
-                        "—"}
+                      <span>
+                        {brewery.foundedYear ??
+                          "—"}
+
+                        {brewery.historyFromYear != null &&
+                          brewery.foundedYear != null &&
+                          brewery.historyFromYear <
+                            brewery.foundedYear && (
+                            <span
+                              style={{
+                                marginLeft: "4px",
+                                color:
+                                  "var(--taste-text-muted)",
+                                fontSize: "9px",
+                                fontWeight: 500,
+                                whiteSpace:
+                                  "nowrap",
+                              }}
+                            >
+                              (od{" "}
+                              {
+                                brewery.historyFromYear
+                              }
+                              )
+                            </span>
+                          )}
+                      </span>
                     </td>
 
                     <td
@@ -867,6 +893,9 @@ export default function BreweryTableClient({
                           "var(--taste-text-muted)",
                         minWidth:
                           "190px",
+                        whiteSpace:
+                          "pre-line",
+                        lineHeight: 1.45,
                       }}
                     >
                       {
