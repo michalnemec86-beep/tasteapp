@@ -2,6 +2,7 @@
 
 import {
   useEffect,
+  useRef,
   useState,
 } from "react";
 import { createPortal } from "react-dom";
@@ -31,7 +32,12 @@ export default function BreweryCreateModalClient({
 
   const [error, setError] =
     useState("");
-
+  const [importText, setImportText] =
+    useState("");
+  const [importError, setImportError] =
+    useState("");
+  const formRef =
+    useRef<HTMLFormElement>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -78,7 +84,173 @@ export default function BreweryCreateModalClient({
     }
 
     setError("");
+    setImportText("");
+    setImportError("");
     setOpen(false);
+  }
+
+  function handleImport() {
+    setImportError("");
+    setError("");
+
+    if (!importText.trim()) {
+      setImportError(
+        "Nejdřív vlož JSON s údaji pivovaru."
+      );
+      return;
+    }
+
+    try {
+      const parsed: unknown =
+        JSON.parse(importText);
+
+      if (
+        !parsed ||
+        typeof parsed !== "object" ||
+        Array.isArray(parsed)
+      ) {
+        throw new Error(
+          "JSON musí obsahovat jeden objekt pivovaru."
+        );
+      }
+
+      const data =
+        parsed as Record<string, unknown>;
+
+      function readText(key: string) {
+        const value = data[key];
+
+        if (
+          value === undefined ||
+          value === null
+        ) {
+          return "";
+        }
+
+        if (typeof value !== "string") {
+          throw new Error(
+            `Pole „${key}“ musí být text.`
+          );
+        }
+
+        return value.trim();
+      }
+
+      function readNumber(key: string) {
+        const value = data[key];
+
+        if (
+          value === undefined ||
+          value === null ||
+          value === ""
+        ) {
+          return "";
+        }
+
+        if (
+          typeof value !== "number" &&
+          typeof value !== "string"
+        ) {
+          throw new Error(
+            `Pole „${key}“ musí být číslo.`
+          );
+        }
+
+        const normalized =
+          typeof value === "string"
+            ? value.trim().replace(",", ".")
+            : String(value);
+
+        const numberValue =
+          Number(normalized);
+
+        if (!Number.isFinite(numberValue)) {
+          throw new Error(
+            `Pole „${key}“ není platné číslo.`
+          );
+        }
+
+        return String(numberValue);
+      }
+
+      const values = {
+        name: readText("name"),
+        city: readText("city"),
+        country: readText("country"),
+        address: readText("address"),
+        website: readText("website"),
+        foundedYear:
+          readNumber("foundedYear"),
+        closedYear:
+          readNumber("closedYear"),
+        latitude:
+          readNumber("latitude"),
+        longitude:
+          readNumber("longitude"),
+      };
+
+      if (!values.name) {
+        throw new Error(
+          "V JSONu chybí jméno pivovaru."
+        );
+      }
+
+      if (!values.country) {
+        throw new Error(
+          "V JSONu chybí stát."
+        );
+      }
+
+      if (
+        !countries.some(
+          (country) =>
+            country.name === values.country
+        )
+      ) {
+        throw new Error(
+          `Stát „${values.country}“ není v katalogu států TasteApp.`
+        );
+      }
+
+      const form = formRef.current;
+
+      if (!form) {
+        throw new Error(
+          "Formulář pivovaru není dostupný."
+        );
+      }
+
+      for (
+        const [name, value] of
+        Object.entries(values)
+      ) {
+        const field =
+          form.elements.namedItem(name);
+
+        if (
+          field instanceof HTMLInputElement ||
+          field instanceof HTMLSelectElement
+        ) {
+          field.value = value;
+          field.dispatchEvent(
+            new Event("input", {
+              bubbles: true,
+            })
+          );
+          field.dispatchEvent(
+            new Event("change", {
+              bubbles: true,
+            })
+          );
+        }
+      }
+    } catch (caughtError) {
+      setImportError(
+        caughtError instanceof Error
+          ? caughtError.message
+          : "Údaje se nepodařilo načíst."
+      );
+    }
   }
 
   async function handleSubmit(
@@ -101,6 +273,8 @@ export default function BreweryCreateModalClient({
       );
 
       form.reset();
+      setImportText("");
+      setImportError("");
       setOpen(false);
       router.refresh();
     } catch (caughtError) {
@@ -120,6 +294,8 @@ export default function BreweryCreateModalClient({
         type="button"
         onClick={() => {
           setError("");
+          setImportText("");
+          setImportError("");
           setOpen(true);
         }}
         className="taste-button-primary"
@@ -279,6 +455,7 @@ export default function BreweryCreateModalClient({
               </div>
 
               <form
+                ref={formRef}
                 onSubmit={
                   handleSubmit
                 }
@@ -286,6 +463,113 @@ export default function BreweryCreateModalClient({
                   padding: "20px",
                 }}
               >
+                <div
+                  style={{
+                    marginBottom: "18px",
+                    padding: "14px",
+                    border:
+                      "1px solid var(--taste-border)",
+                    borderRadius: "11px",
+                    background:
+                      "rgba(231,166,47,0.045)",
+                  }}
+                >
+                  <div
+                    className="taste-label"
+                    style={{
+                      marginBottom: "6px",
+                      fontSize: "9px",
+                    }}
+                  >
+                    Rychlé vložení
+                  </div>
+
+                  <div
+                    style={{
+                      marginBottom: "10px",
+                      color:
+                        "var(--taste-text-muted)",
+                      fontSize: "11px",
+                      lineHeight: 1.45,
+                    }}
+                  >
+                    Vlož JSON blok s údaji
+                    pivovaru. Formulář se pouze
+                    předvyplní, nic se
+                    automaticky neuloží.
+                  </div>
+
+                  <textarea
+                    value={importText}
+                    onChange={(event) => {
+                      setImportText(
+                        event.target.value
+                      );
+                      setImportError("");
+                    }}
+                    placeholder='{"name":"Rambousek","city":"Hradec Králové",...}'
+                    spellCheck={false}
+                    rows={5}
+                    style={{
+                      width: "100%",
+                      boxSizing: "border-box",
+                      resize: "vertical",
+                      padding: "10px 11px",
+                      border:
+                        "1px solid var(--taste-border)",
+                      borderRadius: "9px",
+                      background:
+                        "var(--taste-surface)",
+                      color:
+                        "var(--taste-text)",
+                      fontFamily:
+                        "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+                      fontSize: "11px",
+                      lineHeight: 1.5,
+                      outline: "none",
+                    }}
+                  />
+
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent:
+                        "flex-end",
+                      marginTop: "9px",
+                    }}
+                  >
+                    <button
+                      type="button"
+                      onClick={handleImport}
+                      disabled={saving}
+                      className="taste-button-secondary"
+                    >
+                      Načíst údaje
+                    </button>
+                  </div>
+
+                  {importError && (
+                    <div
+                      role="alert"
+                      style={{
+                        marginTop: "9px",
+                        padding: "9px 10px",
+                        border:
+                          "1px solid rgba(220,100,75,0.35)",
+                        borderRadius: "9px",
+                        background:
+                          "rgba(220,100,75,0.08)",
+                        color:
+                          "var(--taste-text)",
+                        fontSize: "11px",
+                        lineHeight: 1.45,
+                      }}
+                    >
+                      {importError}
+                    </div>
+                  )}
+                </div>
+
                 <div
                   style={{
                     display: "grid",
