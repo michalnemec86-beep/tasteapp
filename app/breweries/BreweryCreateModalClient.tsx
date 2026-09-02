@@ -15,6 +15,7 @@ type Country = {
 
 type BreweryCreateModalClientProps = {
   countries: Country[];
+  showQuickImport: boolean;
   createBreweryAction: (
     formData: FormData
   ) => Promise<void>;
@@ -22,6 +23,7 @@ type BreweryCreateModalClientProps = {
 
 export default function BreweryCreateModalClient({
   countries,
+  showQuickImport,
   createBreweryAction,
 }: BreweryCreateModalClientProps) {
   const [open, setOpen] =
@@ -463,6 +465,7 @@ export default function BreweryCreateModalClient({
                   padding: "20px",
                 }}
               >
+                {showQuickImport && (
                 <div
                   style={{
                     marginBottom: "18px",
@@ -569,6 +572,7 @@ export default function BreweryCreateModalClient({
                     </div>
                   )}
                 </div>
+                )}
 
                 <div
                   style={{

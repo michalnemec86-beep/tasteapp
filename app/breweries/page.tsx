@@ -397,6 +397,10 @@ export default async function BreweriesPage() {
 
             <BreweryCreateModalClient
               countries={countries ?? []}
+              showQuickImport={
+                user.id ===
+                "17be5dc3-a3f9-4fd2-ae90-dee7692034fc"
+              }
               createBreweryAction={createBrewery}
             />
           </div>
