@@ -7,9 +7,12 @@ import {
 import { createClient } from "@/lib/supabase/server";
 import PageHero from "@/components/ui/PageHero";
 import BreweryEditModalClient from "../BreweryEditModalClient";
+import BreweryNameHistoryItemClient from "../BreweryNameHistoryItemClient";
 import {
   addBreweryNameHistory,
+  deleteBreweryNameHistory,
   updateBrewery,
+  updateBreweryNameHistory,
 } from "../actions";
 
 function singleRelation<T>(
@@ -822,35 +825,32 @@ export default async function BreweryDetailPage({
             >
               {history.map(
                 (item) => (
-                  <div
+                  <BreweryNameHistoryItemClient
                     key={item.id}
-                    style={{
-                      display: "grid",
-                      gridTemplateColumns:
-                        "92px minmax(0, 1fr)",
-                      gap: "10px",
-                      color:
-                        "var(--taste-text-soft)",
-                      fontSize: "13px",
-                      lineHeight: 1.6,
-                    }}
-                  >
-                    <span
-                      style={{
-                        color:
-                          "var(--taste-text-muted)",
-                        fontVariantNumeric:
-                          "tabular-nums",
-                      }}
-                    >
-                      {item.from_year ?? "?"}–
-                      {item.changed_year ?? "?"}
-                    </span>
-
-                    <span>
-                      {item.previous_name}
-                    </span>
-                  </div>
+                    previousName={
+                      item.previous_name
+                    }
+                    fromYear={
+                      item.from_year
+                    }
+                    changedYear={
+                      item.changed_year
+                    }
+                    updateAction={
+                      updateBreweryNameHistory.bind(
+                        null,
+                        brewery.id,
+                        item.id
+                      )
+                    }
+                    deleteAction={
+                      deleteBreweryNameHistory.bind(
+                        null,
+                        brewery.id,
+                        item.id
+                      )
+                    }
+                  />
                 )
               )}
 

@@ -615,3 +615,208 @@ export async function addBreweryNameHistory(
     `/breweries/${breweryId}`
   );
 }
+
+export async function updateBreweryNameHistory(
+  breweryId: number,
+  historyId: number,
+  formData: FormData
+) {
+  const {
+    supabase,
+  } = await requireUser();
+
+  if (
+    !Number.isInteger(breweryId) ||
+    breweryId < 1 ||
+    !Number.isInteger(historyId) ||
+    historyId < 1
+  ) {
+    throw new Error(
+      "Neplatný záznam historie."
+    );
+  }
+
+  const previousName = String(
+    formData.get("previousName") || ""
+  ).trim();
+
+  const fromYear =
+    readOptionalInteger(
+      formData,
+      "fromYear"
+    );
+
+  const changedYear =
+    readOptionalInteger(
+      formData,
+      "changedYear"
+    );
+
+  if (!previousName) {
+    throw new Error(
+      "Historický název je povinný."
+    );
+  }
+
+  if (
+    fromYear !== null &&
+    (fromYear < 1000 ||
+      fromYear > 2100)
+  ) {
+    throw new Error(
+      "Počáteční rok není platný."
+    );
+  }
+
+  if (
+    changedYear !== null &&
+    (changedYear < 1000 ||
+      changedYear > 2100)
+  ) {
+    throw new Error(
+      "Koncový rok není platný."
+    );
+  }
+
+  if (
+    fromYear !== null &&
+    changedYear !== null &&
+    changedYear < fromYear
+  ) {
+    throw new Error(
+      "Koncový rok nemůže být před počátečním rokem."
+    );
+  }
+
+  const {
+    data: brewery,
+    error: breweryError,
+  } = await supabase
+    .from("breweries")
+    .select("id, name")
+    .eq("id", breweryId)
+    .single();
+
+  if (
+    breweryError ||
+    !brewery
+  ) {
+    throw new Error(
+      breweryError?.message ||
+        "Pivovar nebyl nalezen."
+    );
+  }
+
+  if (
+    normalizeText(brewery.name) ===
+    normalizeText(previousName)
+  ) {
+    throw new Error(
+      "Historický název nemůže být stejný jako současný název pivovaru."
+    );
+  }
+
+  const {
+    data: history,
+    error: historyError,
+  } = await supabase
+    .from("brewery_name_history")
+    .select(
+      "id, previous_name, from_year, changed_year"
+    )
+    .eq("brewery_id", breweryId);
+
+  if (historyError) {
+    throw new Error(
+      historyError.message
+    );
+  }
+
+  const duplicate =
+    history?.find(
+      (item) =>
+        item.id !== historyId &&
+        normalizeText(
+          item.previous_name
+        ) ===
+          normalizeText(
+            previousName
+          ) &&
+        item.from_year ===
+          fromYear &&
+        item.changed_year ===
+          changedYear
+    );
+
+  if (duplicate) {
+    throw new Error(
+      "Stejný historický záznam už existuje."
+    );
+  }
+
+  const {
+    error: updateError,
+  } = await supabase
+    .from("brewery_name_history")
+    .update({
+      previous_name:
+        previousName,
+      from_year:
+        fromYear,
+      changed_year:
+        changedYear,
+    })
+    .eq("id", historyId)
+    .eq("brewery_id", breweryId);
+
+  if (updateError) {
+    throw new Error(
+      updateError.message
+    );
+  }
+
+  revalidatePath("/breweries");
+  revalidatePath(
+    `/breweries/${breweryId}`
+  );
+}
+
+export async function deleteBreweryNameHistory(
+  breweryId: number,
+  historyId: number
+) {
+  const {
+    supabase,
+  } = await requireUser();
+
+  if (
+    !Number.isInteger(breweryId) ||
+    breweryId < 1 ||
+    !Number.isInteger(historyId) ||
+    historyId < 1
+  ) {
+    throw new Error(
+      "Neplatný záznam historie."
+    );
+  }
+
+  const {
+    error,
+  } = await supabase
+    .from("brewery_name_history")
+    .delete()
+    .eq("id", historyId)
+    .eq("brewery_id", breweryId);
+
+  if (error) {
+    throw new Error(
+      error.message
+    );
+  }
+
+  revalidatePath("/breweries");
+  revalidatePath(
+    `/breweries/${breweryId}`
+  );
+}
+
