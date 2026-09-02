@@ -7,6 +7,11 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
+import {
+  usePathname,
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
 
 import BreweryEditModalClient from "./BreweryEditModalClient";
 
@@ -67,6 +72,54 @@ type SortKey =
   | "historySortYear";
 
 type SortDirection = "asc" | "desc";
+
+const PAGE_SIZE = 25;
+
+function getPaginationPages(
+  currentPage: number,
+  totalPages: number
+): Array<number | null> {
+  if (totalPages <= 7) {
+    return Array.from(
+      { length: totalPages },
+      (_, index) => index + 1
+    );
+  }
+
+  if (currentPage <= 4) {
+    return [
+      1,
+      2,
+      3,
+      4,
+      5,
+      null,
+      totalPages,
+    ];
+  }
+
+  if (currentPage >= totalPages - 3) {
+    return [
+      1,
+      null,
+      totalPages - 4,
+      totalPages - 3,
+      totalPages - 2,
+      totalPages - 1,
+      totalPages,
+    ];
+  }
+
+  return [
+    1,
+    null,
+    currentPage - 1,
+    currentPage,
+    currentPage + 1,
+    null,
+    totalPages,
+  ];
+}
 
 type BreweryTableClientProps = {
   rows: BreweryTableRow[];
@@ -135,6 +188,33 @@ export default function BreweryTableClient({
   countries,
   updateBreweryAction,
 }: BreweryTableClientProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  function setPageInUrl(page: number) {
+    const params = new URLSearchParams(
+      searchParams.toString()
+    );
+
+    if (page <= 1) {
+      params.delete("page");
+    } else {
+      params.set("page", String(page));
+    }
+
+    const query = params.toString();
+
+    router.replace(
+      query
+        ? `${pathname}?${query}`
+        : pathname,
+      {
+        scroll: false,
+      }
+    );
+  }
+
   const [sortKey, setSortKey] =
     useState<SortKey>("name");
 
@@ -162,6 +242,8 @@ export default function BreweryTableClient({
     );
 
   function handleSort(key: SortKey) {
+    setPageInUrl(1);
+
     if (key === sortKey) {
       setSortDirection((current) =>
         current === "asc" ? "desc" : "asc"
@@ -175,17 +257,20 @@ export default function BreweryTableClient({
   }
 
   function handleUserChange(userId: string) {
+    setPageInUrl(1);
     setSelectedUserId(userId);
     setSelectedCountry("");
     setSelectedCity("");
   }
 
   function handleCountryChange(country: string) {
+    setPageInUrl(1);
     setSelectedCountry(country);
     setSelectedCity("");
   }
 
   function clearFilters() {
+    setPageInUrl(1);
     setSearch("");
     setSelectedUserId("");
     setSelectedCountry("");
@@ -359,6 +444,60 @@ export default function BreweryTableClient({
     sortDirection,
   ]);
 
+  const pageParam = Number(
+    searchParams.get("page") ?? "1"
+  );
+
+  const requestedPage =
+    Number.isInteger(pageParam) &&
+    pageParam > 0
+      ? pageParam
+      : 1;
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(
+      filteredAndSortedRows.length /
+        PAGE_SIZE
+    )
+  );
+
+  const currentPage = Math.min(
+    requestedPage,
+    totalPages
+  );
+
+  const paginatedRows = useMemo(() => {
+    const start =
+      (currentPage - 1) * PAGE_SIZE;
+
+    return filteredAndSortedRows.slice(
+      start,
+      start + PAGE_SIZE
+    );
+  }, [
+    filteredAndSortedRows,
+    currentPage,
+  ]);
+
+  const pageStart =
+    filteredAndSortedRows.length === 0
+      ? 0
+      : (currentPage - 1) *
+          PAGE_SIZE +
+        1;
+
+  const pageEnd = Math.min(
+    currentPage * PAGE_SIZE,
+    filteredAndSortedRows.length
+  );
+
+  const paginationPages =
+    getPaginationPages(
+      currentPage,
+      totalPages
+    );
+
   const hasActiveFilters =
     Boolean(search.trim()) ||
     Boolean(selectedUserId) ||
@@ -379,11 +518,12 @@ export default function BreweryTableClient({
         <input
           type="search"
           value={search}
-          onChange={(event) =>
+          onChange={(event) => {
             setSearch(
               event.target.value
-            )
-          }
+            );
+            setPageInUrl(1);
+          }}
           placeholder="Hledat pivovar, město, stát…"
           aria-label="Hledat v katalogu pivovarů"
           style={{
@@ -458,11 +598,12 @@ export default function BreweryTableClient({
 
         <select
           value={selectedCity}
-          onChange={(event) =>
+          onChange={(event) => {
             setSelectedCity(
               event.target.value
-            )
-          }
+            );
+            setPageInUrl(1);
+          }}
           aria-label="Filtrovat podle města"
           style={selectStyle}
         >
@@ -518,9 +659,19 @@ export default function BreweryTableClient({
           fontSize: "10px",
         }}
       >
-        Zobrazeno{" "}
-        {filteredAndSortedRows.length} z{" "}
-        {rows.length}
+        {hasActiveFilters ? (
+          <>
+            Zobrazeno {pageStart}–{pageEnd} z{" "}
+            {filteredAndSortedRows.length} výsledků
+            {" · "}
+            celkem {rows.length} pivovarů
+          </>
+        ) : (
+          <>
+            Zobrazeno {pageStart}–{pageEnd} z{" "}
+            {rows.length} pivovarů
+          </>
+        )}
       </div>
 
       <div
@@ -679,7 +830,7 @@ export default function BreweryTableClient({
                 </td>
               </tr>
             ) : (
-              filteredAndSortedRows.map(
+              paginatedRows.map(
                 (brewery) => (
                   <tr
                     key={
@@ -909,6 +1060,123 @@ export default function BreweryTableClient({
           </tbody>
         </table>
       </div>
+
+      {filteredAndSortedRows.length > 0 &&
+        totalPages > 1 && (
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              flexWrap: "wrap",
+              gap: "6px",
+              marginTop: "14px",
+            }}
+          >
+            <button
+              type="button"
+              disabled={currentPage <= 1}
+              onClick={() =>
+                setPageInUrl(
+                  currentPage - 1
+                )
+              }
+              className="taste-button-secondary"
+              style={{
+                height: "34px",
+                padding: "0 11px",
+                fontSize: "10px",
+                opacity:
+                  currentPage <= 1
+                    ? 0.45
+                    : 1,
+              }}
+            >
+              ← Předchozí
+            </button>
+
+            {paginationPages.map(
+              (page, index) =>
+                page == null ? (
+                  <span
+                    key={`ellipsis-${index}`}
+                    style={{
+                      padding: "0 3px",
+                      color:
+                        "var(--taste-text-muted)",
+                      fontSize: "11px",
+                    }}
+                  >
+                    …
+                  </span>
+                ) : (
+                  <button
+                    key={page}
+                    type="button"
+                    onClick={() =>
+                      setPageInUrl(page)
+                    }
+                    aria-current={
+                      page === currentPage
+                        ? "page"
+                        : undefined
+                    }
+                    style={{
+                      width: "34px",
+                      height: "34px",
+                      border:
+                        page === currentPage
+                          ? "1px solid var(--taste-amber-bright)"
+                          : "1px solid var(--taste-border)",
+                      borderRadius: "9px",
+                      background:
+                        page === currentPage
+                          ? "rgba(231,166,47,0.12)"
+                          : "var(--taste-surface)",
+                      color:
+                        page === currentPage
+                          ? "var(--taste-amber-bright)"
+                          : "var(--taste-text-soft)",
+                      fontSize: "11px",
+                      fontWeight:
+                        page === currentPage
+                          ? 750
+                          : 600,
+                      cursor: "pointer",
+                    }}
+                  >
+                    {page}
+                  </button>
+                )
+            )}
+
+            <button
+              type="button"
+              disabled={
+                currentPage >= totalPages
+              }
+              onClick={() =>
+                setPageInUrl(
+                  currentPage + 1
+                )
+              }
+              className="taste-button-secondary"
+              style={{
+                height: "34px",
+                padding: "0 11px",
+                fontSize: "10px",
+                opacity:
+                  currentPage >=
+                  totalPages
+                    ? 0.45
+                    : 1,
+              }}
+            >
+              Další →
+            </button>
+          </div>
+        )}
+
       {beerListBrewery && (
         <BreweryBeersModal
           brewery={beerListBrewery}
