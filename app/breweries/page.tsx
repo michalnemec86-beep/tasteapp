@@ -345,24 +345,25 @@ export default async function BreweriesPage() {
         stats={[
           {
             icon: <AppIcon name="brewery" size={18} />,
-            accent: "#f3b43f",
+            accent: "#f2b63f",
             value: allBreweries.length,
             label: "Pivovarů",
           },
           {
             icon: "●",
+            accent: "#9cad47",
             value: activeBreweryCount,
             label: "Aktivních",
           },
           {
             icon: <AppIcon name="beer" size={18} />,
-            accent: "#d5a13c",
+            accent: "#e88835",
             value: recordedBeerCount,
             label: "Zaznamenaných piv",
           },
           {
             icon: <AppIcon name="globe" size={18} />,
-            accent: "#d37f43",
+            accent: "#d65b42",
             value: countryCount,
             label: "Států",
           },
