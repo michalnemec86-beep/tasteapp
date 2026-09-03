@@ -515,41 +515,62 @@ export default function EditTastingModalClient({
 
             <div
               style={{
-                display: "flex",
-                justifyContent:
-                  "space-between",
-                alignItems: "center",
-                gap: "16px",
-                marginBottom: "24px",
+                position:
+                  "relative",
+                padding:
+                  "18px 20px 16px",
+                borderBottom:
+                  "1px solid var(--taste-border)",
               }}
             >
-              <div>
-                <div
-                  style={{
-                    fontSize: "12px",
-                    opacity: 0.5,
-                    textTransform:
-                      "uppercase",
-                    letterSpacing:
-                      "0.08em",
-                    marginBottom: "4px",
-                  }}
-                >
-                  Ochutnávka
-                </div>
-
-                <h2
-                  style={{
-                    margin: 0,
-                    fontSize: "24px",
-                  }}
-                >
-                  ✏️ Upravit záznam
-                </h2>
+              <div
+                className="taste-label"
+                style={{
+                  marginBottom:
+                    "5px",
+                  fontSize:
+                    "9px",
+                }}
+              >
+                Úprava záznamu
               </div>
+
+              <h2
+                style={{
+                  margin: 0,
+                  paddingRight:
+                    "45px",
+                  fontSize:
+                    "23px",
+                  lineHeight: 1.1,
+                  fontWeight: 800,
+                  letterSpacing:
+                    "-0.03em",
+                }}
+              >
+                Upravit ochutnávku
+              </h2>
+
+              <p
+                style={{
+                  margin:
+                    "6px 0 0",
+                  maxWidth:
+                    "430px",
+                  color:
+                    "var(--taste-text-muted)",
+                  fontSize:
+                    "11px",
+                  lineHeight:
+                    1.45,
+                }}
+              >
+                Uprav údaje uložené ochutnávky.
+              </p>
 
               <button
                 type="button"
+                aria-label="Zavřít"
                 onClick={() =>
                   setOpen(false)
                 }
@@ -559,6 +580,12 @@ export default function EditTastingModalClient({
               </button>
             </div>
 
+            <div
+              style={{
+                padding:
+                  "16px 20px 20px",
+              }}
+            >
             {error && (
               <div
                 style={{
@@ -1368,27 +1395,7 @@ export default function EditTastingModalClient({
                 />
               </div>
 
-              {/* POZNÁMKA */}
-
-              <div style={fieldStyle}>
-                <label style={labelStyle}>
-                  Poznámka
-                </label>
-
-                <textarea
-                  name="notes"
-                  rows={4}
-                  defaultValue={
-                    tasting.notes ?? ""
-                  }
-                  style={{
-                    ...inputStyle,
-                    resize: "vertical",
-                  }}
-                />
-              </div>
-
-              <button
+      <button
                 type="submit"
                 disabled={
                   saving ||
@@ -1444,6 +1451,7 @@ export default function EditTastingModalClient({
                   : "🗑 Smazat ochutnávku"}
               </button>
             </div>
+            </div>
           </div>
         </div>
       )}
@@ -1456,7 +1464,7 @@ export default function EditTastingModalClient({
 // ==================================================
 
 const fieldStyle = {
-  marginBottom: "18px",
+  marginBottom: "20px",
 };
 
 const labelStyle = {
@@ -1472,12 +1480,12 @@ const inputStyle = {
     "border-box" as const,
   padding: "11px 12px",
   border:
-    "1px solid rgba(127,127,127,0.45)",
-  borderRadius: "9px",
+    "1px solid rgba(127,127,127,0.5)",
+  borderRadius: "8px",
   background:
     "transparent",
   color: "inherit",
-  fontSize: "15px",
+  fontSize: "16px",
 };
 
 const editButtonStyle = {
@@ -1495,22 +1503,32 @@ const editButtonStyle = {
 };
 
 const closeButtonStyle = {
-  width: "36px",
-  height: "36px",
+  position:
+    "absolute" as const,
+  top: "16px",
+  right: "17px",
+  width: "33px",
+  height: "33px",
+  display: "flex",
+  alignItems:
+    "center",
+  justifyContent:
+    "center",
   border:
-    "1px solid rgba(127,127,127,0.3)",
-  borderRadius: "50%",
+    "1px solid var(--taste-border)",
+  borderRadius: "9px",
   background:
-    "transparent",
-  color: "inherit",
+    "rgba(255,255,255,0.025)",
+  color:
+    "var(--taste-text-muted)",
   cursor: "pointer",
-  fontSize: "22px",
+  fontSize: "20px",
   lineHeight: 1,
 };
 
 const saveButtonStyle = {
   width: "100%",
-  padding: "13px 16px",
+  padding: "14px 18px",
   border:
     "1px solid currentColor",
   borderRadius: "10px",
@@ -1519,7 +1537,7 @@ const saveButtonStyle = {
   color: "inherit",
   cursor: "pointer",
   fontWeight: "bold",
-  fontSize: "15px",
+  fontSize: "16px",
 };
 
 const deleteButtonStyle = {
@@ -1539,29 +1557,52 @@ const overlayStyle = {
   position:
     "fixed" as const,
   inset: 0,
-  zIndex: 500,
-  background:
-    "rgba(0,0,0,0.68)",
+  zIndex: 1000,
   display: "flex",
   alignItems:
-    "flex-start",
+    "center",
   justifyContent:
     "center",
+  padding: "18px",
   overflowY:
     "auto" as const,
-  padding: "40px 18px",
+  background:
+    "rgba(5, 4, 3, 0.80)",
+  backdropFilter:
+    "blur(18px)",
+  WebkitBackdropFilter:
+    "blur(18px)",
 };
 
 const modalStyle = {
+  position:
+    "relative" as const,
   width: "100%",
-  maxWidth: "680px",
-  padding: "24px",
-  borderRadius: "18px",
+  maxWidth: "560px",
+  maxHeight: "86vh",
+  overflowY:
+    "auto" as const,
+  overscrollBehavior:
+    "contain" as const,
   border:
-    "1px solid rgba(127,127,127,0.3)",
-  background:
-    "hsl(var(--background))",
-  color: "inherit",
+    "1px solid var(--taste-border-strong)",
+  borderRadius:
+    "var(--taste-radius-lg)",
+  background: `
+    radial-gradient(
+      circle at 88% 0%,
+      rgba(231,166,47,0.09),
+      transparent 18rem
+    ),
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,0.018),
+      transparent 42%
+    ),
+    var(--taste-surface-raised)
+  `,
+  color:
+    "var(--taste-text)",
   boxShadow:
-    "0 30px 80px rgba(0,0,0,0.35)",
+    "0 30px 90px rgba(0,0,0,0.68)",
 };

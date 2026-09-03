@@ -1174,24 +1174,6 @@ export default function TastingForm({
         />
       </div>
 
-      {/* POZNÁMKA */}
-
-      <div style={fieldStyle}>
-        <label style={labelStyle}>
-          Poznámka
-        </label>
-
-        <textarea
-          name="notes"
-          rows={4}
-          placeholder="Poznámka k této ochutnávce..."
-          style={{
-            ...inputStyle,
-            resize: "vertical",
-          }}
-        />
-      </div>
-
       <button
         type="submit"
         style={{

@@ -1288,10 +1288,6 @@ export async function updateTastingInModal(
         place:
           values.place ||
           null,
-
-        notes:
-          values.notes ||
-          null,
       })
       .eq(
         "id",
