@@ -228,7 +228,7 @@ export default async function BeersPage() {
                 size={18}
               />
             ),
-            accent: "#f3b43f",
+            accent: "#f2b63f",
             value: allBeers.length,
             label: "Různých piv",
           },
@@ -239,12 +239,13 @@ export default async function BeersPage() {
                 size={18}
               />
             ),
-            accent: "#d5a13c",
+            accent: "#e88835",
             value: breweryCount,
             label: "Pivovarů",
           },
           {
             icon: "◐",
+            accent: "#9cad47",
             value: styleCount,
             label: "Pivních stylů",
           },
@@ -255,7 +256,7 @@ export default async function BeersPage() {
                 size={18}
               />
             ),
-            accent: "#d37f43",
+            accent: "#d65b42",
             value: countryCount,
             label: "Států",
           },
