@@ -94,7 +94,13 @@ export default async function BeersPage() {
   }
 
   const allBeers =
-    (beers ?? []).map(
+    (beers ?? [])
+      .filter(
+        (beer) =>
+          (beer.tastings ?? [])
+            .length > 0
+      )
+      .map(
       (beer) => ({
         ...beer,
 
