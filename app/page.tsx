@@ -1839,361 +1839,370 @@ function AchievementTimelineCard({
   achievement:
     AchievementDefinition;
 }) {
+  const userAccent =
+    getTimelineUserAccent(
+      row.user_id
+    );
+
+  const systemAccent =
+    "#b77a36";
+
+  const initial =
+    profile
+      ?.display_name
+      ?.charAt(0)
+      .toUpperCase() ??
+    "?";
+
   return (
-    <article
+    <div
       style={{
-        position:
-          "relative",
-
-        overflow:
-          "hidden",
-
-        padding:
-          "16px",
-
-        border:
-          "1px solid rgba(231,166,47,0.40)",
-
-        borderRadius:
-          "var(--taste-radius-lg)",
-
-        background: `
-          radial-gradient(
-            circle at 88% 20%,
-            rgba(231,166,47,0.17),
-            transparent 15rem
-          ),
-          linear-gradient(
-            145deg,
-            rgba(231,166,47,0.09),
-            rgba(168,98,33,0.025)
-          ),
-          var(--taste-surface)
-        `,
-
-        boxShadow:
-          "0 15px 42px rgba(0,0,0,0.24)",
+        position: "relative",
+        paddingLeft: "20px",
       }}
     >
-      {/* ZLATÁ LINKA */}
-
       <div
         style={{
-          position:
-            "absolute",
-
-          left: 0,
-
-          top:
-            "14px",
-
-          bottom:
-            "14px",
-
-          width:
-            "3px",
-
-          borderRadius:
-            "999px",
-
+          position: "absolute",
+          left: "5px",
+          top: "-10px",
+          bottom: "-10px",
+          width: "1px",
           background:
-            "linear-gradient(180deg, var(--taste-amber-bright), var(--taste-copper))",
+            "linear-gradient(180deg, rgba(183,122,54,0.05), rgba(183,122,54,0.24), rgba(183,122,54,0.05))",
         }}
       />
 
-      {/* AUTOR */}
-
       <div
         style={{
-          display:
-            "flex",
-
-          alignItems:
-            "center",
-
-          gap:
-            "9px",
-
-          marginBottom:
-            "13px",
+          position: "absolute",
+          left: "1px",
+          top: "24px",
+          width: "9px",
+          height: "9px",
+          borderRadius: "50%",
+          border:
+            `1px solid ${systemAccent}`,
+          background:
+            "var(--taste-bg-deep)",
+          boxShadow:
+            `0 0 10px ${systemAccent}45`,
+          zIndex: 2,
         }}
-      >
-        <Link
-          href={`/profiles/${row.user_id}`}
-          style={{
-            width:
-              "36px",
+      />
 
-            height:
-              "36px",
-
-            flexShrink:
-              0,
-
-            borderRadius:
-              "11px",
-
-            border:
-              "1px solid rgba(231,166,47,0.38)",
-
-            display:
-              "flex",
-
-            alignItems:
-              "center",
-
-            justifyContent:
-              "center",
-
-            background:
-              "rgba(231,166,47,0.10)",
-
-            color:
-              "var(--taste-amber-bright)",
-
-            textDecoration:
-              "none",
-
-            fontWeight:
-              800,
-          }}
-        >
-          {profile
-            ?.display_name
-            ?.charAt(0)
-            .toUpperCase() ??
-            "?"}
-        </Link>
-
-        <div>
-          <Link
-            href={`/profiles/${row.user_id}`}
-            style={{
-              color:
-                "var(--taste-text)",
-
-              fontWeight:
-                700,
-
-              fontSize:
-                "14px",
-
-              textDecoration:
-                "none",
-            }}
-          >
-            {profile
-              ?.display_name ??
-              "Neznámý uživatel"}
-          </Link>
-
-          <div
-            style={{
-              marginTop:
-                "2px",
-
-              color:
-                "var(--taste-amber-soft)",
-
-              fontSize:
-                "11px",
-
-              fontWeight:
-                650,
-            }}
-          >
-            získal nový odznak
-          </div>
-        </div>
-      </div>
-
-      {/* ODZNAK */}
-
-      <div
+      <article
         style={{
-          display:
-            "flex",
-
-          alignItems:
-            "center",
-
-          gap:
-            "11px",
+          position: "relative",
+          overflow: "hidden",
+          padding: "12px 13px",
+          border:
+            `1px solid ${systemAccent}3D`,
+          borderRadius: "13px",
+          background: `
+            radial-gradient(
+              circle at 88% 18%,
+              ${systemAccent}18,
+              transparent 13rem
+            ),
+            linear-gradient(
+              145deg,
+              ${systemAccent}0D,
+              transparent 48%
+            ),
+            var(--taste-surface)
+          `,
+          boxShadow:
+            "0 7px 20px rgba(0,0,0,0.16)",
         }}
       >
         <div
           style={{
-            width:
-              "48px",
-
-            height:
-              "48px",
-
-            flexShrink:
-              0,
-
-            display:
-              "flex",
-
-            alignItems:
-              "center",
-
-            justifyContent:
-              "center",
-
-            border:
-              "1px solid rgba(231,166,47,0.46)",
-
+            position: "absolute",
+            left: 0,
+            top: "13px",
+            bottom: "13px",
+            width: "2px",
             borderRadius:
-              "14px",
-
+              "999px",
             background:
-              "linear-gradient(145deg, rgba(231,166,47,0.18), rgba(168,98,33,0.06))",
-
-            fontSize:
-              "24px",
-
-            boxShadow:
-              "inset 0 1px 0 rgba(255,255,255,0.05), 0 8px 25px rgba(0,0,0,0.18)",
+              systemAccent,
+            opacity: 0.55,
           }}
-        >
-          {
-            achievement.icon
-          }
-        </div>
+        />
 
-        <div
-          style={{
-            minWidth:
-              0,
-          }}
-        >
-          <div
-            className="taste-label"
-            style={{
-              marginBottom:
-                "4px",
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_140px] sm:gap-4">
+          <div className="order-2 min-w-0 sm:order-1">
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns:
+                  "38px minmax(0,1fr)",
+                gap: "10px",
+                alignItems:
+                  "start",
+              }}
+            >
+              <div
+                style={{
+                  width: "38px",
+                  height: "38px",
+                  flexShrink: 0,
+                  display: "flex",
+                  alignItems:
+                    "center",
+                  justifyContent:
+                    "center",
+                  border:
+                    `1px solid ${systemAccent}55`,
+                  borderRadius:
+                    "11px",
+                  background:
+                    `${systemAccent}12`,
+                  fontSize: "20px",
+                  boxShadow:
+                    `0 0 13px ${systemAccent}18`,
+                }}
+              >
+                {achievement.icon}
+              </div>
 
-              color:
-                "var(--taste-amber)",
-            }}
-          >
-            Nový odznak
+              <div
+                style={{
+                  minWidth: 0,
+                }}
+              >
+                <div
+                  className="taste-label"
+                  style={{
+                    marginBottom:
+                      "3px",
+                    color:
+                      systemAccent,
+                    opacity: 0.88,
+                  }}
+                >
+                  Systém · nový odznak
+                </div>
+
+                <h3
+                  style={{
+                    margin: 0,
+                    color:
+                      "var(--taste-text)",
+                    fontSize:
+                      "15px",
+                    lineHeight:
+                      1.2,
+                    fontWeight:
+                      800,
+                    letterSpacing:
+                      "-0.02em",
+                  }}
+                >
+                  {achievement.name}
+                </h3>
+
+                <p
+                  style={{
+                    margin:
+                      "4px 0 0",
+                    color:
+                      "var(--taste-text-soft)",
+                    fontSize:
+                      "10px",
+                    lineHeight:
+                      1.45,
+                  }}
+                >
+                  {
+                    achievement.description
+                  }
+                </p>
+
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems:
+                      "center",
+                    gap: "9px",
+                    flexWrap:
+                      "wrap",
+                    marginTop:
+                      "7px",
+                    paddingTop:
+                      "7px",
+                    borderTop:
+                      `1px solid ${systemAccent}1F`,
+                  }}
+                >
+                  <span
+                    style={{
+                      color:
+                        systemAccent,
+                      fontSize:
+                        "9px",
+                      fontWeight:
+                        750,
+                    }}
+                  >
+                    ✓ Splněno
+                  </span>
+
+                  <Link
+                    href={`/profiles/${row.user_id}`}
+                    style={{
+                      color:
+                        "var(--taste-text-muted)",
+                      textDecoration:
+                        "none",
+                      fontSize:
+                        "9px",
+                    }}
+                  >
+                    Zobrazit odznaky →
+                  </Link>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <h3
+          <div
+            className="order-1 sm:order-2"
             style={{
-              margin:
-                0,
-
-              color:
-                "var(--taste-text)",
-
-              fontSize:
-                "18px",
-
-              lineHeight:
-                1.15,
-
-              fontWeight:
-                800,
-
-              letterSpacing:
-                "-0.025em",
+              minWidth: 0,
+              display: "flex",
+              alignItems:
+                "center",
+              gap: "9px",
+              padding:
+                "7px 8px",
+              border:
+                `1px solid ${userAccent}30`,
+              borderRadius:
+                "10px",
+              background:
+                `${userAccent}09`,
+              alignSelf:
+                "start",
             }}
           >
-            {
-              achievement.name
-            }
-          </h3>
+            <Link
+              href={`/profiles/${row.user_id}`}
+              aria-label={
+                profile
+                  ?.display_name ??
+                "Profil uživatele"
+              }
+              style={{
+                width: "32px",
+                height: "32px",
+                flexShrink: 0,
+                display: "flex",
+                alignItems:
+                  "center",
+                justifyContent:
+                  "center",
+                overflow: "hidden",
+                borderRadius:
+                  "9px",
+                border:
+                  `1px solid ${userAccent}55`,
+                backgroundColor:
+                  `${userAccent}12`,
+                backgroundImage:
+                  profile?.avatar_url
+                    ? `url("${profile.avatar_url}")`
+                    : undefined,
+                backgroundSize:
+                  "cover",
+                backgroundPosition:
+                  "center",
+                color:
+                  userAccent,
+                textDecoration:
+                  "none",
+                fontSize: "10px",
+                fontWeight: 850,
+                boxShadow:
+                  `0 0 10px ${userAccent}18`,
+              }}
+            >
+              {!profile?.avatar_url &&
+                initial}
+            </Link>
 
-          <p
-            style={{
-              margin:
-                "4px 0 0",
+            <div
+              style={{
+                minWidth: 0,
+                flex: 1,
+              }}
+            >
+              <Link
+                href={`/profiles/${row.user_id}`}
+                style={{
+                  display:
+                    "block",
+                  overflow:
+                    "hidden",
+                  color:
+                    userAccent,
+                  fontSize:
+                    "10px",
+                  fontWeight: 800,
+                  lineHeight: 1.2,
+                  textDecoration:
+                    "none",
+                  textOverflow:
+                    "ellipsis",
+                  whiteSpace:
+                    "nowrap",
+                }}
+              >
+                {profile
+                  ?.display_name ??
+                  "Neznámý uživatel"}
+              </Link>
 
-              color:
-                "var(--taste-text-soft)",
+              <div
+                style={{
+                  marginTop:
+                    "3px",
+                  color:
+                    "var(--taste-text-muted)",
+                  fontSize:
+                    "9px",
+                  lineHeight:
+                    1.3,
+                  whiteSpace:
+                    "nowrap",
+                }}
+              >
+                {formatAchievementDate(
+                  row.unlocked_at
+                )}
+              </div>
 
-              fontSize:
-                "11px",
-
-              lineHeight:
-                1.5,
-            }}
-          >
-            {
-              achievement.description
-            }
-          </p>
+              <div
+                style={{
+                  marginTop:
+                    "2px",
+                  color:
+                    systemAccent,
+                  fontSize:
+                    "8px",
+                  fontWeight:
+                    650,
+                  opacity: 0.72,
+                }}
+              >
+                získal odznak
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
-
-      {/* PATIČKA */}
-
-      <div
-        style={{
-          display:
-            "flex",
-
-          justifyContent:
-            "space-between",
-
-          alignItems:
-            "center",
-
-          gap:
-            "14px",
-
-          flexWrap:
-            "wrap",
-
-          marginTop:
-            "12px",
-
-          paddingTop:
-            "9px",
-
-          borderTop:
-            "1px solid rgba(231,166,47,0.12)",
-        }}
-      >
-        <span
-          style={{
-            color:
-              "var(--taste-amber-bright)",
-
-            fontSize:
-              "10px",
-
-            fontWeight:
-              750,
-          }}
-        >
-          ✓ Splněno
-        </span>
-
-        <Link
-          href={`/profiles/${row.user_id}`}
-          style={{
-            color:
-              "var(--taste-text-muted)",
-
-            textDecoration:
-              "none",
-
-            fontSize:
-              "10px",
-          }}
-        >
-          {formatAchievementDate(
-            row.unlocked_at
-          )}
-          {" · "}
-          Zobrazit odznaky →
-        </Link>
-      </div>
-    </article>
+      </article>
+    </div>
   );
 }
 
