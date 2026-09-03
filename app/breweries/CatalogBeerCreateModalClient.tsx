@@ -73,6 +73,16 @@ export default function CatalogBeerCreateModalClient({
   ] = useState("");
 
   const [
+    importText,
+    setImportText,
+  ] = useState("");
+
+  const [
+    importError,
+    setImportError,
+  ] = useState("");
+
+  const [
     name,
     setName,
   ] = useState("");
@@ -261,6 +271,316 @@ export default function CatalogBeerCreateModalClient({
     );
   }
 
+  function handleQuickImport() {
+    setImportError("");
+    setError("");
+
+    if (!importText.trim()) {
+      setImportError(
+        "Nejdřív vlož JSON s údaji piva."
+      );
+      return;
+    }
+
+    try {
+      const parsed: unknown =
+        JSON.parse(
+          importText
+        );
+
+      if (
+        !parsed ||
+        typeof parsed !==
+          "object" ||
+        Array.isArray(parsed)
+      ) {
+        throw new Error(
+          "JSON musí obsahovat jeden objekt piva."
+        );
+      }
+
+      const data =
+        parsed as Record<
+          string,
+          unknown
+        >;
+
+      function readText(
+        key: string
+      ) {
+        const value =
+          data[key];
+
+        if (
+          value === undefined ||
+          value === null
+        ) {
+          return "";
+        }
+
+        if (
+          typeof value !==
+          "string"
+        ) {
+          throw new Error(
+            `Pole „${key}“ musí být text.`
+          );
+        }
+
+        return value.trim();
+      }
+
+      function readNumber(
+        key: string
+      ) {
+        const value =
+          data[key];
+
+        if (
+          value === undefined ||
+          value === null ||
+          value === ""
+        ) {
+          return "";
+        }
+
+        if (
+          typeof value !==
+            "number" &&
+          typeof value !==
+            "string"
+        ) {
+          throw new Error(
+            `Pole „${key}“ musí být číslo.`
+          );
+        }
+
+        const normalized =
+          typeof value ===
+          "string"
+            ? value
+                .trim()
+                .replace(
+                  ",",
+                  "."
+                )
+            : String(
+                value
+              );
+
+        const numberValue =
+          Number(
+            normalized
+          );
+
+        if (
+          !Number.isFinite(
+            numberValue
+          )
+        ) {
+          throw new Error(
+            `Pole „${key}“ není platné číslo.`
+          );
+        }
+
+        return String(
+          numberValue
+        );
+      }
+
+      function readHops() {
+        const value =
+          data.hops;
+
+        if (
+          value === undefined ||
+          value === null
+        ) {
+          return [] as string[];
+        }
+
+        if (
+          !Array.isArray(
+            value
+          )
+        ) {
+          throw new Error(
+            "Pole „hops“ musí být pole názvů chmelů."
+          );
+        }
+
+        return value.map(
+          (
+            item,
+            index
+          ) => {
+            if (
+              typeof item !==
+              "string"
+            ) {
+              throw new Error(
+                `Chmel na pozici ${index + 1} musí být text.`
+              );
+            }
+
+            return item.trim();
+          }
+        ).filter(Boolean);
+      }
+
+      const importedName =
+        readText("name");
+
+      const importedStyle =
+        readText("style");
+
+      const importedPlato =
+        readNumber(
+          "plato"
+        );
+
+      const importedAbv =
+        readNumber(
+          "abv"
+        );
+
+      const importedIbu =
+        readNumber(
+          "ibu"
+        );
+
+      const importedHops =
+        readHops();
+
+      if (!importedName) {
+        throw new Error(
+          "V JSONu chybí název piva."
+        );
+      }
+
+      let canonicalStyle =
+        "";
+
+      if (importedStyle) {
+        const normalizedStyle =
+          normalizeText(
+            importedStyle
+          );
+
+        const matchingStyle =
+          styles.find(
+            (style) =>
+              normalizeText(
+                style.name
+              ) ===
+                normalizedStyle ||
+              (
+                style.aliases ??
+                []
+              ).some(
+                (alias) =>
+                  normalizeText(
+                    alias
+                  ) ===
+                  normalizedStyle
+              )
+          );
+
+        if (
+          !matchingStyle
+        ) {
+          throw new Error(
+            `Pivní styl „${importedStyle}“ není v katalogu TasteApp.`
+          );
+        }
+
+        canonicalStyle =
+          matchingStyle.name;
+      }
+
+      const canonicalHops =
+        importedHops.map(
+          (importedHop) => {
+            const normalizedHop =
+              normalizeText(
+                importedHop
+              );
+
+            const matchingHop =
+              hops.find(
+                (hop) =>
+                  normalizeText(
+                    hop.name
+                  ) ===
+                    normalizedHop ||
+                  (
+                    hop.aliases ??
+                    []
+                  ).some(
+                    (alias) =>
+                      normalizeText(
+                        alias
+                      ) ===
+                      normalizedHop
+                  )
+              );
+
+            if (!matchingHop) {
+              throw new Error(
+                `Chmel „${importedHop}“ není v katalogu TasteApp.`
+              );
+            }
+
+            return matchingHop.name;
+          }
+        );
+
+      const uniqueHops =
+        Array.from(
+          new Set(
+            canonicalHops
+          )
+        );
+
+      setName(
+        importedName
+      );
+
+      setStyleName(
+        canonicalStyle
+      );
+
+      setPlato(
+        importedPlato
+      );
+
+      setAbv(
+        importedAbv
+      );
+
+      setIbu(
+        importedIbu
+      );
+
+      setSelectedHops(
+        uniqueHops
+      );
+
+      setHopValue("");
+      setStyleOpen(false);
+      setHopOpen(false);
+    } catch (
+      caughtError
+    ) {
+      setImportError(
+        caughtError instanceof
+          Error
+          ? caughtError.message
+          : "Údaje se nepodařilo načíst."
+      );
+    }
+  }
+
   function resetForm() {
     setName("");
     setStyleName("");
@@ -274,6 +594,8 @@ export default function CatalogBeerCreateModalClient({
     setStyleOpen(false);
     setHopOpen(false);
     setError("");
+    setImportText("");
+    setImportError("");
   }
 
   function closeModal() {
@@ -283,6 +605,8 @@ export default function CatalogBeerCreateModalClient({
 
     setOpen(false);
     setError("");
+    setImportText("");
+    setImportError("");
   }
 
   async function handleSubmit(
@@ -327,6 +651,8 @@ export default function CatalogBeerCreateModalClient({
         className="taste-button-secondary"
         onClick={() => {
           setError("");
+          setImportText("");
+          setImportError("");
           setOpen(true);
         }}
         style={{
@@ -530,6 +856,151 @@ export default function CatalogBeerCreateModalClient({
                     "16px 20px 20px",
                 }}
               >
+                <div
+                  style={{
+                    marginBottom:
+                      "18px",
+                    padding:
+                      "14px",
+                    border:
+                      "1px solid var(--taste-border)",
+                    borderRadius:
+                      "11px",
+                    background:
+                      "rgba(231,166,47,0.045)",
+                  }}
+                >
+                  <div
+                    className="taste-label"
+                    style={{
+                      marginBottom:
+                        "6px",
+                      fontSize:
+                        "9px",
+                    }}
+                  >
+                    Rychlé vložení
+                  </div>
+
+                  <div
+                    style={{
+                      marginBottom:
+                        "10px",
+                      color:
+                        "var(--taste-text-muted)",
+                      fontSize:
+                        "11px",
+                      lineHeight:
+                        1.45,
+                    }}
+                  >
+                    Vlož JSON blok s údaji
+                    piva. Formulář se pouze
+                    předvyplní, nic se
+                    automaticky neuloží.
+                  </div>
+
+                  <textarea
+                    value={
+                      importText
+                    }
+                    onChange={(
+                      event
+                    ) => {
+                      setImportText(
+                        event.target
+                          .value
+                      );
+                      setImportError(
+                        ""
+                      );
+                    }}
+                    placeholder='{"name":"Kozel 11","style":"Český světlý ležák","plato":11,"abv":4.6,"ibu":25,"hops":["Sládek"]}'
+                    spellCheck={
+                      false
+                    }
+                    rows={5}
+                    style={{
+                      width:
+                        "100%",
+                      boxSizing:
+                        "border-box",
+                      resize:
+                        "vertical",
+                      padding:
+                        "10px 11px",
+                      border:
+                        "1px solid var(--taste-border)",
+                      borderRadius:
+                        "9px",
+                      background:
+                        "var(--taste-surface)",
+                      color:
+                        "var(--taste-text)",
+                      fontFamily:
+                        "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+                      fontSize:
+                        "11px",
+                      lineHeight:
+                        1.5,
+                      outline:
+                        "none",
+                    }}
+                  />
+
+                  <div
+                    style={{
+                      display:
+                        "flex",
+                      justifyContent:
+                        "flex-end",
+                      marginTop:
+                        "9px",
+                    }}
+                  >
+                    <button
+                      type="button"
+                      onClick={
+                        handleQuickImport
+                      }
+                      disabled={
+                        saving
+                      }
+                      className="taste-button-secondary"
+                    >
+                      Načíst údaje
+                    </button>
+                  </div>
+
+                  {importError && (
+                    <div
+                      role="alert"
+                      style={{
+                        marginTop:
+                          "9px",
+                        padding:
+                          "9px 10px",
+                        border:
+                          "1px solid rgba(220,100,75,0.35)",
+                        borderRadius:
+                          "9px",
+                        background:
+                          "rgba(220,100,75,0.08)",
+                        color:
+                          "var(--taste-text)",
+                        fontSize:
+                          "11px",
+                        lineHeight:
+                          1.45,
+                      }}
+                    >
+                      {
+                        importError
+                      }
+                    </div>
+                  )}
+                </div>
+
                 {error && (
                   <div
                     style={{
