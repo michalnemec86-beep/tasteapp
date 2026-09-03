@@ -820,3 +820,370 @@ export async function deleteBreweryNameHistory(
   );
 }
 
+const CATALOG_ADMIN_USER_ID =
+  "17be5dc3-a3f9-4fd2-ae90-dee7692034fc";
+
+function readCatalogBeerHopNames(
+  formData: FormData
+) {
+  return Array.from(
+    new Set(
+      formData
+        .getAll("hopNames")
+        .flatMap((value) =>
+          String(value)
+            .split(",")
+            .map((item) =>
+              item.trim()
+            )
+        )
+        .filter(Boolean)
+    )
+  );
+}
+
+async function resolveCatalogBeerStyle(
+  supabase: Awaited<
+    ReturnType<typeof createClient>
+  >,
+  styleName: string
+) {
+  if (!styleName) {
+    return null;
+  }
+
+  const {
+    data: styles,
+    error,
+  } = await supabase
+    .from("beer_styles")
+    .select(
+      "id, name, aliases"
+    );
+
+  if (error) {
+    throw new Error(
+      error.message
+    );
+  }
+
+  const normalized =
+    normalizeText(styleName);
+
+  const style =
+    styles?.find(
+      (item) =>
+        normalizeText(
+          item.name
+        ) === normalized ||
+        (
+          item.aliases ?? []
+        ).some(
+          (alias: string) =>
+            normalizeText(
+              alias
+            ) === normalized
+        )
+    ) ?? null;
+
+  if (!style) {
+    throw new Error(
+      "Zadaný pivní styl není v katalogu."
+    );
+  }
+
+  return style.id;
+}
+
+async function resolveCatalogBeerHops(
+  supabase: Awaited<
+    ReturnType<typeof createClient>
+  >,
+  hopNames: string[]
+) {
+  if (
+    hopNames.length === 0
+  ) {
+    return [];
+  }
+
+  const {
+    data: hops,
+    error,
+  } = await supabase
+    .from("hops")
+    .select(
+      "id, name, aliases"
+    );
+
+  if (error) {
+    throw new Error(
+      error.message
+    );
+  }
+
+  const hopIds: number[] = [];
+
+  for (
+    const hopName
+    of hopNames
+  ) {
+    const normalized =
+      normalizeText(
+        hopName
+      );
+
+    const hop =
+      hops?.find(
+        (item) =>
+          normalizeText(
+            item.name
+          ) === normalized ||
+          (
+            item.aliases ?? []
+          ).some(
+            (alias: string) =>
+              normalizeText(
+                alias
+              ) === normalized
+          )
+      ) ?? null;
+
+    if (!hop) {
+      throw new Error(
+        `Chmel "${hopName}" není v katalogu.`
+      );
+    }
+
+    if (
+      !hopIds.includes(
+        hop.id
+      )
+    ) {
+      hopIds.push(
+        hop.id
+      );
+    }
+  }
+
+  return hopIds;
+}
+
+export async function createCatalogBeer(
+  breweryId: number,
+  formData: FormData
+) {
+  const {
+    supabase,
+    user,
+  } = await requireUser();
+
+  if (
+    user.id !==
+    CATALOG_ADMIN_USER_ID
+  ) {
+    throw new Error(
+      "Tuto akci může provést pouze administrátor."
+    );
+  }
+
+  if (
+    !Number.isInteger(
+      breweryId
+    ) ||
+    breweryId < 1
+  ) {
+    throw new Error(
+      "Neplatné ID pivovaru."
+    );
+  }
+
+  const name = String(
+    formData.get("name") ||
+      ""
+  ).trim();
+
+  const styleName =
+    String(
+      formData.get(
+        "styleName"
+      ) || ""
+    ).trim();
+
+  const plato =
+    readOptionalNumber(
+      formData,
+      "plato"
+    );
+
+  const abv =
+    readOptionalNumber(
+      formData,
+      "abv"
+    );
+
+  const ibu =
+    readOptionalNumber(
+      formData,
+      "ibu"
+    );
+
+  const hopNames =
+    readCatalogBeerHopNames(
+      formData
+    );
+
+  if (!name) {
+    throw new Error(
+      "Název piva je povinný."
+    );
+  }
+
+  const {
+    data: brewery,
+    error: breweryError,
+  } = await supabase
+    .from("breweries")
+    .select("id, name")
+    .eq(
+      "id",
+      breweryId
+    )
+    .single();
+
+  if (
+    breweryError ||
+    !brewery
+  ) {
+    throw new Error(
+      breweryError?.message ||
+        "Pivovar nebyl nalezen."
+    );
+  }
+
+  const {
+    data: breweryBeers,
+    error:
+      breweryBeersError,
+  } = await supabase
+    .from("beers")
+    .select("id, name")
+    .eq(
+      "brewery_id",
+      breweryId
+    );
+
+  if (
+    breweryBeersError
+  ) {
+    throw new Error(
+      breweryBeersError.message
+    );
+  }
+
+  const duplicate =
+    breweryBeers?.find(
+      (beer) =>
+        normalizeText(
+          beer.name
+        ) ===
+        normalizeText(name)
+    ) ?? null;
+
+  if (duplicate) {
+    throw new Error(
+      "Pivo s tímto názvem už u tohoto pivovaru existuje."
+    );
+  }
+
+  const styleId =
+    await resolveCatalogBeerStyle(
+      supabase,
+      styleName
+    );
+
+  const hopIds =
+    await resolveCatalogBeerHops(
+      supabase,
+      hopNames
+    );
+
+  const {
+    data: newBeer,
+    error: beerError,
+  } = await supabase
+    .from("beers")
+    .insert({
+      name,
+      brewery_id:
+        breweryId,
+      style_id:
+        styleId,
+      plato,
+      abv,
+      ibu,
+    })
+    .select("id")
+    .single();
+
+  if (
+    beerError ||
+    !newBeer
+  ) {
+    throw new Error(
+      beerError?.message ||
+        "Pivo se nepodařilo vytvořit."
+    );
+  }
+
+  if (
+    hopIds.length > 0
+  ) {
+    const {
+      error: hopsError,
+    } = await supabase
+      .from("beer_hops")
+      .insert(
+        hopIds.map(
+          (hopId) => ({
+            beer_id:
+              newBeer.id,
+            hop_id:
+              hopId,
+          })
+        )
+      );
+
+    if (hopsError) {
+      await supabase
+        .from("beers")
+        .delete()
+        .eq(
+          "id",
+          newBeer.id
+        );
+
+      throw new Error(
+        hopsError.message
+      );
+    }
+  }
+
+  revalidatePath("/");
+  revalidatePath(
+    "/breweries"
+  );
+  revalidatePath(
+    `/breweries/${breweryId}`
+  );
+  revalidatePath(
+    "/tastings/new"
+  );
+
+  return {
+    success: true,
+    beerId:
+      newBeer.id,
+  };
+}
+
