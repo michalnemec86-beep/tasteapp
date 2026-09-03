@@ -7,7 +7,8 @@ export type AppIconName =
   | "package"
   | "globe"
   | "bottle"
-  | "can";
+  | "can"
+  | "pet";
 
 type AppIconProps = {
   name: AppIconName;
@@ -138,6 +139,18 @@ export default function AppIcon({
         <path d="M9.5 3h5" />
         <path d="M10 3v4L8.2 9.4A5.3 5.3 0 0 0 7 12.7V19a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-6.3a5.3 5.3 0 0 0-1.2-3.3L14 7V3" />
         <path d="M7.2 14h9.6" />
+      </svg>
+    );
+  }
+
+  if (name === "pet") {
+    return (
+      <svg {...common}>
+        <path d="M10 3h4" />
+        <path d="M10.5 3v3.2L9 8.2a4.5 4.5 0 0 0-1 2.8v7.5A2.5 2.5 0 0 0 10.5 21h3a2.5 2.5 0 0 0 2.5-2.5V11a4.5 4.5 0 0 0-1-2.8l-1.5-2V3" />
+        <path d="M8.2 12h7.6" />
+        <path d="M8.2 17h7.6" />
+        <path d="M10 5h4" />
       </svg>
     );
   }

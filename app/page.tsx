@@ -1284,6 +1284,18 @@ function TastingTimelineCard({
       tasting.id
     );
 
+  const packagingIcon =
+    tasting.packaging === "bottle"
+      ? "bottle"
+      : tasting.packaging === "can"
+        ? "can"
+        : tasting.packaging === "pet"
+          ? "pet"
+          : tasting.packaging === "other" ||
+              tasting.packaging === null
+            ? "package"
+            : "beer";
+
   const userAccent =
     getTimelineUserAccent(
       tasting.user_id
@@ -1457,7 +1469,7 @@ function TastingTimelineCard({
                 }}
               >
                 <AppIcon
-                  name={visual.icon}
+                  name={packagingIcon}
                   size={24}
                   strokeWidth={1.85}
                 />
