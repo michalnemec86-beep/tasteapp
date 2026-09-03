@@ -523,7 +523,7 @@ export default async function StatsPage({
                 size={18}
               />
             ),
-            accent: "#f3b43f",
+            accent: "#f2b63f",
             value: totalTastings,
             label: "Vypitých piv",
           },
@@ -534,7 +534,7 @@ export default async function StatsPage({
                 size={18}
               />
             ),
-            accent: "#d98945",
+            accent: "#e88835",
             value: totalBrands,
             label: "Různých piv",
           },
@@ -545,12 +545,13 @@ export default async function StatsPage({
                 size={18}
               />
             ),
-            accent: "#d5a13c",
+            accent: "#d65b42",
             value: totalBreweries,
             label: "Pivovarů",
           },
           {
             icon: "◐",
+            accent: "#9cad47",
             value: totalStyles,
             label: "Stylů",
           },
@@ -561,7 +562,7 @@ export default async function StatsPage({
                 size={18}
               />
             ),
-            accent: "#d37f43",
+            accent: "#b77a36",
             value: totalCountries,
             label: "Států",
           },
