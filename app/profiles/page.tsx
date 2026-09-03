@@ -343,14 +343,14 @@ export default async function ProfilesPage() {
         stats={[
           {
             icon: "●",
-            accent: "#f3b43f",
+            accent: "#f2b63f",
             value:
               profiles.length,
             label: "Profilů",
           },
           {
             icon: "◉",
-            accent: "#d98945",
+            accent: "#9cad47",
             value:
               activeProfiles,
             label:
@@ -363,7 +363,7 @@ export default async function ProfilesPage() {
                 size={18}
               />
             ),
-            accent: "#d5a13c",
+            accent: "#e88835",
             value:
               totalQuantity,
             label:
@@ -465,7 +465,7 @@ export default async function ProfilesPage() {
                   value:
                     stats.totalQuantity,
                   accent:
-                    "#f3b43f",
+                    "#f2b63f",
                 },
                 {
                   label:
@@ -473,7 +473,7 @@ export default async function ProfilesPage() {
                   value:
                     stats.uniqueBeers,
                   accent:
-                    "#d98945",
+                    "#e88835",
                 },
                 {
                   label:
@@ -481,7 +481,7 @@ export default async function ProfilesPage() {
                   value:
                     stats.uniqueBreweries,
                   accent:
-                    "#d5a13c",
+                    "#d65b42",
                 },
                 {
                   label:
@@ -489,7 +489,7 @@ export default async function ProfilesPage() {
                   value:
                     stats.uniqueCountries,
                   accent:
-                    "#d37f43",
+                    "#b77a36",
                 },
               ];
 
