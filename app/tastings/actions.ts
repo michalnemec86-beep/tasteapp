@@ -1235,11 +1235,39 @@ export async function updateTastingInModal(
 
   // Při editaci seznam chmelů přesně synchronizujeme.
   const beerId =
-    await resolveCatalogData(
-      supabase,
-      values,
-      true
+    Number(
+      values.existingBeerId
     );
+
+  if (
+    !Number.isInteger(beerId) ||
+    beerId < 1
+  ) {
+    throw new Error(
+      "Při editaci ochutnávky vyberte existující pivo z katalogu."
+    );
+  }
+
+  const {
+    data: selectedBeer,
+    error: selectedBeerError,
+  } = await supabase
+    .from("beers")
+    .select("id")
+    .eq("id", beerId)
+    .maybeSingle();
+
+  if (selectedBeerError) {
+    throw new Error(
+      selectedBeerError.message
+    );
+  }
+
+  if (!selectedBeer) {
+    throw new Error(
+      "Vybrané pivo už v katalogu neexistuje."
+    );
+  }
 
   // ==================================================
   // UPDATE
