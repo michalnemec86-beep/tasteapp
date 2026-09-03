@@ -9,11 +9,14 @@ import PageHero from "@/components/ui/PageHero";
 import BreweryEditModalClient from "../BreweryEditModalClient";
 import BreweryNameHistoryItemClient from "../BreweryNameHistoryItemClient";
 import CatalogBeerCreateModalClient from "../CatalogBeerCreateModalClient";
+import CatalogBeerEditModalClient from "../CatalogBeerEditModalClient";
 import {
   addBreweryNameHistory,
   createCatalogBeer,
+  deleteCatalogBeer,
   deleteBreweryNameHistory,
   updateBrewery,
+  updateCatalogBeer,
   updateBreweryNameHistory,
 } from "../actions";
 
@@ -132,6 +135,11 @@ export default async function BreweryDetailPage({
         beer_styles (
           name
         ),
+        beer_hops (
+          hops (
+            name
+          )
+        ),
         tastings (
           id
         )
@@ -235,6 +243,23 @@ export default async function BreweryDetailPage({
           singleRelation(
             beer.beer_styles
           ),
+        hopNames:
+          (
+            beer.beer_hops ??
+            []
+          )
+            .map(
+              (beerHop) =>
+                singleRelation(
+                  beerHop.hops
+                )?.name
+            )
+            .filter(
+              (
+                name
+              ): name is string =>
+                Boolean(name)
+            ),
       }))
       .sort((a, b) =>
         a.name.localeCompare(
@@ -714,6 +739,64 @@ export default async function BreweryDetailPage({
                     </div>
 
                     <div
+                    style={{
+                      display:
+                        "flex",
+                      alignItems:
+                        "center",
+                      gap: "8px",
+                    }}
+                  >
+                    {user.id ===
+                      "17be5dc3-a3f9-4fd2-ae90-dee7692034fc" && (
+                      <CatalogBeerEditModalClient
+                        breweryName={
+                          brewery.name
+                        }
+                        beer={{
+                          id:
+                            beer.id,
+                          name:
+                            beer.name,
+                          plato:
+                            beer.plato,
+                          abv:
+                            beer.abv,
+                          ibu:
+                            beer.ibu,
+                          styleName:
+                            beer
+                              .beer_styles
+                              ?.name ??
+                            "",
+                          hopNames:
+                            beer.hopNames,
+                          tastingCount:
+                            beer
+                              .tastings
+                              ?.length ??
+                            0,
+                        }}
+                        styles={
+                          styles ?? []
+                        }
+                        hops={
+                          hops ?? []
+                        }
+                        updateBeerAction={updateCatalogBeer.bind(
+                          null,
+                          brewery.id,
+                          beer.id
+                        )}
+                        deleteBeerAction={deleteCatalogBeer.bind(
+                          null,
+                          brewery.id,
+                          beer.id
+                        )}
+                      />
+                    )}
+
+                    <div
                       style={{
                         color:
                           "var(--taste-amber-bright)",
@@ -729,6 +812,7 @@ export default async function BreweryDetailPage({
                         0}
                       ×
                     </div>
+                  </div>
                   </div>
                 )
               )}

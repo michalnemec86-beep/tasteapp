@@ -1186,4 +1186,503 @@ export async function createCatalogBeer(
       newBeer.id,
   };
 }
+async function replaceCatalogBeerHops(
+  supabase: Awaited<
+    ReturnType<typeof createClient>
+  >,
+  beerId: number,
+  hopIds: number[]
+) {
+  const {
+    error: deleteError,
+  } = await supabase
+    .from("beer_hops")
+    .delete()
+    .eq("beer_id", beerId);
 
+  if (deleteError) {
+    throw new Error(
+      deleteError.message
+    );
+  }
+
+  if (hopIds.length === 0) {
+    return;
+  }
+
+  const {
+    error: insertError,
+  } = await supabase
+    .from("beer_hops")
+    .insert(
+      hopIds.map((hopId) => ({
+        beer_id: beerId,
+        hop_id: hopId,
+      }))
+    );
+
+  if (insertError) {
+    throw new Error(
+      insertError.message
+    );
+  }
+}
+
+function revalidateCatalogBeerPages(
+  breweryId: number
+) {
+  revalidatePath("/");
+  revalidatePath("/beers");
+  revalidatePath("/breweries");
+  revalidatePath(
+    `/breweries/${breweryId}`
+  );
+  revalidatePath(
+    "/tastings/new"
+  );
+  revalidatePath("/me");
+  revalidatePath("/profiles");
+  revalidatePath("/stats");
+}
+
+export async function updateCatalogBeer(
+  breweryId: number,
+  beerId: number,
+  formData: FormData
+) {
+  const {
+    supabase,
+    user,
+  } = await requireUser();
+
+  if (
+    user.id !==
+    CATALOG_ADMIN_USER_ID
+  ) {
+    throw new Error(
+      "Tuto akci může provést pouze administrátor."
+    );
+  }
+
+  if (
+    !Number.isInteger(
+      breweryId
+    ) ||
+    breweryId < 1
+  ) {
+    throw new Error(
+      "Neplatné ID pivovaru."
+    );
+  }
+
+  if (
+    !Number.isInteger(
+      beerId
+    ) ||
+    beerId < 1
+  ) {
+    throw new Error(
+      "Neplatné ID piva."
+    );
+  }
+
+  const name = String(
+    formData.get("name") ||
+      ""
+  ).trim();
+
+  const styleName =
+    String(
+      formData.get(
+        "styleName"
+      ) || ""
+    ).trim();
+
+  const plato =
+    readOptionalNumber(
+      formData,
+      "plato"
+    );
+
+  const abv =
+    readOptionalNumber(
+      formData,
+      "abv"
+    );
+
+  const ibu =
+    readOptionalNumber(
+      formData,
+      "ibu"
+    );
+
+  const hopNames =
+    readCatalogBeerHopNames(
+      formData
+    );
+
+  if (!name) {
+    throw new Error(
+      "Název piva je povinný."
+    );
+  }
+
+  const {
+    data: existingBeer,
+    error: existingBeerError,
+  } = await supabase
+    .from("beers")
+    .select(`
+      id,
+      name,
+      brewery_id,
+      style_id,
+      plato,
+      abv,
+      ibu
+    `)
+    .eq("id", beerId)
+    .eq(
+      "brewery_id",
+      breweryId
+    )
+    .maybeSingle();
+
+  if (existingBeerError) {
+    throw new Error(
+      existingBeerError.message
+    );
+  }
+
+  if (!existingBeer) {
+    throw new Error(
+      "Pivo nebylo nalezeno u tohoto pivovaru."
+    );
+  }
+
+  const {
+    data: otherBeers,
+    error: otherBeersError,
+  } = await supabase
+    .from("beers")
+    .select("id, name")
+    .eq(
+      "brewery_id",
+      breweryId
+    )
+    .neq("id", beerId);
+
+  if (otherBeersError) {
+    throw new Error(
+      otherBeersError.message
+    );
+  }
+
+  const duplicate =
+    otherBeers?.find(
+      (beer) =>
+        normalizeText(
+          beer.name
+        ) ===
+        normalizeText(name)
+    ) ?? null;
+
+  if (duplicate) {
+    throw new Error(
+      "Pivo s tímto názvem už u tohoto pivovaru existuje."
+    );
+  }
+
+  const styleId =
+    await resolveCatalogBeerStyle(
+      supabase,
+      styleName
+    );
+
+  const hopIds =
+    await resolveCatalogBeerHops(
+      supabase,
+      hopNames
+    );
+
+  const {
+    data: oldHopRows,
+    error: oldHopsError,
+  } = await supabase
+    .from("beer_hops")
+    .select("hop_id")
+    .eq(
+      "beer_id",
+      beerId
+    );
+
+  if (oldHopsError) {
+    throw new Error(
+      oldHopsError.message
+    );
+  }
+
+  const oldHopIds =
+    (oldHopRows ?? []).map(
+      (row) => row.hop_id
+    );
+
+  const {
+    error: updateError,
+  } = await supabase
+    .from("beers")
+    .update({
+      name,
+      style_id: styleId,
+      plato,
+      abv,
+      ibu,
+    })
+    .eq("id", beerId)
+    .eq(
+      "brewery_id",
+      breweryId
+    );
+
+  if (updateError) {
+    throw new Error(
+      updateError.message
+    );
+  }
+
+  try {
+    await replaceCatalogBeerHops(
+      supabase,
+      beerId,
+      hopIds
+    );
+  } catch (error) {
+    const {
+      error: beerRollbackError,
+    } = await supabase
+      .from("beers")
+      .update({
+        name:
+          existingBeer.name,
+        style_id:
+          existingBeer.style_id,
+        plato:
+          existingBeer.plato,
+        abv:
+          existingBeer.abv,
+        ibu:
+          existingBeer.ibu,
+      })
+      .eq("id", beerId)
+      .eq(
+        "brewery_id",
+        breweryId
+      );
+
+    if (
+      beerRollbackError
+    ) {
+      console.error(
+        "Catalog beer rollback failed:",
+        beerRollbackError
+      );
+    }
+
+    try {
+      await replaceCatalogBeerHops(
+        supabase,
+        beerId,
+        oldHopIds
+      );
+    } catch (
+      hopsRollbackError
+    ) {
+      console.error(
+        "Catalog beer hops rollback failed:",
+        hopsRollbackError
+      );
+    }
+
+    throw error;
+  }
+
+  revalidateCatalogBeerPages(
+    breweryId
+  );
+
+  return {
+    success: true,
+    beerId,
+  };
+}
+
+export async function deleteCatalogBeer(
+  breweryId: number,
+  beerId: number
+) {
+  const {
+    supabase,
+    user,
+  } = await requireUser();
+
+  if (
+    user.id !==
+    CATALOG_ADMIN_USER_ID
+  ) {
+    throw new Error(
+      "Tuto akci může provést pouze administrátor."
+    );
+  }
+
+  if (
+    !Number.isInteger(
+      breweryId
+    ) ||
+    breweryId < 1
+  ) {
+    throw new Error(
+      "Neplatné ID pivovaru."
+    );
+  }
+
+  if (
+    !Number.isInteger(
+      beerId
+    ) ||
+    beerId < 1
+  ) {
+    throw new Error(
+      "Neplatné ID piva."
+    );
+  }
+
+  const {
+    data: beer,
+    error: beerError,
+  } = await supabase
+    .from("beers")
+    .select(
+      "id, name, brewery_id"
+    )
+    .eq("id", beerId)
+    .eq(
+      "brewery_id",
+      breweryId
+    )
+    .maybeSingle();
+
+  if (beerError) {
+    throw new Error(
+      beerError.message
+    );
+  }
+
+  if (!beer) {
+    throw new Error(
+      "Pivo nebylo nalezeno u tohoto pivovaru."
+    );
+  }
+
+  const {
+    data: tastingRows,
+    error: tastingsError,
+  } = await supabase
+    .from("tastings")
+    .select("id")
+    .eq(
+      "beer_id",
+      beerId
+    )
+    .limit(1);
+
+  if (tastingsError) {
+    throw new Error(
+      tastingsError.message
+    );
+  }
+
+  if (
+    (tastingRows ?? [])
+      .length > 0
+  ) {
+    throw new Error(
+      "Pivo nelze smazat, protože má evidované ochutnávky."
+    );
+  }
+
+  const {
+    data: oldHopRows,
+    error: oldHopsError,
+  } = await supabase
+    .from("beer_hops")
+    .select("hop_id")
+    .eq(
+      "beer_id",
+      beerId
+    );
+
+  if (oldHopsError) {
+    throw new Error(
+      oldHopsError.message
+    );
+  }
+
+  const oldHopIds =
+    (oldHopRows ?? []).map(
+      (row) => row.hop_id
+    );
+
+  await replaceCatalogBeerHops(
+    supabase,
+    beerId,
+    []
+  );
+
+  const {
+    data: deletedBeer,
+    error: deleteError,
+  } = await supabase
+    .from("beers")
+    .delete()
+    .eq("id", beerId)
+    .eq(
+      "brewery_id",
+      breweryId
+    )
+    .select("id")
+    .maybeSingle();
+
+  if (
+    deleteError ||
+    !deletedBeer
+  ) {
+    try {
+      await replaceCatalogBeerHops(
+        supabase,
+        beerId,
+        oldHopIds
+      );
+    } catch (
+      hopsRollbackError
+    ) {
+      console.error(
+        "Catalog beer delete rollback failed:",
+        hopsRollbackError
+      );
+    }
+
+    throw new Error(
+      deleteError?.message ||
+        "Pivo se nepodařilo smazat."
+    );
+  }
+
+  revalidateCatalogBeerPages(
+    breweryId
+  );
+
+  return {
+    success: true,
+    beerId,
+  };
+}
