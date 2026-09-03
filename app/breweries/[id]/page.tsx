@@ -8,8 +8,10 @@ import { createClient } from "@/lib/supabase/server";
 import PageHero from "@/components/ui/PageHero";
 import BreweryEditModalClient from "../BreweryEditModalClient";
 import BreweryNameHistoryItemClient from "../BreweryNameHistoryItemClient";
+import CatalogBeerCreateModalClient from "../CatalogBeerCreateModalClient";
 import {
   addBreweryNameHistory,
+  createCatalogBeer,
   deleteBreweryNameHistory,
   updateBrewery,
   updateBreweryNameHistory,
@@ -92,6 +94,14 @@ export default async function BreweryDetailPage({
       error: countriesError,
     },
     {
+      data: styles,
+      error: stylesError,
+    },
+    {
+      data: hops,
+      error: hopsError,
+    },
+    {
       data: outgoingRelations,
       error: outgoingRelationsError,
     },
@@ -142,6 +152,18 @@ export default async function BreweryDetailPage({
         ascending: true,
       }),
     supabase
+      .from("beer_styles")
+      .select("id, name, aliases")
+      .order("name", {
+        ascending: true,
+      }),
+    supabase
+      .from("hops")
+      .select("id, name, aliases")
+      .order("name", {
+        ascending: true,
+      }),
+    supabase
       .from("brewery_relations")
       .select(`
         id,
@@ -178,6 +200,18 @@ export default async function BreweryDetailPage({
   if (countriesError) {
     throw new Error(
       countriesError.message
+    );
+  }
+
+  if (stylesError) {
+    throw new Error(
+      stylesError.message
+    );
+  }
+
+  if (hopsError) {
+    throw new Error(
+      hopsError.message
     );
   }
 
@@ -473,11 +507,12 @@ export default async function BreweryDetailPage({
           <div
             style={{
               display: "flex",
-              alignItems: "baseline",
+              alignItems: "center",
               justifyContent:
                 "space-between",
               gap: "14px",
               marginBottom: "12px",
+              flexWrap: "wrap",
             }}
           >
             <div
@@ -488,15 +523,45 @@ export default async function BreweryDetailPage({
 
             <div
               style={{
-                color:
-                  "var(--taste-text-muted)",
-                fontSize: "10px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent:
+                  "flex-end",
+                gap: "10px",
+                flexWrap: "wrap",
               }}
             >
-              {breweryBeers.length}{" "}
-              {breweryBeers.length === 1
-                ? "pivo"
-                : "piv"}
+              {user.id ===
+                "17be5dc3-a3f9-4fd2-ae90-dee7692034fc" && (
+                <CatalogBeerCreateModalClient
+                  breweryName={
+                    brewery.name
+                  }
+                  styles={
+                    styles ?? []
+                  }
+                  hops={
+                    hops ?? []
+                  }
+                  createBeerAction={createCatalogBeer.bind(
+                    null,
+                    brewery.id
+                  )}
+                />
+              )}
+
+              <div
+                style={{
+                  color:
+                    "var(--taste-text-muted)",
+                  fontSize: "10px",
+                }}
+              >
+                {breweryBeers.length}{" "}
+                {breweryBeers.length === 1
+                  ? "pivo"
+                  : "piv"}
+              </div>
             </div>
           </div>
 
