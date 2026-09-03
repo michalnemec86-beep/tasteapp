@@ -1221,6 +1221,37 @@ export default async function HomePage() {
 // KARTA OCHUTNÁVKY V TIMELINE
 // ==================================================
 
+const TIMELINE_USER_ACCENTS = [
+  "#f2b63f",
+  "#e88835",
+  "#d65b42",
+  "#9cad47",
+  "#b77a36",
+  "#c68139",
+] as const;
+
+function getTimelineUserAccent(
+  userId: string
+) {
+  let hash = 0;
+
+  for (
+    let index = 0;
+    index < userId.length;
+    index += 1
+  ) {
+    hash =
+      Math.imul(hash, 31) +
+      userId.charCodeAt(index);
+    hash |= 0;
+  }
+
+  return TIMELINE_USER_ACCENTS[
+    Math.abs(hash) %
+      TIMELINE_USER_ACCENTS.length
+  ];
+}
+
 function TastingTimelineCard({
   tasting,
   profile,
@@ -1246,17 +1277,20 @@ function TastingTimelineCard({
     );
 
   const quantity =
-    tasting.quantity ??
-    1;
+    tasting.quantity ?? 1;
 
   const visual =
     getTimelineVisual(
       tasting.id
     );
 
+  const userAccent =
+    getTimelineUserAccent(
+      tasting.user_id
+    );
+
   const beerName =
-    tasting.beers
-      ?.name ??
+    tasting.beers?.name ??
     "Neznámé pivo";
 
   const breweryName =
@@ -1276,24 +1310,19 @@ function TastingTimelineCard({
       ?.beer_styles
       ?.name ??
       null,
-
     tasting.plato !== null
       ? `${tasting.plato} °P`
       : null,
-
     tasting.abv !== null
       ? `${tasting.abv} %`
       : null,
-
     tasting.ibu !== null
       ? `IBU ${tasting.ibu}`
       : null,
-
     tasting.beers
       ?.breweries
       ?.country ??
       null,
-
     packaging
       ? packaging.label
       : null,
@@ -1302,6 +1331,13 @@ function TastingTimelineCard({
       Boolean(value)
   );
 
+  const initial =
+    profile
+      ?.display_name
+      ?.charAt(0)
+      .toUpperCase() ??
+    "?";
+
   return (
     <div
       style={{
@@ -1309,8 +1345,6 @@ function TastingTimelineCard({
         paddingLeft: "20px",
       }}
     >
-      {/* SVISLÁ LINKA TIMELINE */}
-
       <div
         style={{
           position: "absolute",
@@ -1319,11 +1353,9 @@ function TastingTimelineCard({
           bottom: "-10px",
           width: "1px",
           background:
-            "linear-gradient(180deg, rgba(231,166,47,0.10), rgba(231,166,47,0.50), rgba(231,166,47,0.10))",
+            "linear-gradient(180deg, rgba(231,166,47,0.08), rgba(231,166,47,0.40), rgba(231,166,47,0.08))",
         }}
       />
-
-      {/* BOD TIMELINE */}
 
       <div
         style={{
@@ -1338,7 +1370,7 @@ function TastingTimelineCard({
           background:
             "var(--taste-bg-deep)",
           boxShadow:
-            `0 0 11px ${visual.glow}`,
+            `0 0 16px ${visual.glow}`,
           zIndex: 2,
         }}
       />
@@ -1347,94 +1379,377 @@ function TastingTimelineCard({
         style={{
           position: "relative",
           overflow: "hidden",
-          padding: "12px 14px",
+          padding: "14px",
           border:
-            "1px solid rgba(231,166,47,0.20)",
-          borderRadius: "13px",
+            `1px solid ${visual.border}`,
+          borderRadius: "14px",
           background: `
+            radial-gradient(
+              circle at 88% 16%,
+              ${visual.glow},
+              transparent 15rem
+            ),
             linear-gradient(
               145deg,
-              rgba(231,166,47,0.055),
-              transparent 42%
+              ${visual.background},
+              transparent 48%
             ),
             var(--taste-surface)
           `,
-          boxShadow:
-            "0 8px 24px rgba(0,0,0,0.20)",
+          boxShadow: `
+            0 10px 28px rgba(0,0,0,0.22),
+            0 0 26px ${visual.glow}
+          `,
         }}
       >
-        {/* ==================================================
-            1. ŘÁDEK: UŽIVATEL + DATUM
-        ================================================== */}
-
         <div
           style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent:
-              "space-between",
-            gap: "12px",
-            marginBottom: "8px",
+            position: "absolute",
+            right: 0,
+            top: "13px",
+            bottom: "13px",
+            width: "2px",
+            borderRadius: "999px",
+            background:
+              visual.accent,
+            opacity: 0.82,
           }}
-        >
+        />
+
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_140px] sm:gap-4">
+          <div className="order-2 min-w-0 sm:order-1">
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns:
+                  "42px minmax(0,1fr)",
+                gap: "11px",
+                alignItems: "start",
+              }}
+            >
+              <div
+                style={{
+                  width: "42px",
+                  height: "42px",
+                  display: "flex",
+                  alignItems:
+                    "center",
+                  justifyContent:
+                    "center",
+                  border:
+                    `1px solid ${visual.border}`,
+                  borderRadius:
+                    "11px",
+                  background: `
+                    radial-gradient(
+                      circle at 28% 22%,
+                      ${visual.glow},
+                      transparent 68%
+                    ),
+                    ${visual.background}
+                  `,
+                  color:
+                    visual.accent,
+                  boxShadow: `
+                    inset 0 1px 0 rgba(255,255,255,0.045),
+                    0 0 22px ${visual.glow}
+                  `,
+                }}
+              >
+                <AppIcon
+                  name={visual.icon}
+                  size={24}
+                  strokeWidth={1.85}
+                />
+              </div>
+
+              <div
+                style={{
+                  minWidth: 0,
+                }}
+              >
+                <div
+                  className="taste-label"
+                  style={{
+                    marginBottom:
+                      "4px",
+                    color:
+                      visual.accent,
+                  }}
+                >
+                  Ochutnávka
+                </div>
+
+                <div
+                  style={{
+                    display: "flex",
+                    flexWrap: "wrap",
+                    alignItems:
+                      "center",
+                    gap: "7px",
+                  }}
+                >
+                  <div
+                    style={{
+                      color:
+                        "var(--taste-text)",
+                      fontSize:
+                        "16px",
+                      lineHeight: 1.2,
+                      fontWeight: 800,
+                      letterSpacing:
+                        "-0.02em",
+                    }}
+                  >
+                    {breweryName &&
+                    breweryId ? (
+                      <>
+                        <Link
+                          href={`/breweries/${breweryId}`}
+                          style={{
+                            color:
+                              "inherit",
+                            textDecoration:
+                              "none",
+                            borderBottom:
+                              `1px solid ${visual.border}`,
+                          }}
+                        >
+                          {breweryName}
+                        </Link>
+                        {" – "}
+                        {beerName}
+                      </>
+                    ) : (
+                      beerName
+                    )}
+                  </div>
+
+                  {quantity > 1 && (
+                    <span
+                      style={{
+                        padding:
+                          "2px 6px",
+                        border:
+                          `1px solid ${visual.border}`,
+                        borderRadius:
+                          "999px",
+                        background:
+                          visual.background,
+                        color:
+                          visual.accent,
+                        fontSize:
+                          "10px",
+                        fontWeight:
+                          800,
+                      }}
+                    >
+                      ×{quantity}
+                    </span>
+                  )}
+                </div>
+
+                {metadata.length >
+                  0 && (
+                  <div
+                    style={{
+                      display:
+                        "flex",
+                      flexWrap:
+                        "wrap",
+                      alignItems:
+                        "center",
+                      gap: "4px",
+                      marginTop:
+                        "5px",
+                      color:
+                        "var(--taste-text-muted)",
+                      fontSize:
+                        "10px",
+                      lineHeight:
+                        1.35,
+                    }}
+                  >
+                    {metadata.map(
+                      (
+                        item,
+                        index
+                      ) => (
+                        <span
+                          key={`${item}-${index}`}
+                          style={{
+                            display:
+                              "inline-flex",
+                            alignItems:
+                              "center",
+                          }}
+                        >
+                          {index >
+                            0 && (
+                            <span
+                              style={{
+                                margin:
+                                  "0 5px 0 1px",
+                                color:
+                                  visual.accent,
+                                opacity:
+                                  0.48,
+                              }}
+                            >
+                              •
+                            </span>
+                          )}
+                          {item}
+                        </span>
+                      )
+                    )}
+                  </div>
+                )}
+
+                {(tasting.notes ||
+                  tasting.place) && (
+                  <div
+                    style={{
+                      display:
+                        "flex",
+                      flexWrap:
+                        "wrap",
+                      alignItems:
+                        "baseline",
+                      gap: "6px",
+                      marginTop:
+                        "7px",
+                      color:
+                        "var(--taste-text-soft)",
+                      fontSize:
+                        "11px",
+                      lineHeight:
+                        1.4,
+                    }}
+                  >
+                    {tasting.place && (
+                      <span
+                        style={{
+                          color:
+                            "var(--taste-text-muted)",
+                          whiteSpace:
+                            "nowrap",
+                        }}
+                      >
+                        📍{" "}
+                        {tasting.place}
+                      </span>
+                    )}
+
+                    {tasting.place &&
+                      tasting.notes && (
+                        <span
+                          style={{
+                            color:
+                              visual.accent,
+                            opacity:
+                              0.46,
+                          }}
+                        >
+                          •
+                        </span>
+                      )}
+
+                    {tasting.notes && (
+                      <span>
+                        {tasting.notes}
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
           <div
+            className="order-1 sm:order-2"
             style={{
               minWidth: 0,
               display: "flex",
-              alignItems: "center",
-              gap: "7px",
+              alignItems:
+                "center",
+              gap: "9px",
+              padding:
+                "8px 9px",
+              border:
+                `1px solid ${userAccent}42`,
+              borderRadius:
+                "11px",
+              background:
+                `${userAccent}0D`,
+              alignSelf:
+                "start",
             }}
           >
             <Link
               href={`/profiles/${tasting.user_id}`}
+              aria-label={
+                profile
+                  ?.display_name ??
+                "Profil uživatele"
+              }
               style={{
-                width: "24px",
-                height: "24px",
+                width: "34px",
+                height: "34px",
                 flexShrink: 0,
                 display: "flex",
                 alignItems:
                   "center",
                 justifyContent:
                   "center",
+                overflow: "hidden",
                 borderRadius:
-                  "7px",
+                  "10px",
                 border:
-                  "1px solid rgba(231,166,47,0.25)",
-                background:
-                  "rgba(231,166,47,0.08)",
+                  `1px solid ${userAccent}70`,
+                backgroundColor:
+                  `${userAccent}18`,
+                backgroundImage:
+                  profile?.avatar_url
+                    ? `url("${profile.avatar_url}")`
+                    : undefined,
+                backgroundSize:
+                  "cover",
+                backgroundPosition:
+                  "center",
                 color:
-                  "var(--taste-amber-bright)",
+                  userAccent,
                 textDecoration:
                   "none",
-                fontSize: "10px",
+                fontSize: "11px",
                 fontWeight: 850,
+                boxShadow:
+                  `0 0 14px ${userAccent}24`,
               }}
             >
-              {profile
-                ?.display_name
-                ?.charAt(0)
-                .toUpperCase() ??
-                "?"}
+              {!profile?.avatar_url &&
+                initial}
             </Link>
 
             <div
               style={{
                 minWidth: 0,
-                display: "flex",
-                alignItems:
-                  "baseline",
-                gap: "5px",
-                fontSize: "10px",
+                flex: 1,
               }}
             >
               <Link
                 href={`/profiles/${tasting.user_id}`}
                 style={{
+                  display:
+                    "block",
                   overflow:
                     "hidden",
                   color:
-                    "var(--taste-amber-bright)",
-                  fontWeight: 750,
+                    userAccent,
+                  fontSize:
+                    "11px",
+                  fontWeight: 800,
+                  lineHeight: 1.2,
                   textDecoration:
                     "none",
                   textOverflow:
@@ -1448,317 +1763,61 @@ function TastingTimelineCard({
                   "Neznámý uživatel"}
               </Link>
 
-              <span
-                style={{
-                  color:
-                    "var(--taste-text-muted)",
-                }}
-              >
-                přidal ochutnávku
-              </span>
-            </div>
-          </div>
-
-          <div
-            style={{
-              flexShrink: 0,
-              display: "flex",
-              alignItems:
-                "center",
-              gap: "8px",
-            }}
-          >
-            <span
-              style={{
-                color:
-                  "var(--taste-text-muted)",
-                fontSize: "10px",
-                whiteSpace:
-                  "nowrap",
-              }}
-            >
-              {formatTastingDate(
-                tasting.tasted_on
-              )}
-            </span>
-
-            {isOwn && (
-              <EditTastingModalClient
-                tasting={
-                  tasting
-                }
-                beers={
-                  beers
-                }
-                breweries={
-                  breweries
-                }
-                countries={
-                  countries ?? []
-                }
-                styles={
-                  styles
-                }
-                hops={
-                  hops
-                }
-                updateTastingAction={
-                  updateTastingInModal
-                }
-                deleteTastingAction={
-                  deleteTastingInModal
-                }
-              />
-            )}
-          </div>
-        </div>
-
-        {/* ==================================================
-            HLAVNÍ OBSAH
-        ================================================== */}
-
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns:
-              "42px minmax(0,1fr)",
-            gap: "11px",
-            alignItems: "start",
-          }}
-        >
-          {/* IKONA */}
-
-          <div
-            style={{
-              width: "42px",
-              height: "42px",
-              display: "flex",
-              alignItems:
-                "center",
-              justifyContent:
-                "center",
-              border:
-                `1px solid ${visual.border}`,
-              borderRadius:
-                "11px",
-              background: `
-                radial-gradient(
-                  circle at 28% 22%,
-                  ${visual.glow},
-                  transparent 68%
-                ),
-                ${visual.background}
-              `,
-              color:
-                visual.accent,
-              boxShadow: `
-                inset 0 1px 0 rgba(255,255,255,0.035),
-                0 0 18px ${visual.glow}
-              `,
-            }}
-          >
-            <AppIcon
-              name={visual.icon}
-              size={24}
-              strokeWidth={1.85}
-            />
-          </div>
-
-          <div
-            style={{
-              minWidth: 0,
-            }}
-          >
-            {/* ==============================================
-                2. ŘÁDEK: PIVO
-            ============================================== */}
-
-            <div
-              style={{
-                display: "flex",
-                flexWrap: "wrap",
-                alignItems:
-                  "center",
-                gap: "7px",
-              }}
-            >
               <div
                 style={{
+                  marginTop:
+                    "3px",
                   color:
-                    "var(--taste-text)",
+                    "var(--taste-text-muted)",
                   fontSize:
-                    "16px",
-                  lineHeight: 1.2,
-                  fontWeight: 800,
-                  letterSpacing:
-                    "-0.02em",
+                    "9px",
+                  lineHeight:
+                    1.3,
+                  whiteSpace:
+                    "nowrap",
                 }}
               >
-                {breweryName &&
-                breweryId ? (
-                  <>
-                    <Link
-                      href={`/breweries/${breweryId}`}
-                      style={{
-                        color: "inherit",
-                        textDecoration:
-                          "none",
-                        borderBottom:
-                          "1px solid rgba(231,166,47,0.28)",
-                      }}
-                    >
-                      {breweryName}
-                    </Link>
-                    {" – "}
-                    {beerName}
-                  </>
-                ) : (
-                  beerName
+                {formatTastingDate(
+                  tasting.tasted_on
                 )}
               </div>
 
-              {quantity > 1 && (
-                <span
+              {isOwn && (
+                <div
                   style={{
-                    padding:
-                      "2px 6px",
-                    border:
-                      "1px solid rgba(231,166,47,0.28)",
-                    borderRadius:
-                      "999px",
-                    background:
-                      "rgba(231,166,47,0.08)",
-                    color:
-                      "var(--taste-amber-bright)",
-                    fontSize:
-                      "10px",
-                    fontWeight:
-                      800,
+                    marginTop:
+                      "5px",
                   }}
                 >
-                  ×{quantity}
-                </span>
+                  <EditTastingModalClient
+                    tasting={
+                      tasting
+                    }
+                    beers={
+                      beers
+                    }
+                    breweries={
+                      breweries
+                    }
+                    countries={
+                      countries
+                    }
+                    styles={
+                      styles
+                    }
+                    hops={
+                      hops
+                    }
+                    updateTastingAction={
+                      updateTastingInModal
+                    }
+                    deleteTastingAction={
+                      deleteTastingInModal
+                    }
+                  />
+                </div>
               )}
             </div>
-
-            {/* ==============================================
-                3. ŘÁDEK: PARAMETRY
-            ============================================== */}
-
-            {metadata.length >
-              0 && (
-              <div
-                style={{
-                  display:
-                    "flex",
-                  flexWrap:
-                    "wrap",
-                  alignItems:
-                    "center",
-                  gap: "4px",
-                  marginTop:
-                    "5px",
-                  color:
-                    "var(--taste-text-muted)",
-                  fontSize:
-                    "10px",
-                  lineHeight:
-                    1.35,
-                }}
-              >
-                {metadata.map(
-                  (
-                    item,
-                    index
-                  ) => (
-                    <span
-                      key={`${item}-${index}`}
-                      style={{
-                        display:
-                          "inline-flex",
-                        alignItems:
-                          "center",
-                      }}
-                    >
-                      {index >
-                        0 && (
-                        <span
-                          style={{
-                            margin:
-                              "0 5px 0 1px",
-                            color:
-                              "rgba(231,166,47,0.48)",
-                          }}
-                        >
-                          •
-                        </span>
-                      )}
-
-                      {item}
-                    </span>
-                  )
-                )}
-              </div>
-            )}
-
-            {/* ==============================================
-                4. ŘÁDEK: POZNÁMKA / MÍSTO
-            ============================================== */}
-
-            {(tasting.notes ||
-              tasting.place) && (
-              <div
-                style={{
-                  display:
-                    "flex",
-                  flexWrap:
-                    "wrap",
-                  alignItems:
-                    "baseline",
-                  gap: "6px",
-                  marginTop:
-                    "7px",
-                  color:
-                    "var(--taste-text-soft)",
-                  fontSize:
-                    "11px",
-                  lineHeight:
-                    1.4,
-                }}
-              >
-                {tasting.place && (
-                  <span
-                    style={{
-                      color:
-                        "var(--taste-text-muted)",
-                      whiteSpace:
-                        "nowrap",
-                    }}
-                  >
-                    📍{" "}
-                    {tasting.place}
-                  </span>
-                )}
-
-                {tasting.place &&
-                  tasting.notes && (
-                    <span
-                      style={{
-                        color:
-                          "rgba(231,166,47,0.42)",
-                      }}
-                    >
-                      •
-                    </span>
-                  )}
-
-                {tasting.notes && (
-                  <span>
-                    {tasting.notes}
-                  </span>
-                )}
-              </div>
-            )}
           </div>
         </div>
       </article>
