@@ -908,7 +908,7 @@ export default async function HomePage() {
                 size={18}
               />
             ),
-            accent: "#f3b43f",
+            accent: "#f2b63f",
             value: totalTastings,
             label: "Vypitých piv",
           },
@@ -919,7 +919,7 @@ export default async function HomePage() {
                 size={18}
               />
             ),
-            accent: "#d5a13c",
+            accent: "#e88835",
             value: totalBreweries,
             label: "Pivovarů",
           },
@@ -930,7 +930,7 @@ export default async function HomePage() {
                 size={18}
               />
             ),
-            accent: "#9fbd4b",
+            accent: "#9cad47",
             value: totalStyles,
             label: "Stylů",
           },
@@ -941,7 +941,7 @@ export default async function HomePage() {
                 size={18}
               />
             ),
-            accent: "#d37f43",
+            accent: "#d65b42",
             value: totalCountries,
             label: "Států",
           },
@@ -967,7 +967,7 @@ export default async function HomePage() {
                 size={20}
               />
             }
-            accent="#e7a62f"
+            accent="#e88835"
             items={
               globalStats.breweries
             }
@@ -985,7 +985,7 @@ export default async function HomePage() {
                 size={20}
               />
             }
-            accent="#9fbd4b"
+            accent="#9cad47"
             items={
               globalStats.styles
             }
