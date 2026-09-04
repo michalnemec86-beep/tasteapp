@@ -17,7 +17,7 @@ import BreweryEditModalClient from "./BreweryEditModalClient";
 
 type UserBreweryStats = {
   beerCount: number;
-  tastingCount: number;
+  consumedCount: number;
 };
 
 export type BreweryBeerItem = {
@@ -43,7 +43,7 @@ export type BreweryTableRow = {
   beerCount: number;
   foundedYear: number | null;
   historyFromYear: number | null;
-  tastingCount: number;
+  consumedCount: number;
   closedYear: number | null;
   historyText: string;
   historySortYear: number | null;
@@ -67,7 +67,7 @@ type SortKey =
   | "country"
   | "beerCount"
   | "foundedYear"
-  | "tastingCount"
+  | "consumedCount"
   | "closedYear"
   | "historySortYear";
 
@@ -150,7 +150,7 @@ const columns: {
   },
   {
     key: "beerCount",
-    label: "Zaznamenané značky",
+    label: "Sortiment",
     align: "center",
   },
   {
@@ -159,8 +159,8 @@ const columns: {
     align: "center",
   },
   {
-    key: "tastingCount",
-    label: "Ochutnávky",
+    key: "consumedCount",
+    label: "Vypito",
     align: "center",
   },
   {
@@ -284,7 +284,7 @@ export default function BreweryTableClient({
 
     return rows.filter(
       (row) =>
-        (row.userStats[selectedUserId]?.tastingCount ?? 0) > 0
+        (row.userStats[selectedUserId]?.consumedCount ?? 0) > 0
     );
   }, [rows, selectedUserId]);
 
@@ -377,8 +377,8 @@ export default function BreweryTableClient({
           ...row,
           beerCount:
             stats?.beerCount ?? 0,
-          tastingCount:
-            stats?.tastingCount ?? 0,
+          consumedCount:
+            stats?.consumedCount ?? 0,
           beers: row.beers
             .filter(
               (beer) =>
@@ -1015,8 +1015,8 @@ export default function BreweryTableClient({
                       }}
                     >
                       {
-                        brewery.tastingCount
-                      }
+                        brewery.consumedCount
+                      }×
                     </td>
 
                     <td

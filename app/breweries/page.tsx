@@ -56,7 +56,8 @@ export default async function BreweriesPage() {
         ),
         tastings (
           id,
-          user_id
+          user_id,
+          quantity
         )
       ),
       brewery_name_history (
@@ -179,8 +180,15 @@ export default async function BreweriesPage() {
 
   const tableRows: BreweryTableRow[] = allBreweries.map(
     (brewery) => {
-      const tastingCount = (brewery.beers ?? []).reduce(
-        (sum, beer) => sum + (beer.tastings?.length ?? 0),
+      const consumedCount = (brewery.beers ?? []).reduce(
+        (sum, beer) =>
+          sum +
+          (beer.tastings ?? []).reduce(
+            (beerSum, tasting) =>
+              beerSum +
+              (tasting.quantity ?? 1),
+            0
+          ),
         0
       );
 
@@ -273,11 +281,12 @@ export default async function BreweriesPage() {
           if (!userStats[userId]) {
             userStats[userId] = {
               beerCount: 0,
-              tastingCount: 0,
+              consumedCount: 0,
             };
           }
 
-          userStats[userId].tastingCount += 1;
+          userStats[userId].consumedCount +=
+            tasting.quantity ?? 1;
         }
 
         for (const userId of usersWithBeer) {
@@ -297,7 +306,7 @@ export default async function BreweriesPage() {
         beerCount: brewery.beers?.length ?? 0,
         foundedYear: brewery.founded_year,
         historyFromYear,
-        tastingCount,
+        consumedCount,
         closedYear: brewery.closed_year,
         historyText:
           history.length > 0
