@@ -108,6 +108,7 @@ export default async function ProfilePage({
       .select(`
         id,
         display_name,
+        real_name,
         avatar_url,
         created_at
       `)
@@ -771,6 +772,9 @@ export default async function ProfilePage({
           <ProfileHeroIdentity
             displayName={
               profile.display_name
+            }
+            realName={
+              profile.real_name
             }
             avatarUrl={
               profile.avatar_url

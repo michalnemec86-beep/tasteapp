@@ -15,6 +15,7 @@ import AppIcon from "@/components/ui/AppIcon";
 type ProfileRow = {
   id: string;
   display_name: string;
+  real_name: string | null;
   avatar_url: string | null;
 };
 
@@ -189,7 +190,7 @@ export default async function ProfilesPage() {
       supabase
         .from("profiles")
         .select(
-          "id, display_name, avatar_url"
+          "id, display_name, real_name, avatar_url"
         )
         .order(
           "display_name"
@@ -653,7 +654,48 @@ export default async function ProfilesPage() {
                         {
                           profile.display_name
                         }
+
+                        {profile.id ===
+                          "17be5dc3-a3f9-4fd2-ae90-dee7692034fc" && (
+                          <span
+                            title="Správce TasteAppu"
+                            aria-label="Správce TasteAppu"
+                            style={{
+                              marginLeft:
+                                "6px",
+                              color:
+                                "#f2b63f",
+                              fontSize:
+                                "10px",
+                            }}
+                          >
+                            ◆
+                          </span>
+                        )}
                       </div>
+
+                      {profile.real_name && (
+                        <div
+                          style={{
+                            marginTop:
+                              "4px",
+                            color:
+                              "var(--taste-text-muted)",
+                            fontSize:
+                              "10px",
+                            lineHeight:
+                              1.25,
+                            fontWeight:
+                              700,
+                            overflowWrap:
+                              "anywhere",
+                          }}
+                        >
+                          {
+                            profile.real_name
+                          }
+                        </div>
+                      )}
 
                       <div
                         style={{

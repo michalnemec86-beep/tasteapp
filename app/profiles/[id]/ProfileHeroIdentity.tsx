@@ -1,7 +1,14 @@
 import Link from "next/link";
 
+import {
+  updateOwnRealName,
+} from "../actions";
+
 type ProfileHeroIdentityProps = {
   displayName: string;
+  realName:
+    | string
+    | null;
   avatarUrl:
     | string
     | null;
@@ -9,8 +16,12 @@ type ProfileHeroIdentityProps = {
   isMe: boolean;
 };
 
+const ADMIN_PROFILE_ID =
+  "17be5dc3-a3f9-4fd2-ae90-dee7692034fc";
+
 export default function ProfileHeroIdentity({
   displayName,
+  realName,
   avatarUrl,
   profileId,
   isMe,
@@ -21,6 +32,10 @@ export default function ProfileHeroIdentity({
       .charAt(0)
       .toUpperCase() ||
     "•";
+
+  const isAdmin =
+    profileId ===
+    ADMIN_PROFILE_ID;
 
   return (
     <div
@@ -126,23 +141,51 @@ export default function ProfileHeroIdentity({
             <div
               style={{
                 marginTop: "3px",
-                overflow:
-                  "hidden",
                 color:
                   "var(--taste-text)",
                 fontSize: "16px",
-                lineHeight: 1.1,
+                lineHeight: 1.15,
                 fontWeight: 900,
                 letterSpacing:
                   "-0.025em",
-                textOverflow:
-                  "ellipsis",
-                whiteSpace:
-                  "nowrap",
+                overflowWrap:
+                  "anywhere",
               }}
             >
               {displayName}
+
+              {isAdmin && (
+                <span
+                  title="Správce TasteAppu"
+                  aria-label="Správce TasteAppu"
+                  style={{
+                    marginLeft:
+                      "7px",
+                    color:
+                      "#f2b63f",
+                    fontSize:
+                      "10px",
+                  }}
+                >
+                  ◆
+                </span>
+              )}
             </div>
+
+            {realName && (
+              <div
+                style={{
+                  marginTop: "4px",
+                  color:
+                    "var(--taste-text-muted)",
+                  fontSize: "10px",
+                  lineHeight: 1.3,
+                  fontWeight: 700,
+                }}
+              >
+                {realName}
+              </div>
+            )}
 
             <div
               style={{
@@ -153,12 +196,92 @@ export default function ProfileHeroIdentity({
                 lineHeight: 1.35,
               }}
             >
-              Osobní pivní stopa
-              v TasteAppu
+              Osobní pivní stopa v TasteAppu
             </div>
           </div>
         </div>
       </div>
+
+      {isMe && (
+        <details
+          style={{
+            padding: "10px 12px",
+            border:
+              "1px solid rgba(242,182,63,0.20)",
+            borderRadius: "12px",
+            background:
+              "rgba(43,27,16,0.72)",
+          }}
+        >
+          <summary
+            style={{
+              cursor: "pointer",
+              color:
+                "var(--taste-text)",
+              fontSize: "10px",
+              fontWeight: 800,
+            }}
+          >
+            Upravit osobní jméno
+          </summary>
+
+          <form
+            action={
+              updateOwnRealName
+            }
+            style={{
+              display: "grid",
+              gap: "7px",
+              marginTop: "10px",
+            }}
+          >
+            <input
+              type="text"
+              name="real_name"
+              defaultValue={
+                realName ?? ""
+              }
+              maxLength={60}
+              placeholder="Např. Petr"
+              style={{
+                width: "100%",
+                minWidth: 0,
+                padding: "9px 10px",
+                border:
+                  "1px solid rgba(242,182,63,0.25)",
+                borderRadius: "9px",
+                outline: "none",
+                color:
+                  "var(--taste-text)",
+                background:
+                  "rgba(15,10,7,0.72)",
+                fontSize: "11px",
+              }}
+            />
+
+            <button
+              type="submit"
+              className="taste-button-primary"
+              style={{
+                fontSize: "10px",
+              }}
+            >
+              Uložit jméno
+            </button>
+
+            <div
+              style={{
+                color:
+                  "var(--taste-text-muted)",
+                fontSize: "8px",
+                lineHeight: 1.4,
+              }}
+            >
+              Nepovinné. Prázdné pole osobní jméno odstraní.
+            </div>
+          </form>
+        </details>
+      )}
 
       <div
         style={{
@@ -183,7 +306,8 @@ export default function ProfileHeroIdentity({
           style={{
             fontSize: "10px",
             textAlign: "center",
-            color: "var(--taste-text)",
+            color:
+              "var(--taste-text)",
             border:
               "1px solid rgba(242,182,63,0.28)",
             background:

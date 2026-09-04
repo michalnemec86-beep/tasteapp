@@ -44,6 +44,7 @@ import {
 type ProfileRow = {
   id: string;
   display_name: string;
+  real_name: string | null;
   avatar_url: string | null;
 };
 
@@ -244,7 +245,7 @@ export default async function HomePage() {
     supabase
       .from("profiles")
       .select(
-        "id, display_name, avatar_url"
+        "id, display_name, real_name, avatar_url"
       )
       .order(
         "display_name"
@@ -1754,26 +1755,63 @@ function TastingTimelineCard({
                 style={{
                   display:
                     "block",
-                  overflow:
-                    "hidden",
                   color:
                     userAccent,
                   fontSize:
                     "11px",
                   fontWeight: 800,
-                  lineHeight: 1.2,
+                  lineHeight: 1.25,
                   textDecoration:
                     "none",
-                  textOverflow:
-                    "ellipsis",
-                  whiteSpace:
-                    "nowrap",
+                  overflowWrap:
+                    "anywhere",
                 }}
               >
                 {profile
                   ?.display_name ??
                   "Neznámý uživatel"}
+
+                {profile?.id ===
+                  "17be5dc3-a3f9-4fd2-ae90-dee7692034fc" && (
+                  <span
+                    title="Správce TasteAppu"
+                    aria-label="Správce TasteAppu"
+                    style={{
+                      marginLeft:
+                        "5px",
+                      color:
+                        "#f2b63f",
+                      fontSize:
+                        "8px",
+                    }}
+                  >
+                    ◆
+                  </span>
+                )}
               </Link>
+
+              {profile?.real_name && (
+                <div
+                  style={{
+                    marginTop:
+                      "3px",
+                    color:
+                      "var(--taste-text-muted)",
+                    fontSize:
+                      "9px",
+                    lineHeight:
+                      1.25,
+                    fontWeight:
+                      650,
+                    overflowWrap:
+                      "anywhere",
+                  }}
+                >
+                  {
+                    profile.real_name
+                  }
+                </div>
+              )}
 
               <div
                 style={{
