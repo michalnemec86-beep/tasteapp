@@ -261,6 +261,32 @@ Deletion verifies ownership before and during the delete query.
 
 Deleting a tasting does not delete the shared catalog beer.
 
+### Timeline visibility
+
+Tastings contain the field:
+
+```text
+show_in_timeline
+```
+
+Normal newly created tastings use:
+
+```text
+show_in_timeline = true
+```
+
+Historical imported tastings may use:
+
+```text
+show_in_timeline = false
+```
+
+Only the main Timeline filters tastings by this flag.
+
+A tasting with `show_in_timeline = false` remains a full tasting record and still participates in statistics, profile statistics, unique counts and achievement progress.
+
+The flag only suppresses the tasting event from Timeline. It must not be used to exclude the tasting from analytical or achievement calculations.
+
 ## 11. Shared beer catalog
 
 Beer catalog entities primarily use:

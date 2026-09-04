@@ -286,6 +286,10 @@ export default async function HomePage() {
           )
         )
       `)
+      .eq(
+        "show_in_timeline",
+        true
+      )
       .order(
         "tasted_on",
         {
