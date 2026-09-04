@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 
 import AppNav from "./AppNav";
+import AuthSessionSync from "./AuthSessionSync";
 
 import "leaflet/dist/leaflet.css";
 import "./globals.css";
@@ -45,6 +46,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.className} antialiased`}
       >
+        <AuthSessionSync />
         <AppNav />
 
         {children}
