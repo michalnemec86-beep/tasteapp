@@ -111,6 +111,7 @@ type TastingBeerRow = {
 type TastingRow = {
   id: number;
   user_id: string;
+  show_in_timeline: boolean;
 
   tasted_at: string;
   tasted_on: string;
@@ -257,6 +258,7 @@ export default async function HomePage() {
       .select(`
         id,
         user_id,
+        show_in_timeline,
         tasted_at,
         tasted_on,
         packaging,
@@ -286,10 +288,6 @@ export default async function HomePage() {
           )
         )
       `)
-      .eq(
-        "show_in_timeline",
-        true
-      )
       .order(
         "tasted_on",
         {
@@ -784,19 +782,24 @@ export default async function HomePage() {
 
   const timeline:
     TimelineEvent[] = [
-    ...allTastings.map(
-      (tasting) => ({
-        type:
-          "tasting" as const,
+    ...allTastings
+      .filter(
+        (tasting) =>
+          tasting.show_in_timeline
+      )
+      .map(
+        (tasting) => ({
+          type:
+            "tasting" as const,
 
-        sortAt:
-          getTastingTimelineTime(
-            tasting
-          ),
+          sortAt:
+            getTastingTimelineTime(
+              tasting
+            ),
 
-        tasting,
-      })
-    ),
+          tasting,
+        })
+      ),
 
     ...allAchievements.map(
       (achievement) => ({
