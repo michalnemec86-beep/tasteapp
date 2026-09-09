@@ -42,6 +42,13 @@ export default function PageHero({
   const isBreweryHero =
     imageUrl === "/images/heroes/breweries.jpg";
 
+  const effectiveImageUrl =
+    isBreweryHero &&
+    typeof title === "string" &&
+    title === "Pivovary · Francie"
+      ? "/images/countries/france.jpg"
+      : imageUrl;
+
   return (
     <section
       style={{
@@ -69,8 +76,8 @@ export default function PageHero({
             backgroundColor: isBreweryHero
               ? "#160d07"
               : undefined,
-            backgroundImage: imageUrl
-              ? `url("${imageUrl}")`
+            backgroundImage: effectiveImageUrl
+              ? `url("${effectiveImageUrl}")`
               : `
                   radial-gradient(
                     circle at 72% 42%,
