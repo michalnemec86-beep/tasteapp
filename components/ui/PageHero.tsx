@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type {
   ReactNode,
 } from "react";
@@ -439,28 +440,44 @@ function FallbackMark({
           ? text || "●"
           : "🍺";
 
+  const markStyle = {
+    width: "82px",
+    height: "82px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    border:
+      "1px solid rgba(245,184,63,0.26)",
+    borderRadius: "23px",
+    background:
+      "rgba(231,166,47,0.08)",
+    color:
+      "var(--taste-amber-bright)",
+    fontSize: "34px",
+    fontWeight: 850,
+    boxShadow:
+      "0 0 30px rgba(231,166,47,0.10)",
+  } as const;
+
+  if (variant === "catalog") {
+    return (
+      <Link
+        href="/beers"
+        aria-label="Otevřít katalog piv"
+        title="Katalog piv"
+        style={{
+          ...markStyle,
+          textDecoration: "none",
+          cursor: "pointer",
+        }}
+      >
+        {icon}
+      </Link>
+    );
+  }
+
   return (
-    <div
-      style={{
-        width: "82px",
-        height: "82px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent:
-          "center",
-        border:
-          "1px solid rgba(245,184,63,0.26)",
-        borderRadius: "23px",
-        background:
-          "rgba(231,166,47,0.08)",
-        color:
-          "var(--taste-amber-bright)",
-        fontSize: "34px",
-        fontWeight: 850,
-        boxShadow:
-          "0 0 30px rgba(231,166,47,0.10)",
-      }}
-    >
+    <div style={markStyle}>
       {icon}
     </div>
   );
