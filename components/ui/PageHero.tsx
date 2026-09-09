@@ -42,12 +42,14 @@ export default function PageHero({
   const isBreweryHero =
     imageUrl === "/images/heroes/breweries.jpg";
 
-  const effectiveImageUrl =
-    isBreweryHero &&
+  const isFranceCountryHero =
     typeof title === "string" &&
-    title === "Pivovary · Francie"
-      ? "/images/countries/france.jpg"
-      : imageUrl;
+    (title === "Pivovary · Francie" ||
+      title === "Piva podle země: Francie");
+
+  const effectiveImageUrl = isFranceCountryHero
+    ? "/images/countries/france.jpg"
+    : imageUrl;
 
   return (
     <section
