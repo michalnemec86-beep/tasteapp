@@ -56,7 +56,7 @@ type ProfileStatsTasting = {
   abv: number | null;
   ibu: number | null;
 
-  beer_versions: {
+  beer_versions?: {
     beer_styles: ProfileStyle | null;
     beer_version_hops: ProfileHopRow[] | null;
   } | null;
