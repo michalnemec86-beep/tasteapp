@@ -494,29 +494,12 @@ async function resolveBeer(
   breweryId: number,
   styleId: number | null
 ) {
-  let beerId:
-    number | null =
-    null;
-
-  let beerAlreadyExists =
-    false;
-
-  // ==================================================
-  // PIVO VYBRANÉ Z KATALOGU
-  // ==================================================
-
-  if (
-    values.existingBeerId
-  ) {
+  if (values.existingBeerId) {
     const parsedBeerId =
-      Number(
-        values.existingBeerId
-      );
+      Number(values.existingBeerId);
 
     if (
-      !Number.isInteger(
-        parsedBeerId
-      ) ||
+      !Number.isInteger(parsedBeerId) ||
       parsedBeerId < 1
     ) {
       throw new Error(
@@ -524,201 +507,94 @@ async function resolveBeer(
       );
     }
 
-    beerId =
-      parsedBeerId;
-
-    beerAlreadyExists =
-      true;
-  }
-
-  // ==================================================
-  // ZKUSÍME NAJÍT PIVO PODLE NÁZVU + PIVOVARU
-  // ==================================================
-
-  else {
     const {
-      data:
-        breweryBeers,
-      error:
-        breweryBeersError,
-    } =
-      await supabase
-        .from("beers")
-        .select(
-          "id, name"
-        )
-        .eq(
-          "brewery_id",
-          breweryId
-        );
+      data: selectedBeer,
+      error: selectedBeerError,
+    } = await supabase
+      .from("beers")
+      .select("id, brewery_id")
+      .eq("id", parsedBeerId)
+      .maybeSingle();
 
-    if (
-      breweryBeersError
-    ) {
+    if (selectedBeerError) {
       throw new Error(
-        breweryBeersError.message
+        selectedBeerError.message
       );
     }
 
-    const existingBeer =
-      breweryBeers?.find(
-        (beer) =>
-          normalizeText(
-            beer.name
-          ) ===
-          normalizeText(
-            values.beerName
-          )
-      ) ?? null;
-
-    if (
-      existingBeer
-    ) {
-      beerId =
-        existingBeer.id;
-
-      beerAlreadyExists =
-        true;
+    if (!selectedBeer) {
+      throw new Error(
+        "Vybrané pivo už v katalogu neexistuje."
+      );
     }
-  }
 
-  // ==================================================
-  // EXISTUJÍCÍ PIVO
-  // ==================================================
-
-  if (
-    beerAlreadyExists &&
-    beerId !== null
-  ) {
-    const beerUpdate: {
-      brewery_id: number;
-      style_id?: number;
-      plato?: number;
-      abv?: number;
-      ibu?: number;
-    } = {
-      brewery_id:
-        breweryId,
+    return {
+      beerId: selectedBeer.id,
+      isNewBeer: false,
     };
-
-    if (
-      styleId !== null
-    ) {
-      beerUpdate.style_id =
-        styleId;
-    }
-
-    if (
-      values.platoValue
-    ) {
-      beerUpdate.plato =
-        Number(
-          values.platoValue
-        );
-    }
-
-    if (
-      values.abvValue
-    ) {
-      beerUpdate.abv =
-        Number(
-          values.abvValue
-        );
-    }
-
-    if (
-      values.ibuValue
-    ) {
-      beerUpdate.ibu =
-        Number(
-          values.ibuValue
-        );
-    }
-
-    const {
-      error:
-        beerUpdateError,
-    } =
-      await supabase
-        .from("beers")
-        .update(
-          beerUpdate
-        )
-        .eq(
-          "id",
-          beerId
-        );
-
-    if (
-      beerUpdateError
-    ) {
-      throw new Error(
-        beerUpdateError.message
-      );
-    }
   }
 
-  // ==================================================
-  // NOVÉ PIVO
-  // ==================================================
+  const {
+    data: breweryBeers,
+    error: breweryBeersError,
+  } = await supabase
+    .from("beers")
+    .select("id, name")
+    .eq("brewery_id", breweryId);
 
-  if (
-    beerId === null
-  ) {
-    const {
-      data: newBeer,
-      error:
-        beerError,
-    } =
-      await supabase
-        .from("beers")
-        .insert({
-          name:
-            values.beerName,
-
-          brewery_id:
-            breweryId,
-
-          style_id:
-            styleId,
-
-          plato:
-            values.platoValue
-              ? Number(
-                  values.platoValue
-                )
-              : null,
-
-          abv:
-            values.abvValue
-              ? Number(
-                  values.abvValue
-                )
-              : null,
-
-          ibu:
-            values.ibuValue
-              ? Number(
-                  values.ibuValue
-                )
-              : null,
-        })
-        .select("id")
-        .single();
-
-    if (
-      beerError
-    ) {
-      throw new Error(
-        beerError.message
-      );
-    }
-
-    beerId =
-      newBeer.id;
+  if (breweryBeersError) {
+    throw new Error(
+      breweryBeersError.message
+    );
   }
 
-  return beerId;
+  const existingBeer =
+    breweryBeers?.find(
+      (beer) =>
+        normalizeText(beer.name) ===
+        normalizeText(values.beerName)
+    ) ?? null;
+
+  if (existingBeer) {
+    return {
+      beerId: existingBeer.id,
+      isNewBeer: false,
+    };
+  }
+
+  const {
+    data: newBeer,
+    error: beerError,
+  } = await supabase
+    .from("beers")
+    .insert({
+      name: values.beerName,
+      brewery_id: breweryId,
+      style_id: styleId,
+      plato: values.platoValue
+        ? Number(values.platoValue)
+        : null,
+      abv: values.abvValue
+        ? Number(values.abvValue)
+        : null,
+      ibu: values.ibuValue
+        ? Number(values.ibuValue)
+        : null,
+    })
+    .select("id")
+    .single();
+
+  if (beerError || !newBeer) {
+    throw new Error(
+      beerError?.message ||
+        "Pivo se nepodařilo vytvořit."
+    );
+  }
+
+  return {
+    beerId: newBeer.id,
+    isNewBeer: true,
+  };
 }
 
 // ==================================================
@@ -959,7 +835,7 @@ async function replaceBeerHops(
 async function resolveCatalogData(
   supabase: SupabaseClient,
   values: TastingFormValues,
-  replaceHops: boolean
+  _replaceHops: boolean
 ) {
   const brewery =
     await resolveBrewery(
@@ -973,25 +849,15 @@ async function resolveCatalogData(
       values.styleName
     );
 
-  const beerId =
-    await resolveBeer(
-      supabase,
-      values,
-      brewery.id,
-      styleId
-    );
-
-  if (beerId === null) {
-    throw new Error(
-      "Nepodařilo se určit pivo."
-    );
-  }
-
-  if (beerId === null) {
-    throw new Error(
-      "Nepodařilo se určit pivo."
-    );
-  }
+  const {
+    beerId,
+    isNewBeer,
+  } = await resolveBeer(
+    supabase,
+    values,
+    brewery.id,
+    styleId
+  );
 
   const hopIds =
     await resolveHopIds(
@@ -999,13 +865,9 @@ async function resolveCatalogData(
       values.hopNames
     );
 
-  if (replaceHops) {
-    await replaceBeerHops(
-      supabase,
-      beerId,
-      hopIds
-    );
-  } else {
+  // Ochutnávka existujícího piva nesmí měnit jeho současný
+  // katalogový recept. Odlišné snapshoty řeší beer_versions.
+  if (isNewBeer) {
     await addBeerHops(
       supabase,
       beerId,

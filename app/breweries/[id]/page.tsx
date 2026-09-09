@@ -140,6 +140,22 @@ export default async function BreweryDetailPage({
             name
           )
         ),
+        beer_versions (
+          id,
+          version_year,
+          is_current,
+          plato,
+          abv,
+          ibu,
+          beer_styles (
+            name
+          ),
+          beer_version_hops (
+            hops (
+              name
+            )
+          )
+        ),
         tastings (
           id
         )
@@ -259,6 +275,39 @@ export default async function BreweryDetailPage({
                 name
               ): name is string =>
                 Boolean(name)
+            ),
+        versionHistory:
+          (beer.beer_versions ?? [])
+            .filter(
+              (version) =>
+                !version.is_current
+            )
+            .map((version) => ({
+              ...version,
+              beer_styles:
+                singleRelation(
+                  version.beer_styles
+                ),
+              hopNames:
+                (
+                  version.beer_version_hops ??
+                  []
+                )
+                  .map((versionHop) =>
+                    singleRelation(
+                      versionHop.hops
+                    )?.name
+                  )
+                  .filter(
+                    (
+                      name
+                    ): name is string =>
+                      Boolean(name)
+                  ),
+            }))
+            .sort((a, b) =>
+              (b.version_year ?? 0) -
+              (a.version_year ?? 0)
             ),
       }))
       .sort((a, b) =>
@@ -736,6 +785,67 @@ export default async function BreweryDetailPage({
                           </span>
                         )}
                       </div>
+
+                      {beer.versionHistory.length > 0 && (
+                        <div
+                          style={{
+                            display: "grid",
+                            gap: "3px",
+                            marginTop: "7px",
+                          }}
+                        >
+                          {beer.versionHistory.map(
+                            (version) => {
+                              const versionMeta = [
+                                version.beer_styles?.name ?? null,
+                                version.plato != null
+                                  ? `${version.plato}°`
+                                  : null,
+                                version.abv != null
+                                  ? `${version.abv} %`
+                                  : null,
+                                version.ibu != null
+                                  ? `IBU ${version.ibu}`
+                                  : null,
+                              ].filter(Boolean);
+
+                              return (
+                                <div
+                                  key={version.id}
+                                  style={{
+                                    display: "flex",
+                                    flexWrap: "wrap",
+                                    alignItems: "center",
+                                    gap: "4px",
+                                    color:
+                                      "var(--taste-text-muted)",
+                                    fontSize: "9px",
+                                    lineHeight: 1.35,
+                                    opacity: 0.72,
+                                  }}
+                                >
+                                  <span
+                                    style={{
+                                      minWidth: "34px",
+                                      color:
+                                        "var(--taste-text-soft)",
+                                      fontWeight: 750,
+                                    }}
+                                  >
+                                    {version.version_year ??
+                                      "dříve"}
+                                  </span>
+                                  {versionMeta.length > 0 && (
+                                    <span>
+                                      {versionMeta.join(" · ")}
+                                    </span>
+                                  )}
+                                </div>
+                              );
+                            }
+                          )}
+                        </div>
+                      )}
                     </div>
 
                     <div

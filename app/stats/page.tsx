@@ -74,6 +74,18 @@ export default async function StatsPage({
           tasted_on,
           packaging,
           quantity,
+          beer_versions (
+            beer_styles (
+              id,
+              name
+            ),
+            beer_version_hops (
+              hops (
+                id,
+                name
+              )
+            )
+          ),
           beers (
             id,
             name,
@@ -124,9 +136,28 @@ export default async function StatsPage({
   const allTastings = (tastings ?? []).map(
     (tasting) => {
       const beer = singleRelation(tasting.beers);
+      const beerVersion =
+        singleRelation(tasting.beer_versions);
 
       return {
         ...tasting,
+        beer_versions: beerVersion
+          ? {
+              ...beerVersion,
+              beer_styles: singleRelation(
+                beerVersion.beer_styles
+              ),
+              beer_version_hops:
+                (beerVersion.beer_version_hops ?? []).map(
+                  (versionHop) => ({
+                    ...versionHop,
+                    hops: singleRelation(
+                      versionHop.hops
+                    ),
+                  })
+                ),
+            }
+          : null,
         beers: beer
           ? {
               ...beer,
@@ -264,8 +295,13 @@ export default async function StatsPage({
 
   const totalStyles = new Set(
     filteredTastings
-      .map(
-        (tasting) => tasting.beers?.beer_styles?.id
+      .map((tasting) =>
+        (
+          tasting.beer_versions
+            ?.beer_styles ??
+          tasting.beers
+            ?.beer_styles
+        )?.id
       )
       .filter((id) => id != null)
   ).size;

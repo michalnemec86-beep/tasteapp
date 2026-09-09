@@ -151,6 +151,20 @@ export default async function ProfilePage({
         ibu,
         place,
         notes,
+        beer_versions (
+          id,
+          version_year,
+          beer_styles (
+            id,
+            name
+          ),
+          beer_version_hops (
+            hops (
+              id,
+              name
+            )
+          )
+        ),
         beers (
           id,
           name,
@@ -332,8 +346,37 @@ export default async function ProfilePage({
             tasting.beers
           );
 
+        const beerVersion =
+          singleRelation(
+            tasting.beer_versions
+          );
+
         return {
           ...tasting,
+
+          beer_versions:
+            beerVersion
+              ? {
+                  ...beerVersion,
+                  beer_styles:
+                    singleRelation(
+                      beerVersion.beer_styles
+                    ),
+                  beer_version_hops:
+                    (
+                      beerVersion.beer_version_hops ??
+                      []
+                    ).map(
+                      (versionHop) => ({
+                        ...versionHop,
+                        hops:
+                          singleRelation(
+                            versionHop.hops
+                          ),
+                      })
+                    ),
+                }
+              : null,
 
           beers: beer
             ? {

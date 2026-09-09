@@ -42,6 +42,17 @@ export async function syncUserAchievements(
         id,
         tasted_at,
         show_in_timeline,
+        beer_versions (
+          beer_styles (
+            id
+          ),
+          beer_version_hops (
+            hops (
+              id,
+              name
+            )
+          )
+        ),
         beers (
           id,
           breweries (

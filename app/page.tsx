@@ -106,6 +106,10 @@ type TastingBeerRow = {
           | null;
       }[]
     | null;
+
+  beer_versions?:
+    | { id: number }[]
+    | null;
 };
 
 type TastingRow = {
@@ -142,6 +146,17 @@ type TastingRow = {
 
   notes:
     | string
+    | null;
+
+  beer_versions?:
+    | {
+        id: number;
+        version_year: number | null;
+        beer_styles: BeerStyleRow | null;
+        beer_version_hops:
+          | { hops: HopRow | null }[]
+          | null;
+      }
     | null;
 
   beers:
@@ -268,9 +283,26 @@ export default async function HomePage() {
         ibu,
         place,
         notes,
+        beer_versions (
+          id,
+          version_year,
+          beer_styles (
+            id,
+            name
+          ),
+          beer_version_hops (
+            hops (
+              id,
+              name
+            )
+          )
+        ),
         beers (
           id,
           name,
+          beer_versions (
+            id
+          ),
           breweries (
             id,
             name,
@@ -1325,7 +1357,25 @@ function TastingTimelineCard({
       ?.id ??
     null;
 
+  const showVersionYear =
+    (
+      tasting.beers
+        ?.beer_versions
+        ?.length ?? 0
+    ) > 1;
+
+  const versionYear =
+    tasting.beer_versions
+      ?.version_year ??
+    Number(
+      tasting.tasted_on
+        .slice(0, 4)
+    );
+
   const metadata = [
+    tasting.beer_versions
+      ?.beer_styles
+      ?.name ??
     tasting.beers
       ?.beer_styles
       ?.name ??
@@ -1542,6 +1592,23 @@ function TastingTimelineCard({
                       </>
                     ) : (
                       beerName
+                    )}
+
+                    {showVersionYear &&
+                      versionYear && (
+                      <span
+                        style={{
+                          marginLeft: "5px",
+                          color:
+                            "var(--taste-text-muted)",
+                          fontSize: "10px",
+                          fontWeight: 600,
+                          opacity: 0.62,
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        ({versionYear})
+                      </span>
                     )}
                   </div>
 
