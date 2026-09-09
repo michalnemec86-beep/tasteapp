@@ -12,6 +12,7 @@ type BeersPageProps = {
     country?: string | string[];
     style?: string | string[];
     hop?: string | string[];
+    focus?: string | string[];
   }>;
 };
 
@@ -82,6 +83,8 @@ export default async function BeersPage({
   );
   const selectedCountry =
     getStringParam(params.country)?.trim() || undefined;
+  const requestedFocus =
+    getStringParam(params.focus) === "1";
 
   const { data: beers, error } = await supabase
     .from("beers")
@@ -205,6 +208,30 @@ export default async function BeersPage({
     })
   );
 
+  const selectedBeerName = selectedBeerId
+    ? catalogBeers.find(
+        (beer) => beer.id === selectedBeerId
+      )?.name
+    : undefined;
+
+  const selectedBreweryName = selectedBreweryId
+    ? breweryOptions.find(
+        (brewery) => brewery.id === selectedBreweryId
+      )?.name
+    : undefined;
+
+  const selectedStyleName = selectedStyleId
+    ? styleOptions.find(
+        (style) => style.id === selectedStyleId
+      )?.name
+    : undefined;
+
+  const selectedHopName = selectedHopId
+    ? hopOptions.find(
+        (hop) => hop.id === selectedHopId
+      )?.name
+    : undefined;
+
   const filteredBeers = catalogBeers.filter(
     (beer) => {
       if (
@@ -271,29 +298,61 @@ export default async function BeersPage({
   ).size;
 
   const activeFilterLabels = [
-    selectedBeerId
-      ? catalogBeers.find(
-          (beer) => beer.id === selectedBeerId
-        )?.name
-      : null,
+    selectedBeerName,
     selectedCountry,
-    selectedBreweryId
-      ? breweryOptions.find(
-          (brewery) =>
-            brewery.id === selectedBreweryId
-        )?.name
-      : null,
-    selectedStyleId
-      ? styleOptions.find(
-          (style) => style.id === selectedStyleId
-        )?.name
-      : null,
-    selectedHopId
-      ? hopOptions.find(
-          (hop) => hop.id === selectedHopId
-        )?.name
-      : null,
+    selectedBreweryName,
+    selectedStyleName,
+    selectedHopName,
   ].filter(Boolean) as string[];
+
+  const isFocusedDrilldown =
+    requestedFocus && activeFilterLabels.length > 0;
+
+  const focusTitle = selectedBeerName
+    ? selectedBeerName
+    : selectedCountry
+      ? `Piva podle země: ${selectedCountry}`
+      : selectedStyleName
+        ? `Piva stylu ${selectedStyleName}`
+        : selectedHopName
+          ? `Piva s chmelem ${selectedHopName}`
+          : selectedBreweryName
+            ? `Piva pivovaru ${selectedBreweryName}`
+            : "Vybraná piva";
+
+  const focusEyebrow = selectedBeerName
+    ? "Konkrétní pivo"
+    : selectedCountry
+      ? "Země původu"
+      : selectedStyleName
+        ? "Pivní styl"
+        : selectedHopName
+          ? "Použitý chmel"
+          : selectedBreweryName
+            ? "Pivovar"
+            : "Tematický výběr";
+
+  const editableParams = new URLSearchParams();
+
+  if (selectedBeerId) {
+    editableParams.set("beer", String(selectedBeerId));
+  }
+  if (selectedBreweryId) {
+    editableParams.set("brewery", String(selectedBreweryId));
+  }
+  if (selectedCountry) {
+    editableParams.set("country", selectedCountry);
+  }
+  if (selectedStyleId) {
+    editableParams.set("style", String(selectedStyleId));
+  }
+  if (selectedHopId) {
+    editableParams.set("hop", String(selectedHopId));
+  }
+
+  const editableFilterHref = editableParams.toString()
+    ? `/beers?${editableParams.toString()}`
+    : "/beers";
 
   return (
     <main
@@ -304,22 +363,47 @@ export default async function BeersPage({
       }}
     >
       <PageHero
-        eyebrow="Pivní sbírka"
+        eyebrow={
+          isFocusedDrilldown
+            ? focusEyebrow
+            : "Pivní sbírka"
+        }
         imageUrl="/images/heroes/catalog.jpg"
         visualVariant="catalog"
-        title="Katalog piv"
-        subtitle="Společná sbírka ověřených ochutnaných piv. Pivovary, styly, chmely a další stopy po každé ochutnávce."
+        title={
+          isFocusedDrilldown
+            ? focusTitle
+            : "Katalog piv"
+        }
+        subtitle={
+          isFocusedDrilldown
+            ? "Čistý přehled piv odpovídajících vybrané statistice."
+            : "Společná sbírka ověřených ochutnaných piv. Pivovary, styly, chmely a další stopy po každé ochutnávce."
+        }
         action={
-          <Link
-            href="/breweries"
-            className="taste-button-secondary"
-            style={{
-              fontSize: "12px",
-              fontWeight: 650,
-            }}
-          >
-            ← Pivovary
-          </Link>
+          isFocusedDrilldown ? (
+            <Link
+              href="/beers"
+              className="taste-button-secondary"
+              style={{
+                fontSize: "12px",
+                fontWeight: 650,
+              }}
+            >
+              Celý katalog
+            </Link>
+          ) : (
+            <Link
+              href="/breweries"
+              className="taste-button-secondary"
+              style={{
+                fontSize: "12px",
+                fontWeight: 650,
+              }}
+            >
+              ← Pivovary
+            </Link>
+          )
         }
         stats={[
           {
@@ -349,136 +433,214 @@ export default async function BeersPage({
         ]}
       />
 
-      <section
-        className="taste-card"
-        style={{
-          marginBottom: "24px",
-          padding: "18px",
-        }}
-      >
-        <form
-          action="/beers"
-          method="get"
+      {isFocusedDrilldown ? (
+        <section
+          className="taste-card"
           style={{
-            display: "grid",
-            gridTemplateColumns:
-              "repeat(auto-fit, minmax(170px, 1fr))",
-            gap: "10px",
-            alignItems: "end",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: "14px",
+            flexWrap: "wrap",
+            marginBottom: "24px",
+            padding: "13px 16px",
           }}
         >
-          <FilterSelect
-            label="Stát"
-            name="country"
-            defaultValue={selectedCountry ?? ""}
-          >
-            <option value="">Všechny státy</option>
-            {countryOptions.map((country) => (
-              <option key={country} value={country}>
-                {country}
-              </option>
-            ))}
-          </FilterSelect>
-
-          <FilterSelect
-            label="Pivovar"
-            name="brewery"
-            defaultValue={
-              selectedBreweryId
-                ? String(selectedBreweryId)
-                : ""
-            }
-          >
-            <option value="">Všechny pivovary</option>
-            {breweryOptions.map((brewery) => (
-              <option
-                key={brewery.id}
-                value={brewery.id}
-              >
-                {brewery.name}
-              </option>
-            ))}
-          </FilterSelect>
-
-          <FilterSelect
-            label="Styl"
-            name="style"
-            defaultValue={
-              selectedStyleId
-                ? String(selectedStyleId)
-                : ""
-            }
-          >
-            <option value="">Všechny styly</option>
-            {styleOptions.map((style) => (
-              <option key={style.id} value={style.id}>
-                {style.name}
-              </option>
-            ))}
-          </FilterSelect>
-
-          <FilterSelect
-            label="Chmel"
-            name="hop"
-            defaultValue={
-              selectedHopId
-                ? String(selectedHopId)
-                : ""
-            }
-          >
-            <option value="">Všechny chmely</option>
-            {hopOptions.map((hop) => (
-              <option key={hop.id} value={hop.id}>
-                {hop.name}
-              </option>
-            ))}
-          </FilterSelect>
-
-          <button
-            type="submit"
-            className="taste-button-primary"
-            style={{
-              minHeight: "42px",
-              cursor: "pointer",
-            }}
-          >
-            Filtrovat
-          </button>
-        </form>
-
-        {activeFilterLabels.length > 0 && (
           <div
             style={{
               display: "flex",
               alignItems: "center",
-              justifyContent: "space-between",
-              gap: "12px",
+              gap: "9px",
               flexWrap: "wrap",
-              marginTop: "14px",
-              paddingTop: "13px",
-              borderTop:
-                "1px solid rgba(231,166,47,0.10)",
-              color: "var(--taste-text-muted)",
-              fontSize: "11px",
             }}
           >
-            <span>
-              Aktivní filtr: {activeFilterLabels.join(" · ")}
+            <span
+              className="taste-label"
+              style={{ margin: 0 }}
+            >
+              Aktivní výběr
             </span>
-
-            <Link
-              href="/beers"
+            <span
               style={{
-                color: "var(--taste-amber-bright)",
-                textDecoration: "none",
+                padding: "5px 9px",
+                border:
+                  "1px solid rgba(231,166,47,0.20)",
+                borderRadius: "999px",
+                background:
+                  "rgba(231,166,47,0.055)",
+                color: "var(--taste-text-soft)",
+                fontSize: "11px",
                 fontWeight: 700,
               }}
             >
-              Zrušit filtr
+              {activeFilterLabels.join(" · ")}
+            </span>
+          </div>
+
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "13px",
+              flexWrap: "wrap",
+            }}
+          >
+            <Link
+              href={editableFilterHref}
+              style={{
+                color: "var(--taste-amber-bright)",
+                textDecoration: "none",
+                fontSize: "11px",
+                fontWeight: 700,
+              }}
+            >
+              Změnit filtr
+            </Link>
+            <Link
+              href="/beers"
+              style={{
+                color: "var(--taste-text-muted)",
+                textDecoration: "none",
+                fontSize: "11px",
+                fontWeight: 650,
+              }}
+            >
+              Všechna piva
             </Link>
           </div>
-        )}
-      </section>
+        </section>
+      ) : (
+        <section
+          className="taste-card"
+          style={{
+            marginBottom: "24px",
+            padding: "18px",
+          }}
+        >
+          <form
+            action="/beers"
+            method="get"
+            style={{
+              display: "grid",
+              gridTemplateColumns:
+                "repeat(auto-fit, minmax(170px, 1fr))",
+              gap: "10px",
+              alignItems: "end",
+            }}
+          >
+            <FilterSelect
+              label="Stát"
+              name="country"
+              defaultValue={selectedCountry ?? ""}
+            >
+              <option value="">Všechny státy</option>
+              {countryOptions.map((country) => (
+                <option key={country} value={country}>
+                  {country}
+                </option>
+              ))}
+            </FilterSelect>
+
+            <FilterSelect
+              label="Pivovar"
+              name="brewery"
+              defaultValue={
+                selectedBreweryId
+                  ? String(selectedBreweryId)
+                  : ""
+              }
+            >
+              <option value="">Všechny pivovary</option>
+              {breweryOptions.map((brewery) => (
+                <option
+                  key={brewery.id}
+                  value={brewery.id}
+                >
+                  {brewery.name}
+                </option>
+              ))}
+            </FilterSelect>
+
+            <FilterSelect
+              label="Styl"
+              name="style"
+              defaultValue={
+                selectedStyleId
+                  ? String(selectedStyleId)
+                  : ""
+              }
+            >
+              <option value="">Všechny styly</option>
+              {styleOptions.map((style) => (
+                <option key={style.id} value={style.id}>
+                  {style.name}
+                </option>
+              ))}
+            </FilterSelect>
+
+            <FilterSelect
+              label="Chmel"
+              name="hop"
+              defaultValue={
+                selectedHopId
+                  ? String(selectedHopId)
+                  : ""
+              }
+            >
+              <option value="">Všechny chmely</option>
+              {hopOptions.map((hop) => (
+                <option key={hop.id} value={hop.id}>
+                  {hop.name}
+                </option>
+              ))}
+            </FilterSelect>
+
+            <button
+              type="submit"
+              className="taste-button-primary"
+              style={{
+                minHeight: "42px",
+                cursor: "pointer",
+              }}
+            >
+              Filtrovat
+            </button>
+          </form>
+
+          {activeFilterLabels.length > 0 && (
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: "12px",
+                flexWrap: "wrap",
+                marginTop: "14px",
+                paddingTop: "13px",
+                borderTop:
+                  "1px solid rgba(231,166,47,0.10)",
+                color: "var(--taste-text-muted)",
+                fontSize: "11px",
+              }}
+            >
+              <span>
+                Aktivní filtr: {activeFilterLabels.join(" · ")}
+              </span>
+
+              <Link
+                href="/beers"
+                style={{
+                  color: "var(--taste-amber-bright)",
+                  textDecoration: "none",
+                  fontWeight: 700,
+                }}
+              >
+                Zrušit filtr
+              </Link>
+            </div>
+          )}
+        </section>
+      )}
 
       <section>
         <div
@@ -495,7 +657,9 @@ export default async function BeersPage({
               className="taste-label"
               style={{ marginBottom: "5px" }}
             >
-              Výběr katalogu
+              {isFocusedDrilldown
+                ? "Tematický výběr"
+                : "Výběr katalogu"}
             </div>
 
             <h2
