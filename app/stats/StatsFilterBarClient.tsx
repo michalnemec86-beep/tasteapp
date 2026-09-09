@@ -6,6 +6,8 @@ import {
   useSearchParams,
 } from "next/navigation";
 
+import { PACKAGING_OPTIONS } from "@/lib/packaging";
+
 type SortMode =
   | "count-desc"
   | "count-asc"
@@ -22,6 +24,7 @@ type StatsFilterBarClientProps = {
   selectedUserId?: string;
   selectedYear?: number;
   selectedMonth?: number;
+  selectedPackaging?: string;
   sortMode: SortMode;
   firstYear?: number;
 };
@@ -46,74 +49,47 @@ export default function StatsFilterBarClient({
   selectedUserId,
   selectedYear,
   selectedMonth,
+  selectedPackaging,
   sortMode,
   firstYear = 2005,
 }: StatsFilterBarClientProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams =
-    useSearchParams();
+  const searchParams = useSearchParams();
 
-  const currentYear =
-    new Date().getFullYear();
+  const currentYear = new Date().getFullYear();
 
   const years = Array.from(
     {
-      length:
-        currentYear -
-        firstYear +
-        1,
+      length: currentYear - firstYear + 1,
     },
-    (_, index) =>
-      currentYear - index
+    (_, index) => currentYear - index
   );
 
   function updateParams(
-    updates: Record<
-      string,
-      string | null
-    >
+    updates: Record<string, string | null>
   ) {
-    const params =
-      new URLSearchParams(
-        searchParams.toString()
-      );
+    const params = new URLSearchParams(
+      searchParams.toString()
+    );
 
-    for (const [
-      key,
-      value,
-    ] of Object.entries(
-      updates
-    )) {
-      if (
-        value == null ||
-        value === ""
-      ) {
+    for (const [key, value] of Object.entries(updates)) {
+      if (value == null || value === "") {
         params.delete(key);
       } else {
-        params.set(
-          key,
-          value
-        );
+        params.set(key, value);
       }
     }
 
-    const query =
-      params.toString();
+    const query = params.toString();
 
     router.replace(
-      query
-        ? `${pathname}?${query}`
-        : pathname,
-      {
-        scroll: false,
-      }
+      query ? `${pathname}?${query}` : pathname,
+      { scroll: false }
     );
   }
 
-  function handleYearChange(
-    value: string
-  ) {
+  function handleYearChange(value: string) {
     updateParams({
       year: value || null,
       month: null,
@@ -129,111 +105,81 @@ export default function StatsFilterBarClient({
         flexWrap: "wrap",
         padding: "15px 16px",
         marginBottom: "18px",
-        border:
-          "1px solid var(--taste-border)",
-        borderRadius:
-          "var(--taste-radius-lg)",
-        background:
-          "var(--taste-surface)",
-        boxShadow:
-          "var(--taste-shadow-soft)",
+        border: "1px solid var(--taste-border)",
+        borderRadius: "var(--taste-radius-lg)",
+        background: "var(--taste-surface)",
+        boxShadow: "var(--taste-shadow-soft)",
       }}
     >
       <FilterSelect
         label="Uživatel"
         value={selectedUserId ?? ""}
         onChange={(value) =>
-          updateParams({
-            user: value || null,
-          })
+          updateParams({ user: value || null })
         }
       >
-        <option value="">
-          Celkem
-        </option>
-
-        {profiles.map(
-          (profile) => (
-            <option
-              key={profile.id}
-              value={profile.id}
-            >
-              {
-                profile.display_name
-              }
-            </option>
-          )
-        )}
+        <option value="">Celkem</option>
+        {profiles.map((profile) => (
+          <option key={profile.id} value={profile.id}>
+            {profile.display_name}
+          </option>
+        ))}
       </FilterSelect>
 
       <FilterSelect
         label="Rok"
         value={
-          selectedYear
-            ? String(
-                selectedYear
-              )
-            : ""
+          selectedYear ? String(selectedYear) : ""
         }
-        onChange={
-          handleYearChange
-        }
+        onChange={handleYearChange}
       >
-        <option value="">
-          Celé období
-        </option>
-
-        {years.map(
-          (year) => (
-            <option
-              key={year}
-              value={year}
-            >
-              {year}
-            </option>
-          )
-        )}
+        <option value="">Celé období</option>
+        {years.map((year) => (
+          <option key={year} value={year}>
+            {year}
+          </option>
+        ))}
       </FilterSelect>
 
       <FilterSelect
         label="Měsíc"
         value={
-          selectedMonth
-            ? String(
-                selectedMonth
-              )
-            : ""
+          selectedMonth ? String(selectedMonth) : ""
         }
-        disabled={
-          !selectedYear
-        }
+        disabled={!selectedYear}
         onChange={(value) =>
-          updateParams({
-            month:
-              value || null,
-          })
+          updateParams({ month: value || null })
         }
       >
         <option value="">
-          {selectedYear
-            ? "Celý rok"
-            : "Vyber rok"}
+          {selectedYear ? "Celý rok" : "Vyber rok"}
         </option>
+        {MONTHS.map((month) => (
+          <option
+            key={month.number}
+            value={month.number}
+          >
+            {month.name}
+          </option>
+        ))}
+      </FilterSelect>
 
-        {MONTHS.map(
-          (month) => (
-            <option
-              key={
-                month.number
-              }
-              value={
-                month.number
-              }
-            >
-              {month.name}
-            </option>
-          )
-        )}
+      <FilterSelect
+        label="Podání / obal"
+        value={selectedPackaging ?? ""}
+        onChange={(value) =>
+          updateParams({ packaging: value || null })
+        }
+      >
+        <option value="">Všechny</option>
+        {PACKAGING_OPTIONS.map((option) => (
+          <option
+            key={option.value}
+            value={option.value}
+          >
+            {option.label}
+          </option>
+        ))}
       </FilterSelect>
 
       <FilterSelect
@@ -242,25 +188,16 @@ export default function StatsFilterBarClient({
         onChange={(value) =>
           updateParams({
             sort:
-              value ===
-              "count-desc"
+              value === "count-desc"
                 ? null
                 : value,
           })
         }
       >
-        <option value="count-desc">
-          ↓ Nejvíce
-        </option>
-        <option value="count-asc">
-          ↑ Nejméně
-        </option>
-        <option value="name-asc">
-          A–Z
-        </option>
-        <option value="name-desc">
-          Z–A
-        </option>
+        <option value="count-desc">↓ Nejvíce</option>
+        <option value="count-asc">↑ Nejméně</option>
+        <option value="name-asc">A–Z</option>
+        <option value="name-desc">Z–A</option>
       </FilterSelect>
     </section>
   );
@@ -275,12 +212,9 @@ function FilterSelect({
 }: {
   label: string;
   value: string;
-  onChange: (
-    value: string
-  ) => void;
+  onChange: (value: string) => void;
   disabled?: boolean;
-  children:
-    React.ReactNode;
+  children: React.ReactNode;
 }) {
   return (
     <label
@@ -293,9 +227,7 @@ function FilterSelect({
     >
       <span
         className="taste-label"
-        style={{
-          paddingLeft: "2px",
-        }}
+        style={{ paddingLeft: "2px" }}
       >
         {label}
       </span>
@@ -304,30 +236,23 @@ function FilterSelect({
         value={value}
         disabled={disabled}
         onChange={(event) =>
-          onChange(
-            event.target.value
-          )
+          onChange(event.target.value)
         }
         style={{
           width: "100%",
           height: "38px",
-          padding:
-            "0 36px 0 12px",
+          padding: "0 36px 0 12px",
           border:
             "1px solid rgba(127,127,127,0.35)",
-          borderRadius:
-            "10px",
-          background:
-            "hsl(var(--background))",
+          borderRadius: "10px",
+          background: "hsl(var(--background))",
           color: "inherit",
           fontSize: "13px",
           fontWeight: 600,
           cursor: disabled
             ? "not-allowed"
             : "pointer",
-          opacity: disabled
-            ? 0.45
-            : 1,
+          opacity: disabled ? 0.45 : 1,
         }}
       >
         {children}
