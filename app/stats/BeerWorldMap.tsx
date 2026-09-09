@@ -7,8 +7,8 @@ import {
   type CSSProperties,
   type PointerEvent as ReactPointerEvent,
 } from "react";
-
 import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
 
 import type {
   CountryContext,
@@ -16,22 +16,18 @@ import type {
   ISOCode,
 } from "react-svg-worldmap";
 
+import countries from "i18n-iso-countries";
+import csLocale from "i18n-iso-countries/langs/cs.json";
+
 const WorldMap = dynamic(
   () =>
     import("react-svg-worldmap").then(
       (module) => module.default
     ),
-  {
-    ssr: false,
-  }
+  { ssr: false }
 );
 
-import countries from "i18n-iso-countries";
-import csLocale from "i18n-iso-countries/langs/cs.json";
-
-countries.registerLocale(
-  csLocale
-);
+countries.registerLocale(csLocale);
 
 type CountryRankingItem = {
   id: string | number;
@@ -47,89 +43,43 @@ type BeerWorldMapProps = {
   focusEurope?: boolean;
 };
 
-// ==================================================
-// ALIASY ZEMÍ
-// ==================================================
-
-const COUNTRY_ALIASES: Record<
-  string,
-  string
-> = {
+const COUNTRY_ALIASES: Record<string, string> = {
   cesko: "CZ",
   "ceska republika": "CZ",
-
   usa: "US",
   "spojene staty": "US",
-  "spojene staty americke":
-    "US",
-
+  "spojene staty americke": "US",
   "velka britanie": "GB",
   britanie: "GB",
   anglie: "GB",
-
   "jizni korea": "KR",
   "korejska republika": "KR",
-
   "severni korea": "KP",
-
   rusko: "RU",
-
   vietnam: "VN",
 };
 
-// ==================================================
-// NORMALIZACE
-// ==================================================
-
-function normalizeCountryName(
-  value: string
-) {
+function normalizeCountryName(value: string) {
   return value
     .normalize("NFD")
-    .replace(
-      /[\u0300-\u036f]/g,
-      ""
-    )
+    .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
     .trim();
 }
 
-// ==================================================
-// KÓD ZEMĚ
-// ==================================================
-
-function getCountryCode(
-  countryName: string
-) {
-  const normalized =
-    normalizeCountryName(
-      countryName
-    );
-
-  const alias =
-    COUNTRY_ALIASES[
-      normalized
-    ];
+function getCountryCode(countryName: string) {
+  const normalized = normalizeCountryName(countryName);
+  const alias = COUNTRY_ALIASES[normalized];
 
   if (alias) {
     return alias;
   }
 
   return (
-    countries.getAlpha2Code(
-      countryName,
-      "cs"
-    ) ??
-    countries.getSimpleAlpha2Code(
-      countryName,
-      "cs"
-    )
+    countries.getAlpha2Code(countryName, "cs") ??
+    countries.getSimpleAlpha2Code(countryName, "cs")
   );
 }
-
-// ==================================================
-// KOMPONENTA
-// ==================================================
 
 export default function BeerWorldMap({
   items,
@@ -138,262 +88,148 @@ export default function BeerWorldMap({
   countLabel = "ochutnaných zemí",
   focusEurope = false,
 }: BeerWorldMapProps) {
-  const mapStageRef =
-    useRef<HTMLDivElement>(
-      null
-    );
+  const router = useRouter();
+  const mapStageRef = useRef<HTMLDivElement>(null);
+  const didDragRef = useRef(false);
 
-  const [
-    mapSize,
-    setMapSize,
-  ] =
-    useState(900);
+  const [mapSize, setMapSize] = useState(900);
+  const [europeZoom, setEuropeZoom] = useState(1);
+  const [mapPan, setMapPan] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
 
-  const [
-    europeZoom,
-    setEuropeZoom,
-  ] =
-    useState(1);
-
-  const [
-    mapPan,
-    setMapPan,
-  ] =
-    useState({
-      x: 0,
-      y: 0,
-    });
-
-  const [
-    isDragging,
-    setIsDragging,
-  ] =
-    useState(false);
-
-  const dragRef =
-    useRef<{
-      pointerId: number;
-      startX: number;
-      startY: number;
-      originX: number;
-      originY: number;
-    } | null>(null);
+  const dragRef = useRef<{
+    pointerId: number;
+    startX: number;
+    startY: number;
+    originX: number;
+    originY: number;
+  } | null>(null);
 
   function handleMapPointerDown(
-    event:
-      ReactPointerEvent<HTMLDivElement>
+    event: ReactPointerEvent<HTMLDivElement>
   ) {
-    if (
-      !focusEurope ||
-      europeZoom <= 1
-    ) {
+    didDragRef.current = false;
+
+    if (!focusEurope || europeZoom <= 1) {
       return;
     }
 
-    event.currentTarget.setPointerCapture(
-      event.pointerId
-    );
+    event.currentTarget.setPointerCapture(event.pointerId);
 
     dragRef.current = {
-      pointerId:
-        event.pointerId,
-      startX:
-        event.clientX,
-      startY:
-        event.clientY,
-      originX:
-        mapPan.x,
-      originY:
-        mapPan.y,
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      originX: mapPan.x,
+      originY: mapPan.y,
     };
 
     setIsDragging(true);
   }
 
   function handleMapPointerMove(
-    event:
-      ReactPointerEvent<HTMLDivElement>
+    event: ReactPointerEvent<HTMLDivElement>
   ) {
-    const drag =
-      dragRef.current;
+    const drag = dragRef.current;
 
-    if (
-      !drag ||
-      drag.pointerId !==
-        event.pointerId
-    ) {
+    if (!drag || drag.pointerId !== event.pointerId) {
       return;
     }
 
+    const deltaX = event.clientX - drag.startX;
+    const deltaY = event.clientY - drag.startY;
+
+    if (Math.abs(deltaX) + Math.abs(deltaY) > 6) {
+      didDragRef.current = true;
+    }
+
     setMapPan({
-      x:
-        drag.originX +
-        event.clientX -
-        drag.startX,
-      y:
-        drag.originY +
-        event.clientY -
-        drag.startY,
+      x: drag.originX + deltaX,
+      y: drag.originY + deltaY,
     });
   }
 
   function handleMapPointerUp(
-    event:
-      ReactPointerEvent<HTMLDivElement>
+    event: ReactPointerEvent<HTMLDivElement>
   ) {
-    if (
-      dragRef.current?.pointerId !==
-      event.pointerId
-    ) {
+    if (dragRef.current?.pointerId !== event.pointerId) {
       return;
     }
 
     dragRef.current = null;
     setIsDragging(false);
 
-    if (
-      event.currentTarget.hasPointerCapture(
-        event.pointerId
-      )
-    ) {
-      event.currentTarget.releasePointerCapture(
-        event.pointerId
-      );
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
     }
   }
 
-
-  // ==================================================
-  // VELIKOST MAPY PODLE RÁMEČKU
-  // ==================================================
-
   useEffect(() => {
-    const element =
-      mapStageRef.current;
+    const element = mapStageRef.current;
 
     if (!element) {
       return;
     }
 
     const updateSize = () => {
-      const width =
-        element.clientWidth;
-
-      const nextSize =
-        Math.max(
-          240,
-          Math.min(
-            1050,
-            Math.floor(
-              width - 8
-            )
-          )
-        );
-
-      setMapSize(
-        nextSize
+      const width = element.clientWidth;
+      const nextSize = Math.max(
+        240,
+        Math.min(1050, Math.floor(width - 8))
       );
+
+      setMapSize(nextSize);
     };
 
     updateSize();
 
-    const observer =
-      new ResizeObserver(
-        updateSize
-      );
+    const observer = new ResizeObserver(updateSize);
+    observer.observe(element);
 
-    observer.observe(
-      element
-    );
-
-    return () => {
-      observer.disconnect();
-    };
+    return () => observer.disconnect();
   }, []);
 
-  // ==================================================
-  // DATA MAPY
-  // ==================================================
+  const mappedCountries = items
+    .map((item) => {
+      const code = getCountryCode(item.name);
 
-  const mappedCountries =
-    items
-      .map((item) => {
-        const code =
-          getCountryCode(
-            item.name
-          );
+      if (!code) {
+        return null;
+      }
 
-        if (!code) {
-          return null;
-        }
-
-        return {
-          ...item,
-          code:
-            code.toUpperCase(),
-        };
-      })
-      .filter(
-        (
-          item
-        ): item is CountryRankingItem & {
-          code: string;
-        } => item !== null
-      );
-
-  const unmappedCountries =
-    items.filter(
-      (item) =>
-        !getCountryCode(
-          item.name
-        )
+      return {
+        ...item,
+        code: code.toUpperCase(),
+      };
+    })
+    .filter(
+      (
+        item
+      ): item is CountryRankingItem & { code: string } =>
+        item !== null
     );
 
-  const data: Data =
-    mappedCountries.map(
-      (item) => ({
-        country:
-          item.code as ISOCode,
+  const unmappedCountries = items.filter(
+    (item) => !getCountryCode(item.name)
+  );
 
-        value:
-          item.count,
-      })
-    );
+  const data: Data = mappedCountries.map((item) => ({
+    country: item.code as ISOCode,
+    value: item.count,
+  }));
 
-  const nameByCode =
-    new Map(
-      mappedCountries.map(
-        (item) => [
-          item.code,
-          item.name,
-        ]
-      )
-    );
+  const nameByCode = new Map(
+    mappedCountries.map((item) => [item.code, item.name])
+  );
 
-  const countByCode =
-    new Map(
-      mappedCountries.map(
-        (item) => [
-          item.code,
-          item.count,
-        ]
-      )
-    );
+  const countByCode = new Map(
+    mappedCountries.map((item) => [item.code, item.count])
+  );
 
   const maximum =
-    mappedCountries.length >
-    0
-      ? Math.max(
-          ...mappedCountries.map(
-            (item) =>
-              item.count
-          )
-        )
+    mappedCountries.length > 0
+      ? Math.max(...mappedCountries.map((item) => item.count))
       : 0;
-
-  // ==================================================
-  // STYL ZEMÍ
-  // ==================================================
 
   function styleCountry({
     countryValue,
@@ -402,149 +238,98 @@ export default function BeerWorldMap({
     color,
   }: CountryContext<string | number>): CSSProperties {
     const value =
-      typeof countryValue ===
-      "number"
+      typeof countryValue === "number"
         ? countryValue
-        : Number(
-            countryValue
-          );
+        : Number(countryValue);
 
-    if (
-      !Number.isFinite(
-        value
-      ) ||
-      value <= 0
-    ) {
+    if (!Number.isFinite(value) || value <= 0) {
       return {
-        fill:
-          "#24211c",
-
-        fillOpacity:
-          1,
-
-        stroke:
-          "#4b4439",
-
-        strokeWidth:
-          0.55,
-
-        strokeOpacity:
-          0.55,
-
-        cursor:
-          "default",
+        fill: "#24211c",
+        fillOpacity: 1,
+        stroke: "#4b4439",
+        strokeWidth: 0.55,
+        strokeOpacity: 0.55,
+        cursor: "default",
       };
     }
 
-    const range =
-      maxValue -
-      minValue;
-
+    const range = maxValue - minValue;
     const ratio =
       range <= 0
         ? 1
         : Math.max(
             0,
-            Math.min(
-              1,
-              (value -
-                minValue) /
-                range
-            )
+            Math.min(1, (value - minValue) / range)
           );
 
-    const opacity =
-      0.28 +
-      ratio * 0.72;
-
     return {
-      fill:
-        color,
-
-      fillOpacity:
-        opacity,
-
-      stroke:
-        "#9b773b",
-
-      strokeWidth:
-        0.65,
-
-      strokeOpacity:
-        0.78,
-
-      cursor:
-        "pointer",
+      fill: color,
+      fillOpacity: 0.28 + ratio * 0.72,
+      stroke: "#9b773b",
+      strokeWidth: 0.65,
+      strokeOpacity: 0.78,
+      cursor: "pointer",
     };
   }
-
-  // ==================================================
-  // TOOLTIP
-  // ==================================================
 
   function tooltipText({
     countryCode,
     countryName,
     countryValue,
   }: CountryContext<string | number>) {
-    const code =
-      String(
-        countryCode
-      ).toUpperCase();
-
-    const czechName =
-      nameByCode.get(
-        code
-      ) ??
-      countryName;
-
+    const code = String(countryCode).toUpperCase();
+    const czechName = nameByCode.get(code) ?? countryName;
     const value =
-      countByCode.get(
-        code
-      ) ??
-      (typeof countryValue ===
-      "number"
+      countByCode.get(code) ??
+      (typeof countryValue === "number"
         ? countryValue
-        : Number(
-            countryValue
-          ));
+        : Number(countryValue));
 
-    if (
-      !Number.isFinite(
-        value
-      ) ||
-      value <= 0
-    ) {
+    if (!Number.isFinite(value) || value <= 0) {
       return czechName;
     }
 
-    return `${czechName}: ${value}×`;
+    return `${czechName}: ${value}× · kliknutím otevřít`;
   }
 
-  // ==================================================
-  // VÝSTUP
-  // ==================================================
+  function handleCountryClick({
+    countryCode,
+    countryName,
+    countryValue,
+  }: CountryContext<string | number>) {
+    if (didDragRef.current) {
+      didDragRef.current = false;
+      return;
+    }
+
+    const value =
+      typeof countryValue === "number"
+        ? countryValue
+        : Number(countryValue);
+
+    if (!Number.isFinite(value) || value <= 0) {
+      return;
+    }
+
+    const code = String(countryCode).toUpperCase();
+    const czechName = nameByCode.get(code) ?? countryName;
+    const target = focusEurope ? "/breweries" : "/beers";
+
+    router.push(
+      `${target}?country=${encodeURIComponent(czechName)}`
+    );
+  }
 
   return (
     <section
       style={{
-        position:
-          "relative",
-
-        overflow:
-          "hidden",
-
-        padding:
-          focusEurope
-            ? "18px 20px 10px"
-            : "22px 24px 18px",
-
-        border:
-          "1px solid var(--taste-border)",
-
-        borderRadius:
-          "var(--taste-radius-xl)",
-
+        position: "relative",
+        overflow: "hidden",
+        padding: focusEurope
+          ? "18px 20px 10px"
+          : "22px 24px 18px",
+        border: "1px solid var(--taste-border)",
+        borderRadius: "var(--taste-radius-xl)",
         background: `
           radial-gradient(
             circle at 50% 15%,
@@ -558,107 +343,56 @@ export default function BeerWorldMap({
           ),
           var(--taste-surface)
         `,
-
-        boxShadow:
-          "var(--taste-shadow-soft)",
+        boxShadow: "var(--taste-shadow-soft)",
       }}
     >
-      {/* ==================================================
-          HLAVIČKA
-      ================================================== */}
-
       <div
         style={{
-          display:
-            "flex",
-
-          justifyContent:
-            "space-between",
-
-          alignItems:
-            "flex-end",
-
-          gap:
-            "16px",
-
-          flexWrap:
-            "wrap",
-
-          marginBottom:
-            "8px",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-end",
+          gap: "16px",
+          flexWrap: "wrap",
+          marginBottom: "8px",
         }}
       >
         <div>
           <div
             className="taste-label"
-            style={{
-              marginBottom:
-                "5px",
-            }}
+            style={{ marginBottom: "5px" }}
           >
             {eyebrow}
           </div>
-
           <h2
             style={{
               margin: 0,
-
-              fontSize:
-                "22px",
-
-              lineHeight:
-                1.1,
-
-              fontWeight:
-                750,
-
-              letterSpacing:
-                "-0.025em",
+              fontSize: "22px",
+              lineHeight: 1.1,
+              fontWeight: 750,
+              letterSpacing: "-0.025em",
             }}
           >
             {title}
           </h2>
         </div>
 
-        <div
-          style={{
-            textAlign:
-              "right",
-          }}
-        >
+        <div style={{ textAlign: "right" }}>
           <div
             style={{
-              color:
-                "var(--taste-amber-bright)",
-
-              fontSize:
-                "22px",
-
-              lineHeight:
-                1,
-
-              fontWeight:
-                800,
-
-              letterSpacing:
-                "-0.03em",
+              color: "var(--taste-amber-bright)",
+              fontSize: "22px",
+              lineHeight: 1,
+              fontWeight: 800,
+              letterSpacing: "-0.03em",
             }}
           >
-            {
-              mappedCountries.length
-            }
+            {mappedCountries.length}
           </div>
-
           <div
             style={{
-              marginTop:
-                "4px",
-
-              color:
-                "var(--taste-text-muted)",
-
-              fontSize:
-                "10px",
+              marginTop: "4px",
+              color: "var(--taste-text-muted)",
+              fontSize: "10px",
             }}
           >
             {countLabel}
@@ -666,42 +400,17 @@ export default function BeerWorldMap({
         </div>
       </div>
 
-      {/* ==================================================
-          MAPA
-      ================================================== */}
-
       <div
-        ref={
-          mapStageRef
-        }
+        ref={mapStageRef}
         style={{
-          width:
-            "100%",
-
-          position:
-            "relative",
-
-          height:
-            focusEurope
-              ? "375px"
-              : undefined,
-
-          minHeight:
-            focusEurope
-              ? undefined
-              : "310px",
-
-          display:
-            "flex",
-
-          alignItems:
-            "center",
-
-          justifyContent:
-            "center",
-
-          overflow:
-            "hidden",
+          width: "100%",
+          position: "relative",
+          height: focusEurope ? "375px" : undefined,
+          minHeight: focusEurope ? undefined : "310px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          overflow: "hidden",
         }}
       >
         {focusEurope && (
@@ -713,75 +422,42 @@ export default function BeerWorldMap({
               zIndex: 10,
               display: "flex",
               flexDirection: "column",
-              border:
-                "1px solid var(--taste-border)",
+              border: "1px solid var(--taste-border)",
               borderRadius: "8px",
               overflow: "hidden",
-              background:
-                "rgba(24, 18, 13, 0.92)",
-              boxShadow:
-                "0 4px 14px rgba(0,0,0,0.35)",
+              background: "rgba(24, 18, 13, 0.92)",
+              boxShadow: "0 4px 14px rgba(0,0,0,0.35)",
             }}
           >
             <button
               type="button"
               aria-label="Přiblížit mapu"
               onClick={() =>
-                setEuropeZoom(
-                  (value) =>
-                    Math.min(
-                      1.35,
-                      Number(
-                        (
-                          value + 0.1
-                        ).toFixed(2)
-                      )
-                    )
+                setEuropeZoom((value) =>
+                  Math.min(
+                    1.35,
+                    Number((value + 0.1).toFixed(2))
+                  )
                 )
               }
-              style={{
-                width: "34px",
-                height: "34px",
-                border: 0,
-                borderBottom:
-                  "1px solid var(--taste-border)",
-                background:
-                  "transparent",
-                color:
-                  "var(--taste-text)",
-                fontSize: "20px",
-                cursor: "pointer",
-              }}
+              style={zoomButtonStyle}
             >
               +
             </button>
-
             <button
               type="button"
               aria-label="Oddálit mapu"
               onClick={() =>
-                setEuropeZoom(
-                  (value) =>
-                    Math.max(
-                      0.8,
-                      Number(
-                        (
-                          value - 0.1
-                        ).toFixed(2)
-                      )
-                    )
+                setEuropeZoom((value) =>
+                  Math.max(
+                    0.8,
+                    Number((value - 0.1).toFixed(2))
+                  )
                 )
               }
               style={{
-                width: "34px",
-                height: "34px",
-                border: 0,
-                background:
-                  "transparent",
-                color:
-                  "var(--taste-text)",
-                fontSize: "20px",
-                cursor: "pointer",
+                ...zoomButtonStyle,
+                borderBottom: 0,
               }}
             >
               −
@@ -791,312 +467,130 @@ export default function BeerWorldMap({
 
         {data.length > 0 ? (
           <div
-            onPointerDown={
-              handleMapPointerDown
-            }
-            onPointerMove={
-              handleMapPointerMove
-            }
-            onPointerUp={
-              handleMapPointerUp
-            }
-            onPointerCancel={
-              handleMapPointerUp
-            }
+            onPointerDown={handleMapPointerDown}
+            onPointerMove={handleMapPointerMove}
+            onPointerUp={handleMapPointerUp}
+            onPointerCancel={handleMapPointerUp}
             style={{
-              display:
-                "flex",
-
-              justifyContent:
-                "center",
-
-              alignItems:
-                "center",
-
-              width:
-                `${mapSize}px`,
-
-              maxWidth:
-                "100%",
-
-              margin:
-                "0 auto",
-
-              transform:
-                focusEurope
-                  ? `translate3d(${mapPan.x}px, ${mapPan.y - 28}px, 0) scale(${1.12 * europeZoom})`
-                  : undefined,
-
-              transformOrigin:
-                focusEurope
-                  ? "center center"
-                  : undefined,
-
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              width: `${mapSize}px`,
+              maxWidth: "100%",
+              margin: "0 auto",
+              transform: focusEurope
+                ? `translate3d(${mapPan.x}px, ${
+                    mapPan.y - 28
+                  }px, 0) scale(${1.12 * europeZoom})`
+                : undefined,
+              transformOrigin: focusEurope
+                ? "center center"
+                : undefined,
               transition:
-                focusEurope &&
-                !isDragging
+                focusEurope && !isDragging
                   ? "transform 180ms ease-out"
                   : "none",
-
               cursor:
-                focusEurope &&
-                europeZoom > 1
+                focusEurope && europeZoom > 1
                   ? isDragging
                     ? "grabbing"
                     : "grab"
                   : "default",
-
-              userSelect:
-                focusEurope
-                  ? "none"
-                  : undefined,
-
-              touchAction:
-                focusEurope
-                  ? "none"
-                  : undefined,
+              userSelect: focusEurope ? "none" : undefined,
+              touchAction: focusEurope ? "none" : undefined,
             }}
           >
             <WorldMap
               title=""
-
-              data={
-                data
-              }
-
-              size={
-                mapSize
-              }
-
+              data={data}
+              size={mapSize}
               color="#e7a62f"
-
               backgroundColor="transparent"
-
               borderColor="#4b4439"
-
-              frame={
-                false
-              }
-
-              richInteraction={
-                false
-              }
-
+              frame={false}
+              richInteraction={false}
               tooltipBgColor="#17130d"
-
               tooltipTextColor="#f2ede3"
-
-              styleFunction={
-                styleCountry
-              }
-
-              tooltipTextFunction={
-                tooltipText
-              }
+              styleFunction={styleCountry}
+              tooltipTextFunction={tooltipText}
+              onClickFunction={handleCountryClick}
             />
           </div>
         ) : (
           <div
             style={{
-              padding:
-                "55px 20px",
-
-              textAlign:
-                "center",
-
-              color:
-                "var(--taste-text-muted)",
-
-              fontSize:
-                "12px",
+              padding: "55px 20px",
+              textAlign: "center",
+              color: "var(--taste-text-muted)",
+              fontSize: "12px",
             }}
           >
-            Pro tento výběr
-            zatím není co
-            zakreslit.
+            Pro tento výběr zatím není co zakreslit.
           </div>
         )}
       </div>
 
-      {/* ==================================================
-          LEGENDA
-      ================================================== */}
-
       {data.length > 0 && (
         <div
           style={{
-            display:
-              "flex",
-
-            justifyContent:
-              "space-between",
-
-            alignItems:
-              "center",
-
-            gap:
-              "14px",
-
-            flexWrap:
-              "wrap",
-
-            marginTop:
-              "2px",
-
-            paddingTop:
-              "13px",
-
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: "14px",
+            flexWrap: "wrap",
+            marginTop: "2px",
+            paddingTop: "13px",
             borderTop:
               "1px solid rgba(231,166,47,0.09)",
+            color: "var(--taste-text-muted)",
+            fontSize: "10px",
           }}
         >
-          <div
-            style={{
-              display:
-                "flex",
-
-              alignItems:
-                "center",
-
-              gap:
-                "9px",
-
-              color:
-                "var(--taste-text-muted)",
-
-              fontSize:
-                "10px",
-            }}
-          >
-            <span>
-              méně
-            </span>
-
-            <div
-              style={{
-                display:
-                  "flex",
-
-                gap:
-                  "3px",
-              }}
+          <span>
+            Zvýrazněné země jsou proklikávací.
+          </span>
+          <span>
+            maximum:{" "}
+            <strong
+              style={{ color: "var(--taste-text-soft)" }}
             >
-              {[
-                0.28,
-                0.45,
-                0.65,
-                0.82,
-                1,
-              ].map(
-                (
-                  opacity
-                ) => (
-                  <span
-                    key={
-                      opacity
-                    }
-                    style={{
-                      width:
-                        "19px",
-
-                      height:
-                        "7px",
-
-                      borderRadius:
-                        "999px",
-
-                      background:
-                        `rgba(231,166,47,${opacity})`,
-                    }}
-                  />
-                )
-              )}
-            </div>
-
-            <span>
-              více
-            </span>
-          </div>
-
-          <div
-            style={{
-              display:
-                "flex",
-
-              alignItems:
-                "center",
-
-              gap:
-                "16px",
-
-              color:
-                "var(--taste-text-muted)",
-
-              fontSize:
-                "10px",
-            }}
-          >
-            <span>
-              maximum:{" "}
-              <strong
-                style={{
-                  color:
-                    "var(--taste-text-soft)",
-                }}
-              >
-                {
-                  maximum
-                }
-                ×
-              </strong>
-            </span>
-          </div>
+              {maximum}×
+            </strong>
+          </span>
         </div>
       )}
 
-      {/* ==================================================
-          NEROZPOZNANÉ ZEMĚ
-      ================================================== */}
-
-      {unmappedCountries.length >
-        0 && (
+      {unmappedCountries.length > 0 && (
         <div
           style={{
-            marginTop:
-              "12px",
-
-            padding:
-              "9px 11px",
-
+            marginTop: "12px",
+            padding: "9px 11px",
             border:
               "1px solid rgba(231,166,47,0.12)",
-
-            borderRadius:
-              "9px",
-
-            background:
-              "rgba(231,166,47,0.035)",
-
-            color:
-              "var(--taste-text-muted)",
-
-            fontSize:
-              "10px",
-
-            lineHeight:
-              1.5,
+            borderRadius: "9px",
+            background: "rgba(231,166,47,0.035)",
+            color: "var(--taste-text-muted)",
+            fontSize: "10px",
+            lineHeight: 1.5,
           }}
         >
-          Nepodařilo se přiřadit
-          na mapu:{" "}
+          Nepodařilo se přiřadit na mapu:{" "}
           {unmappedCountries
-            .map(
-              (item) =>
-                item.name
-            )
+            .map((item) => item.name)
             .join(", ")}
         </div>
       )}
     </section>
   );
 }
+
+const zoomButtonStyle: CSSProperties = {
+  width: "34px",
+  height: "34px",
+  border: 0,
+  borderBottom: "1px solid var(--taste-border)",
+  background: "transparent",
+  color: "var(--taste-text)",
+  fontSize: "20px",
+  cursor: "pointer",
+};
