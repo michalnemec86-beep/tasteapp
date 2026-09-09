@@ -1,6 +1,4 @@
-import type {
-  ReactNode,
-} from "react";
+import type { ReactNode } from "react";
 
 type HeroStat = {
   icon: ReactNode;
@@ -23,24 +21,9 @@ type PageHeroProps = {
   stats?: HeroStat[];
   imageUrl?: string;
   imagePosition?: string;
-
-  /*
-   * Tyto dvě props necháváme kvůli
-   * existujícím stránkám a fallbacku.
-   */
   visualVariant?: HeroVisualVariant;
   visualText?: string;
 };
-
-// ==================================================
-// PAGE HERO
-//
-// Geometrie inspirovaná původním návrhem:
-// - nízký široký fotografický banner
-// - kompaktní text vlevo
-// - akce vpravo jen u akčních variant
-// - úzký statistický pás
-// ==================================================
 
 export default function PageHero({
   eyebrow,
@@ -53,9 +36,8 @@ export default function PageHero({
   visualVariant = "beer",
   visualText,
 }: PageHeroProps) {
-  const allowsAction =
-    visualVariant === "beer" ||
-    visualVariant === "stats";
+  const hasRightContent =
+    visualVariant === "beer" || visualVariant === "stats";
 
   return (
     <section
@@ -63,11 +45,9 @@ export default function PageHero({
         position: "relative",
         overflow: "hidden",
         marginBottom: "16px",
-        border:
-          "1px solid rgba(239,177,62,0.34)",
+        border: "1px solid rgba(239,177,62,0.34)",
         borderRadius: "18px",
-        background:
-          "var(--taste-surface)",
+        background: "var(--taste-surface)",
         boxShadow: `
           0 14px 38px rgba(0,0,0,0.32),
           inset 0 1px 0 rgba(255,225,172,0.045),
@@ -75,51 +55,33 @@ export default function PageHero({
         `,
       }}
     >
-      {/* ==================================================
-          FOTOGRAFICKÝ BANNER
-      ================================================== */}
-
       <div
-        className="
-          relative
-          grid
-          min-h-[188px]
-          grid-cols-1
-          lg:grid-cols-[minmax(0,1.28fr)_minmax(250px,0.72fr)]
-        "
-        style={{
-          overflow: "hidden",
-        }}
+        className="relative grid min-h-[188px] grid-cols-1 lg:grid-cols-[minmax(0,1.28fr)_minmax(250px,0.72fr)]"
+        style={{ overflow: "hidden" }}
       >
-        {/* FOTO */}
-
         <div
           style={{
             position: "absolute",
             inset: 0,
-            backgroundImage:
-              imageUrl
-                ? `url("${imageUrl}")`
-                : `
-                    radial-gradient(
-                      circle at 72% 42%,
-                      rgba(231,166,47,0.30),
-                      transparent 20rem
-                    ),
-                    linear-gradient(
-                      135deg,
-                      #40220d,
-                      #160d07
-                    )
-                  `,
+            backgroundImage: imageUrl
+              ? `url("${imageUrl}")`
+              : `
+                  radial-gradient(
+                    circle at 72% 42%,
+                    rgba(231,166,47,0.30),
+                    transparent 20rem
+                  ),
+                  linear-gradient(
+                    135deg,
+                    #40220d,
+                    #160d07
+                  )
+                `,
             backgroundSize: "cover",
-            backgroundPosition:
-              imagePosition,
+            backgroundPosition: imagePosition,
             transform: "scale(1.015)",
           }}
         />
-
-        {/* LEVÝ TMAVÝ PŘECHOD */}
 
         <div
           style={{
@@ -139,8 +101,6 @@ export default function PageHero({
           }}
         />
 
-        {/* SPODNÍ PŘECHOD */}
-
         <div
           style={{
             position: "absolute",
@@ -156,8 +116,6 @@ export default function PageHero({
           }}
         />
 
-        {/* JANTAROVÝ ODLESK */}
-
         <div
           style={{
             position: "absolute",
@@ -165,35 +123,16 @@ export default function PageHero({
             right: "8%",
             bottom: "-88px",
             height: "140px",
-            background:
-              "rgba(231,166,47,0.11)",
+            background: "rgba(231,166,47,0.11)",
             filter: "blur(52px)",
             pointerEvents: "none",
           }}
         />
 
-        {/* ==================================================
-            TEXT
-        ================================================== */}
-
-        <div
-          className="
-            relative
-            z-[2]
-            flex
-            flex-col
-            justify-center
-            px-6
-            py-7
-            lg:px-8
-            lg:py-6
-          "
-        >
+        <div className="relative z-[2] flex flex-col justify-center px-6 py-7 lg:px-8 lg:py-6">
           <div
             className="taste-label"
-            style={{
-              marginBottom: "6px",
-            }}
+            style={{ marginBottom: "6px" }}
           >
             {eyebrow}
           </div>
@@ -202,16 +141,12 @@ export default function PageHero({
             style={{
               maxWidth: "620px",
               margin: 0,
-              color:
-                "var(--taste-text)",
-              fontSize:
-                "clamp(29px, 3.3vw, 39px)",
+              color: "var(--taste-text)",
+              fontSize: "clamp(29px, 3.3vw, 39px)",
               lineHeight: 1,
               fontWeight: 850,
-              letterSpacing:
-                "-0.04em",
-              textShadow:
-                "0 5px 24px rgba(0,0,0,0.45)",
+              letterSpacing: "-0.04em",
+              textShadow: "0 5px 24px rgba(0,0,0,0.45)",
             }}
           >
             {title}
@@ -220,68 +155,40 @@ export default function PageHero({
           <p
             style={{
               maxWidth: "560px",
-              margin:
-                "9px 0 0",
-              color:
-                "var(--taste-text-soft)",
+              margin: "9px 0 0",
+              color: "var(--taste-text-soft)",
               fontSize: "12px",
               lineHeight: 1.5,
-              textShadow:
-                "0 2px 12px rgba(0,0,0,0.55)",
+              textShadow: "0 2px 12px rgba(0,0,0,0.55)",
             }}
           >
             {subtitle}
           </p>
         </div>
 
-        {/* ==================================================
-            PRAVÁ ČÁST
-        ================================================== */}
-
-        <div
-          className="
-            relative
-            z-[3]
-            flex
-            min-h-[82px]
-            items-center
-            justify-center
-            px-6
-            pb-6
-            lg:min-h-0
-            lg:px-8
-            lg:py-5
-          "
-        >
-          {action && allowsAction ? (
-            <div
-              className="taste-page-hero-action"
-              style={{
-                width: "100%",
-                maxWidth: "250px",
-                display: "flex",
-                justifyContent:
-                  "center",
-              }}
-            >
-              {action}
-            </div>
-          ) : (
-            <FallbackMark
-              variant={
-                visualVariant
-              }
-              text={
-                visualText
-              }
-            />
-          )}
-        </div>
+        {hasRightContent && (
+          <div className="relative z-[3] flex min-h-[82px] items-center justify-center px-6 pb-6 lg:min-h-0 lg:px-8 lg:py-5">
+            {action ? (
+              <div
+                className="taste-page-hero-action"
+                style={{
+                  width: "100%",
+                  maxWidth: "250px",
+                  display: "flex",
+                  justifyContent: "center",
+                }}
+              >
+                {action}
+              </div>
+            ) : (
+              <FallbackMark
+                variant={visualVariant}
+                text={visualText}
+              />
+            )}
+          </div>
+        )}
       </div>
-
-      {/* ==================================================
-          STATISTIKY
-      ================================================== */}
 
       {stats.length > 0 && (
         <div
@@ -289,8 +196,7 @@ export default function PageHero({
             position: "relative",
             zIndex: 4,
             padding: "7px",
-            borderTop:
-              "1px solid rgba(231,166,47,0.17)",
+            borderTop: "1px solid rgba(231,166,47,0.17)",
             background: `
               linear-gradient(
                 180deg,
@@ -303,129 +209,103 @@ export default function PageHero({
           <div
             style={{
               display: "grid",
-              gridTemplateColumns:
-                "repeat(auto-fit, minmax(135px, 1fr))",
+              gridTemplateColumns: "repeat(auto-fit, minmax(135px, 1fr))",
               gap: "7px",
             }}
           >
-            {stats.map(
-              (stat, index) => (
+            {stats.map((stat, index) => (
+              <div
+                key={stat.label}
+                className="taste-hero-stat"
+                style={{
+                  minHeight: "58px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "9px",
+                  padding: "8px 11px",
+                  border:
+                    index === 0
+                      ? "1px solid rgba(245,184,63,0.34)"
+                      : "1px solid rgba(231,166,47,0.18)",
+                  borderRadius: "11px",
+                  background:
+                    index === 0
+                      ? `
+                          linear-gradient(
+                            145deg,
+                            rgba(231,166,47,0.11),
+                            rgba(168,98,33,0.04)
+                          ),
+                          rgba(23,14,8,0.80)
+                        `
+                      : `
+                          linear-gradient(
+                            145deg,
+                            rgba(231,166,47,0.04),
+                            transparent
+                          ),
+                          rgba(23,14,8,0.76)
+                        `,
+                  boxShadow:
+                    index === 0
+                      ? "0 0 18px rgba(231,166,47,0.05)"
+                      : "inset 0 1px 0 rgba(255,225,170,0.02)",
+                }}
+              >
                 <div
-                  key={
-                    stat.label
-                  }
-                  className="taste-hero-stat"
                   style={{
-                    minHeight: "58px",
+                    width: "30px",
+                    height: "30px",
+                    flexShrink: 0,
                     display: "flex",
-                    alignItems:
-                      "center",
-                    gap: "9px",
-                    padding:
-                      "8px 11px",
-                    border:
-                      index === 0
-                        ? "1px solid rgba(245,184,63,0.34)"
-                        : "1px solid rgba(231,166,47,0.18)",
-                    borderRadius:
-                      "11px",
-                    background:
-                      index === 0
-                        ? `
-                            linear-gradient(
-                              145deg,
-                              rgba(231,166,47,0.11),
-                              rgba(168,98,33,0.04)
-                            ),
-                            rgba(23,14,8,0.80)
-                          `
-                        : `
-                            linear-gradient(
-                              145deg,
-                              rgba(231,166,47,0.04),
-                              transparent
-                            ),
-                            rgba(23,14,8,0.76)
-                          `,
-                    boxShadow:
-                      index === 0
-                        ? "0 0 18px rgba(231,166,47,0.05)"
-                        : "inset 0 1px 0 rgba(255,225,170,0.02)",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    borderRadius: "8px",
+                    border: `1px solid ${stat.accent ?? "#e7a62f"}33`,
+                    background: `${stat.accent ?? "#e7a62f"}12`,
+                    color: stat.accent ?? "var(--taste-amber-bright)",
+                    boxShadow: `0 0 14px ${stat.accent ?? "#e7a62f"}18`,
                   }}
                 >
+                  {stat.icon}
+                </div>
+
+                <div>
                   <div
                     style={{
-                      width: "30px",
-                      height: "30px",
-                      flexShrink: 0,
-                      display: "flex",
-                      alignItems:
-                        "center",
-                      justifyContent:
-                        "center",
-                      borderRadius:
-                        "8px",
-                      border:
-                        `1px solid ${stat.accent ?? "#e7a62f"}33`,
-                      background:
-                        `${stat.accent ?? "#e7a62f"}12`,
                       color:
-                        stat.accent ??
-                        "var(--taste-amber-bright)",
-                      boxShadow:
-                        `0 0 14px ${stat.accent ?? "#e7a62f"}18`,
+                        index === 0
+                          ? "var(--taste-amber-bright)"
+                          : "var(--taste-text)",
+                      fontSize: "19px",
+                      lineHeight: 1,
+                      fontWeight: 850,
+                      letterSpacing: "-0.03em",
                     }}
                   >
-                    {stat.icon}
+                    {stat.value}
                   </div>
 
-                  <div>
-                    <div
-                      style={{
-                        color:
-                          index === 0
-                            ? "var(--taste-amber-bright)"
-                            : "var(--taste-text)",
-                        fontSize:
-                          "19px",
-                        lineHeight: 1,
-                        fontWeight: 850,
-                        letterSpacing:
-                          "-0.03em",
-                      }}
-                    >
-                      {stat.value}
-                    </div>
-
-                    <div
-                      style={{
-                        marginTop:
-                          "3px",
-                        color:
-                          "var(--taste-text-muted)",
-                        fontSize:
-                          "9px",
-                        fontWeight: 600,
-                        letterSpacing:
-                          "0.015em",
-                      }}
-                    >
-                      {stat.label}
-                    </div>
+                  <div
+                    style={{
+                      marginTop: "3px",
+                      color: "var(--taste-text-muted)",
+                      fontSize: "9px",
+                      fontWeight: 600,
+                      letterSpacing: "0.015em",
+                    }}
+                  >
+                    {stat.label}
                   </div>
                 </div>
-              )
-            )}
+              </div>
+            ))}
           </div>
         </div>
       )}
     </section>
   );
 }
-
-// ==================================================
-// FALLBACK
-// ==================================================
 
 function FallbackMark({
   variant,
@@ -437,33 +317,25 @@ function FallbackMark({
   const icon =
     variant === "stats"
       ? "▥"
-      : variant === "catalog"
-        ? "🍺"
-        : variant === "profile"
-          ? text || "●"
-          : "🍺";
-
-  const markStyle = {
-    width: "82px",
-    height: "82px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    border:
-      "1px solid rgba(245,184,63,0.26)",
-    borderRadius: "23px",
-    background:
-      "rgba(231,166,47,0.08)",
-    color:
-      "var(--taste-amber-bright)",
-    fontSize: "34px",
-    fontWeight: 850,
-    boxShadow:
-      "0 0 30px rgba(231,166,47,0.10)",
-  } as const;
+      : text || "🍺";
 
   return (
-    <div style={markStyle}>
+    <div
+      style={{
+        width: "82px",
+        height: "82px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        border: "1px solid rgba(245,184,63,0.26)",
+        borderRadius: "23px",
+        background: "rgba(231,166,47,0.08)",
+        color: "var(--taste-amber-bright)",
+        fontSize: "34px",
+        fontWeight: 850,
+        boxShadow: "0 0 30px rgba(231,166,47,0.10)",
+      }}
+    >
       {icon}
     </div>
   );
