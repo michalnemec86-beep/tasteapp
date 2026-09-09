@@ -45,9 +45,17 @@ export default function PageHero({
   const countryHeroTiles = getCountryHeroTiles(countryName);
   const hasCountryHero = Boolean(countryHeroTiles?.length);
 
+  const isBreweryDetailHero =
+    eyebrow === "Detail pivovaru" &&
+    imageUrl === "/images/heroes/catalog.jpg";
+
+  const effectiveImageUrl = isBreweryDetailHero
+    ? "/images/heroes/breweries.jpg"
+    : imageUrl;
+
   const isBreweryHero =
     !hasCountryHero &&
-    imageUrl === "/images/heroes/breweries.jpg";
+    effectiveImageUrl === "/images/heroes/breweries.jpg";
 
   const usesContainedVisual = isBreweryHero || hasCountryHero;
 
@@ -80,8 +88,8 @@ export default function PageHero({
               : undefined,
             backgroundImage: hasCountryHero
               ? "none"
-              : imageUrl
-                ? `url("${imageUrl}")`
+              : effectiveImageUrl
+                ? `url("${effectiveImageUrl}")`
                 : `
                     radial-gradient(
                       circle at 72% 42%,
