@@ -6,6 +6,7 @@ import AuthSessionSync from "./AuthSessionSync";
 
 import "leaflet/dist/leaflet.css";
 import "./globals.css";
+import "./new-tasting-overrides.css";
 
 const defaultUrl =
   process.env.VERCEL_URL
