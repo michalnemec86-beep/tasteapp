@@ -33,14 +33,11 @@ export default function StatsRankingCard({
       style={{
         position: "relative",
         overflow: "hidden",
-        padding: "18px",
-
+        padding: "14px",
         border:
           "1px solid var(--taste-border)",
-
         borderRadius:
           "var(--taste-radius-lg)",
-
         background: `
           linear-gradient(
             145deg,
@@ -49,7 +46,6 @@ export default function StatsRankingCard({
           ),
           var(--taste-surface)
         `,
-
         boxShadow:
           "var(--taste-shadow-soft)",
       }}
@@ -57,18 +53,16 @@ export default function StatsRankingCard({
       <div
         style={{
           position: "absolute",
-          right: "-25px",
-          top: "-25px",
-          width: "90px",
-          height: "90px",
+          right: "-22px",
+          top: "-22px",
+          width: "76px",
+          height: "76px",
           borderRadius: "50%",
-
           background: `radial-gradient(
             circle,
             ${accent}18 0%,
             transparent 70%
           )`,
-
           pointerEvents: "none",
         }}
       />
@@ -76,54 +70,39 @@ export default function StatsRankingCard({
       <div
         style={{
           position: "relative",
-
           display: "flex",
-          gap: "11px",
+          gap: "9px",
           alignItems: "center",
-
-          marginBottom: "5px",
         }}
       >
         <div
           style={{
-            width: "38px",
-            height: "38px",
+            width: "32px",
+            height: "32px",
             flexShrink: 0,
-
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-
-            borderRadius: "11px",
-
+            borderRadius: "9px",
             border:
               `1px solid ${accent}30`,
-
             background:
               `${accent}12`,
-
-            fontSize: "18px",
+            fontSize: "15px",
           }}
         >
           {icon}
         </div>
 
-        <div
-          style={{
-            minWidth: 0,
-          }}
-        >
+        <div style={{ minWidth: 0 }}>
           <h3
             style={{
               margin: 0,
-
               color:
                 "var(--taste-text)",
-
-              fontSize: "15px",
-              lineHeight: 1.2,
+              fontSize: "14px",
+              lineHeight: 1.15,
               fontWeight: 750,
-
               letterSpacing:
                 "-0.015em",
             }}
@@ -133,13 +112,11 @@ export default function StatsRankingCard({
 
           <div
             style={{
-              marginTop: "3px",
-
+              marginTop: "2px",
               color:
                 "var(--taste-text-muted)",
-
-              fontSize: "11px",
-              lineHeight: 1.35,
+              fontSize: "10px",
+              lineHeight: 1.25,
             }}
           >
             {subtitle}
@@ -151,12 +128,10 @@ export default function StatsRankingCard({
         <div
           style={{
             padding:
-              "22px 2px 12px",
-
+              "16px 2px 8px",
             color:
               "var(--taste-text-muted)",
-
-            fontSize: "12px",
+            fontSize: "11px",
           }}
         >
           Zatím nejsou žádná data.
@@ -166,8 +141,8 @@ export default function StatsRankingCard({
       <div
         style={{
           display: "grid",
-          gap: "15px",
-          marginTop: "20px",
+          gap: "9px",
+          marginTop: "14px",
         }}
       >
         {topItems.map(
@@ -186,49 +161,38 @@ export default function StatsRankingCard({
               index === 0;
 
             return (
-              <div
-                key={item.id}
-              >
+              <div key={item.id}>
                 <div
                   style={{
                     display: "grid",
-
                     gridTemplateColumns:
-                      "26px minmax(0,1fr) auto",
-
+                      "22px minmax(0,1fr) auto",
                     alignItems: "center",
-                    gap: "8px",
-
-                    marginBottom: "7px",
+                    gap: "7px",
+                    marginBottom: "4px",
                   }}
                 >
                   <div
                     style={{
-                      width: "24px",
-                      height: "24px",
-
+                      width: "20px",
+                      height: "20px",
                       display: "flex",
                       alignItems: "center",
                       justifyContent:
                         "center",
-
-                      borderRadius: "8px",
-
+                      borderRadius: "7px",
                       border: isFirst
                         ? `1px solid ${accent}45`
                         : "1px solid rgba(255,255,255,0.045)",
-
                       background:
                         isFirst
                           ? `${accent}12`
                           : "rgba(255,255,255,0.018)",
-
                       color:
                         isFirst
                           ? accent
                           : "var(--taste-text-muted)",
-
-                      fontSize: "10px",
+                      fontSize: "9px",
                       fontWeight: 800,
                     }}
                   >
@@ -239,23 +203,17 @@ export default function StatsRankingCard({
                     title={item.name}
                     style={{
                       minWidth: 0,
-
                       overflow:
                         "hidden",
-
                       textOverflow:
                         "ellipsis",
-
                       whiteSpace:
                         "nowrap",
-
                       color:
                         isFirst
                           ? "var(--taste-text)"
                           : "var(--taste-text-soft)",
-
-                      fontSize: "12px",
-
+                      fontSize: "11px",
                       fontWeight:
                         isFirst
                           ? 700
@@ -285,8 +243,7 @@ export default function StatsRankingCard({
                         isFirst
                           ? accent
                           : "var(--taste-text-soft)",
-
-                      fontSize: "11px",
+                      fontSize: "10px",
                       fontWeight: 750,
                     }}
                   >
@@ -296,17 +253,12 @@ export default function StatsRankingCard({
 
                 <div
                   style={{
-                    marginLeft:
-                      "34px",
-
-                    height: "4px",
-
+                    marginLeft: "29px",
+                    height: "3px",
                     borderRadius:
                       "999px",
-
                     background:
                       "rgba(255,255,255,0.045)",
-
                     overflow:
                       "hidden",
                   }}
@@ -314,13 +266,10 @@ export default function StatsRankingCard({
                   <div
                     style={{
                       height: "100%",
-
                       width:
                         `${percentage}%`,
-
                       borderRadius:
                         "999px",
-
                       background:
                         isFirst
                           ? `linear-gradient(
@@ -329,10 +278,9 @@ export default function StatsRankingCard({
                               ${accent}aa
                             )`
                           : `${accent}85`,
-
                       boxShadow:
                         isFirst
-                          ? `0 0 10px ${accent}35`
+                          ? `0 0 8px ${accent}35`
                           : "none",
                     }}
                   />
@@ -345,9 +293,8 @@ export default function StatsRankingCard({
 
       <div
         style={{
-          marginTop: "20px",
-          paddingTop: "13px",
-
+          marginTop: "14px",
+          paddingTop: "9px",
           borderTop:
             "1px solid rgba(231,166,47,0.11)",
         }}
@@ -359,16 +306,12 @@ export default function StatsRankingCard({
             alignItems: "center",
             justifyContent:
               "space-between",
-
-            gap: "10px",
-
+            gap: "8px",
             color:
               "var(--taste-text-muted)",
-
             textDecoration:
               "none",
-
-            fontSize: "11px",
+            fontSize: "10px",
             fontWeight: 650,
           }}
         >
@@ -379,7 +322,7 @@ export default function StatsRankingCard({
           <span
             style={{
               color: accent,
-              fontSize: "14px",
+              fontSize: "12px",
             }}
           >
             →
