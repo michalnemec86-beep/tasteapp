@@ -15,7 +15,31 @@ import {
   updateBrewery,
 } from "./actions";
 
-export default async function BreweriesPage() {
+type BreweriesPageProps = {
+  searchParams: Promise<{
+    country?: string | string[];
+  }>;
+};
+
+function getStringParam(
+  value: string | string[] | undefined
+) {
+  return typeof value === "string"
+    ? value
+    : undefined;
+}
+
+function normalizeText(value: string | null | undefined) {
+  return (value ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
+export default async function BreweriesPage({
+  searchParams,
+}: BreweriesPageProps) {
   const supabase = await createClient();
 
   const {
@@ -26,6 +50,10 @@ export default async function BreweriesPage() {
     redirect("/auth/login");
   }
 
+  const params = await searchParams;
+  const selectedCountry =
+    getStringParam(params.country)?.trim() || undefined;
+
   const [
     { data: breweries, error },
     { data: profiles, error: profilesError },
@@ -33,40 +61,40 @@ export default async function BreweriesPage() {
   ] = await Promise.all([
     supabase
       .from("breweries")
-    .select(`
-      id,
-      name,
-      city,
-      country,
-      website,
-      address,
-      founded_year,
-      closed_year,
-      latitude,
-      longitude,
-      beers (
+      .select(`
         id,
         name,
-        plato,
-        abv,
-        ibu,
-        beer_styles (
+        city,
+        country,
+        website,
+        address,
+        founded_year,
+        closed_year,
+        latitude,
+        longitude,
+        beers (
           id,
-          name
+          name,
+          plato,
+          abv,
+          ibu,
+          beer_styles (
+            id,
+            name
+          ),
+          tastings (
+            id,
+            user_id,
+            quantity
+          )
         ),
-        tastings (
+        brewery_name_history (
           id,
-          user_id,
-          quantity
+          previous_name,
+          from_year,
+          changed_year
         )
-      ),
-      brewery_name_history (
-        id,
-        previous_name,
-        from_year,
-        changed_year
-      )
-    `)
+      `)
       .order("name", {
         ascending: true,
       }),
@@ -104,13 +132,7 @@ export default async function BreweriesPage() {
 
   const countryCount = new Set(
     allBreweries
-      .map((brewery) =>
-        brewery.country
-          ?.normalize("NFD")
-          .replace(/[\u0300-\u036f]/g, "")
-          .toLowerCase()
-          .trim()
-      )
+      .map((brewery) => normalizeText(brewery.country))
       .filter(Boolean)
   ).size;
 
@@ -141,40 +163,36 @@ export default async function BreweriesPage() {
     .sort((a, b) =>
       b.count !== a.count
         ? b.count - a.count
-        : a.name.localeCompare(
-            b.name,
-            "cs",
-            {
-              sensitivity: "base",
-            }
-          )
+        : a.name.localeCompare(b.name, "cs", {
+            sensitivity: "base",
+          })
     );
 
-  const czechBreweryMapItems =
-    allBreweries.flatMap(
-      (brewery) => {
-        if (
-          brewery.country !== "Česko" ||
-          brewery.latitude == null ||
-          brewery.longitude == null
-        ) {
-          return [];
-        }
-
-        return [
-          {
-            id: brewery.id,
-            name: brewery.name,
-            city: brewery.city,
-            latitude: brewery.latitude,
-            longitude: brewery.longitude,
-          },
-        ];
+  const czechBreweryMapItems = allBreweries.flatMap(
+    (brewery) => {
+      if (
+        brewery.country !== "Česko" ||
+        brewery.latitude == null ||
+        brewery.longitude == null
+      ) {
+        return [];
       }
-    );
+
+      return [
+        {
+          id: brewery.id,
+          name: brewery.name,
+          city: brewery.city,
+          latitude: brewery.latitude,
+          longitude: brewery.longitude,
+        },
+      ];
+    }
+  );
 
   const recordedBeerCount = allBreweries.reduce(
-    (sum, brewery) => sum + (brewery.beers?.length ?? 0),
+    (sum, brewery) =>
+      sum + (brewery.beers?.length ?? 0),
     0
   );
 
@@ -185,8 +203,7 @@ export default async function BreweriesPage() {
           sum +
           (beer.tastings ?? []).reduce(
             (beerSum, tasting) =>
-              beerSum +
-              (tasting.quantity ?? 1),
+              beerSum + (tasting.quantity ?? 1),
             0
           ),
         0
@@ -204,26 +221,18 @@ export default async function BreweriesPage() {
             Number.MAX_SAFE_INTEGER)
       );
 
-      const historyFromYear =
-        history.reduce<number | null>(
-          (earliest, item) => {
-            if (item.from_year == null) {
-              return earliest;
-            }
+      const historyFromYear = history.reduce<number | null>(
+        (earliest, item) => {
+          if (item.from_year == null) {
+            return earliest;
+          }
 
-            return earliest == null ||
-              item.from_year < earliest
-              ? item.from_year
-              : earliest;
-          },
-          null
-        );
-
-      const currentNameFromYear =
-        brewery.founded_year ??
-        history[history.length - 1]
-          ?.changed_year ??
-        null;
+          return earliest == null || item.from_year < earliest
+            ? item.from_year
+            : earliest;
+        },
+        null
+      );
 
       const userStats: BreweryTableRow["userStats"] = {};
 
@@ -242,25 +251,20 @@ export default async function BreweriesPage() {
               (userTastingCounts[userId] ?? 0) + 1;
           }
 
-          const beerStyle =
-            Array.isArray(
-              beer.beer_styles
-            )
-              ? beer.beer_styles[0] ??
-                null
-              : beer.beer_styles ??
-                null;
+          const beerStyle = Array.isArray(
+            beer.beer_styles
+          )
+            ? beer.beer_styles[0] ?? null
+            : beer.beer_styles ?? null;
 
           return {
             id: beer.id,
             name: beer.name,
-            styleName:
-              beerStyle?.name ?? null,
+            styleName: beerStyle?.name ?? null,
             plato: beer.plato,
             abv: beer.abv,
             ibu: beer.ibu,
-            tastingCount:
-              beer.tastings?.length ?? 0,
+            tastingCount: beer.tastings?.length ?? 0,
             userTastingCounts,
           };
         }
@@ -311,19 +315,23 @@ export default async function BreweriesPage() {
         historyText:
           history.length > 0
             ? history
-                .map(
-                  (item) =>
-                    item.previous_name
-                )
+                .map((item) => item.previous_name)
                 .join("\n")
             : "—",
-        historySortYear:
-          historyFromYear,
+        historySortYear: historyFromYear,
         beers: beerItems,
         userStats,
       };
     }
   );
+
+  const visibleTableRows = selectedCountry
+    ? tableRows.filter(
+        (row) =>
+          normalizeText(row.country) ===
+          normalizeText(selectedCountry)
+      )
+    : tableRows;
 
   return (
     <main
@@ -340,16 +348,18 @@ export default async function BreweriesPage() {
         title="Katalog pivovarů"
         subtitle="Společná databáze pivovarů, jejich původu, historie a piv zaznamenaných v TasteAppu."
         action={
-          <Link
-            href="/"
-            className="taste-button-secondary"
-            style={{
-              fontSize: "12px",
-              fontWeight: 650,
-            }}
-          >
-            ← Timeline
-          </Link>
+          selectedCountry ? (
+            <Link
+              href="/breweries"
+              className="taste-button-secondary"
+              style={{
+                fontSize: "12px",
+                fontWeight: 650,
+              }}
+            >
+              Zrušit filtr
+            </Link>
+          ) : undefined
         }
         stats={[
           {
@@ -379,6 +389,40 @@ export default async function BreweriesPage() {
         ]}
       />
 
+      {selectedCountry && (
+        <div
+          className="taste-card"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: "12px",
+            flexWrap: "wrap",
+            marginBottom: "20px",
+            padding: "13px 16px",
+            color: "var(--taste-text-muted)",
+            fontSize: "11px",
+          }}
+        >
+          <span>
+            Stát: {selectedCountry} · {visibleTableRows.length}{" "}
+            {visibleTableRows.length === 1
+              ? "pivovar"
+              : "pivovarů"}
+          </span>
+          <Link
+            href="/breweries"
+            style={{
+              color: "var(--taste-amber-bright)",
+              textDecoration: "none",
+              fontWeight: 700,
+            }}
+          >
+            Zobrazit všechny
+          </Link>
+        </div>
+      )}
+
       <section>
         <div
           style={{
@@ -392,13 +436,10 @@ export default async function BreweriesPage() {
           <div>
             <div
               className="taste-label"
-              style={{
-                marginBottom: "5px",
-              }}
+              style={{ marginBottom: "5px" }}
             >
               Databáze
             </div>
-
             <h2
               style={{
                 margin: 0,
@@ -408,7 +449,9 @@ export default async function BreweriesPage() {
                 letterSpacing: "-0.025em",
               }}
             >
-              Všechny pivovary
+              {selectedCountry
+                ? `Pivovary · ${selectedCountry}`
+                : "Všechny pivovary"}
             </h2>
           </div>
 
@@ -427,8 +470,8 @@ export default async function BreweriesPage() {
                 fontSize: "11px",
               }}
             >
-              {allBreweries.length}{" "}
-              {allBreweries.length === 1
+              {visibleTableRows.length}{" "}
+              {visibleTableRows.length === 1
                 ? "položka"
                 : "položek"}
             </div>
@@ -444,7 +487,7 @@ export default async function BreweriesPage() {
           </div>
         </div>
 
-        {tableRows.length === 0 ? (
+        {visibleTableRows.length === 0 ? (
           <div
             className="taste-card"
             style={{
@@ -454,52 +497,39 @@ export default async function BreweriesPage() {
               fontSize: "13px",
             }}
           >
-            V katalogu zatím není žádný pivovar.
+            Pro tento stát zatím není evidovaný žádný pivovar.
           </div>
         ) : (
           <BreweryTableClient
-            rows={tableRows}
+            rows={visibleTableRows}
             profiles={profiles ?? []}
             countries={countries ?? []}
             updateBreweryAction={updateBrewery}
           />
         )}
       </section>
-      <div
-        style={{
-          marginTop: "30px",
-        }}
-      >
-      {breweryCountryItems.length > 0 && (
-        <div
-          style={{
-            marginBottom: "30px",
-          }}
-        >
-          <BeerWorldMap
-            items={breweryCountryItems}
-            eyebrow="Pivovarský svět"
-            title="Mapa evidovaných pivovarů"
-            countLabel="států s pivovary"
-            focusEurope
-          />
-        </div>
-      )}
 
-      {czechBreweryMapItems.length > 0 && (
-        <div
-          style={{
-            marginBottom: "30px",
-          }}
-        >
-          <BreweryCzechMapClient
-            items={czechBreweryMapItems}
-          />
-        </div>
-      )}
+      <div style={{ marginTop: "30px" }}>
+        {breweryCountryItems.length > 0 && (
+          <div style={{ marginBottom: "30px" }}>
+            <BeerWorldMap
+              items={breweryCountryItems}
+              eyebrow="Pivovarský svět"
+              title="Mapa evidovaných pivovarů"
+              countLabel="států s pivovary"
+              focusEurope
+            />
+          </div>
+        )}
 
+        {czechBreweryMapItems.length > 0 && (
+          <div style={{ marginBottom: "30px" }}>
+            <BreweryCzechMapClient
+              items={czechBreweryMapItems}
+            />
+          </div>
+        )}
       </div>
-
     </main>
   );
 }

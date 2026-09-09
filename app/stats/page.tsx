@@ -2,11 +2,11 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
-
 import {
   buildTasteStats,
   type RankingItem,
 } from "@/lib/stats";
+import { isPackaging } from "@/lib/packaging";
 
 import StatsFilterBarClient from "./StatsFilterBarClient";
 import BeerWorldMap from "./BeerWorldMap";
@@ -26,525 +26,303 @@ type StatsPageProps = {
     sort?: string | string[];
     year?: string | string[];
     month?: string | string[];
+    packaging?: string | string[];
   }>;
 };
 
 const FIRST_YEAR = 2005;
 
-const MONTHS = [
-  { number: 1, name: "Leden" },
-  { number: 2, name: "Únor" },
-  { number: 3, name: "Březen" },
-  { number: 4, name: "Duben" },
-  { number: 5, name: "Květen" },
-  { number: 6, name: "Červen" },
-  { number: 7, name: "Červenec" },
-  { number: 8, name: "Srpen" },
-  { number: 9, name: "Září" },
-  { number: 10, name: "Říjen" },
-  { number: 11, name: "Listopad" },
-  { number: 12, name: "Prosinec" },
-];
-
 export default async function StatsPage({
   searchParams,
 }: StatsPageProps) {
-  const supabase =
-    await createClient();
+  const supabase = await createClient();
 
   const {
     data: { user },
-  } =
-    await supabase.auth.getUser();
+  } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect(
-      "/auth/login"
-    );
+    redirect("/auth/login");
   }
 
-  const params =
-    await searchParams;
+  const params = await searchParams;
 
-  const requestedUser =
-    getStringParam(
-      params.user
-    );
+  const requestedUser = getStringParam(params.user);
+  const requestedSort = getStringParam(params.sort);
+  const requestedYear = getStringParam(params.year);
+  const requestedMonth = getStringParam(params.month);
+  const requestedPackaging = getStringParam(
+    params.packaging
+  );
 
-  const requestedSort =
-    getStringParam(
-      params.sort
-    );
+  const sortMode: SortMode = isSortMode(requestedSort)
+    ? requestedSort
+    : "count-desc";
 
-  const requestedYear =
-    getStringParam(
-      params.year
-    );
-
-  const requestedMonth =
-    getStringParam(
-      params.month
-    );
-
-  const sortMode: SortMode =
-    isSortMode(
-      requestedSort
-    )
-      ? requestedSort
-      : "count-desc";
-
-  // ==================================================
-  // DATA
-  // ==================================================
-
-  const profilesPromise =
-    supabase
-      .from("profiles")
-      .select(
-        "id, display_name, avatar_url"
-      )
-      .order(
-        "display_name"
-      );
-
-  const tastingsPromise =
-    supabase
-      .from("tastings")
-      .select(`
-        id,
-        user_id,
-        tasted_at,
-        tasted_on,
-        packaging,
-        quantity,
-        beers (
+  const [profilesResult, tastingsResult] =
+    await Promise.all([
+      supabase
+        .from("profiles")
+        .select("id, display_name, avatar_url")
+        .order("display_name"),
+      supabase
+        .from("tastings")
+        .select(`
           id,
-          name,
-          breweries (
+          user_id,
+          tasted_at,
+          tasted_on,
+          packaging,
+          quantity,
+          beers (
             id,
             name,
-            country
-          ),
-          beer_styles (
-            id,
-            name
-          ),
-          beer_hops (
-            hops (
+            breweries (
+              id,
+              name,
+              country
+            ),
+            beer_styles (
               id,
               name
+            ),
+            beer_hops (
+              hops (
+                id,
+                name
+              )
             )
           )
-        )
-      `)
-      .order(
-        "tasted_on",
-        {
+        `)
+        .order("tasted_on", {
           ascending: false,
-        }
-      )
-      .order(
-        "tasted_at",
-        {
+        })
+        .order("tasted_at", {
           ascending: false,
-        }
-      );
-
-  const [
-    profilesResult,
-    tastingsResult,
-  ] =
-    await Promise.all([
-      profilesPromise,
-      tastingsPromise,
+        }),
     ]);
 
   const {
     data: profiles,
-    error:
-      profilesError,
+    error: profilesError,
   } = profilesResult;
-
   const {
     data: tastings,
-    error:
-      tastingsError,
+    error: tastingsError,
   } = tastingsResult;
 
   if (profilesError) {
-    throw new Error(
-      profilesError.message
-    );
+    throw new Error(profilesError.message);
   }
 
   if (tastingsError) {
-    throw new Error(
-      tastingsError.message
-    );
+    throw new Error(tastingsError.message);
   }
 
-  const allProfiles =
-    profiles ?? [];
+  const allProfiles = profiles ?? [];
 
-  const allTastings =
-    (tastings ?? []).map(
-      (tasting) => {
-        const beer =
-          singleRelation(
-            tasting.beers
-          );
+  const allTastings = (tastings ?? []).map(
+    (tasting) => {
+      const beer = singleRelation(tasting.beers);
 
-        return {
-          ...tasting,
-
-          beers: beer
-            ? {
-                ...beer,
-
-                breweries:
-                  singleRelation(
-                    beer.breweries
+      return {
+        ...tasting,
+        beers: beer
+          ? {
+              ...beer,
+              breweries: singleRelation(
+                beer.breweries
+              ),
+              beer_styles: singleRelation(
+                beer.beer_styles
+              ),
+              beer_hops: (beer.beer_hops ?? []).map(
+                (beerHop) => ({
+                  ...beerHop,
+                  hops: singleRelation(
+                    beerHop.hops
                   ),
+                })
+              ),
+            }
+          : null,
+      };
+    }
+  );
 
-                beer_styles:
-                  singleRelation(
-                    beer.beer_styles
-                  ),
+  const selectedProfile = requestedUser
+    ? allProfiles.find(
+        (profile) => profile.id === requestedUser
+      ) ?? null
+    : null;
 
-                beer_hops:
-                  (
-                    beer.beer_hops ??
-                    []
-                  ).map(
-                    (beerHop) => ({
-                      ...beerHop,
+  const selectedUserId = selectedProfile?.id;
 
-                      hops:
-                        singleRelation(
-                          beerHop.hops
-                        ),
-                    })
-                  ),
-              }
-            : null,
-        };
-      }
-    );
-
-  // ==================================================
-  // UŽIVATEL
-  // ==================================================
-
-  const selectedProfile =
-    requestedUser
-      ? allProfiles.find(
-          (profile) =>
-            profile.id ===
-            requestedUser
-        ) ?? null
-      : null;
-
-  const selectedUserId =
-    selectedProfile?.id;
-
-  // ==================================================
-  // ROK
-  // ==================================================
-
-  const currentYear =
-    new Date().getFullYear();
-
-  const requestedYearNumber =
-    requestedYear
-      ? Number(
-          requestedYear
-        )
-      : undefined;
+  const currentYear = new Date().getFullYear();
+  const requestedYearNumber = requestedYear
+    ? Number(requestedYear)
+    : undefined;
 
   const selectedYear =
     requestedYearNumber &&
-    Number.isInteger(
-      requestedYearNumber
-    ) &&
-    requestedYearNumber >=
-      FIRST_YEAR &&
-    requestedYearNumber <=
-      currentYear
+    Number.isInteger(requestedYearNumber) &&
+    requestedYearNumber >= FIRST_YEAR &&
+    requestedYearNumber <= currentYear
       ? requestedYearNumber
       : undefined;
 
-  // ==================================================
-  // MĚSÍC
-  // ==================================================
-
-  const requestedMonthNumber =
-    requestedMonth
-      ? Number(
-          requestedMonth
-        )
-      : undefined;
+  const requestedMonthNumber = requestedMonth
+    ? Number(requestedMonth)
+    : undefined;
 
   const selectedMonth =
     selectedYear &&
     requestedMonthNumber &&
-    Number.isInteger(
-      requestedMonthNumber
-    ) &&
+    Number.isInteger(requestedMonthNumber) &&
     requestedMonthNumber >= 1 &&
     requestedMonthNumber <= 12
       ? requestedMonthNumber
       : undefined;
 
-  // ==================================================
-  // FILTR PODLE OBDOBÍ
-  // ==================================================
+  const selectedPackaging =
+    requestedPackaging &&
+    isPackaging(requestedPackaging)
+      ? requestedPackaging
+      : undefined;
 
-  const periodTastings =
-    allTastings.filter(
-      (tasting) => {
-        if (!selectedYear) {
-          return true;
-        }
-
-        const tastingYear =
-          getYear(
-            tasting.tasted_on
-          );
-
-        if (
-          tastingYear !==
-          selectedYear
-        ) {
-          return false;
-        }
-
-        if (!selectedMonth) {
-          return true;
-        }
-
-        return (
-          getMonth(
-            tasting.tasted_on
-          ) === selectedMonth
-        );
+  const periodTastings = allTastings.filter(
+    (tasting) => {
+      if (!selectedYear) {
+        return true;
       }
-    );
 
-  // ==================================================
-  // FILTR PODLE UŽIVATELE
-  // ==================================================
+      if (getYear(tasting.tasted_on) !== selectedYear) {
+        return false;
+      }
 
-  const filteredTastings =
-    selectedUserId
-      ? periodTastings.filter(
-          (tasting) =>
-            tasting.user_id ===
-            selectedUserId
-        )
-      : periodTastings;
+      if (!selectedMonth) {
+        return true;
+      }
 
-  // ==================================================
-  // STATISTIKY
-  // ==================================================
+      return getMonth(tasting.tasted_on) === selectedMonth;
+    }
+  );
 
-  const rawStats =
-    buildTasteStats(
-      filteredTastings
-    );
+  const userTastings = selectedUserId
+    ? periodTastings.filter(
+        (tasting) =>
+          tasting.user_id === selectedUserId
+      )
+    : periodTastings;
+
+  const filteredTastings = selectedPackaging
+    ? userTastings.filter(
+        (tasting) =>
+          tasting.packaging === selectedPackaging
+      )
+    : userTastings;
+
+  const rawStats = buildTasteStats(filteredTastings);
 
   const stats = {
-    brands:
-      sortRanking(
-        rawStats.brands,
-        sortMode
-      ),
-
-    breweries:
-      sortRanking(
-        rawStats.breweries,
-        sortMode
-      ),
-
-    styles:
-      sortRanking(
-        rawStats.styles,
-        sortMode
-      ),
-
-    countries:
-      sortRanking(
-        rawStats.countries,
-        sortMode
-      ),
-
-    hops:
-      sortRanking(
-        rawStats.hops,
-        sortMode
-      ),
-
-    packaging:
-      sortRanking(
-        rawStats.packaging,
-        sortMode
-      ),
+    brands: sortRanking(rawStats.brands, sortMode),
+    breweries: sortRanking(
+      rawStats.breweries,
+      sortMode
+    ),
+    styles: sortRanking(rawStats.styles, sortMode),
+    countries: sortRanking(
+      rawStats.countries,
+      sortMode
+    ),
+    hops: sortRanking(rawStats.hops, sortMode),
+    packaging: sortRanking(
+      rawStats.packaging,
+      sortMode
+    ),
   };
 
-  // ==================================================
-  // SOUHRN
-  // ==================================================
+  const totalTastings = filteredTastings.reduce(
+    (sum, tasting) =>
+      sum + (tasting.quantity ?? 1),
+    0
+  );
 
-  const totalTastings =
-    filteredTastings.reduce(
-      (
-        sum,
-        tasting
-      ) =>
-        sum +
-        (
-          tasting.quantity ??
-          1
-        ),
-      0
-    );
+  const totalBrands = new Set(
+    filteredTastings
+      .map((tasting) => tasting.beers?.id)
+      .filter((id) => id != null)
+  ).size;
 
-  const totalBrands =
-    new Set(
-      filteredTastings
-        .map(
-          (tasting) =>
-            tasting.beers?.id
-        )
-        .filter(
-          (id) =>
-            id != null
-        )
-    ).size;
+  const totalBreweries = new Set(
+    filteredTastings
+      .map(
+        (tasting) => tasting.beers?.breweries?.id
+      )
+      .filter((id) => id != null)
+  ).size;
 
-  const totalBreweries =
-    new Set(
-      filteredTastings
-        .map(
-          (tasting) =>
-            tasting.beers
-              ?.breweries
-              ?.id
-        )
-        .filter(
-          (id) =>
-            id != null
-        )
-    ).size;
+  const totalStyles = new Set(
+    filteredTastings
+      .map(
+        (tasting) => tasting.beers?.beer_styles?.id
+      )
+      .filter((id) => id != null)
+  ).size;
 
-  const totalStyles =
-    new Set(
-      filteredTastings
-        .map(
-          (tasting) =>
-            tasting.beers
-              ?.beer_styles
-              ?.id
-        )
-        .filter(
-          (id) =>
-            id != null
-        )
-    ).size;
-
-  const totalCountries =
-    new Set(
-      filteredTastings
-        .map(
-          (tasting) =>
-            tasting.beers
-              ?.breweries
-              ?.country
-              ?.normalize(
-                "NFD"
-              )
-              .replace(
-                /[\u0300-\u036f]/g,
-                ""
-              )
-              .toLowerCase()
-              .trim()
-        )
-        .filter(Boolean)
-    ).size;
-
-  // ==================================================
-  // VÝSTUP
-  // ==================================================
+  const totalCountries = new Set(
+    filteredTastings
+      .map((tasting) =>
+        tasting.beers?.breweries?.country
+          ?.normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .toLowerCase()
+          .trim()
+      )
+      .filter(Boolean)
+  ).size;
 
   return (
     <main
       style={{
-        maxWidth:
-          "1400px",
-
-        margin:
-          "0 auto",
-
-        padding:
-          "34px 24px 80px",
+        maxWidth: "1400px",
+        margin: "0 auto",
+        padding: "34px 24px 80px",
       }}
     >
-      {/* ==================================================
-          HERO
-      ================================================== */}
-
       <PageHero
         eyebrow="Pivní data"
         imageUrl="/images/heroes/stats.jpg"
         visualVariant="stats"
-        title={
-          <>
-            Statistiky
-          </>
-        }
-        subtitle="Podívej se na svůj pivní svět v číslech. Piva, pivovary, styly, země i chmely na jednom místě."
+        title="Statistiky"
+        subtitle="Podívej se na svůj pivní svět v číslech. Piva, pivovary, styly, země i chmely na jednom místě a s přímými prokliky do katalogu."
         action={
           <Link
-            href="/"
+            href="/breweries"
             className="taste-button-secondary"
             style={{
               fontSize: "12px",
               fontWeight: 650,
             }}
           >
-            ← Timeline
+            ← Pivovary
           </Link>
         }
         stats={[
           {
-            icon: (
-              <AppIcon
-                name="beer"
-                size={18}
-              />
-            ),
+            icon: <AppIcon name="beer" size={18} />,
             accent: "#f2b63f",
             value: totalTastings,
             label: "Vypitých piv",
           },
           {
-            icon: (
-              <AppIcon
-                name="label"
-                size={18}
-              />
-            ),
+            icon: <AppIcon name="label" size={18} />,
             accent: "#e88835",
             value: totalBrands,
             label: "Různých piv",
           },
           {
-            icon: (
-              <AppIcon
-                name="brewery"
-                size={18}
-              />
-            ),
+            icon: <AppIcon name="brewery" size={18} />,
             accent: "#d65b42",
             value: totalBreweries,
             label: "Pivovarů",
@@ -556,12 +334,7 @@ export default async function StatsPage({
             label: "Stylů",
           },
           {
-            icon: (
-              <AppIcon
-                name="globe"
-                size={18}
-              />
-            ),
+            icon: <AppIcon name="globe" size={18} />,
             accent: "#b77a36",
             value: totalCountries,
             label: "Států",
@@ -569,93 +342,46 @@ export default async function StatsPage({
         ]}
       />
 
-      {/* ==================================================
-          FILTRY
-      ================================================== */}
-
       <StatsFilterBarClient
         profiles={allProfiles}
-        selectedUserId={
-          selectedUserId
-        }
-        selectedYear={
-          selectedYear
-        }
-        selectedMonth={
-          selectedMonth
-        }
+        selectedUserId={selectedUserId}
+        selectedYear={selectedYear}
+        selectedMonth={selectedMonth}
+        selectedPackaging={selectedPackaging}
         sortMode={sortMode}
         firstYear={FIRST_YEAR}
       />
 
-      {/* ==================================================
-          PRÁZDNÝ VÝBĚR
-      ================================================== */}
-
-      {filteredTastings.length ===
-        0 && (
+      {filteredTastings.length === 0 && (
         <div
           className="taste-card"
           style={{
-            padding:
-              "32px",
-
-            marginBottom:
-              "26px",
-
-            textAlign:
-              "center",
-
-            color:
-              "var(--taste-text-muted)",
-
-            fontSize:
-              "13px",
+            padding: "32px",
+            marginBottom: "26px",
+            textAlign: "center",
+            color: "var(--taste-text-muted)",
+            fontSize: "13px",
           }}
         >
-          Pro tento výběr
-          zatím nejsou žádné
-          ochutnávky.
+          Pro tento výběr zatím nejsou žádné ochutnávky.
         </div>
       )}
 
-      {/* ==================================================
-          ŽEBŘÍČKY
-      ================================================== */}
-
       <section>
-        <div
-          style={{
-            marginBottom:
-              "15px",
-          }}
-        >
+        <div style={{ marginBottom: "15px" }}>
           <div
             className="taste-label"
-            style={{
-              marginBottom:
-                "5px",
-            }}
+            style={{ marginBottom: "5px" }}
           >
             Žebříčky
           </div>
-
           <h2
             style={{
-              margin:
-                0,
-
-              fontSize:
-                "24px",
-
-              lineHeight:
-                1.1,
-
-              fontWeight:
-                750,
-
-              letterSpacing:
-                "-0.025em",
+              margin: 0,
+              fontSize: "24px",
+              lineHeight: 1.1,
+              fontWeight: 750,
+              letterSpacing: "-0.025em",
             }}
           >
             Pivní přehled
@@ -664,47 +390,27 @@ export default async function StatsPage({
 
         <div
           style={{
-            display:
-              "grid",
-
+            display: "grid",
             gridTemplateColumns:
               "repeat(auto-fit, minmax(330px, 1fr))",
-
-            gap:
-              "16px",
-
-            alignItems:
-              "start",
+            gap: "16px",
+            alignItems: "start",
           }}
         >
           <RankingCardClient
             title="Piva"
             tone="gold"
             subtitle="Konkrétní ochutnaná piva"
-            icon={
-              <AppIcon
-                name="label"
-                size={20}
-              />
-            }
-            items={
-              stats.brands
-            }
+            icon={<AppIcon name="label" size={20} />}
+            items={stats.brands}
           />
 
           <RankingCardClient
             title="Pivovary"
             tone="honey"
             subtitle="Podle počtu vypitých piv"
-            icon={
-              <AppIcon
-                name="brewery"
-                size={20}
-              />
-            }
-            items={
-              stats.breweries
-            }
+            icon={<AppIcon name="brewery" size={20} />}
+            items={stats.breweries}
             itemHrefPrefix="/breweries"
           />
 
@@ -712,99 +418,48 @@ export default async function StatsPage({
             title="Pivní styly"
             tone="amber"
             subtitle="Nejčastěji zastoupené styly"
-            icon={
-              <AppIcon
-                name="hop"
-                size={20}
-              />
-            }
-            items={
-              stats.styles
-            }
+            icon={<AppIcon name="hop" size={20} />}
+            items={stats.styles}
           />
 
           <RankingCardClient
             title="Státy"
             tone="copper"
             subtitle="Země původu pivovarů"
-            icon={
-              <AppIcon
-                name="globe"
-                size={20}
-              />
-            }
-            items={
-              stats.countries
-            }
+            icon={<AppIcon name="globe" size={20} />}
+            items={stats.countries}
           />
 
           <RankingCardClient
             title="Chmely"
             tone="malt"
             subtitle="Chmely použitých piv"
-            icon={
-              <AppIcon
-                name="hop"
-                size={20}
-              />
-            }
-            items={
-              stats.hops
-            }
+            icon={<AppIcon name="hop" size={20} />}
+            items={stats.hops}
           />
 
           <RankingCardClient
             title="Podání / obal"
             tone="bronze"
             subtitle="Podle počtu vypitých piv"
-            icon={
-              <AppIcon
-                name="package"
-                size={20}
-              />
-            }
-            items={
-              stats.packaging
-            }
+            icon={<AppIcon name="package" size={20} />}
+            items={stats.packaging}
+            itemHrefPrefix="/stats/packaging"
           />
         </div>
       </section>
 
-      {/* ==================================================
-          MAPA
-      ================================================== */}
-
-      {filteredTastings.length >
-        0 && (
-        <div
-          style={{
-            marginBottom:
-              "30px",
-          }}
-        >
-          <BeerWorldMap
-            items={
-              rawStats.countries
-            }
-          />
+      {filteredTastings.length > 0 && (
+        <div style={{ marginBottom: "30px" }}>
+          <BeerWorldMap items={rawStats.countries} />
         </div>
       )}
-
     </main>
   );
 }
 
-// ==================================================
-// PARAMETRY
-// ==================================================
-
-
 function singleRelation<T>(
-  value:
-    | T
-    | T[]
-    | null
-    | undefined
+  value: T | T[] | null | undefined
 ): T | null {
   if (Array.isArray(value)) {
     return value[0] ?? null;
@@ -814,272 +469,70 @@ function singleRelation<T>(
 }
 
 function getStringParam(
-  value:
-    | string
-    | string[]
-    | undefined
+  value: string | string[] | undefined
 ) {
-  return typeof value ===
-    "string"
+  return typeof value === "string"
     ? value
     : undefined;
 }
 
 function getYear(
-  dateString:
-    | string
-    | null
-    | undefined
+  dateString: string | null | undefined
 ) {
   if (!dateString) {
     return null;
   }
 
-  const year =
-    Number(
-      dateString.slice(
-        0,
-        4
-      )
-    );
+  const year = Number(dateString.slice(0, 4));
 
-  return Number.isInteger(
-    year
-  )
-    ? year
-    : null;
+  return Number.isInteger(year) ? year : null;
 }
 
 function getMonth(
-  dateString:
-    | string
-    | null
-    | undefined
+  dateString: string | null | undefined
 ) {
   if (!dateString) {
     return null;
   }
 
-  const month =
-    Number(
-      dateString.slice(
-        5,
-        7
-      )
-    );
+  const month = Number(dateString.slice(5, 7));
 
-  if (
-    !Number.isInteger(
-      month
-    ) ||
-    month < 1 ||
-    month > 12
-  ) {
-    return null;
-  }
-
-  return month;
-}
-
-function getPeriodLabel(
-  year?: number,
-  month?: number
-) {
-  if (!year) {
-    return "Celé období";
-  }
-
-  if (!month) {
-    return String(year);
-  }
-
-  const monthData =
-    MONTHS.find(
-      (item) =>
-        item.number ===
-        month
-    );
-
-  return `${
-    monthData?.name ??
-    month
-  } ${year}`;
+  return Number.isInteger(month) ? month : null;
 }
 
 function isSortMode(
-  value:
-    | string
-    | undefined
+  value: string | undefined
 ): value is SortMode {
   return (
-    value ===
-      "count-desc" ||
-    value ===
-      "count-asc" ||
-    value ===
-      "name-asc" ||
-    value ===
-      "name-desc"
+    value === "count-desc" ||
+    value === "count-asc" ||
+    value === "name-asc" ||
+    value === "name-desc"
   );
 }
 
 function sortRanking(
   items: RankingItem[],
-  sortMode: SortMode
+  mode: SortMode
 ) {
-  const sorted =
-    [...items];
+  return [...items].sort((a, b) => {
+    switch (mode) {
+      case "count-asc":
+        return a.count !== b.count
+          ? a.count - b.count
+          : a.name.localeCompare(b.name, "cs");
 
-  if (
-    sortMode ===
-    "count-desc"
-  ) {
-    return sorted.sort(
-      (a, b) => {
-        if (
-          b.count !==
-          a.count
-        ) {
-          return (
-            b.count -
-            a.count
-          );
-        }
+      case "name-asc":
+        return a.name.localeCompare(b.name, "cs");
 
-        return a.name.localeCompare(
-          b.name,
-          "cs"
-        );
-      }
-    );
-  }
+      case "name-desc":
+        return b.name.localeCompare(a.name, "cs");
 
-  if (
-    sortMode ===
-    "count-asc"
-  ) {
-    return sorted.sort(
-      (a, b) => {
-        if (
-          a.count !==
-          b.count
-        ) {
-          return (
-            a.count -
-            b.count
-          );
-        }
-
-        return a.name.localeCompare(
-          b.name,
-          "cs"
-        );
-      }
-    );
-  }
-
-  if (
-    sortMode ===
-    "name-desc"
-  ) {
-    return sorted.sort(
-      (a, b) =>
-        b.name.localeCompare(
-          a.name,
-          "cs"
-        )
-    );
-  }
-
-  return sorted.sort(
-    (a, b) =>
-      a.name.localeCompare(
-        b.name,
-        "cs"
-      )
-  );
-}
-
-// ==================================================
-// SOUHRNNÁ KARTA
-// ==================================================
-
-function SummaryCard({
-  value,
-  label,
-  accent = false,
-}: {
-  value: number;
-  label: string;
-  accent?: boolean;
-}) {
-  return (
-    <div
-      style={{
-        padding:
-          "16px 18px",
-
-        border:
-          accent
-            ? "1px solid rgba(231,166,47,0.34)"
-            : "1px solid var(--taste-border)",
-
-        borderRadius:
-          "var(--taste-radius-md)",
-
-        background:
-          accent
-            ? `
-              linear-gradient(
-                145deg,
-                rgba(231,166,47,0.10),
-                rgba(231,166,47,0.02)
-              ),
-              var(--taste-surface)
-            `
-            : "var(--taste-surface)",
-
-        boxShadow:
-          "var(--taste-shadow-soft)",
-      }}
-    >
-      <div
-        style={{
-          color:
-            accent
-              ? "var(--taste-amber-bright)"
-              : "var(--taste-text)",
-
-          fontSize:
-            "27px",
-
-          lineHeight:
-            1,
-
-          fontWeight:
-            800,
-
-          letterSpacing:
-            "-0.03em",
-        }}
-      >
-        {value}
-      </div>
-
-      <div
-        style={{
-          marginTop:
-            "6px",
-
-          color:
-            "var(--taste-text-muted)",
-
-          fontSize:
-            "11px",
-        }}
-      >
-        {label}
-      </div>
-    </div>
-  );
+      case "count-desc":
+      default:
+        return b.count !== a.count
+          ? b.count - a.count
+          : a.name.localeCompare(b.name, "cs");
+    }
+  });
 }
