@@ -18,6 +18,7 @@ import {
 type BreweriesPageProps = {
   searchParams: Promise<{
     country?: string | string[];
+    focus?: string | string[];
   }>;
 };
 
@@ -53,6 +54,8 @@ export default async function BreweriesPage({
   const params = await searchParams;
   const selectedCountry =
     getStringParam(params.country)?.trim() || undefined;
+  const requestedFocus =
+    getStringParam(params.focus) === "1";
 
   const [
     { data: breweries, error },
@@ -333,6 +336,18 @@ export default async function BreweriesPage({
       )
     : tableRows;
 
+  const isFocusedDrilldown =
+    requestedFocus && Boolean(selectedCountry);
+
+  const visibleActiveBreweryCount = visibleTableRows.filter(
+    (brewery) => brewery.closedYear == null
+  ).length;
+
+  const visibleRecordedBeerCount = visibleTableRows.reduce(
+    (sum, brewery) => sum + brewery.beerCount,
+    0
+  );
+
   return (
     <main
       style={{
@@ -342,11 +357,23 @@ export default async function BreweriesPage({
       }}
     >
       <PageHero
-        eyebrow="Pivovarský adresář"
+        eyebrow={
+          isFocusedDrilldown
+            ? "Země původu"
+            : "Pivovarský adresář"
+        }
         imageUrl="/images/heroes/catalog.jpg"
         visualVariant="catalog"
-        title="Katalog pivovarů"
-        subtitle="Společná databáze pivovarů, jejich původu, historie a piv zaznamenaných v TasteAppu."
+        title={
+          isFocusedDrilldown
+            ? `Pivovary · ${selectedCountry}`
+            : "Katalog pivovarů"
+        }
+        subtitle={
+          isFocusedDrilldown
+            ? "Čistý přehled evidovaných pivovarů pro vybranou zemi."
+            : "Společná databáze pivovarů, jejich původu, historie a piv zaznamenaných v TasteAppu."
+        }
         action={
           selectedCountry ? (
             <Link
@@ -357,7 +384,7 @@ export default async function BreweriesPage({
                 fontWeight: 650,
               }}
             >
-              Zrušit filtr
+              Celý katalog
             </Link>
           ) : undefined
         }
@@ -365,171 +392,382 @@ export default async function BreweriesPage({
           {
             icon: <AppIcon name="brewery" size={18} />,
             accent: "#f2b63f",
-            value: allBreweries.length,
+            value: isFocusedDrilldown
+              ? visibleTableRows.length
+              : allBreweries.length,
             label: "Pivovarů",
           },
           {
             icon: "●",
             accent: "#9cad47",
-            value: activeBreweryCount,
+            value: isFocusedDrilldown
+              ? visibleActiveBreweryCount
+              : activeBreweryCount,
             label: "Aktivních",
           },
           {
             icon: <AppIcon name="beer" size={18} />,
             accent: "#e88835",
-            value: recordedBeerCount,
+            value: isFocusedDrilldown
+              ? visibleRecordedBeerCount
+              : recordedBeerCount,
             label: "Zaznamenaných piv",
           },
           {
             icon: <AppIcon name="globe" size={18} />,
             accent: "#d65b42",
-            value: countryCount,
+            value: isFocusedDrilldown ? 1 : countryCount,
             label: "Států",
           },
         ]}
       />
 
-      {selectedCountry && (
-        <div
-          className="taste-card"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: "12px",
-            flexWrap: "wrap",
-            marginBottom: "20px",
-            padding: "13px 16px",
-            color: "var(--taste-text-muted)",
-            fontSize: "11px",
-          }}
-        >
-          <span>
-            Stát: {selectedCountry} · {visibleTableRows.length}{" "}
-            {visibleTableRows.length === 1
-              ? "pivovar"
-              : "pivovarů"}
-          </span>
-          <Link
-            href="/breweries"
-            style={{
-              color: "var(--taste-amber-bright)",
-              textDecoration: "none",
-              fontWeight: 700,
-            }}
-          >
-            Zobrazit všechny
-          </Link>
-        </div>
-      )}
-
-      <section>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "flex-end",
-            gap: "16px",
-            marginBottom: "15px",
-          }}
-        >
-          <div>
-            <div
-              className="taste-label"
-              style={{ marginBottom: "5px" }}
-            >
-              Databáze
-            </div>
-            <h2
-              style={{
-                margin: 0,
-                fontSize: "24px",
-                lineHeight: 1.1,
-                fontWeight: 750,
-                letterSpacing: "-0.025em",
-              }}
-            >
-              {selectedCountry
-                ? `Pivovary · ${selectedCountry}`
-                : "Všechny pivovary"}
-            </h2>
-          </div>
-
-          <div
+      {isFocusedDrilldown ? (
+        <>
+          <section
+            className="taste-card"
             style={{
               display: "flex",
               alignItems: "center",
-              gap: "12px",
+              justifyContent: "space-between",
+              gap: "14px",
               flexWrap: "wrap",
-              justifyContent: "flex-end",
+              marginBottom: "22px",
+              padding: "13px 16px",
             }}
           >
             <div
               style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "9px",
+                flexWrap: "wrap",
+              }}
+            >
+              <span
+                className="taste-label"
+                style={{ margin: 0 }}
+              >
+                Aktivní výběr
+              </span>
+              <span
+                style={{
+                  padding: "5px 9px",
+                  border:
+                    "1px solid rgba(231,166,47,0.20)",
+                  borderRadius: "999px",
+                  background:
+                    "rgba(231,166,47,0.055)",
+                  color: "var(--taste-text-soft)",
+                  fontSize: "11px",
+                  fontWeight: 700,
+                }}
+              >
+                {selectedCountry}
+              </span>
+            </div>
+
+            <Link
+              href="/breweries"
+              style={{
+                color: "var(--taste-amber-bright)",
+                textDecoration: "none",
+                fontSize: "11px",
+                fontWeight: 700,
+              }}
+            >
+              Změnit výběr
+            </Link>
+          </section>
+
+          <section>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "flex-end",
+                gap: "16px",
+                marginBottom: "15px",
+              }}
+            >
+              <div>
+                <div
+                  className="taste-label"
+                  style={{ marginBottom: "5px" }}
+                >
+                  Tematický přehled
+                </div>
+                <h2
+                  style={{
+                    margin: 0,
+                    fontSize: "24px",
+                    lineHeight: 1.1,
+                    fontWeight: 750,
+                    letterSpacing: "-0.025em",
+                  }}
+                >
+                  Pivovary v zemi {selectedCountry}
+                </h2>
+              </div>
+
+              <div
+                style={{
+                  color: "var(--taste-text-muted)",
+                  fontSize: "11px",
+                }}
+              >
+                {visibleTableRows.length}{" "}
+                {visibleTableRows.length === 1
+                  ? "položka"
+                  : "položek"}
+              </div>
+            </div>
+
+            {visibleTableRows.length === 0 ? (
+              <div
+                className="taste-card"
+                style={{
+                  padding: "34px",
+                  textAlign: "center",
+                  color: "var(--taste-text-muted)",
+                  fontSize: "13px",
+                }}
+              >
+                Pro tento stát zatím není evidovaný žádný pivovar.
+              </div>
+            ) : (
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns:
+                    "repeat(auto-fit, minmax(260px, 1fr))",
+                  gap: "12px",
+                }}
+              >
+                {visibleTableRows.map((brewery) => (
+                  <Link
+                    key={brewery.id}
+                    href={`/breweries/${brewery.id}`}
+                    className="taste-card"
+                    style={{
+                      display: "block",
+                      padding: "17px 18px",
+                      color: "inherit",
+                      textDecoration: "none",
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "flex-start",
+                        justifyContent: "space-between",
+                        gap: "12px",
+                      }}
+                    >
+                      <div>
+                        <h3
+                          style={{
+                            margin: 0,
+                            color: "var(--taste-text)",
+                            fontSize: "16px",
+                            fontWeight: 750,
+                          }}
+                        >
+                          {brewery.name}
+                        </h3>
+                        <div
+                          style={{
+                            marginTop: "5px",
+                            color: "var(--taste-text-muted)",
+                            fontSize: "11px",
+                          }}
+                        >
+                          {brewery.city || "Město neuvedeno"}
+                        </div>
+                      </div>
+
+                      <span
+                        style={{
+                          color:
+                            brewery.closedYear == null
+                              ? "#9cad47"
+                              : "var(--taste-text-muted)",
+                          fontSize: "9px",
+                          fontWeight: 700,
+                        }}
+                      >
+                        {brewery.closedYear == null
+                          ? "AKTIVNÍ"
+                          : `UZAVŘEN ${brewery.closedYear}`}
+                      </span>
+                    </div>
+
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: "8px",
+                        flexWrap: "wrap",
+                        marginTop: "13px",
+                        color: "var(--taste-text-soft)",
+                        fontSize: "10px",
+                      }}
+                    >
+                      <span>{brewery.beerCount} piv v katalogu</span>
+                      {brewery.foundedYear != null && (
+                        <span>· založen {brewery.foundedYear}</span>
+                      )}
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </section>
+        </>
+      ) : (
+        <>
+          {selectedCountry && (
+            <div
+              className="taste-card"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: "12px",
+                flexWrap: "wrap",
+                marginBottom: "20px",
+                padding: "13px 16px",
                 color: "var(--taste-text-muted)",
                 fontSize: "11px",
               }}
             >
-              {visibleTableRows.length}{" "}
-              {visibleTableRows.length === 1
-                ? "položka"
-                : "položek"}
+              <span>
+                Stát: {selectedCountry} · {visibleTableRows.length}{" "}
+                {visibleTableRows.length === 1
+                  ? "pivovar"
+                  : "pivovarů"}
+              </span>
+              <Link
+                href="/breweries"
+                style={{
+                  color: "var(--taste-amber-bright)",
+                  textDecoration: "none",
+                  fontWeight: 700,
+                }}
+              >
+                Zobrazit všechny
+              </Link>
+            </div>
+          )}
+
+          <section>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "flex-end",
+                gap: "16px",
+                marginBottom: "15px",
+              }}
+            >
+              <div>
+                <div
+                  className="taste-label"
+                  style={{ marginBottom: "5px" }}
+                >
+                  Databáze
+                </div>
+                <h2
+                  style={{
+                    margin: 0,
+                    fontSize: "24px",
+                    lineHeight: 1.1,
+                    fontWeight: 750,
+                    letterSpacing: "-0.025em",
+                  }}
+                >
+                  {selectedCountry
+                    ? `Pivovary · ${selectedCountry}`
+                    : "Všechny pivovary"}
+                </h2>
+              </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "12px",
+                  flexWrap: "wrap",
+                  justifyContent: "flex-end",
+                }}
+              >
+                <div
+                  style={{
+                    color: "var(--taste-text-muted)",
+                    fontSize: "11px",
+                  }}
+                >
+                  {visibleTableRows.length}{" "}
+                  {visibleTableRows.length === 1
+                    ? "položka"
+                    : "položek"}
+                </div>
+
+                <BreweryCreateModalClient
+                  countries={countries ?? []}
+                  showQuickImport={
+                    user.id ===
+                    "17be5dc3-a3f9-4fd2-ae90-dee7692034fc"
+                  }
+                  createBreweryAction={createBrewery}
+                />
+              </div>
             </div>
 
-            <BreweryCreateModalClient
-              countries={countries ?? []}
-              showQuickImport={
-                user.id ===
-                "17be5dc3-a3f9-4fd2-ae90-dee7692034fc"
-              }
-              createBreweryAction={createBrewery}
-            />
-          </div>
-        </div>
+            {visibleTableRows.length === 0 ? (
+              <div
+                className="taste-card"
+                style={{
+                  padding: "34px",
+                  textAlign: "center",
+                  color: "var(--taste-text-muted)",
+                  fontSize: "13px",
+                }}
+              >
+                Pro tento stát zatím není evidovaný žádný pivovar.
+              </div>
+            ) : (
+              <BreweryTableClient
+                rows={visibleTableRows}
+                profiles={profiles ?? []}
+                countries={countries ?? []}
+                updateBreweryAction={updateBrewery}
+              />
+            )}
+          </section>
 
-        {visibleTableRows.length === 0 ? (
-          <div
-            className="taste-card"
-            style={{
-              padding: "34px",
-              textAlign: "center",
-              color: "var(--taste-text-muted)",
-              fontSize: "13px",
-            }}
-          >
-            Pro tento stát zatím není evidovaný žádný pivovar.
-          </div>
-        ) : (
-          <BreweryTableClient
-            rows={visibleTableRows}
-            profiles={profiles ?? []}
-            countries={countries ?? []}
-            updateBreweryAction={updateBrewery}
-          />
-        )}
-      </section>
+          <div style={{ marginTop: "30px" }}>
+            {breweryCountryItems.length > 0 && (
+              <div style={{ marginBottom: "30px" }}>
+                <BeerWorldMap
+                  items={breweryCountryItems}
+                  eyebrow="Pivovarský svět"
+                  title="Mapa evidovaných pivovarů"
+                  countLabel="států s pivovary"
+                  focusEurope
+                />
+              </div>
+            )}
 
-      <div style={{ marginTop: "30px" }}>
-        {breweryCountryItems.length > 0 && (
-          <div style={{ marginBottom: "30px" }}>
-            <BeerWorldMap
-              items={breweryCountryItems}
-              eyebrow="Pivovarský svět"
-              title="Mapa evidovaných pivovarů"
-              countLabel="států s pivovary"
-              focusEurope
-            />
+            {czechBreweryMapItems.length > 0 && (
+              <div style={{ marginBottom: "30px" }}>
+                <BreweryCzechMapClient
+                  items={czechBreweryMapItems}
+                />
+              </div>
+            )}
           </div>
-        )}
-
-        {czechBreweryMapItems.length > 0 && (
-          <div style={{ marginBottom: "30px" }}>
-            <BreweryCzechMapClient
-              items={czechBreweryMapItems}
-            />
-          </div>
-        )}
-      </div>
+        </>
+      )}
     </main>
   );
 }
