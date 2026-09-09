@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 
+import { getCountryHeroTiles } from "@/lib/country-hero";
+
 type HeroStat = {
   icon: ReactNode;
   value: number | string;
@@ -39,17 +41,15 @@ export default function PageHero({
   const hasRightContent =
     visualVariant === "beer" || visualVariant === "stats";
 
+  const countryName = getCountryNameFromHeroTitle(title);
+  const countryHeroTiles = getCountryHeroTiles(countryName);
+  const hasCountryHero = Boolean(countryHeroTiles?.length);
+
   const isBreweryHero =
+    !hasCountryHero &&
     imageUrl === "/images/heroes/breweries.jpg";
 
-  const isFranceCountryHero =
-    typeof title === "string" &&
-    (title === "Pivovary · Francie" ||
-      title === "Piva podle země: Francie");
-
-  const effectiveImageUrl = isFranceCountryHero
-    ? "/images/countries/france.jpg"
-    : imageUrl;
+  const usesContainedVisual = isBreweryHero || hasCountryHero;
 
   return (
     <section
@@ -75,23 +75,25 @@ export default function PageHero({
           style={{
             position: "absolute",
             inset: 0,
-            backgroundColor: isBreweryHero
+            backgroundColor: usesContainedVisual
               ? "#160d07"
               : undefined,
-            backgroundImage: effectiveImageUrl
-              ? `url("${effectiveImageUrl}")`
-              : `
-                  radial-gradient(
-                    circle at 72% 42%,
-                    rgba(231,166,47,0.30),
-                    transparent 20rem
-                  ),
-                  linear-gradient(
-                    135deg,
-                    #40220d,
-                    #160d07
-                  )
-                `,
+            backgroundImage: hasCountryHero
+              ? "none"
+              : imageUrl
+                ? `url("${imageUrl}")`
+                : `
+                    radial-gradient(
+                      circle at 72% 42%,
+                      rgba(231,166,47,0.30),
+                      transparent 20rem
+                    ),
+                    linear-gradient(
+                      135deg,
+                      #40220d,
+                      #160d07
+                    )
+                  `,
             backgroundSize: isBreweryHero
               ? "auto 100%"
               : "cover",
@@ -99,17 +101,48 @@ export default function PageHero({
             backgroundPosition: isBreweryHero
               ? "right center"
               : imagePosition,
-            transform: isBreweryHero
+            transform: usesContainedVisual
               ? "none"
               : "scale(1.015)",
           }}
         />
 
+        {hasCountryHero && countryHeroTiles && (
+          <div
+            aria-hidden="true"
+            style={{
+              position: "absolute",
+              right: 0,
+              top: "50%",
+              height: "125%",
+              aspectRatio: "1600 / 533",
+              display: "flex",
+              overflow: "hidden",
+              transform: "translateY(-50%)",
+              pointerEvents: "none",
+            }}
+          >
+            {countryHeroTiles.map((src) => (
+              <div
+                key={src}
+                style={{
+                  width: `${100 / countryHeroTiles.length}%`,
+                  height: "100%",
+                  flex: "0 0 auto",
+                  backgroundImage: `url("${src}")`,
+                  backgroundSize: "100% 100%",
+                  backgroundRepeat: "no-repeat",
+                }}
+              />
+            ))}
+          </div>
+        )}
+
         <div
           style={{
             position: "absolute",
             inset: 0,
-            background: isBreweryHero
+            background: usesContainedVisual
               ? `
                   linear-gradient(
                     90deg,
@@ -134,7 +167,7 @@ export default function PageHero({
           }}
         />
 
-        {isBreweryHero && (
+        {usesContainedVisual && (
           <div
             style={{
               position: "absolute",
@@ -360,6 +393,25 @@ export default function PageHero({
       )}
     </section>
   );
+}
+
+function getCountryNameFromHeroTitle(title: ReactNode) {
+  if (typeof title !== "string") {
+    return undefined;
+  }
+
+  const breweryPrefix = "Pivovary · ";
+  const beerPrefix = "Piva podle země: ";
+
+  if (title.startsWith(breweryPrefix)) {
+    return title.slice(breweryPrefix.length).trim();
+  }
+
+  if (title.startsWith(beerPrefix)) {
+    return title.slice(beerPrefix.length).trim();
+  }
+
+  return undefined;
 }
 
 function FallbackMark({
