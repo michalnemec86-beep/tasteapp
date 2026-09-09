@@ -1,25 +1,22 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
-import {
-  redirect,
-} from "next/navigation";
-
-import {
-  createClient,
-} from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import PageHero from "@/components/ui/PageHero";
 import AppIcon from "@/components/ui/AppIcon";
 
-// ==================================================
-// STRÁNKA KATALOGU
-// ==================================================
+type BeersPageProps = {
+  searchParams: Promise<{
+    beer?: string | string[];
+    brewery?: string | string[];
+    country?: string | string[];
+    style?: string | string[];
+    hop?: string | string[];
+  }>;
+};
 
 function singleRelation<T>(
-  value:
-    | T
-    | T[]
-    | null
-    | undefined
+  value: T | T[] | null | undefined
 ): T | null {
   if (Array.isArray(value)) {
     return value[0] ?? null;
@@ -28,223 +25,311 @@ function singleRelation<T>(
   return value ?? null;
 }
 
-export default async function BeersPage() {
-  const supabase =
-    await createClient();
+function getStringParam(
+  value: string | string[] | undefined
+) {
+  return typeof value === "string"
+    ? value
+    : undefined;
+}
+
+function parseId(value: string | undefined) {
+  if (!value) {
+    return undefined;
+  }
+
+  const parsed = Number(value);
+
+  return Number.isInteger(parsed) && parsed > 0
+    ? parsed
+    : undefined;
+}
+
+function normalizeText(value: string | null | undefined) {
+  return (value ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
+export default async function BeersPage({
+  searchParams,
+}: BeersPageProps) {
+  const supabase = await createClient();
 
   const {
     data: { user },
-  } =
-    await supabase.auth.getUser();
+  } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect(
-      "/auth/login"
-    );
+    redirect("/auth/login");
   }
 
-  // ==================================================
-  // DATA
-  // ==================================================
+  const params = await searchParams;
 
-  const {
-    data: beers,
-    error,
-  } =
-    await supabase
-      .from("beers")
-      .select(`
+  const selectedBeerId = parseId(
+    getStringParam(params.beer)
+  );
+  const selectedBreweryId = parseId(
+    getStringParam(params.brewery)
+  );
+  const selectedStyleId = parseId(
+    getStringParam(params.style)
+  );
+  const selectedHopId = parseId(
+    getStringParam(params.hop)
+  );
+  const selectedCountry =
+    getStringParam(params.country)?.trim() || undefined;
+
+  const { data: beers, error } = await supabase
+    .from("beers")
+    .select(`
+      id,
+      name,
+      plato,
+      abv,
+      ibu,
+      breweries (
         id,
         name,
-        plato,
-        abv,
-        ibu,
-        breweries (
-          id,
-          name,
-          country
-        ),
-        beer_styles (
+        country
+      ),
+      beer_styles (
+        id,
+        name
+      ),
+      beer_hops (
+        hops (
           id,
           name
-        ),
-        beer_hops (
-          hops (
-            id,
-            name
-          )
-        ),
-        tastings (
-          id,
-          tasted_on,
-          quantity
         )
-      `)
-      .order(
-        "name",
-        {
-          ascending: true,
-        }
-      );
+      ),
+      tastings (
+        id,
+        tasted_on,
+        quantity
+      )
+    `)
+    .order("name", {
+      ascending: true,
+    });
 
   if (error) {
-    throw new Error(
-      error.message
-    );
+    throw new Error(error.message);
   }
 
-  const allBeers =
-    (beers ?? [])
-      .filter(
-        (beer) =>
-          (beer.tastings ?? [])
-            .length > 0
+  const catalogBeers = (beers ?? [])
+    .filter(
+      (beer) =>
+        (beer.tastings ?? []).length > 0
+    )
+    .map((beer) => ({
+      ...beer,
+      breweries: singleRelation(
+        beer.breweries
+      ),
+      beer_styles: singleRelation(
+        beer.beer_styles
+      ),
+      beer_hops: (beer.beer_hops ?? []).map(
+        (beerHop) => ({
+          ...beerHop,
+          hops: singleRelation(
+            beerHop.hops
+          ),
+        })
+      ),
+    }));
+
+  const countryOptions = Array.from(
+    new Set(
+      catalogBeers
+        .map((beer) => beer.breweries?.country)
+        .filter(
+          (country): country is string =>
+            Boolean(country)
+        )
+    )
+  ).sort((a, b) =>
+    a.localeCompare(b, "cs", {
+      sensitivity: "base",
+    })
+  );
+
+  const breweryOptions = Array.from(
+    new Map(
+      catalogBeers
+        .filter((beer) => beer.breweries)
+        .map((beer) => [
+          beer.breweries!.id,
+          beer.breweries!,
+        ])
+    ).values()
+  ).sort((a, b) =>
+    a.name.localeCompare(b.name, "cs", {
+      sensitivity: "base",
+    })
+  );
+
+  const styleOptions = Array.from(
+    new Map(
+      catalogBeers
+        .filter((beer) => beer.beer_styles)
+        .map((beer) => [
+          beer.beer_styles!.id,
+          beer.beer_styles!,
+        ])
+    ).values()
+  ).sort((a, b) =>
+    a.name.localeCompare(b.name, "cs", {
+      sensitivity: "base",
+    })
+  );
+
+  const hopOptions = Array.from(
+    new Map(
+      catalogBeers.flatMap((beer) =>
+        beer.beer_hops
+          .filter((beerHop) => beerHop.hops)
+          .map((beerHop) => [
+            beerHop.hops!.id,
+            beerHop.hops!,
+          ] as const)
       )
-      .map(
-      (beer) => ({
-        ...beer,
+    ).values()
+  ).sort((a, b) =>
+    a.name.localeCompare(b.name, "cs", {
+      sensitivity: "base",
+    })
+  );
 
-        breweries:
-          singleRelation(
-            beer.breweries
-          ),
+  const filteredBeers = catalogBeers.filter(
+    (beer) => {
+      if (
+        selectedBeerId &&
+        beer.id !== selectedBeerId
+      ) {
+        return false;
+      }
 
-        beer_styles:
-          singleRelation(
-            beer.beer_styles
-          ),
+      if (
+        selectedBreweryId &&
+        beer.breweries?.id !== selectedBreweryId
+      ) {
+        return false;
+      }
 
-        beer_hops:
-          (
-            beer.beer_hops ??
-            []
-          ).map(
-            (beerHop) => ({
-              ...beerHop,
+      if (
+        selectedCountry &&
+        normalizeText(beer.breweries?.country) !==
+          normalizeText(selectedCountry)
+      ) {
+        return false;
+      }
 
-              hops:
-                singleRelation(
-                  beerHop.hops
-                ),
-            })
-          ),
-      })
-    );
+      if (
+        selectedStyleId &&
+        beer.beer_styles?.id !== selectedStyleId
+      ) {
+        return false;
+      }
 
-  // ==================================================
-  // SOUHRN
-  // ==================================================
-
-  const breweryCount =
-    new Set(
-      allBeers
-        .map(
-          (beer) =>
-            beer.breweries
-              ?.id
+      if (
+        selectedHopId &&
+        !beer.beer_hops.some(
+          (beerHop) =>
+            beerHop.hops?.id === selectedHopId
         )
-        .filter(
-          (id) =>
-            id != null
-        )
-    ).size;
+      ) {
+        return false;
+      }
 
-  const styleCount =
-    new Set(
-      allBeers
-        .map(
-          (beer) =>
-            beer.beer_styles
-              ?.id
-        )
-        .filter(
-          (id) =>
-            id != null
-        )
-    ).size;
+      return true;
+    }
+  );
 
-  const countryCount =
-    new Set(
-      allBeers
-        .map(
-          (beer) =>
-            beer.breweries
-              ?.country
-              ?.normalize(
-                "NFD"
-              )
-              .replace(
-                /[\u0300-\u036f]/g,
-                ""
-              )
-              .toLowerCase()
-              .trim()
-        )
-        .filter(Boolean)
-    ).size;
+  const breweryCount = new Set(
+    filteredBeers
+      .map((beer) => beer.breweries?.id)
+      .filter((id) => id != null)
+  ).size;
 
-  // ==================================================
-  // VÝSTUP
-  // ==================================================
+  const styleCount = new Set(
+    filteredBeers
+      .map((beer) => beer.beer_styles?.id)
+      .filter((id) => id != null)
+  ).size;
+
+  const countryCount = new Set(
+    filteredBeers
+      .map((beer) =>
+        normalizeText(beer.breweries?.country)
+      )
+      .filter(Boolean)
+  ).size;
+
+  const activeFilterLabels = [
+    selectedBeerId
+      ? catalogBeers.find(
+          (beer) => beer.id === selectedBeerId
+        )?.name
+      : null,
+    selectedCountry,
+    selectedBreweryId
+      ? breweryOptions.find(
+          (brewery) =>
+            brewery.id === selectedBreweryId
+        )?.name
+      : null,
+    selectedStyleId
+      ? styleOptions.find(
+          (style) => style.id === selectedStyleId
+        )?.name
+      : null,
+    selectedHopId
+      ? hopOptions.find(
+          (hop) => hop.id === selectedHopId
+        )?.name
+      : null,
+  ].filter(Boolean) as string[];
 
   return (
     <main
       style={{
-        maxWidth:
-          "1250px",
-
-        margin:
-          "0 auto",
-
-        padding:
-          "34px 24px 80px",
+        maxWidth: "1250px",
+        margin: "0 auto",
+        padding: "34px 24px 80px",
       }}
     >
-      {/* ==================================================
-          HERO
-      ================================================== */}
-
       <PageHero
         eyebrow="Pivní sbírka"
         imageUrl="/images/heroes/catalog.jpg"
         visualVariant="catalog"
-        title={
-          <>
-            Katalog piv
-          </>
-        }
-        subtitle="Společná sbírka všech piv, která se objevila v TasteAppu. Pivovary, styly, chmely a další stopy po každé ochutnávce."
+        title="Katalog piv"
+        subtitle="Společná sbírka ověřených ochutnaných piv. Pivovary, styly, chmely a další stopy po každé ochutnávce."
         action={
           <Link
-            href="/"
+            href="/breweries"
             className="taste-button-secondary"
             style={{
               fontSize: "12px",
               fontWeight: 650,
             }}
           >
-            ← Timeline
+            ← Pivovary
           </Link>
         }
         stats={[
           {
-            icon: (
-              <AppIcon
-                name="beer"
-                size={18}
-              />
-            ),
+            icon: <AppIcon name="beer" size={18} />,
             accent: "#f2b63f",
-            value: allBeers.length,
+            value: filteredBeers.length,
             label: "Různých piv",
           },
           {
-            icon: (
-              <AppIcon
-                name="brewery"
-                size={18}
-              />
-            ),
+            icon: <AppIcon name="brewery" size={18} />,
             accent: "#e88835",
             value: breweryCount,
             label: "Pivovarů",
@@ -256,12 +341,7 @@ export default async function BeersPage() {
             label: "Pivních stylů",
           },
           {
-            icon: (
-              <AppIcon
-                name="globe"
-                size={18}
-              />
-            ),
+            icon: <AppIcon name="globe" size={18} />,
             accent: "#d65b42",
             value: countryCount,
             label: "Států",
@@ -269,55 +349,162 @@ export default async function BeersPage() {
         ]}
       />
 
-      {/* ==================================================
-          SEZNAM
-      ================================================== */}
+      <section
+        className="taste-card"
+        style={{
+          marginBottom: "24px",
+          padding: "18px",
+        }}
+      >
+        <form
+          action="/beers"
+          method="get"
+          style={{
+            display: "grid",
+            gridTemplateColumns:
+              "repeat(auto-fit, minmax(170px, 1fr))",
+            gap: "10px",
+            alignItems: "end",
+          }}
+        >
+          <FilterSelect
+            label="Stát"
+            name="country"
+            defaultValue={selectedCountry ?? ""}
+          >
+            <option value="">Všechny státy</option>
+            {countryOptions.map((country) => (
+              <option key={country} value={country}>
+                {country}
+              </option>
+            ))}
+          </FilterSelect>
+
+          <FilterSelect
+            label="Pivovar"
+            name="brewery"
+            defaultValue={
+              selectedBreweryId
+                ? String(selectedBreweryId)
+                : ""
+            }
+          >
+            <option value="">Všechny pivovary</option>
+            {breweryOptions.map((brewery) => (
+              <option
+                key={brewery.id}
+                value={brewery.id}
+              >
+                {brewery.name}
+              </option>
+            ))}
+          </FilterSelect>
+
+          <FilterSelect
+            label="Styl"
+            name="style"
+            defaultValue={
+              selectedStyleId
+                ? String(selectedStyleId)
+                : ""
+            }
+          >
+            <option value="">Všechny styly</option>
+            {styleOptions.map((style) => (
+              <option key={style.id} value={style.id}>
+                {style.name}
+              </option>
+            ))}
+          </FilterSelect>
+
+          <FilterSelect
+            label="Chmel"
+            name="hop"
+            defaultValue={
+              selectedHopId
+                ? String(selectedHopId)
+                : ""
+            }
+          >
+            <option value="">Všechny chmely</option>
+            {hopOptions.map((hop) => (
+              <option key={hop.id} value={hop.id}>
+                {hop.name}
+              </option>
+            ))}
+          </FilterSelect>
+
+          <button
+            type="submit"
+            className="taste-button-primary"
+            style={{
+              minHeight: "42px",
+              cursor: "pointer",
+            }}
+          >
+            Filtrovat
+          </button>
+        </form>
+
+        {activeFilterLabels.length > 0 && (
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: "12px",
+              flexWrap: "wrap",
+              marginTop: "14px",
+              paddingTop: "13px",
+              borderTop:
+                "1px solid rgba(231,166,47,0.10)",
+              color: "var(--taste-text-muted)",
+              fontSize: "11px",
+            }}
+          >
+            <span>
+              Aktivní filtr: {activeFilterLabels.join(" · ")}
+            </span>
+
+            <Link
+              href="/beers"
+              style={{
+                color: "var(--taste-amber-bright)",
+                textDecoration: "none",
+                fontWeight: 700,
+              }}
+            >
+              Zrušit filtr
+            </Link>
+          </div>
+        )}
+      </section>
 
       <section>
         <div
           style={{
-            display:
-              "flex",
-
-            justifyContent:
-              "space-between",
-
-            alignItems:
-              "flex-end",
-
-            gap:
-              "16px",
-
-            marginBottom:
-              "15px",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "flex-end",
+            gap: "16px",
+            marginBottom: "15px",
           }}
         >
           <div>
             <div
               className="taste-label"
-              style={{
-                marginBottom:
-                  "5px",
-              }}
+              style={{ marginBottom: "5px" }}
             >
-              Všechna piva
+              Výběr katalogu
             </div>
 
             <h2
               style={{
                 margin: 0,
-
-                fontSize:
-                  "24px",
-
-                lineHeight:
-                  1.1,
-
-                fontWeight:
-                  750,
-
-                letterSpacing:
-                  "-0.025em",
+                fontSize: "24px",
+                lineHeight: 1.1,
+                fontWeight: 750,
+                letterSpacing: "-0.025em",
               }}
             >
               Ochutnaná piva
@@ -326,255 +513,122 @@ export default async function BeersPage() {
 
           <div
             style={{
-              color:
-                "var(--taste-text-muted)",
-
-              fontSize:
-                "11px",
+              color: "var(--taste-text-muted)",
+              fontSize: "11px",
             }}
           >
-            {
-              allBeers.length
-            }{" "}
-            {allBeers.length ===
-            1
+            {filteredBeers.length}{" "}
+            {filteredBeers.length === 1
               ? "položka"
               : "položek"}
           </div>
         </div>
 
-        {allBeers.length ===
-          0 && (
+        {filteredBeers.length === 0 ? (
           <div
             className="taste-card"
             style={{
-              padding:
-                "34px",
-
-              textAlign:
-                "center",
-
-              color:
-                "var(--taste-text-muted)",
-
-              fontSize:
-                "13px",
+              padding: "34px",
+              textAlign: "center",
+              color: "var(--taste-text-muted)",
+              fontSize: "13px",
             }}
           >
-            V katalogu zatím není
-            žádné ochutnané pivo.
+            Pro tento filtr nejsou v katalogu žádná ochutnaná piva.
           </div>
-        )}
-
-        <div
-          style={{
-            display:
-              "grid",
-
-            gap:
-              "13px",
-          }}
-        >
-          {allBeers.map(
-            (beer) => {
+        ) : (
+          <div
+            style={{
+              display: "grid",
+              gap: "13px",
+            }}
+          >
+            {filteredBeers.map((beer) => {
               const tastingRecords =
-                beer.tastings ??
-                [];
+                beer.tastings ?? [];
 
-              const totalDrunk =
-                tastingRecords.reduce(
-                  (
-                    sum,
-                    tasting
-                  ) =>
-                    sum +
-                    (
-                      tasting.quantity ??
-                      1
-                    ),
-                  0
+              const totalDrunk = tastingRecords.reduce(
+                (sum, tasting) =>
+                  sum + (tasting.quantity ?? 1),
+                0
+              );
+
+              const lastTastedOn = tastingRecords
+                .map((tasting) => tasting.tasted_on)
+                .filter(
+                  (date): date is string =>
+                    Boolean(date)
+                )
+                .sort()
+                .at(-1);
+
+              const hopNames = beer.beer_hops
+                .map((beerHop) => beerHop.hops)
+                .filter(
+                  (hop): hop is NonNullable<typeof hop> =>
+                    Boolean(hop)
+                )
+                .sort((a, b) =>
+                  a.name.localeCompare(b.name, "cs")
                 );
-
-              const lastTastedOn =
-                tastingRecords
-                  .map(
-                    (tasting) =>
-                      tasting.tasted_on
-                  )
-                  .filter(
-                    (
-                      date
-                    ): date is string =>
-                      Boolean(
-                        date
-                      )
-                  )
-                  .sort()
-                  .at(-1);
-
-              const hopNames =
-                beer.beer_hops
-                  ?.map(
-                    (beerHop) =>
-                      beerHop.hops
-                        ?.name
-                  )
-                  .filter(
-                    (
-                      name
-                    ): name is string =>
-                      Boolean(
-                        name
-                      )
-                  )
-                  .sort(
-                    (
-                      a,
-                      b
-                    ) =>
-                      a.localeCompare(
-                        b,
-                        "cs"
-                      )
-                  ) ?? [];
 
               return (
                 <article
-                  key={
-                    beer.id
-                  }
+                  key={beer.id}
+                  className="taste-card"
                   style={{
-                    position:
-                      "relative",
-
-                    overflow:
-                      "hidden",
-
-                    padding:
-                      "20px",
-
-                    border:
-                      "1px solid var(--taste-border)",
-
-                    borderRadius:
-                      "var(--taste-radius-lg)",
-
-                    background: `
-                      linear-gradient(
-                        145deg,
-                        rgba(231,166,47,0.025),
-                        transparent 42%
-                      ),
-                      var(--taste-surface)
-                    `,
-
-                    boxShadow:
-                      "var(--taste-shadow-soft)",
+                    position: "relative",
+                    overflow: "hidden",
+                    padding: "20px",
                   }}
                 >
-                  {/* JANTAROVÝ DETAIL */}
-
                   <div
                     style={{
-                      position:
-                        "absolute",
-
-                      left:
-                        0,
-
-                      top:
-                        "18px",
-
-                      bottom:
-                        "18px",
-
-                      width:
-                        "2px",
-
-                      borderRadius:
-                        "999px",
-
+                      position: "absolute",
+                      left: 0,
+                      top: "18px",
+                      bottom: "18px",
+                      width: "2px",
+                      borderRadius: "999px",
                       background:
                         "linear-gradient(180deg, var(--taste-amber), rgba(231,166,47,0.05))",
                     }}
                   />
 
-                  {/* ==================================================
-                      HLAVIČKA PIVA
-                  ================================================== */}
-
                   <div
                     style={{
-                      display:
-                        "flex",
-
-                      justifyContent:
-                        "space-between",
-
-                      alignItems:
-                        "flex-start",
-
-                      gap:
-                        "20px",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "flex-start",
+                      gap: "20px",
                     }}
                   >
-                    <div
-                      style={{
-                        minWidth:
-                          0,
-                      }}
-                    >
+                    <div style={{ minWidth: 0 }}>
                       <h3
                         style={{
-                          margin:
-                            0,
-
-                          color:
-                            "var(--taste-text)",
-
-                          fontSize:
-                            "21px",
-
-                          lineHeight:
-                            1.15,
-
-                          fontWeight:
-                            800,
-
-                          letterSpacing:
-                            "-0.025em",
+                          margin: 0,
+                          color: "var(--taste-text)",
+                          fontSize: "21px",
+                          lineHeight: 1.15,
+                          fontWeight: 800,
+                          letterSpacing: "-0.025em",
                         }}
                       >
-                        {
-                          beer.name
-                        }
+                        {beer.name}
                       </h3>
 
                       <div
                         style={{
-                          marginTop:
-                            "5px",
-
-                          color:
-                            "var(--taste-text-muted)",
-
-                          fontSize:
-                            "12px",
-
-                          lineHeight:
-                            1.45,
+                          marginTop: "6px",
+                          color: "var(--taste-text-muted)",
+                          fontSize: "12px",
+                          lineHeight: 1.55,
                         }}
                       >
                         {beer.breweries ? (
                           <Link
                             href={`/breweries/${beer.breweries.id}`}
-                            style={{
-                              color: "inherit",
-                              textDecoration:
-                                "none",
-                              borderBottom:
-                                "1px solid rgba(231,166,47,0.28)",
-                            }}
+                            style={inlineLinkStyle}
                           >
                             {beer.breweries.name}
                           </Link>
@@ -582,80 +636,60 @@ export default async function BeersPage() {
                           "Neznámý pivovar"
                         )}
 
-                        {beer
-                          .breweries
-                          ?.country
-                          ? ` · ${beer.breweries.country}`
-                          : ""}
+                        {beer.breweries?.country && (
+                          <>
+                            {" · "}
+                            <Link
+                              href={`/beers?country=${encodeURIComponent(
+                                beer.breweries.country
+                              )}`}
+                              style={inlineLinkStyle}
+                            >
+                              {beer.breweries.country}
+                            </Link>
+                          </>
+                        )}
 
-                        {beer
-                          .beer_styles
-                          ?.name
-                          ? ` · ${beer.beer_styles.name}`
-                          : ""}
+                        {beer.beer_styles && (
+                          <>
+                            {" · "}
+                            <Link
+                              href={`/beers?style=${beer.beer_styles.id}`}
+                              style={inlineLinkStyle}
+                            >
+                              {beer.beer_styles.name}
+                            </Link>
+                          </>
+                        )}
                       </div>
                     </div>
 
-                    {/* CELKEM VYPITO */}
-
                     <div
                       style={{
-                        flexShrink:
-                          0,
-
-                        padding:
-                          "7px 10px",
-
+                        flexShrink: 0,
+                        padding: "7px 10px",
                         border:
                           "1px solid rgba(231,166,47,0.25)",
-
-                        borderRadius:
-                          "10px",
-
+                        borderRadius: "10px",
                         background:
                           "rgba(231,166,47,0.055)",
-
-                        textAlign:
-                          "right",
+                        textAlign: "right",
                       }}
                     >
                       <div
                         style={{
-                          color:
-                            "var(--taste-amber-bright)",
-
-                          fontSize:
-                            "16px",
-
-                          lineHeight:
-                            1,
-
-                          fontWeight:
-                            800,
+                          color: "var(--taste-amber-bright)",
+                          fontSize: "17px",
+                          fontWeight: 800,
                         }}
                       >
-                        {
-                          totalDrunk
-                        }
-                        ×
+                        {totalDrunk}×
                       </div>
-
                       <div
                         style={{
-                          marginTop:
-                            "3px",
-
-                          color:
-                            "var(--taste-text-muted)",
-
-                          fontSize:
-                            "9px",
-
-                          textTransform:
-                            "uppercase",
-
-                          letterSpacing:
-                            "0.06em",
+                          marginTop: "2px",
+                          color: "var(--taste-text-muted)",
+                          fontSize: "9px",
                         }}
                       >
                         vypito
@@ -663,319 +697,172 @@ export default async function BeersPage() {
                     </div>
                   </div>
 
-                  {/* ==================================================
-                      PARAMETRY
-                  ================================================== */}
-
-                  {(beer.plato !==
-                    null ||
-                    beer.abv !==
-                      null ||
-                    beer.ibu !==
-                      null) && (
-                    <div
-                      style={{
-                        display:
-                          "flex",
-
-                        flexWrap:
-                          "wrap",
-
-                        gap:
-                          "7px",
-
-                        marginTop:
-                          "13px",
-                      }}
-                    >
-                      {beer.plato !==
-                        null && (
-                        <ParameterBadge>
-                          {
-                            beer.plato
-                          }{" "}
-                          °P
-                        </ParameterBadge>
-                      )}
-
-                      {beer.abv !==
-                        null && (
-                        <ParameterBadge>
-                          {
-                            beer.abv
-                          }{" "}
-                          %
-                        </ParameterBadge>
-                      )}
-
-                      {beer.ibu !==
-                        null && (
-                        <ParameterBadge>
-                          IBU{" "}
-                          {
-                            beer.ibu
-                          }
-                        </ParameterBadge>
-                      )}
-                    </div>
-                  )}
-
-                  {/* ==================================================
-                      CHMELY
-                  ================================================== */}
-
-                  {hopNames.length >
-                    0 && (
-                    <div
-                      style={{
-                        marginTop:
-                          "12px",
-
-                        color:
-                          "var(--taste-text-soft)",
-
-                        fontSize:
-                          "12px",
-
-                        lineHeight:
-                          1.5,
-                      }}
-                    >
-                      <span
-                        style={{
-                          color:
-                            "var(--taste-text-muted)",
-                        }}
-                      >
-                        Chmely:{" "}
-                      </span>
-
-                      {hopNames.join(
-                        ", "
-                      )}
-                    </div>
-                  )}
-
-                  {/* ==================================================
-                      SPODNÍ ŘÁDEK
-                  ================================================== */}
-
                   <div
                     style={{
-                      display:
-                        "flex",
-
-                      flexWrap:
-                        "wrap",
-
-                      gap:
-                        "7px 20px",
-
-                      marginTop:
-                        "15px",
-
-                      paddingTop:
-                        "12px",
-
-                      borderTop:
-                        "1px solid rgba(231,166,47,0.09)",
-
-                      color:
-                        "var(--taste-text-muted)",
-
-                      fontSize:
-                        "10px",
+                      display: "flex",
+                      gap: "8px",
+                      flexWrap: "wrap",
+                      marginTop: "16px",
                     }}
                   >
-                    <div>
-                      Celkem{" "}
-                      <strong
-                        style={{
-                          color:
-                            "var(--taste-text-soft)",
-                        }}
-                      >
-                        {
-                          totalDrunk
-                        }
-                      </strong>{" "}
-                      vypito
-                    </div>
-
-                    <div>
-                      {
-                        tastingRecords.length
-                      }{" "}
-                      {tastingRecords.length ===
-                      1
-                        ? "záznam"
-                        : "záznamů"}
-                    </div>
-
+                    {beer.plato != null && (
+                      <MetaPill label="Stupňovitost">
+                        {formatNumber(beer.plato)}°
+                      </MetaPill>
+                    )}
+                    {beer.abv != null && (
+                      <MetaPill label="ABV">
+                        {formatNumber(beer.abv)} %
+                      </MetaPill>
+                    )}
+                    {beer.ibu != null && (
+                      <MetaPill label="IBU">
+                        {formatNumber(beer.ibu)}
+                      </MetaPill>
+                    )}
                     {lastTastedOn && (
-                      <div>
-                        Naposledy{" "}
-                        {formatTastingDate(
-                          lastTastedOn
-                        )}
-                      </div>
+                      <MetaPill label="Naposledy">
+                        {formatDate(lastTastedOn)}
+                      </MetaPill>
                     )}
                   </div>
+
+                  {hopNames.length > 0 && (
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "7px",
+                        flexWrap: "wrap",
+                        marginTop: "14px",
+                        color: "var(--taste-text-muted)",
+                        fontSize: "10px",
+                      }}
+                    >
+                      <span>Chmely:</span>
+                      {hopNames.map((hop) => (
+                        <Link
+                          key={hop.id}
+                          href={`/beers?hop=${hop.id}`}
+                          style={inlineLinkStyle}
+                        >
+                          {hop.name}
+                        </Link>
+                      ))}
+                    </div>
+                  )}
                 </article>
               );
-            }
-          )}
-        </div>
+            })}
+          </div>
+        )}
       </section>
     </main>
   );
 }
 
-// ==================================================
-// SOUHRNNÁ KARTA
-// ==================================================
+const inlineLinkStyle = {
+  color: "inherit",
+  textDecoration: "none",
+  borderBottom:
+    "1px solid rgba(231,166,47,0.28)",
+} as const;
 
-function SummaryCard({
-  value,
+function FilterSelect({
   label,
-  accent = false,
+  name,
+  defaultValue,
+  children,
 }: {
-  value: number;
   label: string;
-  accent?: boolean;
+  name: string;
+  defaultValue: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <label
+      style={{
+        display: "grid",
+        gap: "6px",
+      }}
+    >
+      <span
+        className="taste-label"
+        style={{ fontSize: "9px" }}
+      >
+        {label}
+      </span>
+      <select
+        name={name}
+        defaultValue={defaultValue}
+        style={{
+          minHeight: "42px",
+          width: "100%",
+          border: "1px solid var(--taste-border)",
+          borderRadius: "10px",
+          background: "var(--taste-surface)",
+          color: "var(--taste-text)",
+          padding: "0 11px",
+          fontSize: "12px",
+        }}
+      >
+        {children}
+      </select>
+    </label>
+  );
+}
+
+function MetaPill({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
 }) {
   return (
     <div
       style={{
-        padding:
-          "16px 18px",
-
+        padding: "7px 9px",
         border:
-          accent
-            ? "1px solid rgba(231,166,47,0.34)"
-            : "1px solid var(--taste-border)",
-
-        borderRadius:
-          "var(--taste-radius-md)",
-
+          "1px solid rgba(231,166,47,0.12)",
+        borderRadius: "9px",
         background:
-          accent
-            ? `
-              linear-gradient(
-                145deg,
-                rgba(231,166,47,0.10),
-                rgba(231,166,47,0.02)
-              ),
-              var(--taste-surface)
-            `
-            : "var(--taste-surface)",
-
-        boxShadow:
-          "var(--taste-shadow-soft)",
+          "rgba(231,166,47,0.025)",
       }}
     >
-      <div
+      <span
         style={{
-          color:
-            accent
-              ? "var(--taste-amber-bright)"
-              : "var(--taste-text)",
-
-          fontSize:
-            "27px",
-
-          lineHeight: 1,
-
-          fontWeight:
-            800,
-
-          letterSpacing:
-            "-0.03em",
-        }}
-      >
-        {value}
-      </div>
-
-      <div
-        style={{
-          marginTop:
-            "6px",
-
-          color:
-            "var(--taste-text-muted)",
-
-          fontSize:
-            "11px",
+          marginRight: "5px",
+          color: "var(--taste-text-muted)",
+          fontSize: "9px",
         }}
       >
         {label}
-      </div>
+      </span>
+      <strong
+        style={{
+          color: "var(--taste-text-soft)",
+          fontSize: "11px",
+        }}
+      >
+        {children}
+      </strong>
     </div>
   );
 }
 
-// ==================================================
-// PARAMETR
-// ==================================================
-
-function ParameterBadge({
-  children,
-}: {
-  children:
-    React.ReactNode;
-}) {
-  return (
-    <span
-      style={{
-        display:
-          "inline-flex",
-
-        alignItems:
-          "center",
-
-        padding:
-          "4px 8px",
-
-        borderRadius:
-          "999px",
-
-        border:
-          "1px solid rgba(231,166,47,0.17)",
-
-        background:
-          "rgba(231,166,47,0.045)",
-
-        color:
-          "var(--taste-text-soft)",
-
-        fontSize:
-          "11px",
-      }}
-    >
-      {children}
-    </span>
-  );
+function formatNumber(value: number) {
+  return new Intl.NumberFormat("cs-CZ", {
+    maximumFractionDigits: 1,
+  }).format(value);
 }
 
-// ==================================================
-// DATUM
-// ==================================================
+function formatDate(value: string) {
+  const [year, month, day] = value.split("-");
 
-function formatTastingDate(
-  dateString: string
-) {
-  const [
-    year,
-    month,
-    day,
-  ] =
-    dateString.split(
-      "-"
-    );
+  if (!year || !month || !day) {
+    return value;
+  }
 
-  return `${Number(
-    day
-  )}. ${Number(
-    month
-  )}. ${year}`;
+  return `${Number(day)}. ${Number(month)}. ${year}`;
 }
