@@ -15,10 +15,27 @@ export type TasteStats = {
   packaging: RankingItem[];
 };
 
+type StatsStyle = {
+  id: number;
+  name: string;
+};
+
+type StatsHopRow = {
+  hops: {
+    id: number;
+    name: string;
+  } | null;
+};
+
 type StatsTasting = {
   user_id: string;
   quantity: number | null;
   packaging: string | null;
+
+  beer_versions: {
+    beer_styles: StatsStyle | null;
+    beer_version_hops: StatsHopRow[] | null;
+  } | null;
 
   beers: {
     id: number;
@@ -30,19 +47,9 @@ type StatsTasting = {
       country: string | null;
     } | null;
 
-    beer_styles: {
-      id: number;
-      name: string;
-    } | null;
+    beer_styles: StatsStyle | null;
 
-    beer_hops:
-      | {
-          hops: {
-            id: number;
-            name: string;
-          } | null;
-        }[]
-      | null;
+    beer_hops: StatsHopRow[] | null;
   } | null;
 };
 
@@ -151,6 +158,9 @@ export function buildTasteStats(
 
     // ==================================================
     // ZNAČKA
+    //
+    // Verze receptu nikdy nezvyšuje počet unikátních piv.
+    // Hlavní identitou zůstává beer.id.
     // ==================================================
 
     addToRanking(
@@ -187,27 +197,40 @@ export function buildTasteStats(
 
     // ==================================================
     // STYL
+    //
+    // U historických ochutnávek má přednost styl konkrétní
+    // verze receptu. Fallback je současný katalog piva.
     // ==================================================
 
-    if (beer.beer_styles) {
+    const style =
+      tasting.beer_versions
+        ?.beer_styles ??
+      beer.beer_styles;
+
+    if (style) {
       addToRanking(
         styleMap,
-        beer.beer_styles.id,
-        beer.beer_styles.name,
+        style.id,
+        style.name,
         quantity
       );
     }
 
     // ==================================================
     // CHMELY
+    //
+    // Stejně jako u stylu preferujeme chmely konkrétní
+    // verze, aby budoucí změna receptu nepřepsala historii.
     // ==================================================
 
-    for (
-      const beerHop
-      of beer.beer_hops ?? []
-    ) {
-      const hop =
-        beerHop.hops;
+    const hopRows =
+      tasting.beer_versions
+        ?.beer_version_hops ??
+      beer.beer_hops ??
+      [];
+
+    for (const hopRow of hopRows) {
+      const hop = hopRow.hops;
 
       if (!hop) {
         continue;
