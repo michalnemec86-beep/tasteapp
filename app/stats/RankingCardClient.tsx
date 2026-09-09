@@ -33,6 +33,41 @@ type RankingCardClientProps = {
 
 const PREVIEW_LIMIT = 10;
 
+function getItemHref(
+  title: string,
+  item: RankingItem,
+  itemHrefPrefix?: string
+) {
+  if (itemHrefPrefix) {
+    return `${itemHrefPrefix}/${item.id}`;
+  }
+
+  switch (title) {
+    case "Piva":
+      return `/beers?beer=${encodeURIComponent(
+        String(item.id)
+      )}`;
+
+    case "Pivní styly":
+      return `/beers?style=${encodeURIComponent(
+        String(item.id)
+      )}`;
+
+    case "Státy":
+      return `/beers?country=${encodeURIComponent(
+        item.name
+      )}`;
+
+    case "Chmely":
+      return `/beers?hop=${encodeURIComponent(
+        String(item.id)
+      )}`;
+
+    default:
+      return null;
+  }
+}
+
 export default function RankingCardClient({
   title,
   subtitle,
@@ -41,23 +76,14 @@ export default function RankingCardClient({
   itemHrefPrefix,
   tone = "gold",
 }: RankingCardClientProps) {
-  const [isOpen, setIsOpen] =
-    useState(false);
+  const [isOpen, setIsOpen] = useState(false);
 
   const maximum =
     items.length > 0
-      ? Math.max(
-          ...items.map(
-            (item) => item.count
-          )
-        )
+      ? Math.max(...items.map((item) => item.count))
       : 1;
 
-  const previewItems =
-    items.slice(
-      0,
-      PREVIEW_LIMIT
-    );
+  const previewItems = items.slice(0, PREVIEW_LIMIT);
 
   const toneStyles: Record<
     RankingTone,
@@ -69,78 +95,56 @@ export default function RankingCardClient({
     gold: {
       glow:
         "radial-gradient(circle at 100% 0%, rgba(241,180,58,0.11), transparent 13rem)",
-      border:
-        "rgba(241,180,58,0.20)",
+      border: "rgba(241,180,58,0.20)",
     },
     honey: {
       glow:
         "radial-gradient(circle at 88% 8%, rgba(218,148,43,0.105), transparent 14rem)",
-      border:
-        "rgba(218,148,43,0.19)",
+      border: "rgba(218,148,43,0.19)",
     },
     amber: {
       glow:
         "radial-gradient(circle at 72% -8%, rgba(236,171,66,0.10), transparent 14rem)",
-      border:
-        "rgba(236,171,66,0.18)",
+      border: "rgba(236,171,66,0.18)",
     },
     copper: {
       glow:
         "radial-gradient(circle at 100% 22%, rgba(197,112,55,0.11), transparent 14rem)",
-      border:
-        "rgba(197,112,55,0.20)",
+      border: "rgba(197,112,55,0.20)",
     },
     malt: {
       glow:
         "radial-gradient(circle at 82% 0%, rgba(190,135,52,0.10), transparent 13rem)",
-      border:
-        "rgba(190,135,52,0.18)",
+      border: "rgba(190,135,52,0.18)",
     },
     bronze: {
       glow:
         "radial-gradient(circle at 96% 12%, rgba(180,121,64,0.105), transparent 15rem)",
-      border:
-        "rgba(180,121,64,0.19)",
+      border: "rgba(180,121,64,0.19)",
     },
   };
 
-  const cardTone =
-    toneStyles[tone];
+  const cardTone = toneStyles[tone];
 
   useEffect(() => {
     if (!isOpen) {
       return;
     }
 
-    const previousOverflow =
-      document.body.style.overflow;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
 
-    document.body.style.overflow =
-      "hidden";
-
-    function handleKeyDown(
-      event: KeyboardEvent
-    ) {
-      if (
-        event.key === "Escape"
-      ) {
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
         setIsOpen(false);
       }
     }
 
-    window.addEventListener(
-      "keydown",
-      handleKeyDown
-    );
+    window.addEventListener("keydown", handleKeyDown);
 
     return () => {
-      document.body.style.overflow =
-        previousOverflow;
-
-      window.removeEventListener(
-        "keydown",
-        handleKeyDown
-      );
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
     };
   }, [isOpen]);
 
@@ -151,16 +155,10 @@ export default function RankingCardClient({
           position: "relative",
           overflow: "hidden",
           padding: "20px",
-          border:
-            `1px solid ${cardTone.border}`,
-          borderRadius:
-            "var(--taste-radius-lg)",
-          background: `
-            ${cardTone.glow},
-            var(--taste-surface)
-          `,
-          boxShadow:
-            "var(--taste-shadow-soft)",
+          border: `1px solid ${cardTone.border}`,
+          borderRadius: "var(--taste-radius-lg)",
+          background: `${cardTone.glow}, var(--taste-surface)`,
+          boxShadow: "var(--taste-shadow-soft)",
         }}
       >
         <RankingHeader
@@ -173,8 +171,7 @@ export default function RankingCardClient({
           <div
             style={{
               padding: "18px 0",
-              color:
-                "var(--taste-text-muted)",
+              color: "var(--taste-text-muted)",
               fontSize: "12px",
             }}
           >
@@ -182,21 +179,17 @@ export default function RankingCardClient({
           </div>
         ) : (
           <RankingList
+            title={title}
             items={previewItems}
             maximum={maximum}
-            itemHrefPrefix={
-              itemHrefPrefix
-            }
+            itemHrefPrefix={itemHrefPrefix}
           />
         )}
 
-        {items.length >
-        0 ? (
+        {items.length > 0 && (
           <button
             type="button"
-            onClick={() =>
-              setIsOpen(true)
-            }
+            onClick={() => setIsOpen(true)}
             style={{
               width: "100%",
               marginTop: "18px",
@@ -204,10 +197,8 @@ export default function RankingCardClient({
               border:
                 "1px solid rgba(231,166,47,0.18)",
               borderRadius: "10px",
-              background:
-                "rgba(231,166,47,0.055)",
-              color:
-                "var(--taste-amber-bright)",
+              background: "rgba(231,166,47,0.055)",
+              color: "var(--taste-amber-bright)",
               fontSize: "11px",
               fontWeight: 700,
               cursor: "pointer",
@@ -217,31 +208,13 @@ export default function RankingCardClient({
             <span
               style={{
                 marginLeft: "7px",
-                color:
-                  "var(--taste-text-muted)",
+                color: "var(--taste-text-muted)",
                 fontWeight: 550,
               }}
             >
               · {items.length} položek
             </span>
           </button>
-        ) : (
-          items.length > 0 && (
-            <div
-              style={{
-                marginTop: "18px",
-                paddingTop: "11px",
-                borderTop:
-                  "1px solid rgba(231,166,47,0.08)",
-                color:
-                  "var(--taste-text-muted)",
-                fontSize: "9px",
-              }}
-            >
-              Celkem položek:{" "}
-              {items.length}
-            </div>
-          )
         )}
       </section>
 
@@ -252,10 +225,7 @@ export default function RankingCardClient({
             aria-modal="true"
             aria-label={`${title} – celý žebříček`}
             onMouseDown={(event) => {
-              if (
-                event.target ===
-                event.currentTarget
-              ) {
+              if (event.target === event.currentTarget) {
                 setIsOpen(false);
               }
             }}
@@ -265,45 +235,33 @@ export default function RankingCardClient({
               zIndex: 4000,
               display: "flex",
               alignItems: "center",
-              justifyContent:
-                "center",
+              justifyContent: "center",
               padding: "18px",
-              background:
-                "rgba(8,5,3,0.82)",
-              backdropFilter:
-                "blur(8px)",
+              background: "rgba(8,5,3,0.82)",
+              backdropFilter: "blur(8px)",
             }}
           >
             <section
               style={{
-                width:
-                  "min(760px, 100%)",
-                maxHeight:
-                  "calc(100vh - 36px)",
+                width: "min(760px, 100%)",
+                maxHeight: "calc(100vh - 36px)",
                 display: "flex",
-                flexDirection:
-                  "column",
+                flexDirection: "column",
                 overflow: "hidden",
                 border:
                   "1px solid rgba(231,166,47,0.24)",
-                borderRadius:
-                  "var(--taste-radius-xl)",
-                background:
-                  "var(--taste-surface)",
-                boxShadow:
-                  "0 24px 80px rgba(0,0,0,0.55)",
+                borderRadius: "var(--taste-radius-xl)",
+                background: "var(--taste-surface)",
+                boxShadow: "0 24px 80px rgba(0,0,0,0.55)",
               }}
             >
               <div
                 style={{
                   display: "flex",
-                  justifyContent:
-                    "space-between",
-                  alignItems:
-                    "flex-start",
+                  justifyContent: "space-between",
+                  alignItems: "flex-start",
                   gap: "18px",
-                  padding:
-                    "22px 24px 18px",
+                  padding: "22px 24px 18px",
                   borderBottom:
                     "1px solid rgba(231,166,47,0.10)",
                 }}
@@ -316,26 +274,19 @@ export default function RankingCardClient({
 
                 <button
                   type="button"
-                  onClick={() =>
-                    setIsOpen(false)
-                  }
+                  onClick={() => setIsOpen(false)}
                   aria-label="Zavřít"
                   style={{
                     width: "34px",
                     height: "34px",
                     flexShrink: 0,
-                    border:
-                      "1px solid var(--taste-border)",
-                    borderRadius:
-                      "10px",
-                    background:
-                      "rgba(255,255,255,0.025)",
-                    color:
-                      "var(--taste-text-soft)",
+                    border: "1px solid var(--taste-border)",
+                    borderRadius: "10px",
+                    background: "rgba(255,255,255,0.025)",
+                    color: "var(--taste-text-soft)",
                     fontSize: "20px",
                     lineHeight: 1,
-                    cursor:
-                      "pointer",
+                    cursor: "pointer",
                   }}
                 >
                   ×
@@ -345,16 +296,14 @@ export default function RankingCardClient({
               <div
                 style={{
                   overflowY: "auto",
-                  padding:
-                    "20px 24px 26px",
+                  padding: "20px 24px 26px",
                 }}
               >
                 <RankingList
+                  title={title}
                   items={items}
                   maximum={maximum}
-                  itemHrefPrefix={
-                    itemHrefPrefix
-                  }
+                  itemHrefPrefix={itemHrefPrefix}
                 />
               </div>
             </section>
@@ -389,18 +338,14 @@ function RankingHeader({
             width: "34px",
             height: "34px",
             display: "flex",
-            alignItems:
-              "center",
-            justifyContent:
-              "center",
+            alignItems: "center",
+            justifyContent: "center",
             flexShrink: 0,
             border:
               "1px solid rgba(231,166,47,0.18)",
             borderRadius: "10px",
-            background:
-              "rgba(231,166,47,0.055)",
-            color:
-              "var(--taste-amber-bright)",
+            background: "rgba(231,166,47,0.055)",
+            color: "var(--taste-amber-bright)",
             fontSize: "15px",
           }}
         >
@@ -410,12 +355,10 @@ function RankingHeader({
         <h3
           style={{
             margin: 0,
-            color:
-              "var(--taste-text)",
+            color: "var(--taste-text)",
             fontSize: "17px",
             fontWeight: 750,
-            letterSpacing:
-              "-0.015em",
+            letterSpacing: "-0.015em",
           }}
         >
           {title}
@@ -426,8 +369,7 @@ function RankingHeader({
         style={{
           marginLeft: "44px",
           marginBottom: "18px",
-          color:
-            "var(--taste-text-muted)",
+          color: "var(--taste-text-muted)",
           fontSize: "10px",
         }}
       >
@@ -438,10 +380,12 @@ function RankingHeader({
 }
 
 function RankingList({
+  title,
   items,
   maximum,
   itemHrefPrefix,
 }: {
+  title: string;
   items: RankingItem[];
   maximum: number;
   itemHrefPrefix?: string;
@@ -453,141 +397,115 @@ function RankingList({
         gap: "13px",
       }}
     >
-      {items.map(
-        (item, index) => {
-          const percentage =
-            maximum > 0
-              ? Math.max(
-                  5,
-                  (item.count /
-                    maximum) *
-                    100
-                )
-              : 0;
+      {items.map((item, index) => {
+        const percentage =
+          maximum > 0
+            ? Math.max(
+                5,
+                (item.count / maximum) * 100
+              )
+            : 0;
 
-          const href =
-            itemHrefPrefix
-              ? `${itemHrefPrefix}/${item.id}`
-              : null;
+        const href = getItemHref(
+          title,
+          item,
+          itemHrefPrefix
+        );
 
-          const nameStyle = {
-            minWidth: 0,
-            overflow: "hidden",
-            textOverflow:
-              "ellipsis",
-            whiteSpace:
-              "nowrap" as const,
-            color:
-              index === 0
-                ? "var(--taste-text)"
-                : "var(--taste-text-soft)",
-            fontSize: "12px",
-            fontWeight:
-              index === 0
-                ? 700
-                : 550,
-          };
+        const nameStyle = {
+          minWidth: 0,
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap" as const,
+          color:
+            index === 0
+              ? "var(--taste-text)"
+              : "var(--taste-text-soft)",
+          fontSize: "12px",
+          fontWeight: index === 0 ? 700 : 550,
+        };
 
-          return (
-            <div key={item.id}>
+        return (
+          <div key={item.id}>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns:
+                  "25px minmax(0,1fr) auto",
+                alignItems: "center",
+                gap: "8px",
+                marginBottom: "6px",
+              }}
+            >
               <div
                 style={{
-                  display: "grid",
-                  gridTemplateColumns:
-                    "25px minmax(0,1fr) auto",
-                  alignItems:
-                    "center",
-                  gap: "8px",
-                  marginBottom:
-                    "6px",
+                  color:
+                    index === 0
+                      ? "var(--taste-amber)"
+                      : "var(--taste-text-muted)",
+                  fontSize: "10px",
+                  fontWeight: 700,
                 }}
               >
-                <div
-                  style={{
-                    color:
-                      index === 0
-                        ? "var(--taste-amber)"
-                        : "var(--taste-text-muted)",
-                    fontSize:
-                      "10px",
-                    fontWeight:
-                      700,
-                  }}
-                >
-                  {index + 1}.
-                </div>
-
-                {href ? (
-                  <Link
-                    href={href}
-                    title={
-                      item.name
-                    }
-                    style={{
-                      ...nameStyle,
-                      textDecoration:
-                        "none",
-                    }}
-                  >
-                    {item.name}
-                  </Link>
-                ) : (
-                  <div
-                    title={
-                      item.name
-                    }
-                    style={
-                      nameStyle
-                    }
-                  >
-                    {item.name}
-                  </div>
-                )}
-
-                <div
-                  style={{
-                    color:
-                      "var(--taste-amber-bright)",
-                    fontSize:
-                      "11px",
-                    fontWeight:
-                      750,
-                  }}
-                >
-                  {item.count}×
-                </div>
+                {index + 1}.
               </div>
 
+              {href ? (
+                <Link
+                  href={href}
+                  title={item.name}
+                  style={{
+                    ...nameStyle,
+                    textDecoration: "none",
+                    borderBottom:
+                      "1px solid rgba(231,166,47,0.22)",
+                    width: "fit-content",
+                    maxWidth: "100%",
+                  }}
+                >
+                  {item.name}
+                </Link>
+              ) : (
+                <div title={item.name} style={nameStyle}>
+                  {item.name}
+                </div>
+              )}
+
               <div
                 style={{
-                  marginLeft:
-                    "33px",
-                  height: "4px",
-                  overflow:
-                    "hidden",
-                  borderRadius:
-                    "999px",
-                  background:
-                    "rgba(255,255,255,0.045)",
+                  color: "var(--taste-amber-bright)",
+                  fontSize: "11px",
+                  fontWeight: 750,
                 }}
               >
-                <div
-                  style={{
-                    width: `${percentage}%`,
-                    height: "100%",
-                    borderRadius:
-                      "999px",
-                    background:
-                      index === 0
-                        ? "var(--taste-amber-bright)"
-                        : "rgba(231,166,47,0.62)",
-                  }}
-                />
+                {item.count}×
               </div>
             </div>
-          );
-        }
-      )}
+
+            <div
+              style={{
+                marginLeft: "33px",
+                height: "4px",
+                overflow: "hidden",
+                borderRadius: "999px",
+                background: "rgba(255,255,255,0.045)",
+              }}
+            >
+              <div
+                style={{
+                  width: `${percentage}%`,
+                  height: "100%",
+                  borderRadius: "999px",
+                  background:
+                    index === 0
+                      ? "var(--taste-amber-bright)"
+                      : "rgba(231,166,47,0.62)",
+                }}
+              />
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
