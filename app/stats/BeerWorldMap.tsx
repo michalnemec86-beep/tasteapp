@@ -316,7 +316,7 @@ export default function BeerWorldMap({
     const target = focusEurope ? "/breweries" : "/beers";
 
     router.push(
-      `${target}?country=${encodeURIComponent(czechName)}`
+      `${target}?focus=1&country=${encodeURIComponent(czechName)}`
     );
   }
 

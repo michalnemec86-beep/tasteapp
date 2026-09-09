@@ -44,22 +44,22 @@ function getItemHref(
 
   switch (title) {
     case "Piva":
-      return `/beers?beer=${encodeURIComponent(
+      return `/beers?focus=1&beer=${encodeURIComponent(
         String(item.id)
       )}`;
 
     case "Pivní styly":
-      return `/beers?style=${encodeURIComponent(
+      return `/beers?focus=1&style=${encodeURIComponent(
         String(item.id)
       )}`;
 
     case "Státy":
-      return `/beers?country=${encodeURIComponent(
+      return `/beers?focus=1&country=${encodeURIComponent(
         item.name
       )}`;
 
     case "Chmely":
-      return `/beers?hop=${encodeURIComponent(
+      return `/beers?focus=1&hop=${encodeURIComponent(
         String(item.id)
       )}`;
 
