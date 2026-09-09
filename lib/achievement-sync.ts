@@ -3,7 +3,6 @@ import {
 } from "@/lib/supabase/server";
 
 import {
-  ACHIEVEMENTS_LAUNCH_AT,
   buildAchievementProgress,
   getAchievementByKey,
   getHighestUnlockedBySeries,
@@ -42,6 +41,7 @@ export async function syncUserAchievements(
       .select(`
         id,
         tasted_at,
+        show_in_timeline,
         beers (
           id,
           breweries (
@@ -114,24 +114,17 @@ export async function syncUserAchievements(
 
   // ==================================================
   // HISTORICKÝ STAV
+  //
+  // Timeline viditelnost ochutnávky je jediný zdroj
+  // pravdy i pro historické achievementy. Co je mimo
+  // Timeline, nesmí při zpětném importu vytvořit novou
+  // Timeline událost medaile.
   // ==================================================
 
   const historicalTastings =
     allTastings.filter(
-      (tasting) => {
-        if (
-          !tasting.tasted_at
-        ) {
-          return false;
-        }
-
-        return (
-          new Date(
-            tasting.tasted_at
-          ).getTime() <
-          ACHIEVEMENTS_LAUNCH_AT.getTime()
-        );
-      }
+      (tasting) =>
+        !tasting.show_in_timeline
     );
 
   const currentProgress =
@@ -426,8 +419,8 @@ export async function syncUserAchievements(
             achievement.key,
 
           /*
-           * Co bylo splněno před spuštěním V2,
-           * uložíme bez nové Timeline události.
+           * Co bylo dosaženo jen ochutnávkami mimo
+           * Timeline, uložíme bez nové Timeline události.
            */
           show_in_timeline:
             !historicalUnlockedKeys.has(
@@ -488,5 +481,9 @@ type AchievementTastingWithDate =
   AchievementTasting & {
     tasted_at?:
       | string
+      | null;
+
+    show_in_timeline?:
+      | boolean
       | null;
   };
