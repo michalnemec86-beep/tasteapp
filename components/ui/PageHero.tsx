@@ -39,6 +39,9 @@ export default function PageHero({
   const hasRightContent =
     visualVariant === "beer" || visualVariant === "stats";
 
+  const isBreweryHero =
+    imageUrl === "/images/heroes/breweries.jpg";
+
   return (
     <section
       style={{
@@ -63,6 +66,9 @@ export default function PageHero({
           style={{
             position: "absolute",
             inset: 0,
+            backgroundColor: isBreweryHero
+              ? "#160d07"
+              : undefined,
             backgroundImage: imageUrl
               ? `url("${imageUrl}")`
               : `
@@ -77,9 +83,16 @@ export default function PageHero({
                     #160d07
                   )
                 `,
-            backgroundSize: "cover",
-            backgroundPosition: imagePosition,
-            transform: "scale(1.015)",
+            backgroundSize: isBreweryHero
+              ? "auto 100%"
+              : "cover",
+            backgroundRepeat: "no-repeat",
+            backgroundPosition: isBreweryHero
+              ? "right center"
+              : imagePosition,
+            transform: isBreweryHero
+              ? "none"
+              : "scale(1.015)",
           }}
         />
 
@@ -87,16 +100,27 @@ export default function PageHero({
           style={{
             position: "absolute",
             inset: 0,
-            background: `
-              linear-gradient(
-                90deg,
-                rgba(18,10,6,0.98) 0%,
-                rgba(20,11,6,0.92) 25%,
-                rgba(20,11,6,0.68) 47%,
-                rgba(20,11,6,0.22) 72%,
-                rgba(14,8,5,0.10) 100%
-              )
-            `,
+            background: isBreweryHero
+              ? `
+                  linear-gradient(
+                    90deg,
+                    rgba(18,10,6,1) 0%,
+                    rgba(18,10,6,0.98) 34%,
+                    rgba(18,10,6,0.82) 52%,
+                    rgba(18,10,6,0.28) 72%,
+                    rgba(14,8,5,0.08) 100%
+                  )
+                `
+              : `
+                  linear-gradient(
+                    90deg,
+                    rgba(18,10,6,0.98) 0%,
+                    rgba(20,11,6,0.92) 25%,
+                    rgba(20,11,6,0.68) 47%,
+                    rgba(20,11,6,0.22) 72%,
+                    rgba(14,8,5,0.10) 100%
+                  )
+                `,
             pointerEvents: "none",
           }}
         />
