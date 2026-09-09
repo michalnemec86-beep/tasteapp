@@ -71,8 +71,37 @@ export type AchievementProgress =
     progress: number;
   };
 
+type AchievementStyleRef = {
+  id?:
+    | string
+    | number
+    | null;
+} | null;
+
+type AchievementHopRef = {
+  hops?: {
+    id?:
+      | string
+      | number
+      | null;
+
+    name?:
+      | string
+      | null;
+  } | null;
+};
+
 export type AchievementTasting = {
   id?: string | number;
+
+  beer_versions?: {
+    beer_styles?:
+      AchievementStyleRef;
+
+    beer_version_hops?:
+      | AchievementHopRef[]
+      | null;
+  } | null;
 
   beers?: {
     id?:
@@ -91,26 +120,11 @@ export type AchievementTasting = {
         | null;
     } | null;
 
-    beer_styles?: {
-      id?:
-        | string
-        | number
-        | null;
-    } | null;
+    beer_styles?:
+      AchievementStyleRef;
 
     beer_hops?:
-      | {
-          hops?: {
-            id?:
-              | string
-              | number
-              | null;
-
-            name?:
-              | string
-              | null;
-          } | null;
-        }[]
+      | AchievementHopRef[]
       | null;
   } | null;
 };
@@ -177,7 +191,7 @@ const COUNTRY_MEDALS:
 ];
 
 // ==================================================
-// TVORBA JEDNÉ ACHIEVEMENTOVÉ CESTY
+// TVORBA JEDNÉ OCEŇOVACÍ CESTY
 // ==================================================
 
 function createSeries({
@@ -484,6 +498,7 @@ export function buildAchievementProgress(
       beer.id !== null &&
       beer.id !== undefined
     ) {
+      // Různé receptové verze stále tvoří jedno pivo.
       beerIds.add(
         beer.id
       );
@@ -513,7 +528,10 @@ export function buildAchievementProgress(
       );
     }
 
+    // Historická verze má přednost před dnešním katalogem.
     const style =
+      tasting.beer_versions
+        ?.beer_styles ??
       beer.beer_styles;
 
     if (
@@ -526,12 +544,15 @@ export function buildAchievementProgress(
       );
     }
 
-    for (
-      const beerHop of
-      beer.beer_hops ?? []
-    ) {
+    const hopRows =
+      tasting.beer_versions
+        ?.beer_version_hops ??
+      beer.beer_hops ??
+      [];
+
+    for (const hopRow of hopRows) {
       const hop =
-        beerHop.hops;
+        hopRow.hops;
 
       if (
         hop?.id !== null &&
