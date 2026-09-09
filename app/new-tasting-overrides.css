@@ -1,0 +1,4 @@
+/* New tasting modal: place is intentionally not collected. */
+[aria-labelledby="new-tasting-title"] div:has(> input[name="place"]) {
+  display: none !important;
+}
