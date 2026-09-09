@@ -135,6 +135,9 @@ export default function AppNav() {
             padding: "10px 0",
           }}
         >
+          <NavLink href="/" active={pathname === "/"}>
+            Timeline
+          </NavLink>
           <NavLink href="/stats" active={isActive("/stats")}>
             Statistiky
           </NavLink>
