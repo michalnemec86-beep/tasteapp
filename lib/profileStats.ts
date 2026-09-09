@@ -38,6 +38,16 @@ export type ProfileStats = {
   highestPlatoBeer: ProfileBeerRecord | null;
 };
 
+type ProfileStyle = {
+  id: number;
+};
+
+type ProfileHopRow = {
+  hops: {
+    id: number;
+  } | null;
+};
+
 type ProfileStatsTasting = {
   quantity: number | null;
   tasted_on: string | null;
@@ -45,6 +55,12 @@ type ProfileStatsTasting = {
   plato: number | null;
   abv: number | null;
   ibu: number | null;
+
+  beer_versions: {
+    beer_styles: ProfileStyle | null;
+    beer_version_hops: ProfileHopRow[] | null;
+  } | null;
+
   beers: {
     id: number;
     name: string;
@@ -52,16 +68,8 @@ type ProfileStatsTasting = {
       id: number;
       country: string | null;
     } | null;
-    beer_styles: {
-      id: number;
-    } | null;
-    beer_hops:
-      | {
-          hops: {
-            id: number;
-          } | null;
-        }[]
-      | null;
+    beer_styles: ProfileStyle | null;
+    beer_hops: ProfileHopRow[] | null;
   } | null;
 };
 
@@ -204,6 +212,8 @@ export function buildProfileStats(
       tasting.beers;
 
     if (beer) {
+      // Hlavní beer.id zůstává identitou piva bez ohledu
+      // na počet historických verzí receptu.
       uniqueBeerIds.add(
         beer.id
       );
@@ -223,19 +233,27 @@ export function buildProfileStats(
         }
       }
 
-      if (beer.beer_styles) {
+      const style =
+        tasting.beer_versions
+          ?.beer_styles ??
+        beer.beer_styles;
+
+      if (style) {
         uniqueStyleIds.add(
-          beer.beer_styles.id
+          style.id
         );
       }
 
-      for (
-        const beerHop
-        of beer.beer_hops ?? []
-      ) {
-        if (beerHop.hops) {
+      const hopRows =
+        tasting.beer_versions
+          ?.beer_version_hops ??
+        beer.beer_hops ??
+        [];
+
+      for (const hopRow of hopRows) {
+        if (hopRow.hops) {
           uniqueHopIds.add(
-            beerHop.hops.id
+            hopRow.hops.id
           );
         }
       }
