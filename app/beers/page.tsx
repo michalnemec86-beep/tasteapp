@@ -804,7 +804,7 @@ export default async function BeersPage({
                           <>
                             {" · "}
                             <Link
-                              href={`/beers?country=${encodeURIComponent(
+                              href={`/beers?focus=1&country=${encodeURIComponent(
                                 beer.breweries.country
                               )}`}
                               style={inlineLinkStyle}
