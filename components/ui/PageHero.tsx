@@ -125,6 +125,28 @@ export default function PageHero({
           }}
         />
 
+        {isBreweryHero && (
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              right: 0,
+              bottom: 0,
+              width: "44%",
+              background: `
+                linear-gradient(
+                  90deg,
+                  rgba(22,13,7,1) 0%,
+                  rgba(22,13,7,0.78) 18%,
+                  rgba(22,13,7,0.22) 38%,
+                  rgba(22,13,7,0) 58%
+                )
+              `,
+              pointerEvents: "none",
+            }}
+          />
+        )}
+
         <div
           style={{
             position: "absolute",
