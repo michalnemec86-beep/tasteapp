@@ -32,7 +32,7 @@ type StatsTasting = {
   quantity: number | null;
   packaging: string | null;
 
-  beer_versions: {
+  beer_versions?: {
     beer_styles: StatsStyle | null;
     beer_version_hops: StatsHopRow[] | null;
   } | null;
@@ -131,10 +131,6 @@ export function buildTasteStats(
     const quantity =
       tasting.quantity ?? 1;
 
-    // ==================================================
-    // PODÁNÍ / OBAL
-    // ==================================================
-
     const packaging =
       getPackagingMeta(
         tasting.packaging
@@ -156,23 +152,13 @@ export function buildTasteStats(
       continue;
     }
 
-    // ==================================================
-    // ZNAČKA
-    //
     // Verze receptu nikdy nezvyšuje počet unikátních piv.
-    // Hlavní identitou zůstává beer.id.
-    // ==================================================
-
     addToRanking(
       brandMap,
       beer.id,
       beer.name,
       quantity
     );
-
-    // ==================================================
-    // PIVOVAR + STÁT
-    // ==================================================
 
     if (beer.breweries) {
       addToRanking(
@@ -195,13 +181,7 @@ export function buildTasteStats(
       }
     }
 
-    // ==================================================
-    // STYL
-    //
-    // U historických ochutnávek má přednost styl konkrétní
-    // verze receptu. Fallback je současný katalog piva.
-    // ==================================================
-
+    // Historická verze má přednost před dnešním katalogem.
     const style =
       tasting.beer_versions
         ?.beer_styles ??
@@ -215,13 +195,6 @@ export function buildTasteStats(
         quantity
       );
     }
-
-    // ==================================================
-    // CHMELY
-    //
-    // Stejně jako u stylu preferujeme chmely konkrétní
-    // verze, aby budoucí změna receptu nepřepsala historii.
-    // ==================================================
 
     const hopRows =
       tasting.beer_versions
@@ -246,34 +219,11 @@ export function buildTasteStats(
   }
 
   return {
-    breweries:
-      sortRanking(
-        breweryMap
-      ),
-
-    brands:
-      sortRanking(
-        brandMap
-      ),
-
-    styles:
-      sortRanking(
-        styleMap
-      ),
-
-    countries:
-      sortRanking(
-        countryMap
-      ),
-
-    hops:
-      sortRanking(
-        hopMap
-      ),
-
-    packaging:
-      sortRanking(
-        packagingMap
-      ),
+    breweries: sortRanking(breweryMap),
+    brands: sortRanking(brandMap),
+    styles: sortRanking(styleMap),
+    countries: sortRanking(countryMap),
+    hops: sortRanking(hopMap),
+    packaging: sortRanking(packagingMap),
   };
 }
