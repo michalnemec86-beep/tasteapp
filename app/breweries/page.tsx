@@ -362,7 +362,8 @@ export default async function BreweriesPage({
             ? "Země původu"
             : "Pivovarský adresář"
         }
-        imageUrl="/images/heroes/catalog.jpg"
+        imageUrl="/images/heroes/breweries.jpg"
+        imagePosition="58% 48%"
         visualVariant="catalog"
         title={
           isFocusedDrilldown

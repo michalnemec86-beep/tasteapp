@@ -1,4 +1,3 @@
-import Link from "next/link";
 import type {
   ReactNode,
 } from "react";
@@ -39,7 +38,7 @@ type PageHeroProps = {
 // Geometrie inspirovaná původním návrhem:
 // - nízký široký fotografický banner
 // - kompaktní text vlevo
-// - akce vpravo
+// - akce vpravo jen u akčních variant
 // - úzký statistický pás
 // ==================================================
 
@@ -54,6 +53,10 @@ export default function PageHero({
   visualVariant = "beer",
   visualText,
 }: PageHeroProps) {
+  const allowsAction =
+    visualVariant === "beer" ||
+    visualVariant === "stats";
+
   return (
     <section
       style={{
@@ -250,7 +253,7 @@ export default function PageHero({
             lg:py-5
           "
         >
-          {action ? (
+          {action && allowsAction ? (
             <div
               className="taste-page-hero-action"
               style={{
@@ -458,23 +461,6 @@ function FallbackMark({
     boxShadow:
       "0 0 30px rgba(231,166,47,0.10)",
   } as const;
-
-  if (variant === "catalog") {
-    return (
-      <Link
-        href="/beers"
-        aria-label="Otevřít katalog piv"
-        title="Katalog piv"
-        style={{
-          ...markStyle,
-          textDecoration: "none",
-          cursor: "pointer",
-        }}
-      >
-        {icon}
-      </Link>
-    );
-  }
 
   return (
     <div style={markStyle}>
