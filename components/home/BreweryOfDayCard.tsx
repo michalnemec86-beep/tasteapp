@@ -1,25 +1,154 @@
 import Link from "next/link";
 
-type BreweryOfDayCardProps = {
-  brewery:
-    | {
-        id: number;
-        name: string;
-        country: string | null;
-      }
-    | null;
+import { createClient } from "@/lib/supabase/server";
+
+type Brewery = {
+  id: number;
+  name: string;
+  country: string | null;
 };
 
-export default function BreweryOfDayCard({
+type BreweryOfDayCardProps = {
+  brewery: Brewery | null;
+};
+
+function getPragueDateKey(
+  date = new Date()
+) {
+  const parts =
+    new Intl.DateTimeFormat(
+      "en-GB",
+      {
+        timeZone: "Europe/Prague",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      }
+    ).formatToParts(date);
+
+  const year = parts.find(
+    (part) => part.type === "year"
+  )?.value;
+  const month = parts.find(
+    (part) => part.type === "month"
+  )?.value;
+  const day = parts.find(
+    (part) => part.type === "day"
+  )?.value;
+
+  if (!year || !month || !day) {
+    throw new Error(
+      "Nepodařilo se určit dnešní datum."
+    );
+  }
+
+  return `${year}-${month}-${day}`;
+}
+
+function getDailyIndex(
+  key: string,
+  length: number
+) {
+  let hash = 0;
+
+  for (const character of key) {
+    hash =
+      Math.imul(hash, 31) +
+      character.charCodeAt(0);
+    hash |= 0;
+  }
+
+  return Math.abs(hash) % length;
+}
+
+export default async function BreweryOfDayCard({
   brewery,
 }: BreweryOfDayCardProps) {
   if (!brewery) {
     return null;
   }
 
+  let displayedBrewery = brewery;
+
+  if (brewery.country !== "Česko") {
+    const supabase = await createClient();
+
+    const [
+      { data: czechBreweries, error: breweriesError },
+      { data: history, error: historyError },
+    ] = await Promise.all([
+      supabase
+        .from("breweries")
+        .select("id, name, country")
+        .eq("country", "Česko")
+        .order("name"),
+      supabase
+        .from("brewery_of_day")
+        .select("day, brewery_id")
+        .order("day", { ascending: false }),
+    ]);
+
+    if (breweriesError) {
+      throw new Error(
+        breweriesError.message
+      );
+    }
+
+    if (historyError) {
+      throw new Error(
+        historyError.message
+      );
+    }
+
+    const allCzechBreweries =
+      (czechBreweries ?? []) as Brewery[];
+
+    if (allCzechBreweries.length > 0) {
+      const usedBreweryIds = new Set(
+        (history ?? []).map(
+          (row) => row.brewery_id
+        )
+      );
+
+      let candidates =
+        allCzechBreweries.filter(
+          (candidate) =>
+            !usedBreweryIds.has(
+              candidate.id
+            )
+        );
+
+      if (candidates.length === 0) {
+        candidates = allCzechBreweries;
+      }
+
+      const todayKey =
+        getPragueDateKey();
+      const selected =
+        candidates[
+          getDailyIndex(
+            todayKey,
+            candidates.length
+          )
+        ];
+
+      displayedBrewery = selected;
+
+      // Homepage may already have stored a foreign brewery
+      // for today. Correct that history row when permitted;
+      // the displayed card remains Czech even if RLS blocks it.
+      await supabase
+        .from("brewery_of_day")
+        .update({
+          brewery_id: selected.id,
+        })
+        .eq("day", todayKey);
+    }
+  }
+
   return (
     <Link
-      href={`/breweries/${brewery.id}`}
+      href={`/breweries/${displayedBrewery.id}`}
       style={{
         width: "100%",
         display: "block",
@@ -76,10 +205,10 @@ export default function BreweryOfDayCard({
           letterSpacing: "-0.02em",
         }}
       >
-        {brewery.name}
+        {displayedBrewery.name}
       </div>
 
-      {brewery.country && (
+      {displayedBrewery.country && (
         <div
           style={{
             marginTop: "5px",
@@ -88,7 +217,7 @@ export default function BreweryOfDayCard({
             fontSize: "11px",
           }}
         >
-          {brewery.country}
+          {displayedBrewery.country}
         </div>
       )}
     </Link>
