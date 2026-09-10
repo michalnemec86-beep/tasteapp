@@ -157,7 +157,8 @@ export default async function BreweryDetailPage({
           )
         ),
         tastings (
-          id
+          id,
+          quantity
         )
       ),
       brewery_name_history (
@@ -918,8 +919,11 @@ export default async function BreweryDetailPage({
                           "nowrap",
                       }}
                     >
-                      {beer.tastings?.length ??
-                        0}
+                      {(beer.tastings ?? []).reduce(
+                        (sum, tasting) =>
+                          sum + (tasting.quantity ?? 1),
+                        0
+                      )}
                       ×
                     </div>
                   </div>
