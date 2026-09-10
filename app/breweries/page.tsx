@@ -251,7 +251,8 @@ export default async function BreweriesPage({
             }
 
             userTastingCounts[userId] =
-              (userTastingCounts[userId] ?? 0) + 1;
+              (userTastingCounts[userId] ?? 0) +
+              (tasting.quantity ?? 1);
           }
 
           const beerStyle = Array.isArray(
@@ -267,7 +268,11 @@ export default async function BreweriesPage({
             plato: beer.plato,
             abv: beer.abv,
             ibu: beer.ibu,
-            tastingCount: beer.tastings?.length ?? 0,
+            tastingCount: (beer.tastings ?? []).reduce(
+              (sum, tasting) =>
+                sum + (tasting.quantity ?? 1),
+              0
+            ),
             userTastingCounts,
           };
         }
