@@ -190,6 +190,7 @@ function Skeleton({
 }) {
   return (
     <div
+      className="animate-pulse"
       style={{
         width,
         height,
@@ -197,8 +198,6 @@ function Skeleton({
         borderRadius: radius,
         background:
           "linear-gradient(90deg, rgba(255,255,255,0.045), rgba(151,180,78,0.13), rgba(255,255,255,0.045))",
-        backgroundSize: "220% 100%",
-        animation: "taste-loading-shimmer 1.45s ease-in-out infinite",
       }}
     />
   );
