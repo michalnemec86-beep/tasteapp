@@ -10,66 +10,72 @@ export type TimelineVisual = {
   glow: string;
 };
 
+/*
+ * Timeline má vlastní chmelovou identitu oddělenou od
+ * jantarovo-měděných statistik. Jednotlivé karty střídají
+ * příbuzné zelené odstíny, takže zůstávají živé, ale pořád
+ * působí jako jedna časová osa.
+ */
 const TIMELINE_VISUALS: TimelineVisual[] = [
   {
-    icon: "beer",
-    accent: "#f2b63f",
+    icon: "hop",
+    accent: "#9fb84f",
     background:
-      "rgba(242,182,63,0.14)",
+      "rgba(159,184,79,0.13)",
     border:
-      "rgba(242,182,63,0.42)",
+      "rgba(159,184,79,0.38)",
     glow:
-      "rgba(242,182,63,0.34)",
+      "rgba(159,184,79,0.25)",
   },
   {
-    icon: "hop",
-    accent: "#9cad47",
+    icon: "beer",
+    accent: "#7f9f3d",
     background:
-      "rgba(156,173,71,0.13)",
+      "rgba(127,159,61,0.13)",
     border:
-      "rgba(156,173,71,0.40)",
+      "rgba(127,159,61,0.38)",
     glow:
-      "rgba(156,173,71,0.32)",
+      "rgba(127,159,61,0.24)",
   },
   {
     icon: "barley",
-    accent: "#b77a36",
+    accent: "#afc56a",
     background:
-      "rgba(183,122,54,0.13)",
+      "rgba(175,197,106,0.12)",
     border:
-      "rgba(183,122,54,0.39)",
+      "rgba(175,197,106,0.35)",
     glow:
-      "rgba(183,122,54,0.30)",
+      "rgba(175,197,106,0.22)",
   },
   {
     icon: "globe",
-    accent: "#d65b42",
+    accent: "#6f9137",
     background:
-      "rgba(214,91,66,0.12)",
+      "rgba(111,145,55,0.13)",
     border:
-      "rgba(214,91,66,0.39)",
+      "rgba(111,145,55,0.38)",
     glow:
-      "rgba(214,91,66,0.30)",
+      "rgba(111,145,55,0.24)",
   },
   {
     icon: "bottle",
-    accent: "#e88835",
+    accent: "#8aaa48",
     background:
-      "rgba(232,136,53,0.13)",
+      "rgba(138,170,72,0.13)",
     border:
-      "rgba(232,136,53,0.40)",
+      "rgba(138,170,72,0.38)",
     glow:
-      "rgba(232,136,53,0.32)",
+      "rgba(138,170,72,0.24)",
   },
   {
     icon: "can",
-    accent: "#c68139",
+    accent: "#b8c977",
     background:
-      "rgba(198,129,57,0.13)",
+      "rgba(184,201,119,0.11)",
     border:
-      "rgba(198,129,57,0.39)",
+      "rgba(184,201,119,0.34)",
     glow:
-      "rgba(198,129,57,0.30)",
+      "rgba(184,201,119,0.21)",
   },
 ];
 
