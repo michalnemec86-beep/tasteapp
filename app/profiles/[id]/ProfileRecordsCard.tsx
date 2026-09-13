@@ -1,35 +1,34 @@
+"use client";
+
+import {
+  useEffect,
+  useState,
+} from "react";
+import {
+  useParams,
+} from "next/navigation";
+
 import type {
   ProfileBeerRecord,
   ProfileActivityPoint,
 } from "@/lib/profileStats";
+import {
+  loadProfileTechnicalStats,
+} from "@/lib/profileTechnicalStatsClient";
 
 type ProfileRecordsCardProps = {
-  strongestBeer:
-    | ProfileBeerRecord
-    | null;
-  bitterestBeer:
-    | ProfileBeerRecord
-    | null;
-  highestPlatoBeer:
-    | ProfileBeerRecord
-    | null;
-  mostActiveMonth:
-    | ProfileActivityPoint
-    | null;
-  mostActiveYear:
-    | ProfileActivityPoint
-    | null;
-  firstTasting:
-    | string
-    | null;
+  strongestBeer: ProfileBeerRecord | null;
+  bitterestBeer: ProfileBeerRecord | null;
+  highestPlatoBeer: ProfileBeerRecord | null;
+  mostActiveMonth: ProfileActivityPoint | null;
+  mostActiveYear: ProfileActivityPoint | null;
+  firstTasting: string | null;
 };
 
 type BeerRecordCardProps = {
   eyebrow: string;
   title: string;
-  record:
-    | ProfileBeerRecord
-    | null;
+  record: ProfileBeerRecord | null;
   unit: string;
   decimals: number;
   accent: string;
@@ -39,35 +38,24 @@ type BeerRecordCardProps = {
 };
 
 function formatMonth(
-  key:
-    | string
-    | null
+  key: string | null
 ) {
   if (!key) {
     return "—";
   }
 
-  const [
-    year,
-    month,
-  ] = key
-    .split("-")
-    .map(Number);
+  const [year, month] =
+    key.split("-").map(Number);
 
-  if (
-    !year ||
-    !month
-  ) {
+  if (!year || !month) {
     return key;
   }
 
   return new Intl.DateTimeFormat(
     "cs-CZ",
     {
-      month:
-        "long",
-      year:
-        "numeric",
+      month: "long",
+      year: "numeric",
     }
   ).format(
     new Date(
@@ -79,9 +67,7 @@ function formatMonth(
 }
 
 function formatDate(
-  value:
-    | string
-    | null
+  value: string | null
 ) {
   if (!value) {
     return "—";
@@ -103,12 +89,9 @@ function formatDate(
   return new Intl.DateTimeFormat(
     "cs-CZ",
     {
-      day:
-        "numeric",
-      month:
-        "long",
-      year:
-        "numeric",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
     }
   ).format(date);
 }
@@ -127,18 +110,12 @@ function BeerRecordCard({
   return (
     <div
       style={{
-        position:
-          "relative",
-        minHeight:
-          "220px",
-        overflow:
-          "hidden",
-        padding:
-          "18px",
-        border:
-          `1px solid ${border}`,
-        borderRadius:
-          "16px",
+        position: "relative",
+        minHeight: "220px",
+        overflow: "hidden",
+        padding: "18px",
+        border: `1px solid ${border}`,
+        borderRadius: "16px",
         background: `
           radial-gradient(
             circle at 88% 10%,
@@ -157,24 +134,15 @@ function BeerRecordCard({
     >
       <div
         style={{
-          position:
-            "absolute",
-          top:
-            "-24px",
-          right:
-            "-8px",
-          color:
-            accent,
-          fontSize:
-            "112px",
-          lineHeight:
-            1,
-          fontWeight:
-            950,
-          opacity:
-            0.055,
-          pointerEvents:
-            "none",
+          position: "absolute",
+          top: "-24px",
+          right: "-8px",
+          color: accent,
+          fontSize: "112px",
+          lineHeight: 1,
+          fontWeight: 950,
+          opacity: 0.055,
+          pointerEvents: "none",
         }}
       >
         ★
@@ -182,35 +150,23 @@ function BeerRecordCard({
 
       <div
         style={{
-          position:
-            "relative",
-          zIndex:
-            1,
-          display:
-            "flex",
-          height:
-            "100%",
-          flexDirection:
-            "column",
-          justifyContent:
-            "space-between",
-          gap:
-            "28px",
+          position: "relative",
+          zIndex: 1,
+          display: "flex",
+          height: "100%",
+          flexDirection: "column",
+          justifyContent: "space-between",
+          gap: "28px",
         }}
       >
         <div>
           <div
             style={{
-              color:
-                accent,
-              fontSize:
-                "9px",
-              fontWeight:
-                900,
-              letterSpacing:
-                "0.08em",
-              textTransform:
-                "uppercase",
+              color: accent,
+              fontSize: "9px",
+              fontWeight: 900,
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
             }}
           >
             {eyebrow}
@@ -218,14 +174,10 @@ function BeerRecordCard({
 
           <div
             style={{
-              marginTop:
-                "6px",
-              color:
-                "var(--taste-text-muted)",
-              fontSize:
-                "11px",
-              fontWeight:
-                700,
+              marginTop: "6px",
+              color: "var(--taste-text-muted)",
+              fontSize: "11px",
+              fontWeight: 700,
             }}
           >
             {title}
@@ -235,36 +187,26 @@ function BeerRecordCard({
         <div>
           <div
             style={{
-              display:
-                "flex",
-              alignItems:
-                "baseline",
-              gap:
-                "5px",
-              color:
-                accent,
+              display: "flex",
+              alignItems: "baseline",
+              gap: "5px",
+              color: accent,
             }}
           >
             <span
               style={{
-                fontSize:
-                  "42px",
-                lineHeight:
-                  0.9,
-                fontWeight:
-                  950,
-                letterSpacing:
-                  "-0.06em",
+                fontSize: "42px",
+                lineHeight: 0.9,
+                fontWeight: 950,
+                letterSpacing: "-0.06em",
               }}
             >
               {record
                 ? record.value.toLocaleString(
                     "cs-CZ",
                     {
-                      minimumFractionDigits:
-                        decimals,
-                      maximumFractionDigits:
-                        decimals,
+                      minimumFractionDigits: decimals,
+                      maximumFractionDigits: decimals,
                     }
                   )
                 : "—"}
@@ -272,36 +214,25 @@ function BeerRecordCard({
 
             <span
               style={{
-                fontSize:
-                  "13px",
-                fontWeight:
-                  850,
+                fontSize: "13px",
+                fontWeight: 850,
               }}
             >
-              {record
-                ? unit
-                : ""}
+              {record ? unit : ""}
             </span>
           </div>
 
           <div
             style={{
-              marginTop:
-                "10px",
-              color:
-                "var(--taste-text)",
-              fontSize:
-                "16px",
-              lineHeight:
-                1.15,
-              fontWeight:
-                900,
-              letterSpacing:
-                "-0.025em",
+              marginTop: "10px",
+              color: "var(--taste-text)",
+              fontSize: "16px",
+              lineHeight: 1.15,
+              fontWeight: 900,
+              letterSpacing: "-0.025em",
             }}
           >
-            {record
-              ?.beerName ??
+            {record?.beerName ??
               "Zatím bez dat"}
           </div>
         </div>
@@ -318,24 +249,87 @@ export default function ProfileRecordsCard({
   mostActiveYear,
   firstTasting,
 }: ProfileRecordsCardProps) {
+  const params =
+    useParams<{
+      id?: string | string[];
+    }>();
+
+  const profileId =
+    Array.isArray(params?.id)
+      ? params.id[0]
+      : params?.id;
+
+  const [records, setRecords] =
+    useState({
+      strongestBeer,
+      bitterestBeer,
+      highestPlatoBeer,
+    });
+
+  useEffect(() => {
+    let active = true;
+
+    setRecords({
+      strongestBeer,
+      bitterestBeer,
+      highestPlatoBeer,
+    });
+
+    if (!profileId) {
+      return () => {
+        active = false;
+      };
+    }
+
+    loadProfileTechnicalStats(
+      profileId
+    )
+      .then((stats) => {
+        if (!active) {
+          return;
+        }
+
+        setRecords({
+          strongestBeer:
+            stats.strongestBeer,
+          bitterestBeer:
+            stats.bitterestBeer,
+          highestPlatoBeer:
+            stats.highestPlatoBeer,
+        });
+      })
+      .catch((error) => {
+        console.error(
+          "Profile record fallback failed:",
+          error
+        );
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [
+    profileId,
+    strongestBeer,
+    bitterestBeer,
+    highestPlatoBeer,
+  ]);
+
   return (
     <section
       style={{
-        marginBottom:
-          "38px",
+        marginBottom: "38px",
       }}
     >
       <div
         style={{
-          marginBottom:
-            "14px",
+          marginBottom: "14px",
         }}
       >
         <div
           className="taste-label"
           style={{
-            marginBottom:
-              "5px",
+            marginBottom: "5px",
           }}
         >
           Osobní maxima
@@ -344,10 +338,8 @@ export default function ProfileRecordsCard({
         <h2
           style={{
             margin: 0,
-            fontSize:
-              "24px",
-            letterSpacing:
-              "-0.025em",
+            fontSize: "24px",
+            letterSpacing: "-0.025em",
           }}
         >
           Síň rekordů
@@ -355,16 +347,11 @@ export default function ProfileRecordsCard({
 
         <p
           style={{
-            maxWidth:
-              "680px",
-            margin:
-              "6px 0 0",
-            color:
-              "var(--taste-text-muted)",
-            fontSize:
-              "11px",
-            lineHeight:
-              1.55,
+            maxWidth: "680px",
+            margin: "6px 0 0",
+            color: "var(--taste-text-muted)",
+            fontSize: "11px",
+            lineHeight: 1.55,
           }}
         >
           Piva a období,
@@ -376,8 +363,7 @@ export default function ProfileRecordsCard({
 
       <article
         style={{
-          padding:
-            "20px",
+          padding: "20px",
           border:
             "1px solid rgba(210,118,52,0.38)",
           borderRadius:
@@ -411,7 +397,7 @@ export default function ProfileRecordsCard({
             eyebrow="Silák"
             title="Nejvyšší obsah alkoholu"
             record={
-              strongestBeer
+              records.strongestBeer
             }
             unit="%"
             decimals={1}
@@ -425,7 +411,7 @@ export default function ProfileRecordsCard({
             eyebrow="Hořká špička"
             title="Nejvyšší hodnota IBU"
             record={
-              bitterestBeer
+              records.bitterestBeer
             }
             unit="IBU"
             decimals={0}
@@ -439,7 +425,7 @@ export default function ProfileRecordsCard({
             eyebrow="Plné tělo"
             title="Nejvyšší stupňovitost"
             record={
-              highestPlatoBeer
+              records.highestPlatoBeer
             }
             unit="°P"
             decimals={1}
@@ -458,34 +444,26 @@ export default function ProfileRecordsCard({
             md:grid-cols-3
           "
           style={{
-            marginTop:
-              "14px",
+            marginTop: "14px",
           }}
         >
           <div
             style={{
-              padding:
-                "15px 16px",
+              padding: "15px 16px",
               border:
                 "1px solid rgba(226,128,49,0.38)",
-              borderRadius:
-                "13px",
+              borderRadius: "13px",
               background:
                 "linear-gradient(135deg, rgba(226,128,49,0.12), rgba(226,128,49,0.025))",
             }}
           >
             <div
               style={{
-                color:
-                  "#e28031",
-                fontSize:
-                  "9px",
-                fontWeight:
-                  850,
-                letterSpacing:
-                  "0.07em",
-                textTransform:
-                  "uppercase",
+                color: "#e28031",
+                fontSize: "9px",
+                fontWeight: 850,
+                letterSpacing: "0.07em",
+                textTransform: "uppercase",
               }}
             >
               Nejsilnější měsíc
@@ -493,33 +471,24 @@ export default function ProfileRecordsCard({
 
             <div
               style={{
-                marginTop:
-                  "7px",
-                color:
-                  "var(--taste-text)",
-                fontSize:
-                  "17px",
-                fontWeight:
-                  900,
-                letterSpacing:
-                  "-0.025em",
+                marginTop: "7px",
+                color: "var(--taste-text)",
+                fontSize: "17px",
+                fontWeight: 900,
+                letterSpacing: "-0.025em",
               }}
             >
               {formatMonth(
                 mostActiveMonth
-                  ?.key ??
-                  null
+                  ?.key ?? null
               )}
             </div>
 
             <div
               style={{
-                marginTop:
-                  "4px",
-                color:
-                  "var(--taste-text-muted)",
-                fontSize:
-                  "10px",
+                marginTop: "4px",
+                color: "var(--taste-text-muted)",
+                fontSize: "10px",
               }}
             >
               {mostActiveMonth
@@ -530,28 +499,21 @@ export default function ProfileRecordsCard({
 
           <div
             style={{
-              padding:
-                "15px 16px",
+              padding: "15px 16px",
               border:
                 "1px solid rgba(195,78,58,0.37)",
-              borderRadius:
-                "13px",
+              borderRadius: "13px",
               background:
                 "linear-gradient(135deg, rgba(195,78,58,0.11), rgba(195,78,58,0.025))",
             }}
           >
             <div
               style={{
-                color:
-                  "#c94f3d",
-                fontSize:
-                  "9px",
-                fontWeight:
-                  850,
-                letterSpacing:
-                  "0.07em",
-                textTransform:
-                  "uppercase",
+                color: "#c94f3d",
+                fontSize: "9px",
+                fontWeight: 850,
+                letterSpacing: "0.07em",
+                textTransform: "uppercase",
               }}
             >
               Nejsilnější rok
@@ -559,29 +521,21 @@ export default function ProfileRecordsCard({
 
             <div
               style={{
-                marginTop:
-                  "7px",
-                color:
-                  "var(--taste-text)",
-                fontSize:
-                  "17px",
-                fontWeight:
-                  900,
+                marginTop: "7px",
+                color: "var(--taste-text)",
+                fontSize: "17px",
+                fontWeight: 900,
               }}
             >
               {mostActiveYear
-                ?.key ??
-                "—"}
+                ?.key ?? "—"}
             </div>
 
             <div
               style={{
-                marginTop:
-                  "4px",
-                color:
-                  "var(--taste-text-muted)",
-                fontSize:
-                  "10px",
+                marginTop: "4px",
+                color: "var(--taste-text-muted)",
+                fontSize: "10px",
               }}
             >
               {mostActiveYear
@@ -592,28 +546,21 @@ export default function ProfileRecordsCard({
 
           <div
             style={{
-              padding:
-                "15px 16px",
+              padding: "15px 16px",
               border:
                 "1px solid rgba(171,112,49,0.37)",
-              borderRadius:
-                "13px",
+              borderRadius: "13px",
               background:
                 "linear-gradient(135deg, rgba(171,112,49,0.11), rgba(171,112,49,0.025))",
             }}
           >
             <div
               style={{
-                color:
-                  "#b77a36",
-                fontSize:
-                  "9px",
-                fontWeight:
-                  850,
-                letterSpacing:
-                  "0.07em",
-                textTransform:
-                  "uppercase",
+                color: "#b77a36",
+                fontSize: "9px",
+                fontWeight: 850,
+                letterSpacing: "0.07em",
+                textTransform: "uppercase",
               }}
             >
               Kde to začalo
@@ -621,18 +568,12 @@ export default function ProfileRecordsCard({
 
             <div
               style={{
-                marginTop:
-                  "7px",
-                color:
-                  "var(--taste-text)",
-                fontSize:
-                  "17px",
-                lineHeight:
-                  1.15,
-                fontWeight:
-                  900,
-                letterSpacing:
-                  "-0.02em",
+                marginTop: "7px",
+                color: "var(--taste-text)",
+                fontSize: "17px",
+                lineHeight: 1.15,
+                fontWeight: 900,
+                letterSpacing: "-0.02em",
               }}
             >
               {formatDate(
@@ -642,12 +583,9 @@ export default function ProfileRecordsCard({
 
             <div
               style={{
-                marginTop:
-                  "4px",
-                color:
-                  "var(--taste-text-muted)",
-                fontSize:
-                  "10px",
+                marginTop: "4px",
+                color: "var(--taste-text-muted)",
+                fontSize: "10px",
               }}
             >
               první zaznamenaná
