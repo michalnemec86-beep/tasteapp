@@ -1,6 +1,19 @@
+"use client";
+
+import {
+  useEffect,
+  useState,
+} from "react";
+import {
+  useParams,
+} from "next/navigation";
+
 import type {
   ProfileNumericSummary,
 } from "@/lib/profileStats";
+import {
+  loadProfileTechnicalStats,
+} from "@/lib/profileTechnicalStatsClient";
 
 type ProfileTechnicalCardProps = {
   plato: ProfileNumericSummary;
@@ -432,6 +445,72 @@ export default function ProfileTechnicalCard({
   abv,
   ibu,
 }: ProfileTechnicalCardProps) {
+  const params =
+    useParams<{
+      id?: string | string[];
+    }>();
+
+  const profileId =
+    Array.isArray(params?.id)
+      ? params.id[0]
+      : params?.id;
+
+  const [resolved, setResolved] =
+    useState({
+      plato,
+      abv,
+      ibu,
+    });
+
+  useEffect(() => {
+    let active = true;
+
+    setResolved({
+      plato,
+      abv,
+      ibu,
+    });
+
+    if (!profileId) {
+      return () => {
+        active = false;
+      };
+    }
+
+    loadProfileTechnicalStats(
+      profileId
+    )
+      .then((stats) => {
+        if (!active) {
+          return;
+        }
+
+        setResolved({
+          plato:
+            stats.plato,
+          abv:
+            stats.abv,
+          ibu:
+            stats.ibu,
+        });
+      })
+      .catch((error) => {
+        console.error(
+          "Profile technical stats fallback failed:",
+          error
+        );
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [
+    profileId,
+    plato,
+    abv,
+    ibu,
+  ]);
+
   return (
     <section
       style={{
@@ -500,7 +579,9 @@ export default function ProfileTechnicalCard({
           label="Stupňovitost"
           subtitle="Sladový profil"
           unit="°P"
-          summary={plato}
+          summary={
+            resolved.plato
+          }
           maxScale={30}
           decimals={1}
           tone="gold"
@@ -510,7 +591,9 @@ export default function ProfileTechnicalCard({
           label="Obsah alkoholu"
           subtitle="Síla"
           unit="% ABV"
-          summary={abv}
+          summary={
+            resolved.abv
+          }
           maxScale={15}
           decimals={1}
           tone="red"
@@ -520,7 +603,9 @@ export default function ProfileTechnicalCard({
           label="Hořkost"
           subtitle="Chmelový profil"
           unit="IBU"
-          summary={ibu}
+          summary={
+            resolved.ibu
+          }
           maxScale={100}
           decimals={0}
           tone="green"
