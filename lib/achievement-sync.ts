@@ -3,23 +3,104 @@ import {
 } from "@/lib/supabase/server";
 
 import {
-  buildAchievementProgress,
+  ACHIEVEMENTS,
   getAchievementByKey,
-  getHighestUnlockedBySeries,
   type AchievementDefinition,
+  type AchievementMetric,
   type AchievementSeries,
-  type AchievementTasting,
 } from "@/lib/achievements";
+
+type AchievementMetricSnapshot =
+  Record<AchievementMetric, number>;
+
+type AchievementMetricsRow = {
+  current_tastings: number | string | null;
+  current_beers: number | string | null;
+  current_breweries: number | string | null;
+  current_brewery_of_day: number | string | null;
+  current_styles: number | string | null;
+  current_countries: number | string | null;
+  current_hops: number | string | null;
+  historical_tastings: number | string | null;
+  historical_beers: number | string | null;
+  historical_breweries: number | string | null;
+  historical_styles: number | string | null;
+  historical_countries: number | string | null;
+  historical_hops: number | string | null;
+};
+
+function asNumber(
+  value: number | string | null | undefined
+) {
+  const parsed = Number(value ?? 0);
+  return Number.isFinite(parsed)
+    ? parsed
+    : 0;
+}
+
+function getHighestUnlockedBySeries(
+  metrics: AchievementMetricSnapshot
+) {
+  const highest =
+    new Map<
+      AchievementSeries,
+      AchievementDefinition
+    >();
+
+  for (const achievement of ACHIEVEMENTS) {
+    if (
+      !achievement.series ||
+      achievement.level === null ||
+      metrics[achievement.metric] <
+        achievement.target
+    ) {
+      continue;
+    }
+
+    const current =
+      highest.get(
+        achievement.series
+      );
+
+    if (
+      !current ||
+      (
+        current.level ?? 0
+      ) < achievement.level
+    ) {
+      highest.set(
+        achievement.series,
+        achievement
+      );
+    }
+  }
+
+  return highest;
+}
+
+function getUnlockedKeys(
+  metrics: AchievementMetricSnapshot
+) {
+  return new Set(
+    ACHIEVEMENTS
+      .filter(
+        (achievement) =>
+          metrics[achievement.metric] >=
+          achievement.target
+      )
+      .map(
+        (achievement) =>
+          achievement.key
+      )
+  );
+}
 
 // ==================================================
 // SYNCHRONIZACE ODZNAKŮ UŽIVATELE
 //
-// Pravidla V2:
-// - v každé progresivní kategorii evidujeme pouze
-//   nejvyšší dosažený stupeň
-// - dosažený stupeň je permanentní
-// - při vyšším stupni se starší řádek odstraní
-// - první ochutnávka zůstává samostatný speciální odznak
+// Výpočty metrik probíhají přímo v PostgreSQL přes
+// get_achievement_metrics(). Do aplikace se vrací jen
+// agregované počty místo stovek kompletních tastingů.
 // ==================================================
 
 export async function syncUserAchievements(
@@ -28,157 +109,105 @@ export async function syncUserAchievements(
   const supabase =
     await createClient();
 
-  // ==================================================
-  // OCHUTNÁVKY UŽIVATELE
-  // ==================================================
-
   const {
-    data: tastings,
-    error: tastingsError,
-  } =
-    await supabase
-      .from("tastings")
-      .select(`
-        id,
-        tasted_at,
-        show_in_timeline,
-        beer_versions (
-          beer_styles (
-            id
-          ),
-          beer_version_hops (
-            hops (
-              id,
-              name
-            )
-          )
-        ),
-        beers (
-          id,
-          breweries (
-            id,
-            country
-          ),
-          beer_styles (
-            id
-          ),
-          beer_hops (
-            hops (
-              id,
-              name
-            )
-          )
-        )
-      `)
-      .eq(
-        "user_id",
-        userId
-      )
-      .order(
-        "tasted_at",
-        {
-          ascending: true,
-        }
-      );
+    data: metricRows,
+    error: metricsError,
+  } = await supabase.rpc(
+    "get_achievement_metrics",
+    {
+      target_user_id:
+        userId,
+    }
+  );
 
-  if (tastingsError) {
+  if (metricsError) {
     throw new Error(
-      tastingsError.message
+      metricsError.message
     );
   }
 
-  const allTastings =
-    (tastings ??
-      []) as unknown as
-      AchievementTastingWithDate[];
+  const row =
+    (
+      metricRows?.[0] ??
+      null
+    ) as AchievementMetricsRow | null;
 
-  const {
-    data: breweryOfDayRows,
-    error: breweryOfDayError,
-  } =
-    await supabase
-      .from(
-        "brewery_of_day"
-      )
-      .select(
-        "brewery_id"
-      );
-
-  if (breweryOfDayError) {
+  if (!row) {
     throw new Error(
-      breweryOfDayError.message
+      "Nepodařilo se načíst metriky achievementů."
     );
   }
 
-  const breweryOfDayIds =
-    [
-      ...new Set(
-        (
-          breweryOfDayRows ??
-          []
-        ).map(
-          (row) =>
-            row.brewery_id
-        )
+  const currentMetrics:
+    AchievementMetricSnapshot = {
+    tastings:
+      asNumber(
+        row.current_tastings
       ),
-    ];
+    beers:
+      asNumber(
+        row.current_beers
+      ),
+    breweries:
+      asNumber(
+        row.current_breweries
+      ),
+    brewery_of_day:
+      asNumber(
+        row.current_brewery_of_day
+      ),
+    styles:
+      asNumber(
+        row.current_styles
+      ),
+    countries:
+      asNumber(
+        row.current_countries
+      ),
+    hops:
+      asNumber(
+        row.current_hops
+      ),
+  };
 
-  // ==================================================
-  // HISTORICKÝ STAV
-  //
-  // Timeline viditelnost ochutnávky je jediný zdroj
-  // pravdy i pro historické achievementy. Co je mimo
-  // Timeline, nesmí při zpětném importu vytvořit novou
-  // Timeline událost medaile.
-  // ==================================================
-
-  const historicalTastings =
-    allTastings.filter(
-      (tasting) =>
-        !tasting.show_in_timeline
-    );
-
-  const currentProgress =
-    buildAchievementProgress(
-      allTastings,
-      {
-        breweryOfDayIds,
-      }
-    );
-
-  const historicalProgress =
-    buildAchievementProgress(
-      historicalTastings
-    );
+  const historicalMetrics:
+    AchievementMetricSnapshot = {
+    tastings:
+      asNumber(
+        row.historical_tastings
+      ),
+    beers:
+      asNumber(
+        row.historical_beers
+      ),
+    breweries:
+      asNumber(
+        row.historical_breweries
+      ),
+    brewery_of_day: 0,
+    styles:
+      asNumber(
+        row.historical_styles
+      ),
+    countries:
+      asNumber(
+        row.historical_countries
+      ),
+    hops:
+      asNumber(
+        row.historical_hops
+      ),
+  };
 
   const currentHighest =
     getHighestUnlockedBySeries(
-      currentProgress
+      currentMetrics
     );
 
   const historicalUnlockedKeys =
-    new Set(
-      historicalProgress
-        .filter(
-          (achievement) =>
-            achievement.unlocked
-        )
-        .map(
-          (achievement) =>
-            achievement.key
-        )
+    getUnlockedKeys(
+      historicalMetrics
     );
-
-  const firstTastingProgress =
-    currentProgress.find(
-      (achievement) =>
-        achievement.key ===
-        "first_tasting"
-    );
-
-  // ==================================================
-  // UŽ ULOŽENÉ ODZNAKY
-  // ==================================================
 
   const {
     data: existingAchievements,
@@ -209,26 +238,20 @@ export async function syncUserAchievements(
   }
 
   const existing =
-    existingAchievements ??
-    [];
+    existingAchievements ?? [];
 
-  // ==================================================
-  // NEJVYŠŠÍ PERMANENTNĚ ULOŽENÝ STUPEŇ
-  // ==================================================
-
+  // Dosažené medaile jsou permanentní. Proto porovnáváme
+  // právě vypočítaný stav s nejvyšším už uloženým stupněm.
   const storedHighest =
     new Map<
       AchievementSeries,
       AchievementDefinition
     >();
 
-  for (
-    const row of
-    existing
-  ) {
+  for (const stored of existing) {
     const definition =
       getAchievementByKey(
-        row.achievement_key
+        stored.achievement_key
       );
 
     if (
@@ -246,10 +269,8 @@ export async function syncUserAchievements(
     if (
       !current ||
       (
-        current.level ??
-        0
-      ) <
-        definition.level
+        current.level ?? 0
+      ) < definition.level
     ) {
       storedHighest.set(
         definition.series,
@@ -257,17 +278,6 @@ export async function syncUserAchievements(
       );
     }
   }
-
-  // ==================================================
-  // CÍLOVÝ STAV
-  //
-  // Vybereme vyšší hodnotu z:
-  // - aktuálně vypočítané
-  // - historicky uložené
-  //
-  // Díky tomu smazání ochutnávky nikdy nesníží
-  // už jednou získanou medaili.
-  // ==================================================
 
   const desiredBySeries =
     new Map<
@@ -285,40 +295,26 @@ export async function syncUserAchievements(
     "hops",
   ];
 
-  for (
-    const series of
-    seriesList
-  ) {
+  for (const series of seriesList) {
     const calculated =
-      currentHighest.get(
-        series
-      );
-
+      currentHighest.get(series);
     const stored =
-      storedHighest.get(
-        series
-      );
+      storedHighest.get(series);
 
-    if (
-      calculated &&
-      stored
-    ) {
+    if (calculated && stored) {
       desiredBySeries.set(
         series,
         (
           (
-            calculated.level ??
-            0
+            calculated.level ?? 0
           ) >=
           (
-            stored.level ??
-            0
+            stored.level ?? 0
           )
         )
           ? calculated
           : stored
       );
-
       continue;
     }
 
@@ -327,7 +323,6 @@ export async function syncUserAchievements(
         series,
         calculated
       );
-
       continue;
     }
 
@@ -339,35 +334,21 @@ export async function syncUserAchievements(
     }
   }
 
-  // ==================================================
-  // SPECIÁLNÍ PRVNÍ OCHUTNÁVKA
-  // ==================================================
-
-  const hasStoredFirstTasting =
-    existing.some(
-      (row) =>
-        row.achievement_key ===
-        "first_tasting"
-    );
-
-  const shouldKeepFirstTasting =
-    hasStoredFirstTasting ||
-    Boolean(
-      firstTastingProgress
-        ?.unlocked
-    );
-
-  // ==================================================
-  // KLÍČE, KTERÉ MAJÍ V DB ZŮSTAT
-  // ==================================================
-
   const desiredDefinitions =
     Array.from(
       desiredBySeries.values()
     );
 
+  const hasStoredFirstTasting =
+    existing.some(
+      (stored) =>
+        stored.achievement_key ===
+        "first_tasting"
+    );
+
   if (
-    shouldKeepFirstTasting
+    hasStoredFirstTasting ||
+    currentMetrics.tastings >= 1
   ) {
     const first =
       getAchievementByKey(
@@ -381,25 +362,13 @@ export async function syncUserAchievements(
     }
   }
 
-  const desiredKeys =
-    new Set(
-      desiredDefinitions.map(
-        (achievement) =>
-          achievement.key
-      )
-    );
-
   const existingKeys =
     new Set(
       existing.map(
-        (achievement) =>
-          achievement.achievement_key
+        (stored) =>
+          stored.achievement_key
       )
     );
-
-  // ==================================================
-  // NOVÉ / VYŠŠÍ MEDAILE
-  // ==================================================
 
   const missing =
     desiredDefinitions.filter(
@@ -409,92 +378,45 @@ export async function syncUserAchievements(
         )
     );
 
-  let inserted:
-    {
-      id: number;
-      achievement_key: string;
-      unlocked_at: string;
-      show_in_timeline: boolean;
-    }[] = [];
-
-  if (
-    missing.length > 0
-  ) {
-    const rows =
-      missing.map(
-        (achievement) => ({
-          user_id:
-            userId,
-
-          achievement_key:
-            achievement.key,
-
-          /*
-           * Co bylo dosaženo jen ochutnávkami mimo
-           * Timeline, uložíme bez nové Timeline události.
-           */
-          show_in_timeline:
-            !historicalUnlockedKeys.has(
-              achievement.key
-            ),
-        })
-      );
-
-    const {
-      data,
-      error,
-    } =
-      await supabase
-        .from(
-          "user_achievements"
-        )
-        .insert(
-          rows
-        )
-        .select(`
-          id,
-          achievement_key,
-          unlocked_at,
-          show_in_timeline
-        `);
-
-    if (error) {
-      throw new Error(
-        error.message
-      );
-    }
-
-    inserted =
-      data ?? [];
+  if (missing.length === 0) {
+    return [];
   }
 
-  // ==================================================
-  // HISTORIE MEDAILÍ
-  // ==================================================
-  //
-  // Starší dosažené stupně z databáze nemažeme.
-  // Díky tomu zůstává zachována historie povýšení
-  // pro Timeline.
-  //
-  // Profil si z uložených stupňů vždy vybere jen
-  // nejvyšší dosaženou medaili.
-  //
-  // ==================================================
+  const rows =
+    missing.map(
+      (achievement) => ({
+        user_id:
+          userId,
+        achievement_key:
+          achievement.key,
+        show_in_timeline:
+          !historicalUnlockedKeys.has(
+            achievement.key
+          ),
+      })
+    );
 
-  return inserted;
+  const {
+    data,
+    error,
+  } =
+    await supabase
+      .from(
+        "user_achievements"
+      )
+      .insert(rows)
+      .select(`
+        id,
+        achievement_key,
+        unlocked_at,
+        show_in_timeline
+      `);
+
+  if (error) {
+    throw new Error(
+      error.message
+    );
+  }
+
+  return data ?? [];
 }
-
-// ==================================================
-// INTERNÍ TYP
-// ==================================================
-
-type AchievementTastingWithDate =
-  AchievementTasting & {
-    tasted_at?:
-      | string
-      | null;
-
-    show_in_timeline?:
-      | boolean
-      | null;
-  };
