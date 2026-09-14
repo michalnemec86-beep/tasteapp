@@ -182,21 +182,38 @@ export default async function ProfilesPage() {
     );
   }
 
-  const [
-    profilesResult,
-    tastingsResult,
-  ] =
-    await Promise.all([
-      supabase
-        .from("profiles")
-        .select(
-          "id, display_name, real_name, avatar_url"
-        )
-        .order(
-          "display_name"
-        ),
+  const profilesResult =
+    await supabase
+      .from("profiles")
+      .select(
+        "id, display_name, real_name, avatar_url"
+      )
+      .order(
+        "display_name"
+      );
 
-      supabase
+  if (profilesResult.error) {
+    throw new Error(
+      profilesResult.error.message
+    );
+  }
+
+  const profiles =
+    (
+      profilesResult.data ??
+      []
+    ) as ProfileRow[];
+
+  const rawTastings: RawTastingRow[] = [];
+  const tastingPageSize = 1000;
+
+  for (
+    let from = 0;
+    ;
+    from += tastingPageSize
+  ) {
+    const tastingsResult =
+      await supabase
         .from("tastings")
         .select(`
           user_id,
@@ -222,33 +239,39 @@ export default async function ProfilesPage() {
               )
             )
           )
-        `),
-    ]);
+        `)
+        .order("id", {
+          ascending: true,
+        })
+        .range(
+          from,
+          from + tastingPageSize - 1
+        );
 
-  if (profilesResult.error) {
-    throw new Error(
-      profilesResult.error.message
+    if (tastingsResult.error) {
+      throw new Error(
+        tastingsResult.error.message
+      );
+    }
+
+    const page =
+      (
+        tastingsResult.data ??
+        []
+      ) as unknown as
+        RawTastingRow[];
+
+    rawTastings.push(
+      ...page
     );
+
+    if (
+      page.length <
+      tastingPageSize
+    ) {
+      break;
+    }
   }
-
-  if (tastingsResult.error) {
-    throw new Error(
-      tastingsResult.error.message
-    );
-  }
-
-  const profiles =
-    (
-      profilesResult.data ??
-      []
-    ) as ProfileRow[];
-
-  const rawTastings =
-    (
-      tastingsResult.data ??
-      []
-    ) as unknown as
-      RawTastingRow[];
 
   const tastingsByUser =
     new Map<
