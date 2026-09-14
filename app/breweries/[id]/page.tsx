@@ -30,6 +30,55 @@ function singleRelation<T>(
   return value ?? null;
 }
 
+function normalizeComparableNumber(
+  value: number | string | null | undefined
+) {
+  if (value == null || value === "") {
+    return null;
+  }
+
+  const numericValue = Number(value);
+
+  return Number.isFinite(numericValue)
+    ? numericValue
+    : String(value);
+}
+
+function beerVersionSignature({
+  styleName,
+  plato,
+  abv,
+  ibu,
+  hopNames,
+}: {
+  styleName: string | null | undefined;
+  plato: number | string | null | undefined;
+  abv: number | string | null | undefined;
+  ibu: number | string | null | undefined;
+  hopNames: string[];
+}) {
+  return JSON.stringify({
+    styleName:
+      styleName
+        ?.trim()
+        .toLocaleLowerCase("cs") ?? null,
+    plato: normalizeComparableNumber(plato),
+    abv: normalizeComparableNumber(abv),
+    ibu: normalizeComparableNumber(ibu),
+    hopNames: [...hopNames]
+      .map((name) =>
+        name
+          .trim()
+          .toLocaleLowerCase("cs")
+      )
+      .sort((a, b) =>
+        a.localeCompare(b, "cs", {
+          sensitivity: "base",
+        })
+      ),
+  });
+}
+
 function breweryRelationLabel(
   relationType: string,
   direction: "from" | "to"
@@ -254,13 +303,13 @@ export default async function BreweryDetailPage({
 
   const breweryBeers =
     (brewery.beers ?? [])
-      .map((beer) => ({
-        ...beer,
-        beer_styles:
+      .map((beer) => {
+        const beerStyle =
           singleRelation(
             beer.beer_styles
-          ),
-        hopNames:
+          );
+
+        const hopNames =
           (
             beer.beer_hops ??
             []
@@ -276,20 +325,36 @@ export default async function BreweryDetailPage({
                 name
               ): name is string =>
                 Boolean(name)
-            ),
-        versionHistory:
+            );
+
+        const seenVersionSignatures =
+          new Set([
+            beerVersionSignature({
+              styleName:
+                beerStyle?.name,
+              plato:
+                beer.plato,
+              abv:
+                beer.abv,
+              ibu:
+                beer.ibu,
+              hopNames,
+            }),
+          ]);
+
+        const versionHistory =
           (beer.beer_versions ?? [])
             .filter(
               (version) =>
                 !version.is_current
             )
-            .map((version) => ({
-              ...version,
-              beer_styles:
+            .map((version) => {
+              const versionStyle =
                 singleRelation(
                   version.beer_styles
-                ),
-              hopNames:
+                );
+
+              const versionHopNames =
                 (
                   version.beer_version_hops ??
                   []
@@ -304,13 +369,60 @@ export default async function BreweryDetailPage({
                       name
                     ): name is string =>
                       Boolean(name)
-                  ),
-            }))
+                  );
+
+              return {
+                ...version,
+                beer_styles:
+                  versionStyle,
+                hopNames:
+                  versionHopNames,
+              };
+            })
             .sort((a, b) =>
               (b.version_year ?? 0) -
               (a.version_year ?? 0)
-            ),
-      }))
+            )
+            .filter((version) => {
+              const signature =
+                beerVersionSignature({
+                  styleName:
+                    version
+                      .beer_styles
+                      ?.name,
+                  plato:
+                    version.plato,
+                  abv:
+                    version.abv,
+                  ibu:
+                    version.ibu,
+                  hopNames:
+                    version.hopNames,
+                });
+
+              if (
+                seenVersionSignatures.has(
+                  signature
+                )
+              ) {
+                return false;
+              }
+
+              seenVersionSignatures.add(
+                signature
+              );
+
+              return true;
+            });
+
+        return {
+          ...beer,
+          beer_styles:
+            beerStyle,
+          hopNames,
+          versionHistory,
+        };
+      })
       .sort((a, b) =>
         a.name.localeCompare(
           b.name,
@@ -807,6 +919,9 @@ export default async function BreweryDetailPage({
                                   : null,
                                 version.ibu != null
                                   ? `IBU ${version.ibu}`
+                                  : null,
+                                version.hopNames.length > 0
+                                  ? `Chmel: ${version.hopNames.join(", ")}`
                                   : null,
                               ].filter(Boolean);
 
