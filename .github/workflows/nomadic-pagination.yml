@@ -34,6 +34,9 @@ jobs:
       - name: Apply tech batch
         run: node scripts/apply-tech-batch.cjs
 
+      - name: Complete non-alcoholic data wiring
+        run: node scripts/fix-new-tasting-nonalko.cjs
+
       - name: Build
         run: npm run build
 
