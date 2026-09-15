@@ -303,6 +303,78 @@ export default async function BreweryDetailPage({
     );
   }
 
+  const [asCollaboratorResult, asPrimaryResult] = await Promise.all([
+    supabase
+      .from("beer_version_collaborators")
+      .select(`
+        display_order,
+        beer_versions (
+          id,
+          version_year,
+          is_current,
+          beers ( id, name ),
+          breweries ( id, name )
+        )
+      `)
+      .eq("brewery_id", breweryId),
+    supabase
+      .from("beer_version_collaborators")
+      .select(`
+        display_order,
+        breweries ( id, name ),
+        beer_versions!inner (
+          id,
+          version_year,
+          is_current,
+          brewery_id,
+          beers ( id, name )
+        )
+      `)
+      .eq("beer_versions.brewery_id", breweryId),
+  ]);
+
+  if (asCollaboratorResult.error) {
+    throw new Error(asCollaboratorResult.error.message);
+  }
+
+  if (asPrimaryResult.error) {
+    throw new Error(asPrimaryResult.error.message);
+  }
+
+  const collaborationItems = [
+    ...(asCollaboratorResult.data ?? []).flatMap((row) => {
+      const version = singleRelation(row.beer_versions);
+      const beer = version ? singleRelation(version.beers) : null;
+      const primary = version ? singleRelation(version.breweries) : null;
+      if (!version || !beer || !primary) return [];
+      return [{
+        key: "collaborator-" + version.id + "-" + breweryId,
+        versionId: version.id,
+        versionYear: version.version_year,
+        beer,
+        primary,
+        collaborator: { id: brewery.id, name: brewery.name },
+      }];
+    }),
+    ...(asPrimaryResult.data ?? []).flatMap((row) => {
+      const version = singleRelation(row.beer_versions);
+      const beer = version ? singleRelation(version.beers) : null;
+      const collaborator = singleRelation(row.breweries);
+      if (!version || !beer || !collaborator) return [];
+      return [{
+        key: "primary-" + version.id + "-" + collaborator.id,
+        versionId: version.id,
+        versionYear: version.version_year,
+        beer,
+        primary: { id: brewery.id, name: brewery.name },
+        collaborator,
+      }];
+    }),
+  ].sort((a, b) =>
+    a.beer.name.localeCompare(b.beer.name, "cs", { sensitivity: "base" }) ||
+    (b.versionYear ?? 9999) - (a.versionYear ?? 9999)
+  );
+
   const breweryBeers =
     (brewery.beers ?? [])
       .map((beer) => {
@@ -1067,6 +1139,71 @@ export default async function BreweryDetailPage({
             </div>
           )}
         </div>
+
+        {collaborationItems.length > 0 && (
+          <div
+            style={{
+              marginTop: "24px",
+              paddingTop: "18px",
+              borderTop: "1px solid var(--taste-border)",
+            }}
+          >
+            <div className="taste-label" style={{ marginBottom: "10px" }}>
+              Kolaborace
+            </div>
+
+            <div style={{ display: "grid", gap: "8px" }}>
+              {collaborationItems.map((item) => (
+                <div
+                  key={item.key}
+                  style={{
+                    padding: "10px 12px",
+                    border: "1px solid var(--taste-border)",
+                    borderRadius: "10px",
+                    background: "rgba(255,255,255,0.018)",
+                    fontSize: "11px",
+                    lineHeight: 1.45,
+                  }}
+                >
+                  <Link
+                    href={"/breweries/" + item.primary.id}
+                    className="taste-entity-link"
+                    style={{ color: "var(--taste-text)", fontWeight: 750 }}
+                  >
+                    {item.primary.name}
+                  </Link>
+                  <span style={{ marginLeft: "5px", color: "var(--taste-text-muted)", fontSize: "10px" }}>
+                    +{" "}
+                    <Link
+                      href={"/breweries/" + item.collaborator.id}
+                      className="taste-entity-link"
+                      style={{ color: "inherit" }}
+                    >
+                      {item.collaborator.name}
+                    </Link>
+                  </span>
+                  <span style={{ color: "var(--taste-text-muted)" }}> · </span>
+                  <Link
+                    href={"/beers/" + item.beer.id}
+                    className="taste-entity-link"
+                    style={{ color: "var(--taste-text-soft)" }}
+                  >
+                    {item.beer.name}
+                  </Link>
+                  {item.versionYear != null && (
+                    <span style={{ marginLeft: "5px", color: "var(--taste-text-muted)", fontSize: "9px" }}>
+                      ({item.versionYear})
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            <div style={{ marginTop: "8px", color: "var(--taste-text-muted)", fontSize: "9px" }}>
+              Kolaborace jsou informační vazby. Do statistik pivovaru se započítává pouze hlavní pivovar konkrétní verze.
+            </div>
+          </div>
+        )}
 
         {relationItems.length > 0 && (
           <div
