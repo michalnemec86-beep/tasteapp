@@ -7,17 +7,16 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  patch-build-commit:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           ref: preimport-ui-cleanup
-          fetch-depth: 0
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -28,73 +27,5 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Fix patch helper
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          path = Path("scripts/preimport-ui-cleanup.mjs")
-          text = path.read_text()
-
-          old = '  const matches = [...input.matchAll(regex)];\n'
-          new = '  const matcher = new RegExp(regex.source, regex.flags.includes("g") ? regex.flags : regex.flags + "g");\n  const matches = [...input.matchAll(matcher)];\n'
-          if old not in text:
-              raise SystemExit("patch helper target not found")
-          text = text.replace(old, new, 1)
-
-          old = '  const count = input.split(from).length - 1;\n  if (count !== 1) {\n'
-          new = '  const count = input.split(from).length - 1;\n  if (path === "app/page.tsx" && from.startsWith("  breweries:\\n") && count === 2) {\n    write(path, input.split(from).join(to));\n    return;\n  }\n  if (count !== 1) {\n'
-          if old not in text:
-              raise SystemExit("replaceOne helper target not found")
-          text = text.replace(old, new, 1)
-
-          old = '/  const totalStyles =[\\s\\S]*?\\n    \\)\\.size;\\n\\n  const totalCountries = new Set\\([\\s\\S]*?\\n    \\)\\.size;/'
-          new = '/  const totalStyles =[\\s\\S]*?\\n  const totalCountries =[\\s\\S]*?\\n    \\)\\.size;/'
-          if old not in text:
-              raise SystemExit("homepage totals regex target not found")
-          text = text.replace(old, new, 1)
-
-          path.write_text(text)
-          PY
-
-      - name: Apply cleanup patch
-        run: node scripts/preimport-ui-cleanup.mjs
-
-      - name: Apply compatibility fixes
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          path = Path("app/stats/RankingCardClient.tsx")
-          text = path.read_text()
-          old = '''type RankingItem = {
-            id: string | number;
-            name: string;
-            count: number;
-          };'''
-          new = '''type RankingItem = {
-            id: string | number;
-            name: string;
-            count: number;
-            flag?: string;
-          };'''
-          # Source uses two-space indentation, normalize the literal instead of guessing formatting.
-          old = old.replace("          ", "")
-          new = new.replace("          ", "")
-          if old not in text:
-              raise SystemExit("ranking item type target not found")
-          path.write_text(text.replace(old, new, 1))
-          PY
-
       - name: Build
         run: npm run build
-
-      - name: Commit validated changes
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          if git diff --cached --quiet; then
-            echo "No generated changes to commit."
-            exit 0
-          fi
-          git commit -m "Apply pre-import UI cleanup"
-          git push origin HEAD:preimport-ui-cleanup
