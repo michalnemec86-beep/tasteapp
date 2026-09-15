@@ -9,13 +9,13 @@ source = source.replace(
 );
 
 source = source.replace(
-  'router.replace(query ? `\\${pathname}?\\${query}` : pathname, { scroll: false });',
-  'router.replace(query ? pathname + "?" + query : pathname, { scroll: false });'
+  '`' + '${pathname}' + '?' + '${query}' + '`',
+  '`\\${pathname}?\\${query}`'
 );
 
 source = source.replace(
-  '<span key={`ellipsis-\\${index}`}',
-  '<span key={"ellipsis-" + index}'
+  '`ellipsis-' + '${index}' + '`',
+  '`ellipsis-\\${index}`'
 );
 
 fs.writeFileSync(path, source);
