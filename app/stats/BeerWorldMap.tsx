@@ -43,6 +43,13 @@ type BeerWorldMapProps = {
   focusEurope?: boolean;
 };
 
+type MapShadeStep = {
+  min: number;
+  max: number;
+  label: string;
+  fill: string;
+};
+
 const COUNTRY_ALIASES: Record<string, string> = {
   cesko: "CZ",
   "ceska republika": "CZ",
@@ -58,6 +65,75 @@ const COUNTRY_ALIASES: Record<string, string> = {
   rusko: "RU",
   vietnam: "VN",
 };
+
+const MAP_SHADE_STEPS: MapShadeStep[] = [
+  {
+    min: 1,
+    max: 1,
+    label: "1",
+    fill: "#4a3218",
+  },
+  {
+    min: 2,
+    max: 3,
+    label: "2–3",
+    fill: "#5b3b19",
+  },
+  {
+    min: 4,
+    max: 6,
+    label: "4–6",
+    fill: "#6d461a",
+  },
+  {
+    min: 7,
+    max: 10,
+    label: "7–10",
+    fill: "#80511c",
+  },
+  {
+    min: 11,
+    max: 20,
+    label: "11–20",
+    fill: "#945e20",
+  },
+  {
+    min: 21,
+    max: 35,
+    label: "21–35",
+    fill: "#a96c24",
+  },
+  {
+    min: 36,
+    max: 50,
+    label: "36–50",
+    fill: "#bc7b29",
+  },
+  {
+    min: 51,
+    max: 75,
+    label: "51–75",
+    fill: "#cf8a2e",
+  },
+  {
+    min: 76,
+    max: 100,
+    label: "76–100",
+    fill: "#de9a35",
+  },
+  {
+    min: 101,
+    max: 200,
+    label: "101–200",
+    fill: "#edaa3f",
+  },
+  {
+    min: 201,
+    max: Number.POSITIVE_INFINITY,
+    label: "201+",
+    fill: "#ffc052",
+  },
+];
 
 function normalizeCountryName(value: string) {
   return value
@@ -78,6 +154,14 @@ function getCountryCode(countryName: string) {
   return (
     countries.getAlpha2Code(countryName, "cs") ??
     countries.getSimpleAlpha2Code(countryName, "cs")
+  );
+}
+
+function getCountryShade(value: number) {
+  return (
+    MAP_SHADE_STEPS.find(
+      (step) => value >= step.min && value <= step.max
+    ) ?? MAP_SHADE_STEPS[MAP_SHADE_STEPS.length - 1]
   );
 }
 
@@ -233,9 +317,6 @@ export default function BeerWorldMap({
 
   function styleCountry({
     countryValue,
-    minValue,
-    maxValue,
-    color,
   }: CountryContext<string | number>): CSSProperties {
     const value =
       typeof countryValue === "number"
@@ -253,18 +334,11 @@ export default function BeerWorldMap({
       };
     }
 
-    const range = maxValue - minValue;
-    const ratio =
-      range <= 0
-        ? 1
-        : Math.max(
-            0,
-            Math.min(1, (value - minValue) / range)
-          );
+    const shade = getCountryShade(value);
 
     return {
-      fill: color,
-      fillOpacity: 0.28 + ratio * 0.72,
+      fill: shade.fill,
+      fillOpacity: 1,
       stroke: "#9b773b",
       strokeWidth: 0.65,
       strokeOpacity: 0.78,
@@ -533,13 +607,54 @@ export default function BeerWorldMap({
       {data.length > 0 && (
         <div
           style={{
+            marginTop: "4px",
+            padding: "10px 0 12px",
+            borderTop:
+              "1px solid rgba(231,166,47,0.07)",
+          }}
+        >
+          <div
+            style={{
+              marginBottom: "7px",
+              color: "var(--taste-text-muted)",
+              fontSize: "9px",
+              fontWeight: 700,
+              letterSpacing: "0.06em",
+              textTransform: "uppercase",
+            }}
+          >
+            Počet vypitých piv ze země
+          </div>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns:
+                "repeat(auto-fit, minmax(66px, 1fr))",
+              gap: "5px",
+            }}
+          >
+            <MapLegendItem label="0" fill="#24211c" />
+            {MAP_SHADE_STEPS.map((step) => (
+              <MapLegendItem
+                key={step.label}
+                label={step.label}
+                fill={step.fill}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {data.length > 0 && (
+        <div
+          style={{
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
             gap: "14px",
             flexWrap: "wrap",
-            marginTop: "2px",
-            paddingTop: "13px",
+            paddingTop: "11px",
             borderTop:
               "1px solid rgba(231,166,47,0.09)",
             color: "var(--taste-text-muted)",
@@ -581,6 +696,44 @@ export default function BeerWorldMap({
         </div>
       )}
     </section>
+  );
+}
+
+function MapLegendItem({
+  label,
+  fill,
+}: {
+  label: string;
+  fill: string;
+}) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: "6px",
+        minWidth: 0,
+        padding: "5px 6px",
+        borderRadius: "7px",
+        background: "rgba(255,255,255,0.018)",
+        color: "var(--taste-text-muted)",
+        fontSize: "9px",
+        whiteSpace: "nowrap",
+      }}
+    >
+      <span
+        aria-hidden="true"
+        style={{
+          width: "14px",
+          height: "8px",
+          flexShrink: 0,
+          borderRadius: "3px",
+          border: "1px solid rgba(255,255,255,0.08)",
+          background: fill,
+        }}
+      />
+      <span>{label}×</span>
+    </div>
   );
 }
 
