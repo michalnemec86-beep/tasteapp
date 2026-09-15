@@ -1,6 +1,7 @@
 import {
   createClient,
 } from "@/lib/supabase/server";
+import { FEATURES } from "@/lib/features";
 
 import {
   ACHIEVEMENTS,
@@ -106,6 +107,10 @@ function getUnlockedKeys(
 export async function syncUserAchievements(
   userId: string
 ) {
+  if (!FEATURES.achievements) {
+    return [];
+  }
+
   const supabase =
     await createClient();
 

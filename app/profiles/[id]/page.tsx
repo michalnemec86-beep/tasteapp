@@ -36,6 +36,7 @@ import ProfileBeerDnaCard from "./ProfileBeerDnaCard";
 import ProfileTechnicalCard from "./ProfileTechnicalCard";
 import ProfilePackagingCard from "./ProfilePackagingCard";
 import ProfileBreweriesCard from "./ProfileBreweriesCard";
+import ProfileBrandsCard from "./ProfileBrandsCard";
 import ProfileWorldCard from "./ProfileWorldCard";
 import ProfileHopsCard from "./ProfileHopsCard";
 import ProfileRecordsCard from "./ProfileRecordsCard";
@@ -154,6 +155,11 @@ export default async function ProfilePage({
         beer_versions (
           id,
           version_year,
+          breweries (
+            id,
+            name,
+            country
+          ),
           beer_styles (
             id,
             name
@@ -168,6 +174,10 @@ export default async function ProfilePage({
         beers (
           id,
           name,
+          brands (
+            id,
+            name
+          ),
           breweries (
             id,
             name,
@@ -358,6 +368,10 @@ export default async function ProfilePage({
             beerVersion
               ? {
                   ...beerVersion,
+                  breweries:
+                    singleRelation(
+                      beerVersion.breweries
+                    ),
                   beer_styles:
                     singleRelation(
                       beerVersion.beer_styles
@@ -381,6 +395,11 @@ export default async function ProfilePage({
           beers: beer
             ? {
                 ...beer,
+
+                brands:
+                  singleRelation(
+                    beer.brands
+                  ),
 
                 breweries:
                   singleRelation(
@@ -460,6 +479,20 @@ export default async function ProfilePage({
         "rgba(242,181,68,0.16)",
       wash:
         "rgba(242,181,68,0.075)",
+    },
+    {
+      label: "Top značka",
+      value:
+        tasteStats.brands[0]
+          ?.name ?? "—",
+      detail:
+        tasteStats.brands[0]
+          ? `${tasteStats.brands[0].count}× v ochutnávkách`
+          : "Zatím bez dat",
+      accent: "#d98a43",
+      border: "rgba(217,138,67,0.38)",
+      glow: "rgba(217,138,67,0.16)",
+      wash: "rgba(217,138,67,0.075)",
     },
     {
       label: "Top pivovar",
@@ -856,6 +889,17 @@ export default async function ProfilePage({
           {
             icon: (
               <AppIcon
+                name="label"
+                size={18}
+              />
+            ),
+            accent: "#d98945",
+            value: profileStats.uniqueBrands,
+            label: "Značek",
+          },
+          {
+            icon: (
+              <AppIcon
                 name="brewery"
                 size={18}
               />
@@ -1083,6 +1127,10 @@ export default async function ProfilePage({
         items={
           tasteStats.packaging
         }
+      />
+
+      <ProfileBrandsCard
+        items={tasteStats.brands}
       />
 
       <ProfileBreweriesCard
@@ -1380,10 +1428,11 @@ export default async function ProfilePage({
                               "-0.025em",
                           }}
                         >
-                          {tasting
-                            .beers
-                            ?.name ??
-                            "Neznámé pivo"}
+                          {tasting.beers?.id ? (
+                            <Link href={`/beers/${tasting.beers.id}`} className="taste-entity-link" style={{ color: "inherit" }}>
+                              {tasting.beers.name}
+                            </Link>
+                          ) : "Neznámé pivo"}
                         </div>
 
                         {quantity >
@@ -1413,18 +1462,13 @@ export default async function ProfilePage({
                             "12px",
                         }}
                       >
-                        {tasting.beers?.breweries ? (
+                        {(tasting.beer_versions?.breweries ?? tasting.beers?.breweries) ? (
                           <Link
-                            href={`/breweries/${tasting.beers.breweries.id}`}
-                            style={{
-                              color: "inherit",
-                              textDecoration:
-                                "none",
-                              borderBottom:
-                                "1px solid rgba(231,166,47,0.28)",
-                            }}
+                            href={`/breweries/${(tasting.beer_versions?.breweries ?? tasting.beers?.breweries)!.id}`}
+                            className="taste-entity-link"
+                            style={{ color: "inherit" }}
                           >
-                            {tasting.beers.breweries.name}
+                            {(tasting.beer_versions?.breweries ?? tasting.beers?.breweries)!.name}
                           </Link>
                         ) : (
                           "Neznámý pivovar"
@@ -1437,11 +1481,8 @@ export default async function ProfilePage({
                           ? ` · ${tasting.beers.beer_styles.name}`
                           : ""}
 
-                        {tasting
-                          .beers
-                          ?.breweries
-                          ?.country
-                          ? ` · ${tasting.beers.breweries.country}`
+                        {(tasting.beer_versions?.breweries ?? tasting.beers?.breweries)?.country
+                          ? ` · ${(tasting.beer_versions?.breweries ?? tasting.beers?.breweries)!.country}`
                           : ""}
                       </div>
                     </div>

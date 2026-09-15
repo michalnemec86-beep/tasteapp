@@ -1,3 +1,5 @@
+import { FEATURES } from "@/lib/features";
+
 import type {
   AchievementMedal,
   AchievementProgress,
@@ -1006,6 +1008,10 @@ export default function ProfileAchievementJourneys({
   series,
   earnedSeriesCount,
 }: ProfileAchievementJourneysProps) {
+  if (!FEATURES.achievements) {
+    return null;
+  }
+
   const earnedMedalCount =
     series.reduce(
       (

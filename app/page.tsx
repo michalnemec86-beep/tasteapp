@@ -78,6 +78,10 @@ type CatalogBeerRow = {
   abv: number | null;
   ibu: number | null;
 
+  brands:
+    | { id: number; name: string }
+    | null;
+
   breweries:
     | BreweryRow
     | null;
@@ -90,6 +94,10 @@ type CatalogBeerRow = {
 type TastingBeerRow = {
   id: number;
   name: string;
+
+  brands:
+    | { id: number; name: string }
+    | null;
 
   breweries:
     | BreweryRow
@@ -152,6 +160,7 @@ type TastingRow = {
     | {
         id: number;
         version_year: number | null;
+        breweries: BreweryRow | null;
         beer_styles: BeerStyleRow | null;
         beer_version_hops:
           | { hops: HopRow | null }[]
@@ -286,6 +295,11 @@ export default async function HomePage() {
         beer_versions (
           id,
           version_year,
+          breweries (
+            id,
+            name,
+            country
+          ),
           beer_styles (
             id,
             name
@@ -300,6 +314,10 @@ export default async function HomePage() {
         beers (
           id,
           name,
+          brands (
+            id,
+            name
+          ),
           beer_versions (
             id
           ),
@@ -743,70 +761,32 @@ export default async function HomePage() {
       0
     );
 
-  const totalBrands =
-    new Set(
-      allTastings
-        .map(
-          (tasting) =>
-            tasting.beers
-              ?.id
-        )
-        .filter(
-          (id) =>
-            id != null
-        )
-    ).size;
+  const totalBeers = new Set(
+    allTastings.map((tasting) => tasting.beers?.id).filter((id) => id != null)
+  ).size;
 
-  const totalBreweries =
-    new Set(
-      allTastings
-        .map(
-          (tasting) =>
-            tasting.beers
-              ?.breweries
-              ?.id
-        )
-        .filter(
-          (id) =>
-            id != null
-        )
-    ).size;
+  const totalBrands = new Set(
+    allTastings.map((tasting) => tasting.beers?.brands?.id).filter((id) => id != null)
+  ).size;
 
-  const totalStyles =
-    new Set(
-      allTastings
-        .map(
-          (tasting) =>
-            tasting.beers
-              ?.beer_styles
-              ?.id
-        )
-        .filter(
-          (id) =>
-            id != null
-        )
-    ).size;
+  const totalBreweries = new Set(
+    allTastings
+      .map((tasting) => tasting.beer_versions?.breweries?.id ?? tasting.beers?.breweries?.id)
+      .filter((id) => id != null)
+  ).size;
 
-  const totalCountries =
-    new Set(
-      allTastings
-        .map(
-          (tasting) =>
-            tasting.beers
-              ?.breweries
-              ?.country
-              ?.normalize(
-                "NFD"
-              )
-              .replace(
-                /[\u0300-\u036f]/g,
-                ""
-              )
-              .toLowerCase()
-              .trim()
-        )
-        .filter(Boolean)
-    ).size;
+  const totalStyles = new Set(
+    allTastings
+      .map((tasting) => (tasting.beer_versions?.beer_styles ?? tasting.beers?.beer_styles)?.id)
+      .filter((id) => id != null)
+  ).size;
+
+  const totalCountries = new Set(
+    allTastings
+      .map((tasting) => (tasting.beer_versions?.breweries ?? tasting.beers?.breweries)?.country
+        ?.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim())
+      .filter(Boolean)
+  ).size;
 
   // ==================================================
   // TIMELINE
@@ -951,6 +931,28 @@ export default async function HomePage() {
             accent: "#f2b63f",
             value: totalTastings,
             label: "Vypitých piv",
+          },
+          {
+            icon: (
+              <AppIcon
+                name="label"
+                size={18}
+              />
+            ),
+            accent: "#d98a43",
+            value: totalBeers,
+            label: "Různých piv",
+          },
+          {
+            icon: (
+              <AppIcon
+                name="label"
+                size={18}
+              />
+            ),
+            accent: "#c46f38",
+            value: totalBrands,
+            label: "Značek",
           },
           {
             icon: (
@@ -1223,7 +1225,7 @@ export default async function HomePage() {
 
           <StatsRankingCard
             title="Nejčastější piva"
-            subtitle="Konkrétní značky"
+            subtitle="Konkrétní piva"
             icon={
               <AppIcon
                 name="label"
@@ -1232,8 +1234,18 @@ export default async function HomePage() {
             }
             accent="#e7a62f"
             items={
-              globalStats.brands
+              globalStats.beers
             }
+            getItemHref={(item) => `/beers/${item.id}`}
+          />
+
+          <StatsRankingCard
+            title="Značky"
+            subtitle="Nejčastější produktové značky"
+            icon={<AppIcon name="label" size={20} />}
+            accent="#d98a43"
+            items={globalStats.brands}
+            getItemHref={(item) => `/brands/${item.id}`}
           />
 
           <StatsRankingCard
@@ -1249,6 +1261,7 @@ export default async function HomePage() {
             items={
               globalStats.countries
             }
+            getItemHref={(item) => `/stats?country=${encodeURIComponent(item.name)}`}
           />
 
         </aside>
@@ -1345,17 +1358,10 @@ function TastingTimelineCard({
     tasting.beers?.name ??
     "Neznámé pivo";
 
-  const breweryName =
-    tasting.beers
-      ?.breweries
-      ?.name ??
-    null;
+  const tastingBrewery = tasting.beer_versions?.breweries ?? tasting.beers?.breweries ?? null;
 
-  const breweryId =
-    tasting.beers
-      ?.breweries
-      ?.id ??
-    null;
+  const breweryName = tastingBrewery?.name ?? null;
+  const breweryId = tastingBrewery?.id ?? null;
 
   const showVersionYear =
     (
@@ -1389,10 +1395,7 @@ function TastingTimelineCard({
     tasting.ibu !== null
       ? `IBU ${tasting.ibu}`
       : null,
-    tasting.beers
-      ?.breweries
-      ?.country ??
-      null,
+    tastingBrewery?.country ?? null,
     packaging
       ? packaging.label
       : null,
@@ -1581,14 +1584,16 @@ function TastingTimelineCard({
                               "inherit",
                             textDecoration:
                               "none",
-                            borderBottom:
-                              `1px solid ${visual.border}`,
                           }}
                         >
                           {breweryName}
                         </Link>
                         {" – "}
-                        {beerName}
+                        {tasting.beers?.id ? (
+                          <Link href={`/beers/${tasting.beers.id}`} className="taste-entity-link" style={{ color: "inherit" }}>
+                            {beerName}
+                          </Link>
+                        ) : beerName}
                       </>
                     ) : (
                       beerName

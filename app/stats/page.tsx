@@ -75,6 +75,11 @@ export default async function StatsPage({
           packaging,
           quantity,
           beer_versions (
+            breweries (
+              id,
+              name,
+              country
+            ),
             beer_styles (
               id,
               name
@@ -89,6 +94,10 @@ export default async function StatsPage({
           beers (
             id,
             name,
+            brands (
+              id,
+              name
+            ),
             breweries (
               id,
               name,
@@ -144,6 +153,9 @@ export default async function StatsPage({
         beer_versions: beerVersion
           ? {
               ...beerVersion,
+              breweries: singleRelation(
+                beerVersion.breweries
+              ),
               beer_styles: singleRelation(
                 beerVersion.beer_styles
               ),
@@ -161,6 +173,9 @@ export default async function StatsPage({
         beers: beer
           ? {
               ...beer,
+              brands: singleRelation(
+                beer.brands
+              ),
               breweries: singleRelation(
                 beer.breweries
               ),
@@ -256,6 +271,7 @@ export default async function StatsPage({
   const rawStats = buildTasteStats(filteredTastings);
 
   const stats = {
+    beers: sortRanking(rawStats.beers, sortMode),
     brands: sortRanking(rawStats.brands, sortMode),
     breweries: sortRanking(
       rawStats.breweries,
@@ -279,16 +295,23 @@ export default async function StatsPage({
     0
   );
 
-  const totalBrands = new Set(
+  const totalBeers = new Set(
     filteredTastings
       .map((tasting) => tasting.beers?.id)
       .filter((id) => id != null)
   ).size;
 
+  const totalBrands = new Set(
+    filteredTastings
+      .map((tasting) => tasting.beers?.brands?.id)
+      .filter((id) => id != null)
+  ).size;
+
   const totalBreweries = new Set(
     filteredTastings
-      .map(
-        (tasting) => tasting.beers?.breweries?.id
+      .map((tasting) =>
+        tasting.beer_versions?.breweries?.id ??
+        tasting.beers?.breweries?.id
       )
       .filter((id) => id != null)
   ).size;
@@ -309,7 +332,8 @@ export default async function StatsPage({
   const totalCountries = new Set(
     filteredTastings
       .map((tasting) =>
-        tasting.beers?.breweries?.country
+        (tasting.beer_versions?.breweries ?? tasting.beers?.breweries)
+          ?.country
           ?.normalize("NFD")
           .replace(/[\u0300-\u036f]/g, "")
           .toLowerCase()
@@ -331,7 +355,7 @@ export default async function StatsPage({
         imageUrl="/images/heroes/stats.jpg"
         visualVariant="stats"
         title="Statistiky"
-        subtitle="Podívej se na svůj pivní svět v číslech. Piva, pivovary, styly, země i chmely na jednom místě a s přímými prokliky do katalogu."
+        subtitle="Podívej se na svůj pivní svět v číslech. Piva, značky, pivovary, styly, země i chmely na jednom místě a s přímými prokliky na související data."
         action={
           <Link
             href="/breweries"
@@ -354,8 +378,14 @@ export default async function StatsPage({
           {
             icon: <AppIcon name="label" size={18} />,
             accent: "#e88835",
-            value: totalBrands,
+            value: totalBeers,
             label: "Různých piv",
+          },
+          {
+            icon: <AppIcon name="label" size={18} />,
+            accent: "#d98a43",
+            value: totalBrands,
+            label: "Značek",
           },
           {
             icon: <AppIcon name="brewery" size={18} />,
@@ -438,7 +468,16 @@ export default async function StatsPage({
             tone="gold"
             subtitle="Konkrétní ochutnaná piva"
             icon={<AppIcon name="label" size={20} />}
+            items={stats.beers}
+          />
+
+          <RankingCardClient
+            title="Značky"
+            tone="honey"
+            subtitle="Produktové značky napříč pivovary a historií"
+            icon={<AppIcon name="label" size={20} />}
             items={stats.brands}
+            itemHrefPrefix="/brands"
           />
 
           <RankingCardClient

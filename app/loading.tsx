@@ -1,6 +1,7 @@
 export default function Loading() {
   return (
     <main
+      className="taste-route-loading"
       aria-busy="true"
       aria-label="Načítání TasteAppu"
       style={{

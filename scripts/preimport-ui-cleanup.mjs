@@ -11,6 +11,10 @@ function write(path, value) {
 function replaceOne(path, from, to) {
   const input = read(path);
   const count = input.split(from).length - 1;
+  if (path === "app/page.tsx" && from.startsWith("  breweries:\n") && count === 2) {
+    write(path, input.split(from).join(to));
+    return;
+  }
   if (count !== 1) {
     throw new Error(`${path}: expected 1 exact match, found ${count}`);
   }
@@ -19,7 +23,8 @@ function replaceOne(path, from, to) {
 
 function replaceRegex(path, regex, to, expected = 1) {
   const input = read(path);
-  const matches = [...input.matchAll(regex)];
+  const matcher = new RegExp(regex.source, regex.flags.includes("g") ? regex.flags : regex.flags + "g");
+  const matches = [...input.matchAll(matcher)];
   if (matches.length !== expected) {
     throw new Error(`${path}: expected ${expected} regex matches, found ${matches.length}: ${regex}`);
   }
@@ -261,7 +266,7 @@ replaceRegex(
 );
 replaceRegex(
   "app/page.tsx",
-  /  const totalStyles =[\s\S]*?\n    \)\.size;\n\n  const totalCountries = new Set\([\s\S]*?\n    \)\.size;/,
+  /  const totalStyles =[\s\S]*?\n  const totalCountries =[\s\S]*?\n    \)\.size;/,
   `  const totalStyles = new Set(\n    allTastings\n      .map((tasting) => (tasting.beer_versions?.beer_styles ?? tasting.beers?.beer_styles)?.id)\n      .filter((id) => id != null)\n  ).size;\n\n  const totalCountries = new Set(\n    allTastings\n      .map((tasting) => (tasting.beer_versions?.breweries ?? tasting.beers?.breweries)?.country\n        ?.normalize("NFD").replace(/[\\u0300-\\u036f]/g, "").toLowerCase().trim())\n      .filter(Boolean)\n  ).size;`
 );
 replaceOne(

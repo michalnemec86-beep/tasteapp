@@ -226,14 +226,16 @@ export default function StatsRankingCard({
                         style={{
                           color: "inherit",
                           textDecoration: "none",
-                          borderBottom:
-                            "1px solid rgba(231,166,47,0.28)",
                         }}
                       >
+                        {item.flag ? <span style={{ marginRight: "6px" }}>{item.flag}</span> : null}
                         {item.name}
                       </Link>
                     ) : (
-                      item.name
+                      <>
+                        {item.flag ? <span style={{ marginRight: "6px" }}>{item.flag}</span> : null}
+                        {item.name}
+                      </>
                     )}
                   </div>
 

@@ -142,9 +142,6 @@ export default function AppNav() {
           <NavLink href="/stats" active={isActive("/stats")}>
             Statistiky
           </NavLink>
-          <NavLink href="/beers" active={isActive("/beers")}>
-            Katalog piv
-          </NavLink>
           <NavLink href="/breweries" active={isActive("/breweries")}>
             Pivovary
           </NavLink>

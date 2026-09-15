@@ -1,3 +1,4 @@
+import Link from "next/link";
 import BeerWorldMap from "@/app/stats/BeerWorldMap";
 
 import type {
@@ -342,7 +343,9 @@ export default function ProfileWorldCard({
                           )}
                         </div>
 
-                        <div
+                        <Link
+                          href={`/stats?country=${encodeURIComponent(item.name)}`}
+                          className="taste-entity-link"
                           style={{
                             overflow:
                               "hidden",
@@ -358,10 +361,9 @@ export default function ProfileWorldCard({
                               "nowrap",
                           }}
                         >
-                          {
-                            item.name
-                          }
-                        </div>
+                          {item.flag ? <span style={{ marginRight: "7px" }}>{item.flag}</span> : null}
+                          {item.name}
+                        </Link>
 
                         <div
                           style={{

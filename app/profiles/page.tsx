@@ -10,7 +10,6 @@ import {
 } from "@/lib/profileStats";
 
 import PageHero from "@/components/ui/PageHero";
-import AppIcon from "@/components/ui/AppIcon";
 
 type ProfileRow = {
   id: string;
@@ -319,24 +318,6 @@ export default async function ProfilesPage() {
       }
     );
 
-  const activeProfiles =
-    profileCards.filter(
-      (item) =>
-        item.stats.totalQuantity >
-        0
-    ).length;
-
-  const totalQuantity =
-    profileCards.reduce(
-      (
-        total,
-        item
-      ) =>
-        total +
-        item.stats.totalQuantity,
-      0
-    );
-
   return (
     <main
       style={{
@@ -364,36 +345,6 @@ export default async function ProfilesPage() {
             ← Timeline
           </Link>
         }
-        stats={[
-          {
-            icon: "●",
-            accent: "#f2b63f",
-            value:
-              profiles.length,
-            label: "Profilů",
-          },
-          {
-            icon: "◉",
-            accent: "#9cad47",
-            value:
-              activeProfiles,
-            label:
-              "Aktivních profilů",
-          },
-          {
-            icon: (
-              <AppIcon
-                name="beer"
-                size={18}
-              />
-            ),
-            accent: "#e88835",
-            value:
-              totalQuantity,
-            label:
-              "Vypitých piv",
-          },
-        ]}
       />
 
       <section

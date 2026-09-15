@@ -833,22 +833,6 @@ export default function EditTastingModalClient({
                 />
               </div>
 
-              {/* MÍSTO */}
-
-              <div style={fieldStyle}>
-                <label style={labelStyle}>
-                  Místo
-                </label>
-
-                <input
-                  name="place"
-                  defaultValue={
-                    tasting.place ?? ""
-                  }
-                  style={inputStyle}
-                />
-              </div>
-
       <button
                 type="submit"
                 disabled={

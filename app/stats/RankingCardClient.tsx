@@ -12,6 +12,7 @@ type RankingItem = {
   id: string | number;
   name: string;
   count: number;
+  flag?: string;
 };
 
 type RankingTone =
@@ -110,25 +111,15 @@ function getItemHref(
 
   switch (title) {
     case "Piva":
-      return `/beers?focus=1&beer=${encodeURIComponent(
-        String(item.id)
-      )}`;
-
+      return `/beers/${item.id}`;
+    case "Značky":
+      return `/brands/${item.id}`;
     case "Pivní styly":
-      return `/beers?focus=1&style=${encodeURIComponent(
-        String(item.id)
-      )}`;
-
+      return `/stats?style=${encodeURIComponent(String(item.id))}`;
     case "Státy":
-      return `/beers?focus=1&country=${encodeURIComponent(
-        item.name
-      )}`;
-
+      return `/stats?country=${encodeURIComponent(item.name)}`;
     case "Chmely":
-      return `/beers?focus=1&hop=${encodeURIComponent(
-        String(item.id)
-      )}`;
-
+      return `/stats?hop=${encodeURIComponent(String(item.id))}`;
     default:
       return null;
   }
@@ -488,15 +479,16 @@ function RankingList({
                   style={{
                     ...nameStyle,
                     textDecoration: "none",
-                    borderBottom: `1px solid ${tone.softBorder}`,
                     width: "fit-content",
                     maxWidth: "100%",
                   }}
                 >
+                  {item.flag ? <span style={{ marginRight: "7px" }}>{item.flag}</span> : null}
                   {item.name}
                 </Link>
               ) : (
                 <div title={item.name} style={nameStyle}>
+                  {item.flag ? <span style={{ marginRight: "7px" }}>{item.flag}</span> : null}
                   {item.name}
                 </div>
               )}

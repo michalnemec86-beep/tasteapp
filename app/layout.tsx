@@ -8,6 +8,7 @@ import "leaflet/dist/leaflet.css";
 import "./globals.css";
 import "./new-tasting-overrides.css";
 import "./homepage-timeline-theme.css";
+import "./preimport-ui-tweaks.css";
 
 const defaultUrl =
   process.env.VERCEL_URL

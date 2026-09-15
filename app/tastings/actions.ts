@@ -887,7 +887,6 @@ function revalidateTastingPages(
 ) {
   revalidatePath("/");
   revalidatePath("/stats");
-  revalidatePath("/beers");
   revalidatePath("/tastings");
   revalidatePath("/profiles");
 
@@ -1175,9 +1174,6 @@ export async function updateTastingInModal(
               )
             : null,
 
-        place:
-          values.place ||
-          null,
       })
       .eq(
         "id",
