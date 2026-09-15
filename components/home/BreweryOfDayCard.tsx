@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { createClient } from "@/lib/supabase/server";
+
 type Brewery = {
   id: number;
   name: string;
@@ -10,16 +12,99 @@ type BreweryOfDayCardProps = {
   brewery: Brewery | null;
 };
 
-export default function BreweryOfDayCard({
+function getPragueDateKey(
+  date = new Date()
+) {
+  const parts = new Intl.DateTimeFormat(
+    "en-GB",
+    {
+      timeZone: "Europe/Prague",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }
+  ).formatToParts(date);
+
+  const year = parts.find(
+    (part) => part.type === "year"
+  )?.value;
+  const month = parts.find(
+    (part) => part.type === "month"
+  )?.value;
+  const day = parts.find(
+    (part) => part.type === "day"
+  )?.value;
+
+  if (!year || !month || !day) {
+    throw new Error(
+      "Nepodařilo se určit dnešní datum."
+    );
+  }
+
+  return `${year}-${month}-${day}`;
+}
+
+export default async function BreweryOfDayCard({
   brewery,
 }: BreweryOfDayCardProps) {
   if (!brewery) {
     return null;
   }
 
+  let displayedBrewery = brewery;
+
+  if (brewery.country !== "Česko") {
+    const supabase = await createClient();
+    const todayKey = getPragueDateKey();
+
+    const {
+      data: persistedDay,
+      error: persistedDayError,
+    } = await supabase
+      .from("brewery_of_day")
+      .select("brewery_id")
+      .eq("day", todayKey)
+      .maybeSingle();
+
+    if (persistedDayError) {
+      throw new Error(
+        persistedDayError.message
+      );
+    }
+
+    if (persistedDay?.brewery_id) {
+      const {
+        data: persistedBrewery,
+        error: persistedBreweryError,
+      } = await supabase
+        .from("breweries")
+        .select("id, name, country")
+        .eq("id", persistedDay.brewery_id)
+        .maybeSingle();
+
+      if (persistedBreweryError) {
+        throw new Error(
+          persistedBreweryError.message
+        );
+      }
+
+      if (
+        persistedBrewery?.country ===
+        "Česko"
+      ) {
+        displayedBrewery =
+          persistedBrewery as Brewery;
+      }
+    }
+  }
+
+  if (displayedBrewery.country !== "Česko") {
+    return null;
+  }
+
   return (
     <Link
-      href={`/breweries/${brewery.id}`}
+      href={`/breweries/${displayedBrewery.id}`}
       style={{
         width: "100%",
         display: "block",
@@ -76,21 +161,19 @@ export default function BreweryOfDayCard({
           letterSpacing: "-0.02em",
         }}
       >
-        {brewery.name}
+        {displayedBrewery.name}
       </div>
 
-      {brewery.country && (
-        <div
-          style={{
-            marginTop: "5px",
-            color:
-              "var(--taste-text-soft)",
-            fontSize: "11px",
-          }}
-        >
-          {brewery.country}
-        </div>
-      )}
+      <div
+        style={{
+          marginTop: "5px",
+          color:
+            "var(--taste-text-soft)",
+          fontSize: "11px",
+        }}
+      >
+        {displayedBrewery.country}
+      </div>
     </Link>
   );
 }
