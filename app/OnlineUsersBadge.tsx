@@ -25,9 +25,6 @@ export default function OnlineUsersBadge() {
       channel = supabase.channel("tasteapp-online", {
         config: {
           private: true,
-          presence: {
-            key: user.id,
-          },
         },
       });
 
@@ -37,7 +34,22 @@ export default function OnlineUsersBadge() {
             return;
           }
 
-          const count = Object.keys(channel.presenceState()).length;
+          const userIds = new Set<string>();
+          const state = channel.presenceState();
+
+          Object.values(state).forEach((presences) => {
+            presences.forEach((presence) => {
+              const presenceUserId = (
+                presence as { user_id?: unknown }
+              ).user_id;
+
+              if (typeof presenceUserId === "string") {
+                userIds.add(presenceUserId);
+              }
+            });
+          });
+
+          const count = userIds.size;
           setOnlineCount(count > 0 ? count : null);
         })
         .subscribe(async (status) => {
@@ -46,12 +58,15 @@ export default function OnlineUsersBadge() {
           }
 
           if (status === "SUBSCRIBED") {
-            const { error: trackError } = await channel.track({
-              online_at: new Date().toISOString(),
-            });
-
-            if (trackError && mounted) {
-              setOnlineCount(null);
+            try {
+              await channel.track({
+                user_id: user.id,
+                online_at: new Date().toISOString(),
+              });
+            } catch {
+              if (mounted) {
+                setOnlineCount(null);
+              }
             }
           }
 
