@@ -38,6 +38,7 @@ export type BreweryTableRow = {
   country: string | null;
   address: string | null;
   website: string | null;
+  isNomadic: boolean;
   latitude: number | null;
   longitude: number | null;
   beerCount: number;
@@ -880,6 +881,7 @@ export default function BreweryTableClient({
                             country: brewery.country,
                             address: brewery.address,
                             website: brewery.website,
+                            isNomadic: brewery.isNomadic,
                             foundedYear: brewery.foundedYear,
                             closedYear: brewery.closedYear,
                             latitude: brewery.latitude,

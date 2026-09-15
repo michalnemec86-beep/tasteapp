@@ -32,6 +32,7 @@ type ExistingBeer = {
   plato: number | null;
   abv: number | null;
   ibu: number | null;
+  is_non_alcoholic: boolean;
 
   breweries: {
     id: number;
@@ -112,6 +113,8 @@ export default function TastingForm({
     ibu,
     setIbu,
   ] = useState("");
+
+  const [isNonAlcoholic, setIsNonAlcoholic] = useState(false);
 
   const [
     selectedHops,
@@ -212,6 +215,7 @@ export default function TastingForm({
         : ""
     );
 
+    setIsNonAlcoholic(beer.is_non_alcoholic);
     setBeerOpen(false);
   }
 
@@ -228,6 +232,7 @@ export default function TastingForm({
       setPlato("");
       setAbv("");
       setIbu("");
+      setIsNonAlcoholic(false);
       setSelectedHops([]);
     }
 
@@ -886,6 +891,11 @@ export default function TastingForm({
           />
         </div>
       </div>
+
+      <label style={{ ...fieldStyle, display: "flex", alignItems: "center", gap: "9px", cursor: existingBeerId ? "default" : "pointer" }}>
+        <input name="isNonAlcoholic" type="checkbox" checked={isNonAlcoholic} disabled={Boolean(existingBeerId)} onChange={(event) => setIsNonAlcoholic(event.target.checked)} />
+        <span><strong>Nealkoholické pivo</strong><br /><span style={{ color: "var(--taste-text-muted)", fontSize: "11px" }}>Pivo zůstává běžnou součástí všech statistik.</span></span>
+      </label>
 
       {/* ==================================================
           CHMELY

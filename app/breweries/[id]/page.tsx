@@ -171,6 +171,7 @@ export default async function BreweryDetailPage({
       country,
       address,
       website,
+      is_nomadic,
       founded_year,
       closed_year,
       latitude,
@@ -181,6 +182,7 @@ export default async function BreweryDetailPage({
         plato,
         abv,
         ibu,
+        is_non_alcoholic,
         beer_styles (
           name
         ),
@@ -597,6 +599,7 @@ export default async function BreweryDetailPage({
                 country: brewery.country,
                 address: brewery.address,
                 website: brewery.website,
+                isNomadic: brewery.is_nomadic,
                 foundedYear: brewery.founded_year,
                 closedYear: brewery.closed_year,
                 latitude: brewery.latitude,
@@ -651,8 +654,8 @@ export default async function BreweryDetailPage({
           />
 
           <DetailItem
-            label="Adresa"
-            value={brewery.address}
+            label={brewery.is_nomadic ? "Typ pivovaru" : "Adresa"}
+            value={brewery.is_nomadic ? "Letající pivovar" : brewery.address}
           />
 
           <DetailItem
@@ -814,6 +817,10 @@ export default async function BreweryDetailPage({
                             "6px",
                         }}
                       >
+                        {beer.is_non_alcoholic && (
+                          <span style={{ padding: "2px 6px", borderRadius: "999px", background: "rgba(156,173,71,0.12)", color: "#9cad47", fontSize: "9px", fontWeight: 800 }}>NEALKO</span>
+                        )}
+
                         {beer.beer_styles?.name && (
                           <span
                             style={{
@@ -990,6 +997,8 @@ export default async function BreweryDetailPage({
                             beer.abv,
                           ibu:
                             beer.ibu,
+                          isNonAlcoholic:
+                            beer.is_non_alcoholic,
                           styleName:
                             beer
                               .beer_styles

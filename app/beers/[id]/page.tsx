@@ -24,7 +24,7 @@ export default async function BeerDetailPage({ params }: Props) {
   const { data: rawBeer, error } = await supabase
     .from("beers")
     .select(`
-      id, name, plato, abv, ibu,
+      id, name, plato, abv, ibu, is_non_alcoholic,
       brands ( id, name ),
       breweries ( id, name, country ),
       beer_styles ( id, name ),
@@ -46,6 +46,7 @@ export default async function BeerDetailPage({ params }: Props) {
     plato: number | null;
     abv: number | null;
     ibu: number | null;
+    is_non_alcoholic: boolean;
     brands: Relation<{ id: number; name: string }>;
     breweries: Relation<{ id: number; name: string; country: string | null }>;
     beer_styles: Relation<{ id: number; name: string }>;
@@ -101,7 +102,8 @@ export default async function BeerDetailPage({ params }: Props) {
         <div style={{ display: "flex", flexWrap: "wrap", gap: "10px 18px", marginTop: "12px", fontSize: "13px" }}>
           {brand && <Link className="taste-entity-link" href={`/brands/${brand.id}`}>Značka: <strong>{brand.name}</strong></Link>}
           {brewery && <Link className="taste-entity-link" href={`/breweries/${brewery.id}`}>Pivovar: <strong>{brewery.name}</strong></Link>}
-          {style && <Link className="taste-entity-link" href={`/stats?style=${style.id}`}>Styl: <strong>{style.name}</strong></Link>}
+          {style && <Link className="taste-entity-link" href={`/styles/${style.id}`}>Styl: <strong>{style.name}</strong></Link>}
+          {beer.is_non_alcoholic && <span style={{ padding: "3px 8px", borderRadius: "999px", background: "rgba(156,173,71,0.12)", color: "#9cad47", fontSize: "10px", fontWeight: 800 }}>NEALKO</span>}
         </div>
       </section>
 
@@ -123,7 +125,7 @@ export default async function BeerDetailPage({ params }: Props) {
                 </div>
                 <div style={{ marginTop: "7px", color: "var(--taste-text-soft)", fontSize: "12px" }}>
                   {version.breweries ? <Link className="taste-entity-link" href={`/breweries/${version.breweries.id}`}>{version.breweries.name}</Link> : "Pivovar neurčen"}
-                  {version.beer_styles ? <> · <Link className="taste-entity-link" href={`/stats?style=${version.beer_styles.id}`}>{version.beer_styles.name}</Link></> : null}
+                  {version.beer_styles ? <> · <Link className="taste-entity-link" href={`/styles/${version.beer_styles.id}`}>{version.beer_styles.name}</Link></> : null}
                 </div>
               </article>
             ))}

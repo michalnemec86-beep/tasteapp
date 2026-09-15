@@ -40,6 +40,7 @@ type ExistingBeer = {
   plato: number | null;
   abv: number | null;
   ibu: number | null;
+  is_non_alcoholic: boolean;
 
   breweries: {
     id: number;

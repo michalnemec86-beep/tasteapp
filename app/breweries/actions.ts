@@ -147,6 +147,8 @@ function readBreweryFormData(
     formData.get("website") || ""
   ).trim();
 
+  const isNomadic = formData.get("isNomadic") === "on";
+
   const foundedYear =
     readOptionalInteger(
       formData,
@@ -233,6 +235,7 @@ function readBreweryFormData(
     country,
     address,
     website,
+    isNomadic,
     foundedYear,
     closedYear,
     latitude,
@@ -298,17 +301,18 @@ export async function createBrewery(
       country:
         canonicalCountry,
       address:
-        values.address || null,
+        values.isNomadic ? null : values.address || null,
       website:
         values.website || null,
+      is_nomadic: values.isNomadic,
       founded_year:
         values.foundedYear,
       closed_year:
         values.closedYear,
       latitude:
-        values.latitude,
+        values.isNomadic ? null : values.latitude,
       longitude:
-        values.longitude,
+        values.isNomadic ? null : values.longitude,
     });
 
   if (insertError) {
@@ -394,17 +398,18 @@ export async function updateBrewery(
       country:
         canonicalCountry,
       address:
-        values.address || null,
+        values.isNomadic ? null : values.address || null,
       website:
         values.website || null,
+      is_nomadic: values.isNomadic,
       founded_year:
         values.foundedYear,
       closed_year:
         values.closedYear,
       latitude:
-        values.latitude,
+        values.isNomadic ? null : values.latitude,
       longitude:
-        values.longitude,
+        values.isNomadic ? null : values.longitude,
     })
     .eq(
       "id",
@@ -1033,6 +1038,8 @@ export async function createCatalogBeer(
       formData
     );
 
+  const isNonAlcoholic = formData.get("isNonAlcoholic") === "on";
+
   if (!name) {
     throw new Error(
       "Název piva je povinný."
@@ -1122,6 +1129,7 @@ export async function createCatalogBeer(
       plato,
       abv,
       ibu,
+      is_non_alcoholic: isNonAlcoholic,
     })
     .select("id")
     .single();
@@ -1321,6 +1329,8 @@ export async function updateCatalogBeer(
       formData
     );
 
+  const isNonAlcoholic = formData.get("isNonAlcoholic") === "on";
+
   if (!name) {
     throw new Error(
       "Název piva je povinný."
@@ -1339,7 +1349,8 @@ export async function updateCatalogBeer(
       style_id,
       plato,
       abv,
-      ibu
+      ibu,
+      is_non_alcoholic
     `)
     .eq("id", beerId)
     .eq(
@@ -1437,6 +1448,7 @@ export async function updateCatalogBeer(
       plato,
       abv,
       ibu,
+      is_non_alcoholic: isNonAlcoholic,
     })
     .eq("id", beerId)
     .eq(
@@ -1472,6 +1484,8 @@ export async function updateCatalogBeer(
           existingBeer.abv,
         ibu:
           existingBeer.ibu,
+        is_non_alcoholic:
+          existingBeer.is_non_alcoholic,
       })
       .eq("id", beerId)
       .eq(

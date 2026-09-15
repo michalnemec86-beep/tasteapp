@@ -29,6 +29,7 @@ type Beer = {
   plato: number | null;
   abv: number | null;
   ibu: number | null;
+  isNonAlcoholic: boolean;
   styleName: string;
   hopNames: string[];
   tastingCount: number;
@@ -140,6 +141,8 @@ export default function CatalogBeerEditModalClient({
       ? String(beer.ibu)
       : ""
   );
+
+  const [isNonAlcoholic, setIsNonAlcoholic] = useState(beer.isNonAlcoholic);
 
   const [
     selectedHops,
@@ -275,6 +278,8 @@ export default function CatalogBeerEditModalClient({
           )
         : ""
     );
+
+    setIsNonAlcoholic(beer.isNonAlcoholic);
 
     setSelectedHops(
       beer.hopNames
@@ -955,6 +960,11 @@ export default function CatalogBeerEditModalClient({
                     />
                   </div>
                 </div>
+
+                <label style={{ display: "flex", alignItems: "center", gap: "9px", marginBottom: "14px", color: "var(--taste-text-soft)", fontSize: "12px", cursor: "pointer" }}>
+                  <input name="isNonAlcoholic" type="checkbox" checked={isNonAlcoholic} onChange={(event) => setIsNonAlcoholic(event.target.checked)} />
+                  <span><strong style={{ color: "var(--taste-text)" }}>Nealkoholické pivo</strong><br /><span style={{ color: "var(--taste-text-muted)", fontSize: "10px" }}>Příznak lze změnit i zpětně v katalogu.</span></span>
+                </label>
 
                 <div
                   style={

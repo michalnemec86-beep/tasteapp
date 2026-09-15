@@ -654,6 +654,11 @@ export default function BreweryCreateModalClient({
                     />
                   </Field>
 
+                  <label style={{ display: "flex", alignItems: "center", gap: "9px", minHeight: "42px", color: "var(--taste-text-soft)", fontSize: "12px", cursor: "pointer" }}>
+                    <input name="isNomadic" type="checkbox" />
+                    <span><strong style={{ color: "var(--taste-text)" }}>Letající pivovar</strong><br /><span style={{ color: "var(--taste-text-muted)", fontSize: "10px" }}>Nemá vlastní výrobní adresu, ale je samostatnou pivovarskou identitou pro statistiky.</span></span>
+                  </label>
+
                   <Field label="Web">
                     <input
                       name="website"
