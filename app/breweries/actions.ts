@@ -1329,6 +1329,8 @@ export async function updateCatalogBeer(
       formData
     );
 
+  const isNonAlcoholic = formData.get("isNonAlcoholic") === "on";
+
   if (!name) {
     throw new Error(
       "Název piva je povinný."
@@ -1347,7 +1349,8 @@ export async function updateCatalogBeer(
       style_id,
       plato,
       abv,
-      ibu
+      ibu,
+      is_non_alcoholic
     `)
     .eq("id", beerId)
     .eq(
@@ -1445,6 +1448,7 @@ export async function updateCatalogBeer(
       plato,
       abv,
       ibu,
+      is_non_alcoholic: isNonAlcoholic,
     })
     .eq("id", beerId)
     .eq(
@@ -1480,6 +1484,8 @@ export async function updateCatalogBeer(
           existingBeer.abv,
         ibu:
           existingBeer.ibu,
+        is_non_alcoholic:
+          existingBeer.is_non_alcoholic,
       })
       .eq("id", beerId)
       .eq(

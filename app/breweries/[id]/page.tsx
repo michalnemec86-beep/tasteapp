@@ -182,6 +182,7 @@ export default async function BreweryDetailPage({
         plato,
         abv,
         ibu,
+        is_non_alcoholic,
         beer_styles (
           name
         ),
@@ -816,6 +817,10 @@ export default async function BreweryDetailPage({
                             "6px",
                         }}
                       >
+                        {beer.is_non_alcoholic && (
+                          <span style={{ padding: "2px 6px", borderRadius: "999px", background: "rgba(156,173,71,0.12)", color: "#9cad47", fontSize: "9px", fontWeight: 800 }}>NEALKO</span>
+                        )}
+
                         {beer.beer_styles?.name && (
                           <span
                             style={{
@@ -992,6 +997,8 @@ export default async function BreweryDetailPage({
                             beer.abv,
                           ibu:
                             beer.ibu,
+                          isNonAlcoholic:
+                            beer.is_non_alcoholic,
                           styleName:
                             beer
                               .beer_styles
