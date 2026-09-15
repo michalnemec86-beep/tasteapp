@@ -37,7 +37,8 @@ export default function OnlineUsersBadge() {
             return;
           }
 
-          setOnlineCount(Object.keys(channel.presenceState()).length);
+          const count = Object.keys(channel.presenceState()).length;
+          setOnlineCount(count > 0 ? count : null);
         })
         .subscribe(async (status) => {
           if (!mounted || !channel) {
