@@ -19,6 +19,7 @@ export type ProfileBeerRecord = {
 export type ProfileStats = {
   totalQuantity: number;
   uniqueBeers: number;
+  uniqueBrands: number;
   uniqueBreweries: number;
   uniqueStyles: number;
   uniqueCountries: number;
@@ -38,15 +39,10 @@ export type ProfileStats = {
   highestPlatoBeer: ProfileBeerRecord | null;
 };
 
-type ProfileStyle = {
-  id: number;
-};
-
-type ProfileHopRow = {
-  hops: {
-    id: number;
-  } | null;
-};
+type ProfileStyle = { id: number };
+type ProfileHopRow = { hops: { id: number } | null };
+type ProfileBrewery = { id: number; country: string | null };
+type ProfileBrand = { id: number };
 
 type ProfileStatsTasting = {
   quantity: number | null;
@@ -55,19 +51,16 @@ type ProfileStatsTasting = {
   plato: number | null;
   abv: number | null;
   ibu: number | null;
-
   beer_versions?: {
+    breweries?: ProfileBrewery | null;
     beer_styles: ProfileStyle | null;
     beer_version_hops: ProfileHopRow[] | null;
   } | null;
-
   beers: {
     id: number;
     name: string;
-    breweries: {
-      id: number;
-      country: string | null;
-    } | null;
+    brands?: ProfileBrand | null;
+    breweries: ProfileBrewery | null;
     beer_styles: ProfileStyle | null;
     beer_hops: ProfileHopRow[] | null;
   } | null;
@@ -81,14 +74,12 @@ function normalizeText(value: string) {
     .trim();
 }
 
-function getTastingDate(
-  tasting: ProfileStatsTasting
-) {
-  return (
-    tasting.tasted_on ??
-    tasting.tasted_at?.slice(0, 10) ??
-    null
-  );
+function getTastingDate(tasting: ProfileStatsTasting) {
+  return tasting.tasted_on ?? tasting.tasted_at?.slice(0, 10) ?? null;
+}
+
+function getBrewery(tasting: ProfileStatsTasting) {
+  return tasting.beer_versions?.breweries ?? tasting.beers?.breweries ?? null;
 }
 
 function buildNumericSummary(
@@ -103,38 +94,19 @@ function buildNumericSummary(
   for (const tasting of tastings) {
     const value = tasting[field];
 
-    if (
-      value == null ||
-      !Number.isFinite(value)
-    ) {
+    if (value == null || !Number.isFinite(value)) {
       continue;
     }
 
-    const quantity =
-      tasting.quantity ?? 1;
-
-    weightedTotal +=
-      value * quantity;
-
+    const quantity = tasting.quantity ?? 1;
+    weightedTotal += value * quantity;
     quantityTotal += quantity;
-
-    min =
-      min == null
-        ? value
-        : Math.min(min, value);
-
-    max =
-      max == null
-        ? value
-        : Math.max(max, value);
+    min = min == null ? value : Math.min(min, value);
+    max = max == null ? value : Math.max(max, value);
   }
 
   return {
-    average:
-      quantityTotal > 0
-        ? weightedTotal /
-          quantityTotal
-        : null,
+    average: quantityTotal > 0 ? weightedTotal / quantityTotal : null,
     min,
     max,
     count: quantityTotal,
@@ -151,18 +123,11 @@ function findHighestBeerRecord(
     const value = tasting[field];
     const beer = tasting.beers;
 
-    if (
-      value == null ||
-      !Number.isFinite(value) ||
-      !beer
-    ) {
+    if (value == null || !Number.isFinite(value) || !beer) {
       continue;
     }
 
-    if (
-      record == null ||
-      value > record.value
-    ) {
+    if (record == null || value > record.value) {
       record = {
         beerId: beer.id,
         beerName: beer.name,
@@ -174,162 +139,85 @@ function findHighestBeerRecord(
   return record;
 }
 
-export function buildProfileStats(
-  tastings: ProfileStatsTasting[]
-): ProfileStats {
-  const uniqueBeerIds =
-    new Set<number>();
-
-  const uniqueBreweryIds =
-    new Set<number>();
-
-  const uniqueStyleIds =
-    new Set<number>();
-
-  const uniqueCountries =
-    new Set<string>();
-
-  const uniqueHopIds =
-    new Set<number>();
-
-  const monthlyMap =
-    new Map<string, number>();
-
-  const yearlyMap =
-    new Map<string, number>();
+export function buildProfileStats(tastings: ProfileStatsTasting[]): ProfileStats {
+  const uniqueBeerIds = new Set<number>();
+  const uniqueBrandIds = new Set<number>();
+  const uniqueBreweryIds = new Set<number>();
+  const uniqueStyleIds = new Set<number>();
+  const uniqueCountries = new Set<string>();
+  const uniqueHopIds = new Set<number>();
+  const monthlyMap = new Map<string, number>();
+  const yearlyMap = new Map<string, number>();
 
   let totalQuantity = 0;
-
   const dates: string[] = [];
 
   for (const tasting of tastings) {
-    const quantity =
-      tasting.quantity ?? 1;
-
+    const quantity = tasting.quantity ?? 1;
     totalQuantity += quantity;
 
-    const beer =
-      tasting.beers;
+    const beer = tasting.beers;
 
     if (beer) {
-      // Hlavní beer.id zůstává identitou piva bez ohledu
-      // na počet historických verzí receptu.
-      uniqueBeerIds.add(
-        beer.id
-      );
+      uniqueBeerIds.add(beer.id);
 
-      if (beer.breweries) {
-        uniqueBreweryIds.add(
-          beer.breweries.id
-        );
+      if (beer.brands) {
+        uniqueBrandIds.add(beer.brands.id);
+      }
 
-        const country =
-          beer.breweries.country?.trim();
+      const brewery = getBrewery(tasting);
+
+      if (brewery) {
+        uniqueBreweryIds.add(brewery.id);
+        const country = brewery.country?.trim();
 
         if (country) {
-          uniqueCountries.add(
-            normalizeText(country)
-          );
+          uniqueCountries.add(normalizeText(country));
         }
       }
 
-      const style =
-        tasting.beer_versions
-          ?.beer_styles ??
-        beer.beer_styles;
-
+      const style = tasting.beer_versions?.beer_styles ?? beer.beer_styles;
       if (style) {
-        uniqueStyleIds.add(
-          style.id
-        );
+        uniqueStyleIds.add(style.id);
       }
 
       const hopRows =
-        tasting.beer_versions
-          ?.beer_version_hops ??
-        beer.beer_hops ??
-        [];
+        tasting.beer_versions?.beer_version_hops ?? beer.beer_hops ?? [];
 
       for (const hopRow of hopRows) {
         if (hopRow.hops) {
-          uniqueHopIds.add(
-            hopRow.hops.id
-          );
+          uniqueHopIds.add(hopRow.hops.id);
         }
       }
     }
 
-    const date =
-      getTastingDate(tasting);
-
+    const date = getTastingDate(tasting);
     if (!date) {
       continue;
     }
 
     dates.push(date);
-
-    const month =
-      date.slice(0, 7);
-
-    const year =
-      date.slice(0, 4);
-
-    monthlyMap.set(
-      month,
-      (monthlyMap.get(month) ?? 0) +
-        quantity
-    );
-
-    yearlyMap.set(
-      year,
-      (yearlyMap.get(year) ?? 0) +
-        quantity
-    );
+    const month = date.slice(0, 7);
+    const year = date.slice(0, 4);
+    monthlyMap.set(month, (monthlyMap.get(month) ?? 0) + quantity);
+    yearlyMap.set(year, (yearlyMap.get(year) ?? 0) + quantity);
   }
 
   dates.sort();
-
-  const monthlyActivity:
-    ProfileActivityPoint[] = [];
+  const monthlyActivity: ProfileActivityPoint[] = [];
 
   if (dates.length > 0) {
-    const first =
-      dates[0];
+    const first = dates[0];
+    const last = dates[dates.length - 1];
+    let year = Number(first.slice(0, 4));
+    let month = Number(first.slice(5, 7));
+    const lastYear = Number(last.slice(0, 4));
+    const lastMonth = Number(last.slice(5, 7));
 
-    const last =
-      dates[dates.length - 1];
-
-    let year =
-      Number(first.slice(0, 4));
-
-    let month =
-      Number(first.slice(5, 7));
-
-    const lastYear =
-      Number(last.slice(0, 4));
-
-    const lastMonth =
-      Number(last.slice(5, 7));
-
-    while (
-      year < lastYear ||
-      (
-        year === lastYear &&
-        month <= lastMonth
-      )
-    ) {
-      const key =
-        `${year}-${String(month).padStart(2, "0")}`;
-
-      monthlyActivity.push({
-        key,
-        count:
-          monthlyMap.get(key) ??
-          0,
-      });
-
+    while (year < lastYear || (year === lastYear && month <= lastMonth)) {
+      const key = `${year}-${String(month).padStart(2, "0")}`;
+      monthlyActivity.push({ key, count: monthlyMap.get(key) ?? 0 });
       month += 1;
-
       if (month > 12) {
         month = 1;
         year += 1;
@@ -337,100 +225,41 @@ export function buildProfileStats(
     }
   }
 
-  const yearlyActivity =
-    Array.from(
-      yearlyMap.entries()
-    )
-      .map(([key, count]) => ({
-        key,
-        count,
-      }))
-      .sort((a, b) =>
-        a.key.localeCompare(b.key)
-      );
+  const yearlyActivity = Array.from(yearlyMap.entries())
+    .map(([key, count]) => ({ key, count }))
+    .sort((a, b) => a.key.localeCompare(b.key));
 
-  const mostActiveMonth =
-    monthlyActivity.reduce<
-      ProfileActivityPoint | null
-    >(
-      (best, item) =>
-        !best ||
-        item.count > best.count
-          ? item
-          : best,
-      null
-    );
+  const mostActiveMonth = monthlyActivity.reduce<ProfileActivityPoint | null>(
+    (best, item) => (!best || item.count > best.count ? item : best),
+    null
+  );
 
-  const mostActiveYear =
-    yearlyActivity.reduce<
-      ProfileActivityPoint | null
-    >(
-      (best, item) =>
-        !best ||
-        item.count > best.count
-          ? item
-          : best,
-      null
-    );
-
-  const monthSpan =
-    monthlyActivity.length;
+  const mostActiveYear = yearlyActivity.reduce<ProfileActivityPoint | null>(
+    (best, item) => (!best || item.count > best.count ? item : best),
+    null
+  );
 
   return {
     totalQuantity,
-    uniqueBeers:
-      uniqueBeerIds.size,
-    uniqueBreweries:
-      uniqueBreweryIds.size,
-    uniqueStyles:
-      uniqueStyleIds.size,
-    uniqueCountries:
-      uniqueCountries.size,
-    uniqueHops:
-      uniqueHopIds.size,
-    firstTasting:
-      dates[0] ?? null,
-    lastTasting:
-      dates[dates.length - 1] ??
-      null,
+    uniqueBeers: uniqueBeerIds.size,
+    uniqueBrands: uniqueBrandIds.size,
+    uniqueBreweries: uniqueBreweryIds.size,
+    uniqueStyles: uniqueStyleIds.size,
+    uniqueCountries: uniqueCountries.size,
+    uniqueHops: uniqueHopIds.size,
+    firstTasting: dates[0] ?? null,
+    lastTasting: dates[dates.length - 1] ?? null,
     monthlyActivity,
     yearlyActivity,
     mostActiveMonth,
     mostActiveYear,
     averagePerMonth:
-      monthSpan > 0
-        ? totalQuantity /
-          monthSpan
-        : 0,
-    abv:
-      buildNumericSummary(
-        tastings,
-        "abv"
-      ),
-    ibu:
-      buildNumericSummary(
-        tastings,
-        "ibu"
-      ),
-    plato:
-      buildNumericSummary(
-        tastings,
-        "plato"
-      ),
-    strongestBeer:
-      findHighestBeerRecord(
-        tastings,
-        "abv"
-      ),
-    bitterestBeer:
-      findHighestBeerRecord(
-        tastings,
-        "ibu"
-      ),
-    highestPlatoBeer:
-      findHighestBeerRecord(
-        tastings,
-        "plato"
-      ),
+      monthlyActivity.length > 0 ? totalQuantity / monthlyActivity.length : 0,
+    abv: buildNumericSummary(tastings, "abv"),
+    ibu: buildNumericSummary(tastings, "ibu"),
+    plato: buildNumericSummary(tastings, "plato"),
+    strongestBeer: findHighestBeerRecord(tastings, "abv"),
+    bitterestBeer: findHighestBeerRecord(tastings, "ibu"),
+    highestPlatoBeer: findHighestBeerRecord(tastings, "plato"),
   };
 }
