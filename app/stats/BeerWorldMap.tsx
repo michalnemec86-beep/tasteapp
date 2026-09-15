@@ -190,7 +190,7 @@ export default function BeerWorldMap({
   const didDragRef = useRef(false);
 
   const [mapSize, setMapSize] = useState(900);
-  const [europeZoom, setEuropeZoom] = useState(1);
+  const [mapZoom, setMapZoom] = useState(1);
   const [mapPan, setMapPan] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
 
@@ -202,12 +202,27 @@ export default function BeerWorldMap({
     originY: number;
   } | null>(null);
 
+  function changeZoom(delta: number) {
+    setMapZoom((value) => {
+      const next = Math.max(
+        0.75,
+        Math.min(2.4, Number((value + delta).toFixed(2)))
+      );
+
+      if (next <= 1) {
+        setMapPan({ x: 0, y: 0 });
+      }
+
+      return next;
+    });
+  }
+
   function handleMapPointerDown(
     event: ReactPointerEvent<HTMLDivElement>
   ) {
     didDragRef.current = false;
 
-    if (!focusEurope || europeZoom <= 1) {
+    if (mapZoom <= 1) {
       return;
     }
 
@@ -283,7 +298,32 @@ export default function BeerWorldMap({
     const observer = new ResizeObserver(updateSize);
     observer.observe(element);
 
-    return () => observer.disconnect();
+    const handleWheel = (event: WheelEvent) => {
+      event.preventDefault();
+
+      setMapZoom((value) => {
+        const delta = event.deltaY < 0 ? 0.12 : -0.12;
+        const next = Math.max(
+          0.75,
+          Math.min(2.4, Number((value + delta).toFixed(2)))
+        );
+
+        if (next <= 1) {
+          setMapPan({ x: 0, y: 0 });
+        }
+
+        return next;
+      });
+    };
+
+    element.addEventListener("wheel", handleWheel, {
+      passive: false,
+    });
+
+    return () => {
+      observer.disconnect();
+      element.removeEventListener("wheel", handleWheel);
+    };
   }, []);
 
   const mappedCountries = items
@@ -504,9 +544,10 @@ export default function BeerWorldMap({
           alignItems: "center",
           justifyContent: "center",
           overflow: "hidden",
+          overscrollBehavior: "contain",
         }}
       >
-        {focusEurope && (
+        {data.length > 0 && (
           <div
             style={{
               position: "absolute",
@@ -525,14 +566,7 @@ export default function BeerWorldMap({
             <button
               type="button"
               aria-label="Přiblížit mapu"
-              onClick={() =>
-                setEuropeZoom((value) =>
-                  Math.min(
-                    1.35,
-                    Number((value + 0.1).toFixed(2))
-                  )
-                )
-              }
+              onClick={() => changeZoom(0.15)}
               style={zoomButtonStyle}
             >
               +
@@ -540,14 +574,7 @@ export default function BeerWorldMap({
             <button
               type="button"
               aria-label="Oddálit mapu"
-              onClick={() =>
-                setEuropeZoom((value) =>
-                  Math.max(
-                    0.8,
-                    Number((value - 0.1).toFixed(2))
-                  )
-                )
-              }
+              onClick={() => changeZoom(-0.15)}
               style={{
                 ...zoomButtonStyle,
                 borderBottom: 0,
@@ -559,79 +586,51 @@ export default function BeerWorldMap({
         )}
 
         {data.length > 0 ? (
-          <>
-            <div
-              onPointerDown={handleMapPointerDown}
-              onPointerMove={handleMapPointerMove}
-              onPointerUp={handleMapPointerUp}
-              onPointerCancel={handleMapPointerUp}
-              style={{
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                width: `${mapSize}px`,
-                maxWidth: "100%",
-                margin: "0 auto",
-                transform: focusEurope
-                  ? `translate3d(${mapPan.x}px, ${
-                      mapPan.y - 28
-                    }px, 0) scale(${1.12 * europeZoom})`
-                  : undefined,
-                transformOrigin: focusEurope
-                  ? "center center"
-                  : undefined,
-                transition:
-                  focusEurope && !isDragging
-                    ? "transform 180ms ease-out"
-                    : "none",
-                cursor:
-                  focusEurope && europeZoom > 1
-                    ? isDragging
-                      ? "grabbing"
-                      : "grab"
-                    : "default",
-                userSelect: focusEurope ? "none" : undefined,
-                touchAction: focusEurope ? "none" : undefined,
-              }}
-            >
-              <WorldMap
-                title=""
-                data={data}
-                size={mapSize}
-                color="#e7a62f"
-                backgroundColor="transparent"
-                borderColor="#4b4439"
-                frame={false}
-                richInteraction={false}
-                tooltipBgColor="#17130d"
-                tooltipTextColor="#f2ede3"
-                styleFunction={styleCountry}
-                tooltipTextFunction={tooltipText}
-                onClickFunction={handleCountryClick}
-              />
-            </div>
-
-            {!focusEurope && (
-              <div
-                aria-hidden="true"
-                style={{
-                  position: "absolute",
-                  left: "36%",
-                  top: "49%",
-                  width: "12.5%",
-                  height: "10px",
-                  borderRadius: "999px",
-                  background:
-                    "linear-gradient(180deg, rgba(18,14,10,0) 0%, rgba(18,14,10,0.98) 28%, rgba(18,14,10,0.98) 72%, rgba(18,14,10,0) 100%)",
-                  boxShadow:
-                    "0 0 0 1px rgba(18,14,10,0.34)",
-                  transform: "rotate(2deg)",
-                  pointerEvents: "none",
-                  zIndex: 3,
-                }}
-              />
-            )}
-          </>
+          <div
+            onPointerDown={handleMapPointerDown}
+            onPointerMove={handleMapPointerMove}
+            onPointerUp={handleMapPointerUp}
+            onPointerCancel={handleMapPointerUp}
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              width: `${mapSize}px`,
+              maxWidth: "100%",
+              margin: "0 auto",
+              transform: `translate3d(${mapPan.x}px, ${
+                mapPan.y + (focusEurope ? -28 : 0)
+              }px, 0) scale(${(focusEurope ? 1.12 : 1) * mapZoom})`,
+              transformOrigin: "center center",
+              transition: !isDragging
+                ? "transform 180ms ease-out"
+                : "none",
+              cursor:
+                mapZoom > 1
+                  ? isDragging
+                    ? "grabbing"
+                    : "grab"
+                  : "default",
+              userSelect: "none",
+              touchAction: mapZoom > 1 ? "none" : "auto",
+            }}
+          >
+            <WorldMap
+              title=""
+              data={data}
+              size={mapSize}
+              color="#e7a62f"
+              backgroundColor="transparent"
+              borderColor="#4b4439"
+              frame={false}
+              richInteraction={false}
+              tooltipBgColor="#17130d"
+              tooltipTextColor="#f2ede3"
+              styleFunction={styleCountry}
+              tooltipTextFunction={tooltipText}
+              onClickFunction={handleCountryClick}
+            />
+          </div>
         ) : (
           <div
             style={{
@@ -645,48 +644,6 @@ export default function BeerWorldMap({
           </div>
         )}
       </div>
-
-      {data.length > 0 && (
-        <div
-          style={{
-            marginTop: "4px",
-            padding: "10px 0 12px",
-            borderTop:
-              "1px solid rgba(231,166,47,0.07)",
-          }}
-        >
-          <div
-            style={{
-              marginBottom: "7px",
-              color: "var(--taste-text-muted)",
-              fontSize: "9px",
-              fontWeight: 700,
-              letterSpacing: "0.06em",
-              textTransform: "uppercase",
-            }}
-          >
-            Počet vypitých piv ze země
-          </div>
-
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns:
-                "repeat(auto-fit, minmax(66px, 1fr))",
-              gap: "5px",
-            }}
-          >
-            <MapLegendItem label="0" fill="#24211c" />
-            {MAP_SHADE_STEPS.map((step) => (
-              <MapLegendItem
-                key={step.label}
-                label={step.label}
-                fill={step.fill}
-              />
-            ))}
-          </div>
-        </div>
-      )}
 
       {data.length > 0 && (
         <div
@@ -759,44 +716,6 @@ export default function BeerWorldMap({
         </div>
       )}
     </section>
-  );
-}
-
-function MapLegendItem({
-  label,
-  fill,
-}: {
-  label: string;
-  fill: string;
-}) {
-  return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: "6px",
-        minWidth: 0,
-        padding: "5px 6px",
-        borderRadius: "7px",
-        background: "rgba(255,255,255,0.018)",
-        color: "var(--taste-text-muted)",
-        fontSize: "9px",
-        whiteSpace: "nowrap",
-      }}
-    >
-      <span
-        aria-hidden="true"
-        style={{
-          width: "14px",
-          height: "8px",
-          flexShrink: 0,
-          borderRadius: "3px",
-          border: "1px solid rgba(255,255,255,0.08)",
-          background: fill,
-        }}
-      />
-      <span>{label}×</span>
-    </div>
   );
 }
 
