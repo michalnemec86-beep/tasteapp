@@ -65,6 +65,7 @@ export default async function NewTastingPage() {
         plato,
         abv,
         ibu,
+        is_non_alcoholic,
         breweries (
           id,
           name,

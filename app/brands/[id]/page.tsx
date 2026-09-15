@@ -2,18 +2,21 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
 import PageHero from "@/components/ui/PageHero";
+import PaginationControls from "@/components/ui/PaginationControls";
+import { paginateItems, parsePositivePage } from "@/lib/pagination";
 import { createClient } from "@/lib/supabase/server";
 import { getCountryFlag } from "@/lib/country-flags";
 
-type Props = { params: Promise<{ id: string }> };
+type Props = { params: Promise<{ id: string }>; searchParams: Promise<{ page?: string | string[] }> };
 type Relation<T> = T | T[] | null;
 
 function one<T>(value: Relation<T> | undefined): T | null {
   return Array.isArray(value) ? value[0] ?? null : value ?? null;
 }
 
-export default async function BrandDetailPage({ params }: Props) {
+export default async function BrandDetailPage({ params, searchParams }: Props) {
   const { id } = await params;
+  const pageParams = await searchParams;
   const brandId = Number(id);
   if (!Number.isInteger(brandId) || brandId < 1) notFound();
 
@@ -53,6 +56,7 @@ export default async function BrandDetailPage({ params }: Props) {
     }> | null;
   }>;
 
+  const pagination = paginateItems(beers, parsePositivePage(pageParams.page));
   const beerIds = beers.map((beer) => beer.id);
   let totalQuantity = 0;
   if (beerIds.length > 0) {
@@ -85,7 +89,7 @@ export default async function BrandDetailPage({ params }: Props) {
         <div style={{ display: "grid", gap: "10px" }}>
           {beers.length === 0 ? (
             <div className="taste-card" style={{ padding: "24px", color: "var(--taste-text-muted)" }}>Zatím bez piv.</div>
-          ) : beers.map((beer) => {
+          ) : pagination.pageItems.map((beer) => {
             const versions = beer.beer_versions ?? [];
             const current = versions.find((version) => version.is_current) ?? null;
             const brewery = one(current?.breweries);
@@ -108,6 +112,7 @@ export default async function BrandDetailPage({ params }: Props) {
             );
           })}
         </div>
+        <PaginationControls currentPage={pagination.currentPage} totalPages={pagination.totalPages} />
       </section>
 
       {(rawBrand.notes || rawBrand.website) && (

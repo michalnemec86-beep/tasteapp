@@ -12,7 +12,9 @@ Ownership groups and parent corporations are out of scope. A company owning seve
 
 ### Brewery
 
-A brewery is the real producing brewery/site for a given beer version and period.
+A brewery is the canonical brewery identity for a given beer version and period. It may have its own production site or be a verified nomadic/flying brewery.
+
+Nomadic breweries are first-class brewery identities. They use `breweries.is_nomadic = true`, participate normally in brewery statistics and display `Letající pivovar` instead of a production address. A contract host brewery may be retained as research context, but must not create a second brewery-statistics count for the same tasting.
 
 Examples:
 - Pivovar Staropramen
@@ -60,6 +62,10 @@ A beer version represents the current or historical form of a beer. It contains 
 
 A brand and beer can remain the same while the brewery changes between versions.
 
+### Non-alcoholic beer
+
+Non-alcoholic beer is a normal BeerApp beer record with `beers.is_non_alcoholic = true`. It participates in beer, brand, brewery, style, country and tasting statistics exactly once like any other beer. It must not be excluded from imports solely because it is non-alcoholic.
+
 ### Tasting
 
 Every tasting points to exactly one `beer_id` and, once resolved, exactly one `beer_version_id`.
@@ -93,7 +99,7 @@ Never count brewery statistics through both the current beer brewery and a histo
 ## Historical import rules
 
 1. Preserve the source row exactly enough to reconstruct the original record: source identity, date, quantity, packaging, source Plato, venue and note.
-2. Resolve, in order: **producing brewery for the tasting period -> brand -> beer -> beer version**.
+2. Resolve, in order: **canonical brewery identity for the tasting period (including a verified nomadic brewery when applicable) -> brand -> beer -> beer version**.
 3. Current verified catalog properties belong to the current beer/current version. Source historical properties belong to the historical version and tasting.
 4. Never guess an ambiguous brewery, brand or product. Leave the source row unresolved for later research.
 5. Exact repeated source records are real occurrences unless explicitly proven otherwise. Do not content-deduplicate them.

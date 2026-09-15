@@ -19,6 +19,7 @@ type BreweryEditData = {
   country: string | null;
   address: string | null;
   website: string | null;
+  isNomadic: boolean;
   foundedYear: number | null;
   closedYear: number | null;
   latitude: number | null;
@@ -398,6 +399,11 @@ export default function BreweryEditModalClient({
                       }
                     />
                   </Field>
+
+                  <label style={{ display: "flex", alignItems: "center", gap: "9px", minHeight: "42px", color: "var(--taste-text-soft)", fontSize: "12px", cursor: "pointer" }}>
+                    <input name="isNomadic" type="checkbox" defaultChecked={brewery.isNomadic} />
+                    <span><strong style={{ color: "var(--taste-text)" }}>Letající pivovar</strong><br /><span style={{ color: "var(--taste-text-muted)", fontSize: "10px" }}>Bez vlastní výrobní adresy; zůstává plnohodnotným pivovarem ve statistikách.</span></span>
+                  </label>
 
                   <Field label="Web">
                     <input

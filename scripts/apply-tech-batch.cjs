@@ -8,6 +8,11 @@ function replaceOne(path, from, to) {
   if (count !== 1) throw new Error(`${path}: expected 1 match, got ${count}`);
   write(path, input.replace(from, to));
 }
+function replaceFirst(path, from, to) {
+  const input = read(path);
+  if (!input.includes(from)) throw new Error(`${path}: first-match source not found`);
+  write(path, input.replace(from, to));
+}
 function replaceAllChecked(path, from, to, min = 1) {
   const input = read(path);
   const count = input.split(from).length - 1;
@@ -195,10 +200,10 @@ replaceOne('app/tastings/actions.ts',
 `      ibu: values.ibuValue\n        ? Number(values.ibuValue)\n        : null,\n      is_non_alcoholic: values.isNonAlcoholic,\n    })\n`);
 
 // Catalog beer creation supports non-alcoholic flag
-replaceOne('app/breweries/actions.ts',
+replaceFirst('app/breweries/actions.ts',
 `  const hopNames =\n    readCatalogBeerHopNames(\n      formData\n    );\n`,
 `  const hopNames =\n    readCatalogBeerHopNames(\n      formData\n    );\n\n  const isNonAlcoholic = formData.get("isNonAlcoholic") === "on";\n`);
-replaceOne('app/breweries/actions.ts',
+replaceFirst('app/breweries/actions.ts',
 `      ibu,\n    })\n    .select("id")\n`,
 `      ibu,\n      is_non_alcoholic: isNonAlcoholic,\n    })\n    .select("id")\n`);
 

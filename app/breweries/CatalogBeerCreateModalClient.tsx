@@ -112,6 +112,8 @@ export default function CatalogBeerCreateModalClient({
     setIbu,
   ] = useState("");
 
+  const [isNonAlcoholic, setIsNonAlcoholic] = useState(false);
+
   const [
     selectedHops,
     setSelectedHops,
@@ -587,6 +589,7 @@ export default function CatalogBeerCreateModalClient({
     setPlato("");
     setAbv("");
     setIbu("");
+    setIsNonAlcoholic(false);
     setSelectedHops(
       []
     );
@@ -1000,6 +1003,11 @@ export default function CatalogBeerCreateModalClient({
                     </div>
                   )}
                 </div>
+
+                <label style={{ display: "flex", alignItems: "center", gap: "9px", marginTop: "14px", color: "var(--taste-text-soft)", fontSize: "12px", cursor: "pointer" }}>
+                  <input name="isNonAlcoholic" type="checkbox" checked={isNonAlcoholic} onChange={(event) => setIsNonAlcoholic(event.target.checked)} />
+                  <span><strong style={{ color: "var(--taste-text)" }}>Nealkoholické pivo</strong><br /><span style={{ color: "var(--taste-text-muted)", fontSize: "10px" }}>Bude evidováno a započítáváno stejně jako ostatní piva.</span></span>
+                </label>
 
                 {error && (
                   <div

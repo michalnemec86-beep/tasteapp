@@ -77,6 +77,7 @@ type CatalogBeerRow = {
   plato: number | null;
   abv: number | null;
   ibu: number | null;
+  is_non_alcoholic: boolean;
 
   brands:
     | { id: number; name: string }
@@ -383,6 +384,7 @@ export default async function HomePage() {
         plato,
         abv,
         ibu,
+        is_non_alcoholic,
         breweries (
           id,
           name,
@@ -1031,6 +1033,7 @@ export default async function HomePage() {
             items={
               globalStats.styles
             }
+            getItemHref={(item) => `/styles/${item.id}`}
           />
 
 

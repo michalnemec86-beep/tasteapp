@@ -23,6 +23,7 @@ type TastingFormValues = {
   platoValue: string;
   abvValue: string;
   ibuValue: string;
+  isNonAlcoholic: boolean;
 
   tastedOn: string;
 
@@ -112,6 +113,8 @@ function readTastingFormData(
         "ibu"
       ) || ""
     ).trim();
+
+  const isNonAlcoholic = formData.get("isNonAlcoholic") === "on";
 
   const tastedOn =
     String(
@@ -231,6 +234,7 @@ function readTastingFormData(
     platoValue,
     abvValue,
     ibuValue,
+    isNonAlcoholic,
 
     tastedOn,
     packaging,
@@ -580,6 +584,7 @@ async function resolveBeer(
       ibu: values.ibuValue
         ? Number(values.ibuValue)
         : null,
+      is_non_alcoholic: values.isNonAlcoholic,
     })
     .select("id")
     .single();

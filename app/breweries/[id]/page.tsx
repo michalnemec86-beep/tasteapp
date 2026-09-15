@@ -171,6 +171,7 @@ export default async function BreweryDetailPage({
       country,
       address,
       website,
+      is_nomadic,
       founded_year,
       closed_year,
       latitude,
@@ -597,6 +598,7 @@ export default async function BreweryDetailPage({
                 country: brewery.country,
                 address: brewery.address,
                 website: brewery.website,
+                isNomadic: brewery.is_nomadic,
                 foundedYear: brewery.founded_year,
                 closedYear: brewery.closed_year,
                 latitude: brewery.latitude,
@@ -651,8 +653,8 @@ export default async function BreweryDetailPage({
           />
 
           <DetailItem
-            label="Adresa"
-            value={brewery.address}
+            label={brewery.is_nomadic ? "Typ pivovaru" : "Adresa"}
+            value={brewery.is_nomadic ? "Letající pivovar" : brewery.address}
           />
 
           <DetailItem
