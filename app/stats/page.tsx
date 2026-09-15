@@ -27,6 +27,12 @@ type StatsPageProps = {
     year?: string | string[];
     month?: string | string[];
     packaging?: string | string[];
+    beer?: string | string[];
+    brand?: string | string[];
+    brewery?: string | string[];
+    style?: string | string[];
+    country?: string | string[];
+    hop?: string | string[];
   }>;
 };
 
@@ -54,6 +60,12 @@ export default async function StatsPage({
   const requestedPackaging = getStringParam(
     params.packaging
   );
+  const requestedBeer = getStringParam(params.beer);
+  const requestedBrand = getStringParam(params.brand);
+  const requestedBrewery = getStringParam(params.brewery);
+  const requestedStyle = getStringParam(params.style);
+  const requestedCountry = getStringParam(params.country);
+  const requestedHop = getStringParam(params.hop);
 
   const sortMode: SortMode = isSortMode(requestedSort)
     ? requestedSort
@@ -261,12 +273,55 @@ export default async function StatsPage({
       )
     : periodTastings;
 
-  const filteredTastings = selectedPackaging
+  const packagingTastings = selectedPackaging
     ? userTastings.filter(
         (tasting) =>
           tasting.packaging === selectedPackaging
       )
     : userTastings;
+
+  const requestedBeerId = parsePositiveInteger(requestedBeer);
+  const requestedBrandId = parsePositiveInteger(requestedBrand);
+  const requestedBreweryId = parsePositiveInteger(requestedBrewery);
+  const requestedStyleId = parsePositiveInteger(requestedStyle);
+  const requestedHopId = parsePositiveInteger(requestedHop);
+  const normalizedRequestedCountry = requestedCountry
+    ? normalizeCountry(requestedCountry)
+    : undefined;
+
+  // PREIMPORT_FOLLOWUP_APPLIED
+  const filteredTastings = packagingTastings.filter((tasting) => {
+    if (requestedBeerId && tasting.beers?.id !== requestedBeerId) {
+      return false;
+    }
+
+    if (requestedBrandId && tasting.beers?.brands?.id !== requestedBrandId) {
+      return false;
+    }
+
+    const brewery = tasting.beer_versions?.breweries ?? tasting.beers?.breweries;
+    if (requestedBreweryId && brewery?.id !== requestedBreweryId) {
+      return false;
+    }
+
+    const style = tasting.beer_versions?.beer_styles ?? tasting.beers?.beer_styles;
+    if (requestedStyleId && style?.id !== requestedStyleId) {
+      return false;
+    }
+
+    if (normalizedRequestedCountry && normalizeCountry(brewery?.country ?? "") !== normalizedRequestedCountry) {
+      return false;
+    }
+
+    if (requestedHopId) {
+      const hopRows = tasting.beer_versions?.beer_version_hops ?? tasting.beers?.beer_hops ?? [];
+      if (!hopRows.some((row) => row.hops?.id === requestedHopId)) {
+        return false;
+      }
+    }
+
+    return true;
+  });
 
   const rawStats = buildTasteStats(filteredTastings);
 
@@ -549,6 +604,23 @@ function getStringParam(
   return typeof value === "string"
     ? value
     : undefined;
+}
+
+function parsePositiveInteger(value: string | undefined) {
+  if (!value) {
+    return undefined;
+  }
+
+  const parsed = Number(value);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : undefined;
+}
+
+function normalizeCountry(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
 }
 
 function getYear(

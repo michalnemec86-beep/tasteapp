@@ -18,10 +18,16 @@ type ProfileRow = {
   avatar_url: string | null;
 };
 
-type Relation<T> =
-  | T
-  | T[]
-  | null;
+type Relation<T> = T | T[] | null;
+
+type BreweryRef = {
+  id: number;
+  country: string | null;
+};
+
+type StyleRef = { id: number };
+type BrandRef = { id: number };
+type HopRow = { hops: Relation<{ id: number }> };
 
 type RawTastingRow = {
   user_id: string;
@@ -31,25 +37,22 @@ type RawTastingRow = {
   plato: number | null;
   abv: number | null;
   ibu: number | null;
+  beer_versions: Relation<{
+    breweries: Relation<BreweryRef>;
+    beer_styles: Relation<StyleRef>;
+    beer_version_hops: HopRow[] | null;
+  }>;
   beers: Relation<{
     id: number;
     name: string;
-    breweries: Relation<{
-      id: number;
-      country: string | null;
-    }>;
-    beer_styles: Relation<{
-      id: number;
-    }>;
-    beer_hops:
-      | {
-          hops: Relation<{
-            id: number;
-          }>;
-        }[]
-      | null;
+    brands: Relation<BrandRef>;
+    breweries: Relation<BreweryRef>;
+    beer_styles: Relation<StyleRef>;
+    beer_hops: HopRow[] | null;
   }>;
 };
+
+type NormalizedHopRow = { hops: { id: number } | null };
 
 type NormalizedTasting = {
   quantity: number | null;
@@ -58,88 +61,62 @@ type NormalizedTasting = {
   plato: number | null;
   abv: number | null;
   ibu: number | null;
+  beer_versions: {
+    breweries: BreweryRef | null;
+    beer_styles: StyleRef | null;
+    beer_version_hops: NormalizedHopRow[] | null;
+  } | null;
   beers: {
     id: number;
     name: string;
-    breweries: {
-      id: number;
-      country: string | null;
-    } | null;
-    beer_styles: {
-      id: number;
-    } | null;
-    beer_hops:
-      | {
-          hops: {
-            id: number;
-          } | null;
-        }[]
-      | null;
+    brands: BrandRef | null;
+    breweries: BreweryRef | null;
+    beer_styles: StyleRef | null;
+    beer_hops: NormalizedHopRow[] | null;
   } | null;
 };
 
-function singleRelation<T>(
-  value: Relation<T>
-): T | null {
+function singleRelation<T>(value: Relation<T>): T | null {
   if (Array.isArray(value)) {
     return value[0] ?? null;
   }
-
   return value ?? null;
 }
 
-function normalizeTasting(
-  tasting: RawTastingRow
-): NormalizedTasting {
-  const beer =
-    singleRelation(
-      tasting.beers
-    );
+function normalizeHopRows(rows: HopRow[] | null): NormalizedHopRow[] {
+  return (rows ?? []).map((row) => ({
+    hops: singleRelation(row.hops),
+  }));
+}
+
+function normalizeTasting(tasting: RawTastingRow): NormalizedTasting {
+  const beer = singleRelation(tasting.beers);
+  const version = singleRelation(tasting.beer_versions);
 
   return {
-    quantity:
-      tasting.quantity,
-    tasted_on:
-      tasting.tasted_on,
-    tasted_at:
-      tasting.tasted_at,
-    plato:
-      tasting.plato,
-    abv:
-      tasting.abv,
-    ibu:
-      tasting.ibu,
-
-    beers:
-      beer
-        ? {
-            id: beer.id,
-            name: beer.name,
-
-            breweries:
-              singleRelation(
-                beer.breweries
-              ),
-
-            beer_styles:
-              singleRelation(
-                beer.beer_styles
-              ),
-
-            beer_hops:
-              (
-                beer.beer_hops ??
-                []
-              ).map(
-                (beerHop) => ({
-                  hops:
-                    singleRelation(
-                      beerHop.hops
-                    ),
-                })
-              ),
-          }
-        : null,
+    quantity: tasting.quantity,
+    tasted_on: tasting.tasted_on,
+    tasted_at: tasting.tasted_at,
+    plato: tasting.plato,
+    abv: tasting.abv,
+    ibu: tasting.ibu,
+    beer_versions: version
+      ? {
+          breweries: singleRelation(version.breweries),
+          beer_styles: singleRelation(version.beer_styles),
+          beer_version_hops: normalizeHopRows(version.beer_version_hops),
+        }
+      : null,
+    beers: beer
+      ? {
+          id: beer.id,
+          name: beer.name,
+          brands: singleRelation(beer.brands),
+          breweries: singleRelation(beer.breweries),
+          beer_styles: singleRelation(beer.beer_styles),
+          beer_hops: normalizeHopRows(beer.beer_hops),
+        }
+      : null,
   };
 }
 
@@ -222,9 +199,26 @@ export default async function ProfilesPage() {
           plato,
           abv,
           ibu,
+          beer_versions (
+            breweries (
+              id,
+              country
+            ),
+            beer_styles (
+              id
+            ),
+            beer_version_hops (
+              hops (
+                id
+              )
+            )
+          ),
           beers (
             id,
             name,
+            brands (
+              id
+            ),
             breweries (
               id,
               country
