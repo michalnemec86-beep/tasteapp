@@ -1,0 +1,47 @@
+name: Pre-import UI cleanup
+
+on:
+  push:
+    branches:
+      - preimport-ui-cleanup
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch-build-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: preimport-ui-cleanup
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Apply cleanup patch
+        run: node scripts/preimport-ui-cleanup.mjs
+
+      - name: Build
+        run: npm run build
+
+      - name: Commit validated changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No generated changes to commit."
+            exit 0
+          fi
+          git commit -m "Apply pre-import UI cleanup"
+          git push origin HEAD:preimport-ui-cleanup
