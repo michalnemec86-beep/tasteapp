@@ -169,6 +169,14 @@ export default async function ProfilePage({
               id,
               name
             )
+          ),
+          beer_version_collaborators (
+            display_order,
+            breweries (
+              id,
+              name,
+              country
+            )
           )
         ),
         beers (
@@ -390,6 +398,12 @@ export default async function ProfilePage({
                           ),
                       })
                     ),
+                  beer_version_collaborators:
+                    (beerVersion.beer_version_collaborators ?? [])
+                      .map((item) => ({
+                        ...item,
+                        breweries: singleRelation(item.breweries),
+                      })),
                 }
               : null,
 
@@ -1474,6 +1488,18 @@ export default async function ProfilePage({
                         ) : (
                           "Neznámý pivovar"
                         )}
+
+                        {(tasting.beer_versions?.beer_version_collaborators ?? [])
+                          .filter((item) => item.breweries)
+                          .sort((a, b) => a.display_order - b.display_order)
+                          .map((item) => (
+                            <span key={item.breweries!.id} style={{ marginLeft: "5px", fontSize: "10px" }}>
+                              +{" "}
+                              <Link href={`/breweries/${item.breweries!.id}`} className="taste-entity-link" style={{ color: "inherit" }}>
+                                {item.breweries!.name}
+                              </Link>
+                            </span>
+                          ))}
 
                         {tasting
                           .beers

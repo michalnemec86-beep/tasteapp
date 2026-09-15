@@ -37,6 +37,7 @@ type TastingFormValues = {
   notes: string;
 
   hopNames: string[];
+  collaboratorBreweryIds: number[];
 };
 
 // ==================================================
@@ -160,6 +161,15 @@ function readTastingFormData(
       )
       .filter(Boolean);
 
+  const collaboratorBreweryIds = [
+    ...new Set(
+      formData
+        .getAll("collaboratorBreweryIds")
+        .map((value) => Number(String(value)))
+        .filter((value) => Number.isInteger(value) && value > 0)
+    ),
+  ];
+
   // ==================================================
   // POVINNÁ POLE
   // ==================================================
@@ -244,6 +254,7 @@ function readTastingFormData(
     notes,
 
     hopNames,
+    collaboratorBreweryIds,
   };
 }
 
@@ -427,6 +438,155 @@ async function resolveBrewery(
   }
 
   return brewery;
+}
+
+async function validateCollaboratorBreweryIds(
+  supabase: SupabaseClient,
+  ids: number[],
+  primaryBreweryId: number
+) {
+  const uniqueIds = [...new Set(ids)];
+
+  if (uniqueIds.includes(primaryBreweryId)) {
+    throw new Error("Hlavní pivovar nemůže být zároveň kolaborantem.");
+  }
+
+  if (uniqueIds.length === 0) {
+    return [];
+  }
+
+  const { data, error } = await supabase
+    .from("breweries")
+    .select("id")
+    .in("id", uniqueIds);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  if ((data ?? []).length !== uniqueIds.length) {
+    throw new Error("Některý kolaborující pivovar už v katalogu neexistuje.");
+  }
+
+  return uniqueIds;
+}
+
+async function ensureTastingVersionBrewery(
+  supabase: SupabaseClient,
+  tastingId: number,
+  versionId: number,
+  beerId: number,
+  breweryId: number,
+  tastedOn: string
+) {
+  const { data: assigned, error } = await supabase
+    .from("beer_versions")
+    .select("id, beer_id, brewery_id, version_year, plato, abv, ibu, style_id")
+    .eq("id", versionId)
+    .single();
+
+  if (error || !assigned) {
+    throw new Error(error?.message || "Nepodařilo se načíst verzi piva.");
+  }
+
+  if (assigned.brewery_id === breweryId) {
+    return assigned.id;
+  }
+
+  const versionYear = Number(tastedOn.slice(0, 4));
+  const { data: candidates, error: candidateError } = await supabase
+    .from("beer_versions")
+    .select("id, brewery_id, version_year, plato, abv, ibu")
+    .eq("beer_id", beerId);
+
+  if (candidateError) {
+    throw new Error(candidateError.message);
+  }
+
+  const same = (a: number | null, b: number | null) =>
+    a == null && b == null ? true : Number(a) === Number(b);
+
+  let matching = (candidates ?? []).find((candidate) =>
+    candidate.brewery_id === breweryId &&
+    candidate.version_year === versionYear &&
+    same(candidate.plato, assigned.plato) &&
+    same(candidate.abv, assigned.abv) &&
+    same(candidate.ibu, assigned.ibu)
+  );
+
+  if (!matching) {
+    const { data: created, error: createError } = await supabase
+      .from("beer_versions")
+      .insert({
+        beer_id: beerId,
+        brewery_id: breweryId,
+        version_year: versionYear,
+        plato: assigned.plato,
+        abv: assigned.abv,
+        ibu: assigned.ibu,
+        style_id: assigned.style_id,
+        is_current: false,
+        notes: "Verze vytvořená z konkrétní ochutnávky s odlišným výrobním pivovarem",
+      })
+      .select("id")
+      .single();
+
+    if (createError || !created) {
+      throw new Error(createError?.message || "Nepodařilo se vytvořit historickou verzi piva.");
+    }
+
+    const { data: hopRows, error: hopsError } = await supabase
+      .from("beer_version_hops")
+      .select("hop_id")
+      .eq("beer_version_id", versionId);
+
+    if (hopsError) {
+      throw new Error(hopsError.message);
+    }
+
+    if ((hopRows ?? []).length > 0) {
+      const { error: copyError } = await supabase
+        .from("beer_version_hops")
+        .insert((hopRows ?? []).map((row) => ({ beer_version_id: created.id, hop_id: row.hop_id })));
+      if (copyError) throw new Error(copyError.message);
+    }
+
+    matching = { ...assigned, id: created.id, brewery_id: breweryId, version_year: versionYear };
+  }
+
+  const { error: tastingUpdateError } = await supabase
+    .from("tastings")
+    .update({ beer_version_id: matching.id })
+    .eq("id", tastingId);
+
+  if (tastingUpdateError) {
+    throw new Error(tastingUpdateError.message);
+  }
+
+  return matching.id;
+}
+
+async function addVersionCollaborators(
+  supabase: SupabaseClient,
+  versionId: number,
+  collaboratorIds: number[]
+) {
+  if (collaboratorIds.length === 0) return;
+
+  const { error } = await supabase
+    .from("beer_version_collaborators")
+    .upsert(
+      collaboratorIds.map((breweryId, index) => ({
+        beer_version_id: versionId,
+        brewery_id: breweryId,
+        display_order: index + 1,
+      })),
+      { onConflict: "beer_version_id,brewery_id" }
+    );
+
+  if (error) {
+    throw new Error(error.message);
+  }
 }
 
 // ==================================================
@@ -880,7 +1040,10 @@ async function resolveCatalogData(
     );
   }
 
-  return beerId;
+  return {
+    beerId,
+    breweryId: brewery.id,
+  };
 }
 
 // ==================================================
@@ -920,14 +1083,22 @@ async function saveTastingCore(
       formData
     );
 
-  const beerId =
+  const { beerId, breweryId } =
     await resolveCatalogData(
       supabase,
       values,
       false
     );
 
+  const collaboratorBreweryIds =
+    await validateCollaboratorBreweryIds(
+      supabase,
+      values.collaboratorBreweryIds,
+      breweryId
+    );
+
   const {
+    data: insertedTasting,
     error:
       tastingError,
   } =
@@ -977,13 +1148,33 @@ async function saveTastingCore(
         notes:
           values.notes ||
           null,
-      });
+      })
+      .select("id, beer_version_id")
+      .single();
 
   if (
-    tastingError
+    tastingError ||
+    !insertedTasting
   ) {
     throw new Error(
-      tastingError.message
+      tastingError?.message || "Ochutnávku se nepodařilo uložit."
+    );
+  }
+
+  if (insertedTasting.beer_version_id) {
+    const finalVersionId = await ensureTastingVersionBrewery(
+      supabase,
+      insertedTasting.id,
+      insertedTasting.beer_version_id,
+      beerId,
+      breweryId,
+      values.tastedOn
+    );
+
+    await addVersionCollaborators(
+      supabase,
+      finalVersionId,
+      collaboratorBreweryIds
     );
   }
 

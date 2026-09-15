@@ -166,6 +166,9 @@ type TastingRow = {
         beer_version_hops:
           | { hops: HopRow | null }[]
           | null;
+        beer_version_collaborators:
+          | { display_order: number; breweries: BreweryRow | null }[]
+          | null;
       }
     | null;
 
@@ -309,6 +312,14 @@ export default async function HomePage() {
             hops (
               id,
               name
+            )
+          ),
+          beer_version_collaborators (
+            display_order,
+            breweries (
+              id,
+              name,
+              country
             )
           )
         ),
@@ -1365,6 +1376,10 @@ function TastingTimelineCard({
 
   const breweryName = tastingBrewery?.name ?? null;
   const breweryId = tastingBrewery?.id ?? null;
+  const collaborators = [...(tasting.beer_versions?.beer_version_collaborators ?? [])]
+    .sort((a, b) => a.display_order - b.display_order)
+    .map((item) => item.breweries)
+    .filter((item): item is BreweryRow => Boolean(item));
 
   const showVersionYear =
     (
@@ -1591,6 +1606,17 @@ function TastingTimelineCard({
                         >
                           {breweryName}
                         </Link>
+                        {collaborators.map((collaborator) => (
+                          <span
+                            key={collaborator.id}
+                            style={{ marginLeft: "5px", fontSize: "10px", fontWeight: 650, color: "var(--taste-text-muted)" }}
+                          >
+                            +{" "}
+                            <Link href={`/breweries/${collaborator.id}`} className="taste-entity-link" style={{ color: "inherit" }}>
+                              {collaborator.name}
+                            </Link>
+                          </span>
+                        ))}
                         {" – "}
                         {tasting.beers?.id ? (
                           <Link href={`/beers/${tasting.beers.id}`} className="taste-entity-link" style={{ color: "inherit" }}>

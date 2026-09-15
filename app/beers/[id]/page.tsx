@@ -31,7 +31,11 @@ export default async function BeerDetailPage({ params }: Props) {
       beer_versions (
         id, version_year, valid_from, valid_to, plato, abv, ibu, is_current,
         breweries ( id, name, country ),
-        beer_styles ( id, name )
+        beer_styles ( id, name ),
+        beer_version_collaborators (
+          display_order,
+          breweries ( id, name, country )
+        )
       )
     `)
     .eq("id", beerId)
@@ -61,6 +65,10 @@ export default async function BeerDetailPage({ params }: Props) {
       is_current: boolean;
       breweries: Relation<{ id: number; name: string; country: string | null }>;
       beer_styles: Relation<{ id: number; name: string }>;
+      beer_version_collaborators: Array<{
+        display_order: number;
+        breweries: Relation<{ id: number; name: string; country: string | null }>;
+      }> | null;
     }> | null;
   };
 
@@ -69,6 +77,9 @@ export default async function BeerDetailPage({ params }: Props) {
     ...version,
     breweries: one(version.breweries),
     beer_styles: one(version.beer_styles),
+    beer_version_collaborators: (version.beer_version_collaborators ?? [])
+      .map((item) => ({ ...item, breweries: one(item.breweries) }))
+      .sort((a, b) => a.display_order - b.display_order),
   }));
   const current = versions.find((version) => version.is_current) ?? null;
   const brewery = current?.breweries ?? one(beer.breweries);
@@ -125,6 +136,13 @@ export default async function BeerDetailPage({ params }: Props) {
                 </div>
                 <div style={{ marginTop: "7px", color: "var(--taste-text-soft)", fontSize: "12px" }}>
                   {version.breweries ? <Link className="taste-entity-link" href={`/breweries/${version.breweries.id}`}>{version.breweries.name}</Link> : "Pivovar neurčen"}
+                  {version.beer_version_collaborators
+                    .filter((item) => item.breweries)
+                    .map((item) => (
+                      <span key={item.breweries!.id} style={{ marginLeft: "5px", fontSize: "10px" }}>
+                        + <Link className="taste-entity-link" href={`/breweries/${item.breweries!.id}`}>{item.breweries!.name}</Link>
+                      </span>
+                    ))}
                   {version.beer_styles ? <> · <Link className="taste-entity-link" href={`/styles/${version.beer_styles.id}`}>{version.beer_styles.name}</Link></> : null}
                 </div>
               </article>

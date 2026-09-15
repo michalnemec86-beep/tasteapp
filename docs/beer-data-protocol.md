@@ -118,3 +118,12 @@ The active catalog was then reset to zero beers, breweries, brands and tastings.
 Only records re-approved under this protocol may return to the active BeerApp dataset.
 
 The archived data is reference material only and must never participate in active statistics.
+
+
+## Kolaborace pivovarů
+
+- Hlavní výrobní pivovar je vždy jediný `beer_versions.brewery_id` a pouze tento pivovar vstupuje do statistik pivovarů.
+- Spolupracující pivovary se ukládají přes `beer_version_collaborators`; vazba je verzovaná, protože kolaborace může platit jen pro konkrétní várku nebo období.
+- Kolaborant se zobrazuje doplňkově za hlavním pivovarem ve formátu `Hlavní pivovar + Kolaborant`.
+- Kolaborant se nikdy nepřičítá jako druhý pivovar do pivovarské statistiky stejné ochutnávky.
+- Jedna verze může mít více kolaborantů; pořadí zobrazení určuje `display_order`.

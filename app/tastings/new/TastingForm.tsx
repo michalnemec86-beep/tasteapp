@@ -137,6 +137,26 @@ export default function TastingForm({
   ] = useState(false);
 
   const [
+    showCollaborationField,
+    setShowCollaborationField,
+  ] = useState(false);
+
+  const [
+    collaboratorQuery,
+    setCollaboratorQuery,
+  ] = useState("");
+
+  const [
+    collaboratorOpen,
+    setCollaboratorOpen,
+  ] = useState(false);
+
+  const [
+    selectedCollaborators,
+    setSelectedCollaborators,
+  ] = useState<Brewery[]>([]);
+
+  const [
     countryOpen,
     setCountryOpen,
   ] = useState(false);
@@ -234,6 +254,9 @@ export default function TastingForm({
       setIbu("");
       setIsNonAlcoholic(false);
       setSelectedHops([]);
+      setSelectedCollaborators([]);
+      setCollaboratorQuery("");
+      setShowCollaborationField(false);
     }
 
     setBeerOpen(true);
@@ -274,6 +297,39 @@ export default function TastingForm({
     );
 
     setBreweryOpen(false);
+  }
+
+  const collaboratorSuggestions =
+    breweries.filter((brewery) => {
+      if (collaboratorQuery.trim().length < 3) {
+        return false;
+      }
+
+      if (normalizeText(brewery.name) === normalizeText(breweryName)) {
+        return false;
+      }
+
+      if (selectedCollaborators.some((item) => item.id === brewery.id)) {
+        return false;
+      }
+
+      return normalizeText(brewery.name).includes(normalizeText(collaboratorQuery));
+    });
+
+  function addCollaborator(brewery: Brewery) {
+    setSelectedCollaborators((current) =>
+      current.some((item) => item.id === brewery.id)
+        ? current
+        : [...current, brewery]
+    );
+    setCollaboratorQuery("");
+    setCollaboratorOpen(false);
+  }
+
+  function removeCollaborator(id: number) {
+    setSelectedCollaborators((current) =>
+      current.filter((brewery) => brewery.id !== id)
+    );
   }
 
   // ==================================================
@@ -647,6 +703,98 @@ export default function TastingForm({
               </div>
             )}
         </div>
+
+        {selectedCollaborators.length > 0 && (
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginTop: "8px" }}>
+            {selectedCollaborators.map((brewery) => (
+              <span
+                key={brewery.id}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "5px",
+                  padding: "4px 8px",
+                  border: "1px solid rgba(217,138,67,0.34)",
+                  borderRadius: "999px",
+                  color: "var(--taste-text-soft)",
+                  fontSize: "10px",
+                }}
+              >
+                + {brewery.name}
+                <button
+                  type="button"
+                  onClick={() => removeCollaborator(brewery.id)}
+                  aria-label={`Odebrat kolaboraci ${brewery.name}`}
+                  style={{ border: 0, background: "transparent", color: "inherit", cursor: "pointer", padding: 0 }}
+                >
+                  ×
+                </button>
+                <input type="hidden" name="collaboratorBreweryIds" value={brewery.id} />
+              </span>
+            ))}
+          </div>
+        )}
+
+        {!showCollaborationField ? (
+          <button
+            type="button"
+            onClick={() => setShowCollaborationField(true)}
+            style={{
+              marginTop: "7px",
+              border: 0,
+              background: "transparent",
+              color: "#d98945",
+              cursor: "pointer",
+              padding: 0,
+              fontSize: "10px",
+              fontWeight: 750,
+            }}
+          >
+            ＋ Přidat kolaboraci
+          </button>
+        ) : (
+          <div style={{ position: "relative", marginTop: "8px" }}>
+            <input
+              value={collaboratorQuery}
+              onChange={(event) => {
+                setCollaboratorQuery(event.target.value);
+                setCollaboratorOpen(true);
+              }}
+              onFocus={() => setCollaboratorOpen(true)}
+              onBlur={() => setTimeout(() => setCollaboratorOpen(false), 150)}
+              placeholder="Další pivovar v kolaboraci"
+              autoComplete="off"
+              style={inputStyle}
+            />
+
+            {collaboratorOpen && collaboratorQuery.trim().length >= 3 && collaboratorSuggestions.length > 0 && (
+              <div style={dropdownStyle}>
+                {collaboratorSuggestions.map((brewery) => (
+                  <button
+                    key={brewery.id}
+                    type="button"
+                    onMouseDown={(event) => event.preventDefault()}
+                    onClick={() => addCollaborator(brewery)}
+                    style={suggestionButtonStyle}
+                  >
+                    {brewery.name}
+                    {brewery.country && (
+                      <div style={{ fontSize: "12px", opacity: 0.65, marginTop: "2px" }}>{brewery.country}</div>
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {collaboratorOpen && collaboratorQuery.trim().length >= 3 && collaboratorSuggestions.length === 0 && (
+              <div style={dropdownStyle}>
+                <div style={{ padding: "10px 12px", color: "var(--taste-text-muted)" }}>
+                  Kolaboraci vyber z existujících pivovarů.
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* ==================================================
