@@ -101,13 +101,20 @@ Never count brewery statistics through both the current beer brewery and a histo
 1. Preserve the source row exactly enough to reconstruct the original record: source identity, date, quantity, packaging, source Plato, venue and note.
 2. Resolve, in order: **canonical brewery identity for the tasting period (including a verified nomadic brewery when applicable) -> brand -> beer -> beer version**.
 3. Current verified catalog properties belong to the current beer/current version. Source historical properties belong to the historical version and tasting.
-4. Never guess an ambiguous brewery, brand or product. Leave the source row unresolved for later research.
-5. Exact repeated source records are real occurrences unless explicitly proven otherwise. Do not content-deduplicate them.
-6. Historical imports use `show_in_timeline = false` unless explicitly requested otherwise.
-7. Every imported tasting must have an import-ledger identity that makes reruns idempotent.
-8. A historical brewery assignment may only be changed when supported by adequate evidence. A year alone is not evidence.
-9. Ownership changes alone do not change the producing brewery or brand.
-10. Before a batch is considered complete, verify row count, quantity total, unresolved rows and duplicate occurrences against the source.
+4. **CSV source-authority fallback:** when an external value cannot be reliably verified, the source CSV is authoritative for the historical tasting and its historical beer version. Do not replace a clear source value with a guess. Record this provenance in `decision_notes` as source-authoritative.
+5. The CSV fallback does not permit inventing identity. If the source itself does not identify a brewery/product sufficiently to map it without guessing, keep the row unresolved until a defensible identity exists.
+6. Exact repeated source records are real occurrences unless explicitly proven otherwise. Do not content-deduplicate them.
+7. Historical imports use `show_in_timeline = false` unless explicitly requested otherwise.
+8. Every imported tasting must have an import-ledger identity that makes reruns idempotent.
+9. A historical brewery assignment may only be changed when supported by adequate evidence. A year alone is not evidence.
+10. Ownership changes alone do not change the producing brewery or brand.
+11. Before a batch is considered complete, verify row count, quantity total, unresolved rows and duplicate occurrences against the source.
+
+### Source-authoritative confidence
+
+- Use `HIGH` when product/brewery identity is verified and historical values are either externally verified or exactly supported by the source.
+- A value copied from CSV because no better reliable source exists is not considered a defect. It is an accepted historical value with explicit source provenance.
+- External current-product data must not overwrite conflicting source values on an old tasting. Keep current catalog data on the current version and source values on the historical version/tasting.
 
 ## Clean-dataset policy (2026-09-15)
 
@@ -118,7 +125,6 @@ The active catalog was then reset to zero beers, breweries, brands and tastings.
 Only records re-approved under this protocol may return to the active BeerApp dataset.
 
 The archived data is reference material only and must never participate in active statistics.
-
 
 ## Kolaborace pivovarů
 
