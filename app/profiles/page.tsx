@@ -45,6 +45,7 @@ type RawTastingRow = {
   beers: Relation<{
     id: number;
     name: string;
+    is_non_alcoholic: boolean;
     brands: Relation<BrandRef>;
     breweries: Relation<BreweryRef>;
     beer_styles: Relation<StyleRef>;
@@ -69,6 +70,7 @@ type NormalizedTasting = {
   beers: {
     id: number;
     name: string;
+    is_non_alcoholic: boolean;
     brands: BrandRef | null;
     breweries: BreweryRef | null;
     beer_styles: StyleRef | null;
@@ -111,6 +113,7 @@ function normalizeTasting(tasting: RawTastingRow): NormalizedTasting {
       ? {
           id: beer.id,
           name: beer.name,
+          is_non_alcoholic: beer.is_non_alcoholic,
           brands: singleRelation(beer.brands),
           breweries: singleRelation(beer.breweries),
           beer_styles: singleRelation(beer.beer_styles),
@@ -216,6 +219,7 @@ export default async function ProfilesPage() {
           beers (
             id,
             name,
+            is_non_alcoholic,
             brands (
               id
             ),

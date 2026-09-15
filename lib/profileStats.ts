@@ -59,6 +59,7 @@ type ProfileStatsTasting = {
   beers: {
     id: number;
     name: string;
+    is_non_alcoholic: boolean;
     brands?: ProfileBrand | null;
     breweries: ProfileBrewery | null;
     beer_styles: ProfileStyle | null;
@@ -92,6 +93,10 @@ function buildNumericSummary(
   let max: number | null = null;
 
   for (const tasting of tastings) {
+    if (field === "abv" && tasting.beers?.is_non_alcoholic) {
+      continue;
+    }
+
     const value = tasting[field];
 
     if (value == null || !Number.isFinite(value)) {
@@ -120,8 +125,13 @@ function findHighestBeerRecord(
   let record: ProfileBeerRecord | null = null;
 
   for (const tasting of tastings) {
-    const value = tasting[field];
     const beer = tasting.beers;
+
+    if (field === "abv" && beer?.is_non_alcoholic) {
+      continue;
+    }
+
+    const value = tasting[field];
 
     if (value == null || !Number.isFinite(value) || !beer) {
       continue;

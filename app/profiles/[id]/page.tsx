@@ -174,6 +174,7 @@ export default async function ProfilePage({
         beers (
           id,
           name,
+          is_non_alcoholic,
           brands (
             id,
             name
