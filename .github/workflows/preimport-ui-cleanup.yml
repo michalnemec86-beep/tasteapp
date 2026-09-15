@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -17,6 +17,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: preimport-ui-cleanup
+          fetch-depth: 0
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -27,5 +28,20 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Apply canonical follow-up
+        run: node scripts/preimport-followup.mjs
+
       - name: Build
         run: npm run build
+
+      - name: Commit validated follow-up
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No follow-up changes to commit."
+            exit 0
+          fi
+          git commit -m "Finish canonical pre-import stats wiring"
+          git push origin HEAD:preimport-ui-cleanup
