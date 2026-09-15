@@ -1,14 +1,17 @@
 import { getPackagingMeta } from "@/lib/packaging";
+import { getCountryFlag, normalizeCountryName } from "@/lib/country-flags";
 
 export type RankingItem = {
   id: number | string;
   name: string;
   count: number;
+  flag?: string;
 };
 
 export type TasteStats = {
-  breweries: RankingItem[];
+  beers: RankingItem[];
   brands: RankingItem[];
+  breweries: RankingItem[];
   styles: RankingItem[];
   countries: RankingItem[];
   hops: RankingItem[];
@@ -27,12 +30,24 @@ type StatsHopRow = {
   } | null;
 };
 
+type StatsBrewery = {
+  id: number;
+  name: string;
+  country: string | null;
+};
+
+type StatsBrand = {
+  id: number;
+  name: string;
+};
+
 type StatsTasting = {
   user_id: string;
   quantity: number | null;
   packaging: string | null;
 
   beer_versions?: {
+    breweries?: StatsBrewery | null;
     beer_styles: StatsStyle | null;
     beer_version_hops: StatsHopRow[] | null;
   } | null;
@@ -40,32 +55,19 @@ type StatsTasting = {
   beers: {
     id: number;
     name: string;
-
-    breweries: {
-      id: number;
-      name: string;
-      country: string | null;
-    } | null;
-
+    brands?: StatsBrand | null;
+    breweries: StatsBrewery | null;
     beer_styles: StatsStyle | null;
-
     beer_hops: StatsHopRow[] | null;
   } | null;
 };
-
-function normalizeText(text: string) {
-  return text
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .trim();
-}
 
 function addToRanking(
   map: Map<number | string, RankingItem>,
   id: number | string,
   name: string,
-  amount = 1
+  amount = 1,
+  flag?: string
 ) {
   const existing = map.get(id);
 
@@ -78,63 +80,43 @@ function addToRanking(
     id,
     name,
     count: amount,
+    ...(flag ? { flag } : {}),
   });
 }
 
-function sortRanking(
-  map: Map<number | string, RankingItem>
-) {
-  return Array.from(map.values()).sort(
-    (a, b) => {
-      if (b.count !== a.count) {
-        return b.count - a.count;
-      }
-
-      return a.name.localeCompare(
-        b.name,
-        "cs"
-      );
+function sortRanking(map: Map<number | string, RankingItem>) {
+  return Array.from(map.values()).sort((a, b) => {
+    if (b.count !== a.count) {
+      return b.count - a.count;
     }
-  );
+
+    return a.name.localeCompare(b.name, "cs");
+  });
+}
+
+export function getTastingBrewery(tasting: StatsTasting) {
+  return tasting.beer_versions?.breweries ?? tasting.beers?.breweries ?? null;
 }
 
 export function buildTasteStats(
   tastings: StatsTasting[],
   userId?: string
 ): TasteStats {
-  const breweryMap =
-    new Map<number, RankingItem>();
-
-  const brandMap =
-    new Map<number, RankingItem>();
-
-  const styleMap =
-    new Map<number, RankingItem>();
-
-  const countryMap =
-    new Map<string, RankingItem>();
-
-  const hopMap =
-    new Map<number, RankingItem>();
-
-  const packagingMap =
-    new Map<string, RankingItem>();
+  const beerMap = new Map<number, RankingItem>();
+  const brandMap = new Map<number, RankingItem>();
+  const breweryMap = new Map<number, RankingItem>();
+  const styleMap = new Map<number, RankingItem>();
+  const countryMap = new Map<string, RankingItem>();
+  const hopMap = new Map<number, RankingItem>();
+  const packagingMap = new Map<string, RankingItem>();
 
   const filteredTastings = userId
-    ? tastings.filter(
-        (tasting) =>
-          tasting.user_id === userId
-      )
+    ? tastings.filter((tasting) => tasting.user_id === userId)
     : tastings;
 
   for (const tasting of filteredTastings) {
-    const quantity =
-      tasting.quantity ?? 1;
-
-    const packaging =
-      getPackagingMeta(
-        tasting.packaging
-      );
+    const quantity = tasting.quantity ?? 1;
+    const packaging = getPackagingMeta(tasting.packaging);
 
     if (packaging) {
       addToRanking(
@@ -145,62 +127,57 @@ export function buildTasteStats(
       );
     }
 
-    const beer =
-      tasting.beers;
+    const beer = tasting.beers;
 
     if (!beer) {
       continue;
     }
 
-    // Verze receptu nikdy nezvyšuje počet unikátních piv.
-    addToRanking(
-      brandMap,
-      beer.id,
-      beer.name,
-      quantity
-    );
+    addToRanking(beerMap, beer.id, beer.name, quantity);
 
-    if (beer.breweries) {
+    if (beer.brands) {
+      addToRanking(
+        brandMap,
+        beer.brands.id,
+        beer.brands.name,
+        quantity
+      );
+    }
+
+    // Kanonický výrobce patří konkrétní historické / současné
+    // verzi piva. beer.brewery_id je pouze kompatibilní fallback.
+    const brewery = getTastingBrewery(tasting);
+
+    if (brewery) {
       addToRanking(
         breweryMap,
-        beer.breweries.id,
-        beer.breweries.name,
+        brewery.id,
+        brewery.name,
         quantity
       );
 
-      const country =
-        beer.breweries.country?.trim();
+      const country = brewery.country?.trim();
 
       if (country) {
         addToRanking(
           countryMap,
-          normalizeText(country),
+          normalizeCountryName(country),
           country,
-          quantity
+          quantity,
+          getCountryFlag(country)
         );
       }
     }
 
     // Historická verze má přednost před dnešním katalogem.
-    const style =
-      tasting.beer_versions
-        ?.beer_styles ??
-      beer.beer_styles;
+    const style = tasting.beer_versions?.beer_styles ?? beer.beer_styles;
 
     if (style) {
-      addToRanking(
-        styleMap,
-        style.id,
-        style.name,
-        quantity
-      );
+      addToRanking(styleMap, style.id, style.name, quantity);
     }
 
     const hopRows =
-      tasting.beer_versions
-        ?.beer_version_hops ??
-      beer.beer_hops ??
-      [];
+      tasting.beer_versions?.beer_version_hops ?? beer.beer_hops ?? [];
 
     for (const hopRow of hopRows) {
       const hop = hopRow.hops;
@@ -209,18 +186,14 @@ export function buildTasteStats(
         continue;
       }
 
-      addToRanking(
-        hopMap,
-        hop.id,
-        hop.name,
-        quantity
-      );
+      addToRanking(hopMap, hop.id, hop.name, quantity);
     }
   }
 
   return {
-    breweries: sortRanking(breweryMap),
+    beers: sortRanking(beerMap),
     brands: sortRanking(brandMap),
+    breweries: sortRanking(breweryMap),
     styles: sortRanking(styleMap),
     countries: sortRanking(countryMap),
     hops: sortRanking(hopMap),
