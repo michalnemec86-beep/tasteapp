@@ -59,6 +59,31 @@ jobs:
       - name: Apply cleanup patch
         run: node scripts/preimport-ui-cleanup.mjs
 
+      - name: Apply compatibility fixes
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path("app/stats/RankingCardClient.tsx")
+          text = path.read_text()
+          old = '''type RankingItem = {
+            id: string | number;
+            name: string;
+            count: number;
+          };'''
+          new = '''type RankingItem = {
+            id: string | number;
+            name: string;
+            count: number;
+            flag?: string;
+          };'''
+          # Source uses two-space indentation, normalize the literal instead of guessing formatting.
+          old = old.replace("          ", "")
+          new = new.replace("          ", "")
+          if old not in text:
+              raise SystemExit("ranking item type target not found")
+          path.write_text(text.replace(old, new, 1))
+          PY
+
       - name: Build
         run: npm run build
 
