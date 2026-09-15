@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import OnlineUsersBadge from "./OnlineUsersBadge";
 
 export default function AppNav() {
   const pathname = usePathname();
@@ -151,6 +152,8 @@ export default function AppNav() {
             Uživatelé
           </NavLink>
         </div>
+
+        <OnlineUsersBadge />
 
         <Link
           href="/me"
