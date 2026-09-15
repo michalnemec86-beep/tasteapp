@@ -28,6 +28,19 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Fix patch helper
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path("scripts/preimport-ui-cleanup.mjs")
+          text = path.read_text()
+          old = '  const matches = [...input.matchAll(regex)];\n'
+          new = '  const matcher = new RegExp(regex.source, regex.flags.includes("g") ? regex.flags : regex.flags + "g");\n  const matches = [...input.matchAll(matcher)];\n'
+          if old not in text:
+              raise SystemExit("patch helper target not found")
+          path.write_text(text.replace(old, new, 1))
+          PY
+
       - name: Apply cleanup patch
         run: node scripts/preimport-ui-cleanup.mjs
 
