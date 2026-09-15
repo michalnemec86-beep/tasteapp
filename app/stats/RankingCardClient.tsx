@@ -22,6 +22,15 @@ type RankingTone =
   | "malt"
   | "bronze";
 
+type RankingToneStyle = {
+  accent: string;
+  border: string;
+  softBorder: string;
+  tint: string;
+  bar: string;
+  glow: string;
+};
+
 type RankingCardClientProps = {
   title: string;
   subtitle: string;
@@ -32,6 +41,63 @@ type RankingCardClientProps = {
 };
 
 const PREVIEW_LIMIT = 10;
+
+const TONE_STYLES: Record<RankingTone, RankingToneStyle> = {
+  gold: {
+    accent: "var(--taste-yellow)",
+    border: "rgba(242,182,63,0.34)",
+    softBorder: "rgba(242,182,63,0.22)",
+    tint: "rgba(242,182,63,0.085)",
+    bar: "rgba(242,182,63,0.62)",
+    glow:
+      "radial-gradient(circle at 100% 0%, rgba(242,182,63,0.14), transparent 13rem)",
+  },
+  honey: {
+    accent: "var(--taste-gold)",
+    border: "rgba(245,193,109,0.34)",
+    softBorder: "rgba(245,193,109,0.22)",
+    tint: "rgba(245,193,109,0.08)",
+    bar: "rgba(245,193,109,0.60)",
+    glow:
+      "radial-gradient(circle at 88% 8%, rgba(245,193,109,0.13), transparent 14rem)",
+  },
+  amber: {
+    accent: "var(--taste-orange)",
+    border: "rgba(232,136,53,0.34)",
+    softBorder: "rgba(232,136,53,0.22)",
+    tint: "rgba(232,136,53,0.08)",
+    bar: "rgba(232,136,53,0.62)",
+    glow:
+      "radial-gradient(circle at 72% -8%, rgba(232,136,53,0.14), transparent 14rem)",
+  },
+  copper: {
+    accent: "var(--taste-red)",
+    border: "rgba(214,91,66,0.34)",
+    softBorder: "rgba(214,91,66,0.22)",
+    tint: "rgba(214,91,66,0.08)",
+    bar: "rgba(214,91,66,0.60)",
+    glow:
+      "radial-gradient(circle at 100% 22%, rgba(214,91,66,0.13), transparent 14rem)",
+  },
+  malt: {
+    accent: "var(--taste-green)",
+    border: "rgba(156,173,71,0.34)",
+    softBorder: "rgba(156,173,71,0.22)",
+    tint: "rgba(156,173,71,0.08)",
+    bar: "rgba(156,173,71,0.60)",
+    glow:
+      "radial-gradient(circle at 82% 0%, rgba(156,173,71,0.13), transparent 13rem)",
+  },
+  bronze: {
+    accent: "var(--taste-copper)",
+    border: "rgba(168,98,33,0.38)",
+    softBorder: "rgba(168,98,33,0.24)",
+    tint: "rgba(168,98,33,0.09)",
+    bar: "rgba(168,98,33,0.64)",
+    glow:
+      "radial-gradient(circle at 96% 12%, rgba(168,98,33,0.15), transparent 15rem)",
+  },
+};
 
 function getItemHref(
   title: string,
@@ -84,47 +150,7 @@ export default function RankingCardClient({
       : 1;
 
   const previewItems = items.slice(0, PREVIEW_LIMIT);
-
-  const toneStyles: Record<
-    RankingTone,
-    {
-      glow: string;
-      border: string;
-    }
-  > = {
-    gold: {
-      glow:
-        "radial-gradient(circle at 100% 0%, rgba(241,180,58,0.11), transparent 13rem)",
-      border: "rgba(241,180,58,0.20)",
-    },
-    honey: {
-      glow:
-        "radial-gradient(circle at 88% 8%, rgba(218,148,43,0.105), transparent 14rem)",
-      border: "rgba(218,148,43,0.19)",
-    },
-    amber: {
-      glow:
-        "radial-gradient(circle at 72% -8%, rgba(236,171,66,0.10), transparent 14rem)",
-      border: "rgba(236,171,66,0.18)",
-    },
-    copper: {
-      glow:
-        "radial-gradient(circle at 100% 22%, rgba(197,112,55,0.11), transparent 14rem)",
-      border: "rgba(197,112,55,0.20)",
-    },
-    malt: {
-      glow:
-        "radial-gradient(circle at 82% 0%, rgba(190,135,52,0.10), transparent 13rem)",
-      border: "rgba(190,135,52,0.18)",
-    },
-    bronze: {
-      glow:
-        "radial-gradient(circle at 96% 12%, rgba(180,121,64,0.105), transparent 15rem)",
-      border: "rgba(180,121,64,0.19)",
-    },
-  };
-
-  const cardTone = toneStyles[tone];
+  const cardTone = TONE_STYLES[tone];
 
   useEffect(() => {
     if (!isOpen) {
@@ -165,6 +191,7 @@ export default function RankingCardClient({
           title={title}
           subtitle={subtitle}
           icon={icon}
+          tone={cardTone}
         />
 
         {items.length === 0 ? (
@@ -183,6 +210,7 @@ export default function RankingCardClient({
             items={previewItems}
             maximum={maximum}
             itemHrefPrefix={itemHrefPrefix}
+            tone={cardTone}
           />
         )}
 
@@ -194,11 +222,10 @@ export default function RankingCardClient({
               width: "100%",
               marginTop: "18px",
               padding: "11px 13px",
-              border:
-                "1px solid rgba(231,166,47,0.18)",
+              border: `1px solid ${cardTone.softBorder}`,
               borderRadius: "10px",
-              background: "rgba(231,166,47,0.055)",
-              color: "var(--taste-amber-bright)",
+              background: cardTone.tint,
+              color: cardTone.accent,
               fontSize: "11px",
               fontWeight: 700,
               cursor: "pointer",
@@ -248,10 +275,9 @@ export default function RankingCardClient({
                 display: "flex",
                 flexDirection: "column",
                 overflow: "hidden",
-                border:
-                  "1px solid rgba(231,166,47,0.24)",
+                border: `1px solid ${cardTone.border}`,
                 borderRadius: "var(--taste-radius-xl)",
-                background: "var(--taste-surface)",
+                background: `${cardTone.glow}, var(--taste-surface)`,
                 boxShadow: "0 24px 80px rgba(0,0,0,0.55)",
               }}
             >
@@ -262,14 +288,14 @@ export default function RankingCardClient({
                   alignItems: "flex-start",
                   gap: "18px",
                   padding: "22px 24px 18px",
-                  borderBottom:
-                    "1px solid rgba(231,166,47,0.10)",
+                  borderBottom: `1px solid ${cardTone.softBorder}`,
                 }}
               >
                 <RankingHeader
                   title={title}
                   subtitle={`${subtitle} · ${items.length} položek`}
                   icon={icon}
+                  tone={cardTone}
                 />
 
                 <button
@@ -280,10 +306,10 @@ export default function RankingCardClient({
                     width: "34px",
                     height: "34px",
                     flexShrink: 0,
-                    border: "1px solid var(--taste-border)",
+                    border: `1px solid ${cardTone.softBorder}`,
                     borderRadius: "10px",
-                    background: "rgba(255,255,255,0.025)",
-                    color: "var(--taste-text-soft)",
+                    background: cardTone.tint,
+                    color: cardTone.accent,
                     fontSize: "20px",
                     lineHeight: 1,
                     cursor: "pointer",
@@ -304,6 +330,7 @@ export default function RankingCardClient({
                   items={items}
                   maximum={maximum}
                   itemHrefPrefix={itemHrefPrefix}
+                  tone={cardTone}
                 />
               </div>
             </section>
@@ -318,10 +345,12 @@ function RankingHeader({
   title,
   subtitle,
   icon,
+  tone,
 }: {
   title: string;
   subtitle: string;
   icon: ReactNode;
+  tone: RankingToneStyle;
 }) {
   return (
     <div>
@@ -341,12 +370,12 @@ function RankingHeader({
             alignItems: "center",
             justifyContent: "center",
             flexShrink: 0,
-            border:
-              "1px solid rgba(231,166,47,0.18)",
+            border: `1px solid ${tone.softBorder}`,
             borderRadius: "10px",
-            background: "rgba(231,166,47,0.055)",
-            color: "var(--taste-amber-bright)",
+            background: tone.tint,
+            color: tone.accent,
             fontSize: "15px",
+            boxShadow: `inset 0 1px 0 ${tone.softBorder}`,
           }}
         >
           {icon}
@@ -355,7 +384,7 @@ function RankingHeader({
         <h3
           style={{
             margin: 0,
-            color: "var(--taste-text)",
+            color: tone.accent,
             fontSize: "17px",
             fontWeight: 750,
             letterSpacing: "-0.015em",
@@ -384,11 +413,13 @@ function RankingList({
   items,
   maximum,
   itemHrefPrefix,
+  tone,
 }: {
   title: string;
   items: RankingItem[];
   maximum: number;
   itemHrefPrefix?: string;
+  tone: RankingToneStyle;
 }) {
   return (
     <div
@@ -441,7 +472,7 @@ function RankingList({
                 style={{
                   color:
                     index === 0
-                      ? "var(--taste-amber)"
+                      ? tone.accent
                       : "var(--taste-text-muted)",
                   fontSize: "10px",
                   fontWeight: 700,
@@ -457,8 +488,7 @@ function RankingList({
                   style={{
                     ...nameStyle,
                     textDecoration: "none",
-                    borderBottom:
-                      "1px solid rgba(231,166,47,0.22)",
+                    borderBottom: `1px solid ${tone.softBorder}`,
                     width: "fit-content",
                     maxWidth: "100%",
                   }}
@@ -473,7 +503,7 @@ function RankingList({
 
               <div
                 style={{
-                  color: "var(--taste-amber-bright)",
+                  color: tone.accent,
                   fontSize: "11px",
                   fontWeight: 750,
                 }}
@@ -498,8 +528,8 @@ function RankingList({
                   borderRadius: "999px",
                   background:
                     index === 0
-                      ? "var(--taste-amber-bright)"
-                      : "rgba(231,166,47,0.62)",
+                      ? tone.accent
+                      : tone.bar,
                 }}
               />
             </div>
