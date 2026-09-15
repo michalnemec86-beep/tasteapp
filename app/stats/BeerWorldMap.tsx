@@ -62,12 +62,22 @@ const COUNTRY_ALIASES: Record<string, string> = {
   skotsko: "GB",
   wales: "GB",
   "severni irsko": "GB",
+  "s. irsko": "GB",
+  "spojene kralovstvi": "GB",
   "jizni korea": "KR",
   "korejska republika": "KR",
   "severni korea": "KP",
   rusko: "RU",
   vietnam: "VN",
 };
+
+const UK_REGION_NORMALIZED_NAMES = new Set([
+  "anglie",
+  "skotsko",
+  "wales",
+  "severni irsko",
+  "s. irsko",
+]);
 
 const MAP_SHADE_STEPS: MapShadeStep[] = [
   {
@@ -298,6 +308,12 @@ export default function BeerWorldMap({
 
   const unmappedCountries = items.filter(
     (item) => !getCountryCode(item.name)
+  );
+
+  const hasGroupedUkRegion = items.some((item) =>
+    UK_REGION_NORMALIZED_NAMES.has(
+      normalizeCountryName(item.name)
+    )
   );
 
   const data: Data = mappedCountries.map((item) => ({
@@ -543,56 +559,79 @@ export default function BeerWorldMap({
         )}
 
         {data.length > 0 ? (
-          <div
-            onPointerDown={handleMapPointerDown}
-            onPointerMove={handleMapPointerMove}
-            onPointerUp={handleMapPointerUp}
-            onPointerCancel={handleMapPointerUp}
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              width: `${mapSize}px`,
-              maxWidth: "100%",
-              margin: "0 auto",
-              transform: focusEurope
-                ? `translate3d(${mapPan.x}px, ${
-                    mapPan.y - 28
-                  }px, 0) scale(${1.12 * europeZoom})`
-                : undefined,
-              transformOrigin: focusEurope
-                ? "center center"
-                : undefined,
-              transition:
-                focusEurope && !isDragging
-                  ? "transform 180ms ease-out"
-                  : "none",
-              cursor:
-                focusEurope && europeZoom > 1
-                  ? isDragging
-                    ? "grabbing"
-                    : "grab"
-                  : "default",
-              userSelect: focusEurope ? "none" : undefined,
-              touchAction: focusEurope ? "none" : undefined,
-            }}
-          >
-            <WorldMap
-              title=""
-              data={data}
-              size={mapSize}
-              color="#e7a62f"
-              backgroundColor="transparent"
-              borderColor="#4b4439"
-              frame={false}
-              richInteraction={false}
-              tooltipBgColor="#17130d"
-              tooltipTextColor="#f2ede3"
-              styleFunction={styleCountry}
-              tooltipTextFunction={tooltipText}
-              onClickFunction={handleCountryClick}
-            />
-          </div>
+          <>
+            <div
+              onPointerDown={handleMapPointerDown}
+              onPointerMove={handleMapPointerMove}
+              onPointerUp={handleMapPointerUp}
+              onPointerCancel={handleMapPointerUp}
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                width: `${mapSize}px`,
+                maxWidth: "100%",
+                margin: "0 auto",
+                transform: focusEurope
+                  ? `translate3d(${mapPan.x}px, ${
+                      mapPan.y - 28
+                    }px, 0) scale(${1.12 * europeZoom})`
+                  : undefined,
+                transformOrigin: focusEurope
+                  ? "center center"
+                  : undefined,
+                transition:
+                  focusEurope && !isDragging
+                    ? "transform 180ms ease-out"
+                    : "none",
+                cursor:
+                  focusEurope && europeZoom > 1
+                    ? isDragging
+                      ? "grabbing"
+                      : "grab"
+                    : "default",
+                userSelect: focusEurope ? "none" : undefined,
+                touchAction: focusEurope ? "none" : undefined,
+              }}
+            >
+              <WorldMap
+                title=""
+                data={data}
+                size={mapSize}
+                color="#e7a62f"
+                backgroundColor="transparent"
+                borderColor="#4b4439"
+                frame={false}
+                richInteraction={false}
+                tooltipBgColor="#17130d"
+                tooltipTextColor="#f2ede3"
+                styleFunction={styleCountry}
+                tooltipTextFunction={tooltipText}
+                onClickFunction={handleCountryClick}
+              />
+            </div>
+
+            {!focusEurope && (
+              <div
+                aria-hidden="true"
+                style={{
+                  position: "absolute",
+                  left: "36%",
+                  top: "49%",
+                  width: "12.5%",
+                  height: "10px",
+                  borderRadius: "999px",
+                  background:
+                    "linear-gradient(180deg, rgba(18,14,10,0) 0%, rgba(18,14,10,0.98) 28%, rgba(18,14,10,0.98) 72%, rgba(18,14,10,0) 100%)",
+                  boxShadow:
+                    "0 0 0 1px rgba(18,14,10,0.34)",
+                  transform: "rotate(2deg)",
+                  pointerEvents: "none",
+                  zIndex: 3,
+                }}
+              />
+            )}
+          </>
         ) : (
           <div
             style={{
@@ -675,6 +714,27 @@ export default function BeerWorldMap({
               {maximum}×
             </strong>
           </span>
+        </div>
+      )}
+
+      {hasGroupedUkRegion && (
+        <div
+          style={{
+            marginTop: "12px",
+            padding: "9px 11px",
+            border:
+              "1px solid rgba(231,166,47,0.12)",
+            borderRadius: "9px",
+            background: "rgba(231,166,47,0.035)",
+            color: "var(--taste-text-muted)",
+            fontSize: "10px",
+            lineHeight: 1.5,
+          }}
+        >
+          Poznámka: Skotsko, Wales a Severní Irsko se ve
+          světové mapě zobrazují sloučeně pod Velkou Británií,
+          protože použitý mapový podklad nemá jejich vnitřní
+          hranice jako samostatné oblasti.
         </div>
       )}
 
