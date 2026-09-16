@@ -11,6 +11,7 @@ import { isPackaging } from "@/lib/packaging";
 import StatsFilterBarClient from "./StatsFilterBarClient";
 import BeerWorldMap from "./BeerWorldMap";
 import RankingCardClient from "./RankingCardClient";
+import PackagingSummaryCard from "./PackagingSummaryCard";
 import PageHero from "@/components/ui/PageHero";
 import AppIcon from "@/components/ui/AppIcon";
 
@@ -410,7 +411,7 @@ export default async function StatsPage({
         imageUrl="/images/heroes/stats.jpg"
         visualVariant="stats"
         title="Statistiky"
-        subtitle="Podívej se na svůj pivní svět v číslech. Piva, značky, pivovary, styly, země i chmely na jednom místě a s přímými prokliky na související data."
+        subtitle="Podívej se na svůj pivní svět v číslech. Piva, značky, pivovary, styly, země, chmely i způsob podání na jednom místě."
         action={
           <Link
             href="/breweries"
@@ -487,6 +488,8 @@ export default async function StatsPage({
           Pro tento výběr zatím nejsou žádné ochutnávky.
         </div>
       )}
+
+      <PackagingSummaryCard items={stats.packaging} />
 
       <section>
         <div style={{ marginBottom: "15px" }}>
@@ -566,15 +569,6 @@ export default async function StatsPage({
             subtitle="Chmely použitých piv"
             icon={<AppIcon name="hop" size={20} />}
             items={stats.hops}
-          />
-
-          <RankingCardClient
-            title="Podání / obal"
-            tone="bronze"
-            subtitle="Podle počtu vypitých piv"
-            icon={<AppIcon name="package" size={20} />}
-            items={stats.packaging}
-            itemHrefPrefix="/stats/packaging"
           />
         </div>
       </section>
