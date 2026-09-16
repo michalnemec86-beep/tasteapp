@@ -6,7 +6,7 @@ export const PACKAGING_OPTIONS = [
   },
   {
     value: "bottle",
-    label: "Láhev",
+    label: "Lahvové",
     icon: "🍾",
   },
   {
