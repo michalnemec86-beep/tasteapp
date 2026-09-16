@@ -2,6 +2,9 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 import type { RankingItem } from "@/lib/stats";
+import { getPackagingMeta } from "@/lib/packaging";
+import { createClient } from "@/lib/supabase/server";
+import AppIcon from "@/components/ui/AppIcon";
 
 type StatsRankingCardProps = {
   title: string;
@@ -14,7 +17,71 @@ type StatsRankingCardProps = {
   ) => string;
 };
 
-export default function StatsRankingCard({
+export default async function StatsRankingCard(
+  props: StatsRankingCardProps
+) {
+  if (props.title !== "Pivní styly") {
+    return <RankingCardView {...props} />;
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("tastings")
+    .select("packaging, quantity");
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  const packagingMap = new Map<string, RankingItem>();
+
+  for (const tasting of data ?? []) {
+    const packaging = getPackagingMeta(tasting.packaging);
+
+    if (!packaging) {
+      continue;
+    }
+
+    const amount = tasting.quantity ?? 1;
+    const existing = packagingMap.get(packaging.value);
+
+    if (existing) {
+      existing.count += amount;
+    } else {
+      packagingMap.set(packaging.value, {
+        id: packaging.value,
+        name: packaging.label,
+        count: amount,
+      });
+    }
+  }
+
+  const packagingItems = Array.from(packagingMap.values()).sort(
+    (a, b) =>
+      b.count !== a.count
+        ? b.count - a.count
+        : a.name.localeCompare(b.name, "cs")
+  );
+
+  return (
+    <>
+      <RankingCardView {...props} />
+
+      <RankingCardView
+        title="Způsob podání"
+        subtitle="Čepované, lahvové a plechovky"
+        icon={<AppIcon name="package" size={20} />}
+        accent="#b77a36"
+        items={packagingItems}
+        getItemHref={(item) =>
+          `/stats/packaging/${item.id}`
+        }
+      />
+    </>
+  );
+}
+
+function RankingCardView({
   title,
   subtitle,
   icon,
@@ -22,11 +89,8 @@ export default function StatsRankingCard({
   items,
   getItemHref,
 }: StatsRankingCardProps) {
-  const topItems =
-    items.slice(0, 5);
-
-  const maximum =
-    topItems[0]?.count ?? 1;
+  const topItems = items.slice(0, 5);
+  const maximum = topItems[0]?.count ?? 1;
 
   return (
     <section
@@ -34,10 +98,8 @@ export default function StatsRankingCard({
         position: "relative",
         overflow: "hidden",
         padding: "14px",
-        border:
-          "1px solid var(--taste-border)",
-        borderRadius:
-          "var(--taste-radius-lg)",
+        border: "1px solid var(--taste-border)",
+        borderRadius: "var(--taste-radius-lg)",
         background: `
           linear-gradient(
             145deg,
@@ -46,8 +108,7 @@ export default function StatsRankingCard({
           ),
           var(--taste-surface)
         `,
-        boxShadow:
-          "var(--taste-shadow-soft)",
+        boxShadow: "var(--taste-shadow-soft)",
       }}
     >
       <div
@@ -84,10 +145,8 @@ export default function StatsRankingCard({
             alignItems: "center",
             justifyContent: "center",
             borderRadius: "9px",
-            border:
-              `1px solid ${accent}30`,
-            background:
-              `${accent}12`,
+            border: `1px solid ${accent}30`,
+            background: `${accent}12`,
             fontSize: "15px",
           }}
         >
@@ -98,13 +157,11 @@ export default function StatsRankingCard({
           <h3
             style={{
               margin: 0,
-              color:
-                "var(--taste-text)",
+              color: "var(--taste-text)",
               fontSize: "14px",
               lineHeight: 1.15,
               fontWeight: 750,
-              letterSpacing:
-                "-0.015em",
+              letterSpacing: "-0.015em",
             }}
           >
             {title}
@@ -113,8 +170,7 @@ export default function StatsRankingCard({
           <div
             style={{
               marginTop: "2px",
-              color:
-                "var(--taste-text-muted)",
+              color: "var(--taste-text-muted)",
               fontSize: "10px",
               lineHeight: 1.25,
             }}
@@ -127,10 +183,8 @@ export default function StatsRankingCard({
       {topItems.length === 0 && (
         <div
           style={{
-            padding:
-              "16px 2px 8px",
-            color:
-              "var(--taste-text-muted)",
+            padding: "16px 2px 8px",
+            color: "var(--taste-text-muted)",
             fontSize: "11px",
           }}
         >
@@ -145,160 +199,144 @@ export default function StatsRankingCard({
           marginTop: "14px",
         }}
       >
-        {topItems.map(
-          (item, index) => {
-            const percentage =
-              maximum > 0
-                ? Math.max(
-                    7,
-                    (item.count /
-                      maximum) *
-                      100
-                  )
-                : 0;
+        {topItems.map((item, index) => {
+          const percentage =
+            maximum > 0
+              ? Math.max(
+                  7,
+                  (item.count / maximum) * 100
+                )
+              : 0;
 
-            const isFirst =
-              index === 0;
+          const isFirst = index === 0;
 
-            return (
-              <div key={item.id}>
+          return (
+            <div key={item.id}>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns:
+                    "22px minmax(0,1fr) auto",
+                  alignItems: "center",
+                  gap: "7px",
+                  marginBottom: "4px",
+                }}
+              >
                 <div
                   style={{
-                    display: "grid",
-                    gridTemplateColumns:
-                      "22px minmax(0,1fr) auto",
+                    width: "20px",
+                    height: "20px",
+                    display: "flex",
                     alignItems: "center",
-                    gap: "7px",
-                    marginBottom: "4px",
+                    justifyContent: "center",
+                    borderRadius: "7px",
+                    border: isFirst
+                      ? `1px solid ${accent}45`
+                      : "1px solid rgba(255,255,255,0.045)",
+                    background: isFirst
+                      ? `${accent}12`
+                      : "rgba(255,255,255,0.018)",
+                    color: isFirst
+                      ? accent
+                      : "var(--taste-text-muted)",
+                    fontSize: "9px",
+                    fontWeight: 800,
                   }}
                 >
-                  <div
-                    style={{
-                      width: "20px",
-                      height: "20px",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent:
-                        "center",
-                      borderRadius: "7px",
-                      border: isFirst
-                        ? `1px solid ${accent}45`
-                        : "1px solid rgba(255,255,255,0.045)",
-                      background:
-                        isFirst
-                          ? `${accent}12`
-                          : "rgba(255,255,255,0.018)",
-                      color:
-                        isFirst
-                          ? accent
-                          : "var(--taste-text-muted)",
-                      fontSize: "9px",
-                      fontWeight: 800,
-                    }}
-                  >
-                    {index + 1}
-                  </div>
+                  {index + 1}
+                </div>
 
-                  <div
-                    title={item.name}
-                    style={{
-                      minWidth: 0,
-                      overflow:
-                        "hidden",
-                      textOverflow:
-                        "ellipsis",
-                      whiteSpace:
-                        "nowrap",
-                      color:
-                        isFirst
-                          ? "var(--taste-text)"
-                          : "var(--taste-text-soft)",
-                      fontSize: "11px",
-                      fontWeight:
-                        isFirst
-                          ? 700
-                          : 600,
-                    }}
-                  >
-                    {getItemHref ? (
-                      <Link
-                        href={getItemHref(item)}
-                        style={{
-                          color: "inherit",
-                          textDecoration: "none",
-                        }}
-                      >
-                        {item.flag ? <span style={{ marginRight: "6px" }}>{item.flag}</span> : null}
-                        {item.name}
-                      </Link>
-                    ) : (
-                      <>
-                        {item.flag ? <span style={{ marginRight: "6px" }}>{item.flag}</span> : null}
-                        {item.name}
-                      </>
-                    )}
-                  </div>
-
-                  <div
-                    style={{
-                      color:
-                        isFirst
-                          ? accent
-                          : "var(--taste-text-soft)",
-                      fontSize: "10px",
-                      fontWeight: 750,
-                    }}
-                  >
-                    {item.count}×
-                  </div>
+                <div
+                  title={item.name}
+                  style={{
+                    minWidth: 0,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                    color: isFirst
+                      ? "var(--taste-text)"
+                      : "var(--taste-text-soft)",
+                    fontSize: "11px",
+                    fontWeight: isFirst ? 700 : 600,
+                  }}
+                >
+                  {getItemHref ? (
+                    <Link
+                      href={getItemHref(item)}
+                      style={{
+                        color: "inherit",
+                        textDecoration: "none",
+                      }}
+                    >
+                      {item.flag ? (
+                        <span style={{ marginRight: "6px" }}>
+                          {item.flag}
+                        </span>
+                      ) : null}
+                      {item.name}
+                    </Link>
+                  ) : (
+                    <>
+                      {item.flag ? (
+                        <span style={{ marginRight: "6px" }}>
+                          {item.flag}
+                        </span>
+                      ) : null}
+                      {item.name}
+                    </>
+                  )}
                 </div>
 
                 <div
                   style={{
-                    marginLeft: "29px",
-                    height: "3px",
-                    borderRadius:
-                      "999px",
-                    background:
-                      "rgba(255,255,255,0.045)",
-                    overflow:
-                      "hidden",
+                    color: isFirst
+                      ? accent
+                      : "var(--taste-text-soft)",
+                    fontSize: "10px",
+                    fontWeight: 750,
                   }}
                 >
-                  <div
-                    style={{
-                      height: "100%",
-                      width:
-                        `${percentage}%`,
-                      borderRadius:
-                        "999px",
-                      background:
-                        isFirst
-                          ? `linear-gradient(
-                              90deg,
-                              ${accent},
-                              ${accent}aa
-                            )`
-                          : `${accent}85`,
-                      boxShadow:
-                        isFirst
-                          ? `0 0 8px ${accent}35`
-                          : "none",
-                    }}
-                  />
+                  {item.count}×
                 </div>
               </div>
-            );
-          }
-        )}
+
+              <div
+                style={{
+                  marginLeft: "29px",
+                  height: "3px",
+                  borderRadius: "999px",
+                  background: "rgba(255,255,255,0.045)",
+                  overflow: "hidden",
+                }}
+              >
+                <div
+                  style={{
+                    height: "100%",
+                    width: `${percentage}%`,
+                    borderRadius: "999px",
+                    background: isFirst
+                      ? `linear-gradient(
+                          90deg,
+                          ${accent},
+                          ${accent}aa
+                        )`
+                      : `${accent}85`,
+                    boxShadow: isFirst
+                      ? `0 0 8px ${accent}35`
+                      : "none",
+                  }}
+                />
+              </div>
+            </div>
+          );
+        })}
       </div>
 
       <div
         style={{
           marginTop: "14px",
           paddingTop: "9px",
-          borderTop:
-            "1px solid rgba(231,166,47,0.11)",
+          borderTop: "1px solid rgba(231,166,47,0.11)",
         }}
       >
         <Link
@@ -306,20 +344,15 @@ export default function StatsRankingCard({
           style={{
             display: "flex",
             alignItems: "center",
-            justifyContent:
-              "space-between",
+            justifyContent: "space-between",
             gap: "8px",
-            color:
-              "var(--taste-text-muted)",
-            textDecoration:
-              "none",
+            color: "var(--taste-text-muted)",
+            textDecoration: "none",
             fontSize: "10px",
             fontWeight: 650,
           }}
         >
-          <span>
-            Kompletní statistiky
-          </span>
+          <span>Kompletní statistiky</span>
 
           <span
             style={{
