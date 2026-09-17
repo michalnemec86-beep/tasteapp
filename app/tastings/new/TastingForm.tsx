@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { PACKAGING_OPTIONS } from "@/lib/packaging";
 
 type Brewery = {
@@ -33,6 +33,11 @@ type ExistingBeer = {
   abv: number | null;
   ibu: number | null;
   is_non_alcoholic: boolean;
+
+  brands?: {
+    id: number;
+    name: string;
+  } | null;
 
   breweries: {
     id: number;
@@ -74,178 +79,67 @@ export default function TastingForm({
   styles,
   hops,
 }: TastingFormProps) {
-  const [
-    beerName,
-    setBeerName,
-  ] = useState("");
-
-  const [
-    existingBeerId,
-    setExistingBeerId,
-  ] = useState("");
-
-  const [
-    breweryName,
-    setBreweryName,
-  ] = useState("");
-
-  const [
-    breweryCountry,
-    setBreweryCountry,
-  ] = useState("");
-
-  const [
-    styleName,
-    setStyleName,
-  ] = useState("");
-
-  const [
-    plato,
-    setPlato,
-  ] = useState("");
-
-  const [
-    abv,
-    setAbv,
-  ] = useState("");
-
-  const [
-    ibu,
-    setIbu,
-  ] = useState("");
-
+  const [beerName, setBeerName] = useState("");
+  const [existingBeerId, setExistingBeerId] = useState("");
+  const [brandName, setBrandName] = useState("");
+  const [breweryName, setBreweryName] = useState("");
+  const [breweryCountry, setBreweryCountry] = useState("");
+  const [styleName, setStyleName] = useState("");
+  const [plato, setPlato] = useState("");
+  const [abv, setAbv] = useState("");
+  const [ibu, setIbu] = useState("");
   const [isNonAlcoholic, setIsNonAlcoholic] = useState(false);
+  const [selectedHops, setSelectedHops] = useState<string[]>([]);
+  const [hopValue, setHopValue] = useState("");
+  const [beerOpen, setBeerOpen] = useState(false);
+  const [breweryOpen, setBreweryOpen] = useState(false);
+  const [showCollaborationField, setShowCollaborationField] = useState(false);
+  const [collaboratorQuery, setCollaboratorQuery] = useState("");
+  const [collaboratorOpen, setCollaboratorOpen] = useState(false);
+  const [selectedCollaborators, setSelectedCollaborators] = useState<Brewery[]>([]);
+  const [countryOpen, setCountryOpen] = useState(false);
+  const [styleOpen, setStyleOpen] = useState(false);
+  const [hopOpen, setHopOpen] = useState(false);
 
-  const [
-    selectedHops,
-    setSelectedHops,
-  ] = useState<string[]>([]);
-
-  const [
-    hopValue,
-    setHopValue,
-  ] = useState("");
-
-  const [
-    beerOpen,
-    setBeerOpen,
-  ] = useState(false);
-
-  const [
-    breweryOpen,
-    setBreweryOpen,
-  ] = useState(false);
-
-  const [
-    showCollaborationField,
-    setShowCollaborationField,
-  ] = useState(false);
-
-  const [
-    collaboratorQuery,
-    setCollaboratorQuery,
-  ] = useState("");
-
-  const [
-    collaboratorOpen,
-    setCollaboratorOpen,
-  ] = useState(false);
-
-  const [
-    selectedCollaborators,
-    setSelectedCollaborators,
-  ] = useState<Brewery[]>([]);
-
-  const [
-    countryOpen,
-    setCountryOpen,
-  ] = useState(false);
-
-  const [
-    styleOpen,
-    setStyleOpen,
-  ] = useState(false);
-
-  const [
-    hopOpen,
-    setHopOpen,
-  ] = useState(false);
+  const brandOptions = useMemo(
+    () =>
+      [...new Set(
+        beers
+          .map((beer) => beer.brands?.name?.trim() ?? "")
+          .filter(Boolean)
+      )].sort((a, b) => a.localeCompare(b, "cs")),
+    [beers]
+  );
 
   // ==================================================
   // PIVO
   // ==================================================
 
-  const beerSuggestions =
-    beers.filter(
-      (beer) => {
-        if (
-          beerName.trim().length < 3
-        ) {
-          return false;
-        }
+  const beerSuggestions = beers.filter((beer) => {
+    if (beerName.trim().length < 3) return false;
+    return normalizeText(beer.name).includes(normalizeText(beerName));
+  });
 
-        return normalizeText(
-          beer.name
-        ).includes(
-          normalizeText(
-            beerName
-          )
-        );
-      }
-    );
-
-  function selectBeer(
-    beer: ExistingBeer
-  ) {
-    setExistingBeerId(
-      String(beer.id)
-    );
-
-    setBeerName(
-      beer.name
-    );
-
-    setBreweryName(
-      beer.breweries?.name ?? ""
-    );
-
-    setBreweryCountry(
-      beer.breweries?.country ?? ""
-    );
-
-    setStyleName(
-      beer.beer_styles?.name ?? ""
-    );
-
-    setPlato(
-      beer.plato !== null
-        ? String(beer.plato)
-        : ""
-    );
-
-    setAbv(
-      beer.abv !== null
-        ? String(beer.abv)
-        : ""
-    );
-
-    setIbu(
-      beer.ibu !== null
-        ? String(beer.ibu)
-        : ""
-    );
-
+  function selectBeer(beer: ExistingBeer) {
+    setExistingBeerId(String(beer.id));
+    setBeerName(beer.name);
+    setBrandName(beer.brands?.name ?? "");
+    setBreweryName(beer.breweries?.name ?? "");
+    setBreweryCountry(beer.breweries?.country ?? "");
+    setStyleName(beer.beer_styles?.name ?? "");
+    setPlato(beer.plato !== null ? String(beer.plato) : "");
+    setAbv(beer.abv !== null ? String(beer.abv) : "");
+    setIbu(beer.ibu !== null ? String(beer.ibu) : "");
     setIsNonAlcoholic(beer.is_non_alcoholic);
     setBeerOpen(false);
   }
 
-  function changeBeerName(
-    value: string
-  ) {
+  function changeBeerName(value: string) {
     setBeerName(value);
 
     if (existingBeerId) {
       setExistingBeerId("");
+      setBrandName("");
       setBreweryName("");
       setBreweryCountry("");
       setStyleName("");
@@ -266,55 +160,23 @@ export default function TastingForm({
   // PIVOVAR
   // ==================================================
 
-  const brewerySuggestions =
-    breweries.filter(
-      (brewery) => {
-        if (
-          breweryName.trim().length < 3
-        ) {
-          return false;
-        }
+  const brewerySuggestions = breweries.filter((brewery) => {
+    if (breweryName.trim().length < 3) return false;
+    return normalizeText(brewery.name).includes(normalizeText(breweryName));
+  });
 
-        return normalizeText(
-          brewery.name
-        ).includes(
-          normalizeText(
-            breweryName
-          )
-        );
-      }
-    );
-
-  function selectBrewery(
-    brewery: Brewery
-  ) {
-    setBreweryName(
-      brewery.name
-    );
-
-    setBreweryCountry(
-      brewery.country ?? ""
-    );
-
+  function selectBrewery(brewery: Brewery) {
+    setBreweryName(brewery.name);
+    setBreweryCountry(brewery.country ?? "");
     setBreweryOpen(false);
   }
 
-  const collaboratorSuggestions =
-    breweries.filter((brewery) => {
-      if (collaboratorQuery.trim().length < 3) {
-        return false;
-      }
-
-      if (normalizeText(brewery.name) === normalizeText(breweryName)) {
-        return false;
-      }
-
-      if (selectedCollaborators.some((item) => item.id === brewery.id)) {
-        return false;
-      }
-
-      return normalizeText(brewery.name).includes(normalizeText(collaboratorQuery));
-    });
+  const collaboratorSuggestions = breweries.filter((brewery) => {
+    if (collaboratorQuery.trim().length < 3) return false;
+    if (normalizeText(brewery.name) === normalizeText(breweryName)) return false;
+    if (selectedCollaborators.some((item) => item.id === brewery.id)) return false;
+    return normalizeText(brewery.name).includes(normalizeText(collaboratorQuery));
+  });
 
   function addCollaborator(brewery: Brewery) {
     setSelectedCollaborators((current) =>
@@ -336,63 +198,26 @@ export default function TastingForm({
   // ZEMĚ
   // ==================================================
 
-  const countrySuggestions =
-    countries.filter((country) => {
-      if (
-        breweryCountry.trim().length <
-        3
-      ) {
-        return false;
-      }
-
-      return normalizeText(
-        country.name
-      ).includes(
-        normalizeText(
-          breweryCountry
-        )
-      );
-    });
+  const countrySuggestions = countries.filter((country) => {
+    if (breweryCountry.trim().length < 3) return false;
+    return normalizeText(country.name).includes(normalizeText(breweryCountry));
+  });
 
   // ==================================================
   // STYL
   // ==================================================
 
-  const styleSuggestions =
-    styles.filter(
-      (style) => {
-        if (
-          styleName.trim().length < 3
-        ) {
-          return false;
-        }
-
-        const query =
-          normalizeText(
-            styleName
-          );
-
-        return (
-          normalizeText(
-            style.name
-          ).includes(query) ||
-          style.aliases.some(
-            (alias) =>
-              normalizeText(
-                alias
-              ).includes(query)
-          )
-        );
-      }
+  const styleSuggestions = styles.filter((style) => {
+    if (styleName.trim().length < 3) return false;
+    const query = normalizeText(styleName);
+    return (
+      normalizeText(style.name).includes(query) ||
+      style.aliases.some((alias) => normalizeText(alias).includes(query))
     );
+  });
 
-  function selectStyle(
-    style: BeerStyle
-  ) {
-    setStyleName(
-      style.name
-    );
-
+  function selectStyle(style: BeerStyle) {
+    setStyleName(style.name);
     setStyleOpen(false);
   }
 
@@ -400,91 +225,40 @@ export default function TastingForm({
   // CHMELY
   // ==================================================
 
-  const hopSuggestions =
-    hops.filter(
-      (hop) => {
-        if (
-          hopValue.trim().length < 3
-        ) {
-          return false;
-        }
+  const hopSuggestions = hops.filter((hop) => {
+    if (hopValue.trim().length < 3) return false;
 
-        const alreadySelected =
-          selectedHops.some(
-            (selectedHop) =>
-              normalizeText(
-                selectedHop
-              ) ===
-              normalizeText(
-                hop.name
-              )
-          );
+    const alreadySelected = selectedHops.some(
+      (selectedHop) => normalizeText(selectedHop) === normalizeText(hop.name)
+    );
+    if (alreadySelected) return false;
 
-        if (alreadySelected) {
-          return false;
-        }
+    const query = normalizeText(hopValue);
+    return (
+      normalizeText(hop.name).includes(query) ||
+      hop.aliases.some((alias) => normalizeText(alias).includes(query))
+    );
+  });
 
-        const query =
-          normalizeText(hopValue);
+  function addHop(name: string) {
+    const cleanName = name.trim();
+    if (!cleanName) return;
 
-        return (
-          normalizeText(
-            hop.name
-          ).includes(query) ||
-          hop.aliases.some(
-            (alias) =>
-              normalizeText(
-                alias
-              ).includes(query)
-          )
-        );
-      }
+    const alreadySelected = selectedHops.some(
+      (selectedHop) => normalizeText(selectedHop) === normalizeText(cleanName)
     );
 
-  function addHop(
-    name: string
-  ) {
-    const cleanName =
-      name.trim();
-
-    if (!cleanName) {
-      return;
-    }
-
-    const alreadySelected =
-      selectedHops.some(
-        (selectedHop) =>
-          normalizeText(
-            selectedHop
-          ) ===
-          normalizeText(
-            cleanName
-          )
-      );
-
     if (!alreadySelected) {
-      setSelectedHops(
-        (current) => [
-          ...current,
-          cleanName,
-        ]
-      );
+      setSelectedHops((current) => [...current, cleanName]);
     }
 
     setHopValue("");
     setHopOpen(false);
   }
 
-  function removeHop(
-    name: string
-  ) {
-    setSelectedHops(
-      (current) =>
-        current.filter(
-          (hop) =>
-            normalizeText(hop) !==
-            normalizeText(name)
-        )
+  function removeHop(name: string) {
+    setSelectedHops((current) =>
+      current.filter((hop) => normalizeText(hop) !== normalizeText(name))
     );
   }
 
@@ -492,216 +266,130 @@ export default function TastingForm({
     <form
       action={saveTastingAction}
       onKeyDown={(event) => {
-        if (
-          event.key === "Enter" &&
-          event.target instanceof HTMLInputElement
-        ) {
+        if (event.key === "Enter" && event.target instanceof HTMLInputElement) {
           event.preventDefault();
         }
       }}
     >
-      <input
-        type="hidden"
-        name="existingBeerId"
-        value={existingBeerId}
-      />
+      <input type="hidden" name="existingBeerId" value={existingBeerId} />
 
-      {/* ==================================================
-          PIVO
-      ================================================== */}
-
+      {/* PIVO */}
       <div style={fieldStyle}>
-        <label style={labelStyle}>
-          Pivo *
-        </label>
-
-        <div
-          style={{
-            position: "relative",
-          }}
-        >
+        <label style={labelStyle}>Pivo *</label>
+        <div style={{ position: "relative" }}>
           <input
             name="beerName"
             value={beerName}
-            onChange={(event) =>
-              changeBeerName(
-                event.target.value
-              )
-            }
-            onFocus={() =>
-              setBeerOpen(true)
-            }
-            onBlur={() => {
-              setTimeout(() => {
-                setBeerOpen(false);
-              }, 150);
-            }}
-            placeholder="Např. Originál"
+            onChange={(event) => changeBeerName(event.target.value)}
+            onFocus={() => setBeerOpen(true)}
+            onBlur={() => setTimeout(() => setBeerOpen(false), 150)}
+            placeholder="Např. Kozel 11°"
             autoComplete="off"
             required
             style={inputStyle}
           />
 
-          {beerOpen &&
-            beerName.trim().length >=
-              3 &&
-            beerSuggestions.length >
-              0 && (
-              <div style={dropdownStyle}>
-                {beerSuggestions.map(
-                  (beer) => (
-                    <button
-                      key={beer.id}
-                      type="button"
-                      onMouseDown={(
-                        event
-                      ) =>
-                        event.preventDefault()
-                      }
-                      onClick={() =>
-                        selectBeer(
-                          beer
-                        )
-                      }
-                      style={
-                        suggestionButtonStyle
-                      }
-                    >
-                      <strong>
-                        {beer.name}
-                      </strong>
-
-                      {beer.breweries
-                        ?.name && (
-                        <div
-                          style={{
-                            fontSize:
-                              "13px",
-                            opacity: 0.7,
-                            marginTop:
-                              "2px",
-                          }}
-                        >
-                          {
-                            beer
-                              .breweries
-                              .name
-                          }
-                        </div>
-                      )}
-                    </button>
-                  )
-                )}
-              </div>
-            )}
+          {beerOpen && beerName.trim().length >= 3 && beerSuggestions.length > 0 && (
+            <div style={dropdownStyle}>
+              {beerSuggestions.map((beer) => (
+                <button
+                  key={beer.id}
+                  type="button"
+                  onMouseDown={(event) => event.preventDefault()}
+                  onClick={() => selectBeer(beer)}
+                  style={suggestionButtonStyle}
+                >
+                  <strong>{beer.name}</strong>
+                  {beer.brands?.name && (
+                    <div style={{ fontSize: "12px", opacity: 0.72, marginTop: "2px" }}>
+                      {beer.brands.name}
+                    </div>
+                  )}
+                  {beer.breweries?.name && (
+                    <div style={{ fontSize: "13px", opacity: 0.7, marginTop: "2px" }}>
+                      {beer.breweries.name}
+                    </div>
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
-      {/* ==================================================
-          PIVOVAR
-      ================================================== */}
-
+      {/* ZNAČKA */}
       <div style={fieldStyle}>
         <label style={labelStyle}>
-          Pivovar *
+          Značka {!existingBeerId ? "*" : ""}
         </label>
-
-        <div
+        <input
+          name="brandName"
+          list="tasting-brand-options"
+          value={brandName}
+          onChange={(event) => setBrandName(event.target.value)}
+          placeholder="Např. Kozel"
+          autoComplete="off"
+          required={!existingBeerId}
+          readOnly={Boolean(existingBeerId)}
           style={{
-            position: "relative",
+            ...inputStyle,
+            opacity: existingBeerId ? 0.72 : 1,
           }}
-        >
+        />
+        <datalist id="tasting-brand-options">
+          {brandOptions.map((name) => (
+            <option key={name} value={name} />
+          ))}
+        </datalist>
+      </div>
+
+      {/* PIVOVAR */}
+      <div style={fieldStyle}>
+        <label style={labelStyle}>Pivovar *</label>
+        <div style={{ position: "relative" }}>
           <input
             name="brewery"
             value={breweryName}
             onChange={(event) => {
-              setBreweryName(
-                event.target.value
-              );
-
+              setBreweryName(event.target.value);
               setBreweryOpen(true);
             }}
-            onFocus={() =>
-              setBreweryOpen(true)
-            }
-            onBlur={() => {
-              setTimeout(() => {
-                setBreweryOpen(false);
-              }, 150);
-            }}
-            placeholder="Např. Březí koza"
+            onFocus={() => setBreweryOpen(true)}
+            onBlur={() => setTimeout(() => setBreweryOpen(false), 150)}
+            placeholder="Např. Velkopopovický pivovar"
             autoComplete="off"
             required
             style={inputStyle}
           />
 
-          {breweryOpen &&
-            breweryName.trim().length >=
-              3 &&
-            brewerySuggestions.length >
-              0 && (
-              <div style={dropdownStyle}>
-                {brewerySuggestions.map(
-                  (brewery) => (
-                    <button
-                      key={brewery.id}
-                      type="button"
-                      onMouseDown={(
-                        event
-                      ) =>
-                        event.preventDefault()
-                      }
-                      onClick={() =>
-                        selectBrewery(
-                          brewery
-                        )
-                      }
-                      style={
-                        suggestionButtonStyle
-                      }
-                    >
-                      {brewery.name}
-
-                      {brewery.country && (
-                        <div
-                          style={{
-                            fontSize:
-                              "12px",
-                            opacity: 0.65,
-                            marginTop:
-                              "2px",
-                          }}
-                        >
-                          {
-                            brewery.country
-                          }
-                        </div>
-                      )}
-                    </button>
-                  )
-                )}
-              </div>
-            )}
-
-          {breweryOpen &&
-            breweryName.trim().length >=
-              3 &&
-            brewerySuggestions.length ===
-              0 && (
-              <div style={dropdownStyle}>
-                <div
-                  style={{
-                    padding:
-                      "10px 12px",
-                  }}
+          {breweryOpen && breweryName.trim().length >= 3 && brewerySuggestions.length > 0 && (
+            <div style={dropdownStyle}>
+              {brewerySuggestions.map((brewery) => (
+                <button
+                  key={brewery.id}
+                  type="button"
+                  onMouseDown={(event) => event.preventDefault()}
+                  onClick={() => selectBrewery(brewery)}
+                  style={suggestionButtonStyle}
                 >
-                  ＋ Nový pivovar:{" "}
-                  <strong>
-                    {breweryName}
-                  </strong>
-                </div>
+                  {brewery.name}
+                  {brewery.country && (
+                    <div style={{ fontSize: "12px", opacity: 0.65, marginTop: "2px" }}>
+                      {brewery.country}
+                    </div>
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {breweryOpen && breweryName.trim().length >= 3 && brewerySuggestions.length === 0 && (
+            <div style={dropdownStyle}>
+              <div style={{ padding: "10px 12px" }}>
+                ＋ Nový pivovar: <strong>{breweryName}</strong>
               </div>
-            )}
+            </div>
+          )}
         </div>
 
         {selectedCollaborators.length > 0 && (
@@ -779,7 +467,9 @@ export default function TastingForm({
                   >
                     {brewery.name}
                     {brewery.country && (
-                      <div style={{ fontSize: "12px", opacity: 0.65, marginTop: "2px" }}>{brewery.country}</div>
+                      <div style={{ fontSize: "12px", opacity: 0.65, marginTop: "2px" }}>
+                        {brewery.country}
+                      </div>
                     )}
                   </button>
                 ))}
@@ -797,366 +487,210 @@ export default function TastingForm({
         )}
       </div>
 
-      {/* ==================================================
-          ZEMĚ
-      ================================================== */}
-
+      {/* ZEMĚ */}
       <div style={fieldStyle}>
-        <label style={labelStyle}>
-          Země původu pivovaru
-        </label>
-
-        <div
-          style={{
-            position: "relative",
-          }}
-        >
+        <label style={labelStyle}>Země původu pivovaru</label>
+        <div style={{ position: "relative" }}>
           <input
             name="breweryCountry"
             value={breweryCountry}
             onChange={(event) => {
-              setBreweryCountry(
-                event.target.value
-              );
-
+              setBreweryCountry(event.target.value);
               setCountryOpen(true);
             }}
-            onFocus={() =>
-              setCountryOpen(true)
-            }
-            onBlur={() => {
-              setTimeout(() => {
-                setCountryOpen(false);
-              }, 150);
-            }}
+            onFocus={() => setCountryOpen(true)}
+            onBlur={() => setTimeout(() => setCountryOpen(false), 150)}
             placeholder="Např. Česko"
             autoComplete="off"
             style={inputStyle}
           />
 
-          {countryOpen &&
-            breweryCountry.trim().length >=
-              3 &&
-            countrySuggestions.length >
-              0 && (
-              <div style={dropdownStyle}>
-                {countrySuggestions.map(
-                  (country) => (
-                    <button
-                      key={country.id}
-                      type="button"
-                      onMouseDown={(
-                        event
-                      ) =>
-                        event.preventDefault()
-                      }
-                      onClick={() => {
-                        setBreweryCountry(
-                          country.name
-                        );
-
-                        setCountryOpen(
-                          false
-                        );
-                      }}
-                      style={
-                        suggestionButtonStyle
-                      }
-                    >
-                      {country.name}
-                    </button>
-                  )
-                )}
-              </div>
-            )}
+          {countryOpen && breweryCountry.trim().length >= 3 && countrySuggestions.length > 0 && (
+            <div style={dropdownStyle}>
+              {countrySuggestions.map((country) => (
+                <button
+                  key={country.id}
+                  type="button"
+                  onMouseDown={(event) => event.preventDefault()}
+                  onClick={() => {
+                    setBreweryCountry(country.name);
+                    setCountryOpen(false);
+                  }}
+                  style={suggestionButtonStyle}
+                >
+                  {country.name}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
-      {/* ==================================================
-          STYL
-      ================================================== */}
-
+      {/* STYL */}
       <div style={fieldStyle}>
-        <label style={labelStyle}>
-          Pivní styl
-        </label>
-
-        <div
-          style={{
-            position: "relative",
-          }}
-        >
+        <label style={labelStyle}>Pivní styl</label>
+        <div style={{ position: "relative" }}>
           <input
             name="style"
             value={styleName}
             onChange={(event) => {
-              setStyleName(
-                event.target.value
-              );
-
+              setStyleName(event.target.value);
               setStyleOpen(true);
             }}
-            onFocus={() =>
-              setStyleOpen(true)
-            }
-            onBlur={() => {
-              setTimeout(() => {
-                setStyleOpen(false);
-              }, 150);
-            }}
+            onFocus={() => setStyleOpen(true)}
+            onBlur={() => setTimeout(() => setStyleOpen(false), 150)}
             placeholder="Např. Ležák"
             autoComplete="off"
             style={inputStyle}
           />
 
-          {styleOpen &&
-            styleName.trim().length >=
-              3 &&
-            styleSuggestions.length >
-              0 && (
-              <div style={dropdownStyle}>
-                {styleSuggestions.map(
-                  (style) => (
-                    <button
-                      key={style.id}
-                      type="button"
-                      onMouseDown={(
-                        event
-                      ) =>
-                        event.preventDefault()
-                      }
-                      onClick={() =>
-                        selectStyle(
-                          style
-                        )
-                      }
-                      style={
-                        suggestionButtonStyle
-                      }
-                    >
-                      {style.name}
-                      {style.aliases.length >
-                        0 &&
-                        ` (${style.aliases.join(
-                          ", "
-                        )})`}
-                    </button>
-                  )
-                )}
-              </div>
-            )}
-
-          {styleOpen &&
-            styleName.trim().length >=
-              3 &&
-            styleSuggestions.length ===
-              0 && (
-              <div style={dropdownStyle}>
-                <div
-                  style={{
-                    padding:
-                      "10px 12px",
-                    color:
-                      "var(--taste-text-muted)",
-                  }}
+          {styleOpen && styleName.trim().length >= 3 && styleSuggestions.length > 0 && (
+            <div style={dropdownStyle}>
+              {styleSuggestions.map((style) => (
+                <button
+                  key={style.id}
+                  type="button"
+                  onMouseDown={(event) => event.preventDefault()}
+                  onClick={() => selectStyle(style)}
+                  style={suggestionButtonStyle}
                 >
-                  Tento styl není v katalogu.
-                </div>
+                  {style.name}
+                  {style.aliases.length > 0 && ` (${style.aliases.join(", ")})`}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {styleOpen && styleName.trim().length >= 3 && styleSuggestions.length === 0 && (
+            <div style={dropdownStyle}>
+              <div style={{ padding: "10px 12px", color: "var(--taste-text-muted)" }}>
+                Tento styl není v katalogu.
               </div>
-            )}
+            </div>
+          )}
         </div>
       </div>
 
-      {/* ==================================================
-          PARAMETRY PIVA
-      ================================================== */}
-
+      {/* PARAMETRY PIVA */}
       <div
         style={{
           display: "grid",
-          gridTemplateColumns:
-            "repeat(3, minmax(0, 1fr))",
+          gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
           gap: "12px",
         }}
       >
         <div style={fieldStyle}>
-          <label style={labelStyle}>
-            Stupňovitost °P
-          </label>
-
+          <label style={labelStyle}>Stupňovitost °P</label>
           <input
             type="number"
             name="plato"
             step="0.1"
             value={plato}
-            onChange={(event) =>
-              setPlato(
-                event.target.value
-              )
-            }
+            onChange={(event) => setPlato(event.target.value)}
             placeholder="11.7"
             style={inputStyle}
           />
         </div>
 
         <div style={fieldStyle}>
-          <label style={labelStyle}>
-            Alkohol %
-          </label>
-
+          <label style={labelStyle}>Alkohol %</label>
           <input
             type="number"
             name="abv"
             step="0.01"
             value={abv}
-            onChange={(event) =>
-              setAbv(
-                event.target.value
-              )
-            }
+            onChange={(event) => setAbv(event.target.value)}
             placeholder="4.6"
             style={inputStyle}
           />
         </div>
 
         <div style={fieldStyle}>
-          <label style={labelStyle}>
-            IBU
-          </label>
-
+          <label style={labelStyle}>IBU</label>
           <input
             type="number"
             name="ibu"
             step="0.1"
             value={ibu}
-            onChange={(event) =>
-              setIbu(
-                event.target.value
-              )
-            }
+            onChange={(event) => setIbu(event.target.value)}
             placeholder="35"
             style={inputStyle}
           />
         </div>
       </div>
 
-      <label style={{ ...fieldStyle, display: "flex", alignItems: "center", gap: "9px", cursor: existingBeerId ? "default" : "pointer" }}>
-        <input name="isNonAlcoholic" type="checkbox" checked={isNonAlcoholic} disabled={Boolean(existingBeerId)} onChange={(event) => setIsNonAlcoholic(event.target.checked)} />
-        <span><strong>Nealkoholické pivo</strong><br /><span style={{ color: "var(--taste-text-muted)", fontSize: "11px" }}>Pivo zůstává běžnou součástí všech statistik.</span></span>
+      <label
+        style={{
+          ...fieldStyle,
+          display: "flex",
+          alignItems: "center",
+          gap: "9px",
+          cursor: existingBeerId ? "default" : "pointer",
+        }}
+      >
+        <input
+          name="isNonAlcoholic"
+          type="checkbox"
+          checked={isNonAlcoholic}
+          disabled={Boolean(existingBeerId)}
+          onChange={(event) => setIsNonAlcoholic(event.target.checked)}
+        />
+        <span><strong>Nealkoholické pivo</strong></span>
       </label>
 
-      {/* ==================================================
-          CHMELY
-      ================================================== */}
-
+      {/* CHMELY */}
       <div style={fieldStyle}>
-        <label style={labelStyle}>
-          Chmely
-        </label>
+        <label style={labelStyle}>Chmely</label>
 
-        {selectedHops.length >
-          0 && (
-          <div
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              gap: "8px",
-              marginBottom: "10px",
-            }}
-          >
-            {selectedHops.map(
-              (hop) => (
-                <div
-                  key={hop}
+        {selectedHops.length > 0 && (
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginBottom: "10px" }}>
+            {selectedHops.map((hop) => (
+              <div
+                key={hop}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  padding: "6px 10px",
+                  border: "1px solid rgba(127,127,127,0.5)",
+                  borderRadius: "999px",
+                  fontSize: "14px",
+                }}
+              >
+                {hop}
+                <button
+                  type="button"
+                  onClick={() => removeHop(hop)}
                   style={{
-                    display:
-                      "inline-flex",
-                    alignItems:
-                      "center",
-                    gap: "6px",
-                    padding:
-                      "6px 10px",
-                    border:
-                      "1px solid rgba(127,127,127,0.5)",
-                    borderRadius:
-                      "999px",
-                    fontSize:
-                      "14px",
+                    border: 0,
+                    background: "transparent",
+                    cursor: "pointer",
+                    color: "inherit",
+                    padding: 0,
+                    fontSize: "16px",
                   }}
                 >
-                  {hop}
-
-                  <button
-                    type="button"
-                    onClick={() =>
-                      removeHop(hop)
-                    }
-                    style={{
-                      border: 0,
-                      background:
-                        "transparent",
-                      cursor:
-                        "pointer",
-                      color:
-                        "inherit",
-                      padding: 0,
-                      fontSize:
-                        "16px",
-                    }}
-                  >
-                    ×
-                  </button>
-
-                  <input
-                    type="hidden"
-                    name="hops"
-                    value={hop}
-                  />
-                </div>
-              )
-            )}
+                  ×
+                </button>
+                <input type="hidden" name="hops" value={hop} />
+              </div>
+            ))}
           </div>
         )}
 
-        <div
-          style={{
-            position: "relative",
-          }}
-        >
+        <div style={{ position: "relative" }}>
           <input
             value={hopValue}
             onChange={(event) => {
-              setHopValue(
-                event.target.value
-              );
-
+              setHopValue(event.target.value);
               setHopOpen(true);
             }}
-            onFocus={() =>
-              setHopOpen(true)
-            }
-            onBlur={() => {
-              setTimeout(() => {
-                setHopOpen(false);
-              }, 150);
-            }}
+            onFocus={() => setHopOpen(true)}
+            onBlur={() => setTimeout(() => setHopOpen(false), 150)}
             onKeyDown={(event) => {
-              if (
-                event.key ===
-                  "Enter" &&
-                hopValue.trim()
-              ) {
+              if (event.key === "Enter" && hopValue.trim()) {
                 event.preventDefault();
-
-                if (
-                  hopSuggestions.length >
-                  0
-                ) {
-                  addHop(
-                    hopSuggestions[0]
-                      .name
-                  );
-                }
+                if (hopSuggestions.length > 0) addHop(hopSuggestions[0].name);
               }
             }}
             placeholder="Např. Citra"
@@ -1164,138 +698,62 @@ export default function TastingForm({
             style={inputStyle}
           />
 
-          {hopOpen &&
-            hopValue.trim().length >=
-              3 &&
-            hopSuggestions.length >
-              0 && (
-              <div style={dropdownStyle}>
-                {hopSuggestions.map(
-                  (hop) => (
-                    <button
-                      key={hop.id}
-                      type="button"
-                      onMouseDown={(
-                        event
-                      ) =>
-                        event.preventDefault()
-                      }
-                      onClick={() =>
-                        addHop(
-                          hop.name
-                        )
-                      }
-                      style={
-                        suggestionButtonStyle
-                      }
-                    >
-                      {hop.name}
-                      {hop.aliases.length >
-                        0 &&
-                        ` (${hop.aliases.join(
-                          ", "
-                        )})`}
-                    </button>
-                  )
-                )}
-              </div>
-            )}
-
-          {hopOpen &&
-            hopValue.trim().length >=
-              3 &&
-            hopSuggestions.length ===
-              0 && (
-              <div style={dropdownStyle}>
-                <div
-                  style={{
-                    padding:
-                      "10px 12px",
-                    color:
-                      "var(--taste-text-muted)",
-                  }}
+          {hopOpen && hopValue.trim().length >= 3 && hopSuggestions.length > 0 && (
+            <div style={dropdownStyle}>
+              {hopSuggestions.map((hop) => (
+                <button
+                  key={hop.id}
+                  type="button"
+                  onMouseDown={(event) => event.preventDefault()}
+                  onClick={() => addHop(hop.name)}
+                  style={suggestionButtonStyle}
                 >
-                  Tento chmel není v katalogu.
-                </div>
+                  {hop.name}
+                  {hop.aliases.length > 0 && ` (${hop.aliases.join(", ")})`}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {hopOpen && hopValue.trim().length >= 3 && hopSuggestions.length === 0 && (
+            <div style={dropdownStyle}>
+              <div style={{ padding: "10px 12px", color: "var(--taste-text-muted)" }}>
+                Tento chmel není v katalogu.
               </div>
-            )}
+            </div>
+          )}
         </div>
       </div>
 
-      {/* ==================================================
-          OCHUTNÁVKA
-      ================================================== */}
-
-      <hr
-        style={{
-          margin: "32px 0",
-          opacity: 0.3,
-        }}
-      />
-
-      <h2
-        style={{
-          marginBottom: "20px",
-        }}
-      >
-        Ochutnávka
-      </h2>
-
-      {/* DATUM */}
+      {/* OCHUTNÁVKA */}
+      <hr style={{ margin: "32px 0", opacity: 0.3 }} />
+      <h2 style={{ marginBottom: "20px" }}>Ochutnávka</h2>
 
       <div style={fieldStyle}>
-        <label style={labelStyle}>
-          Datum ochutnávky *
-        </label>
-
+        <label style={labelStyle}>Datum ochutnávky *</label>
         <input
           type="date"
           name="tastedOn"
-          defaultValue={
-            getTodayDate()
-          }
+          defaultValue={getTodayDate()}
           required
           style={inputStyle}
         />
       </div>
 
-      {/* PODÁNÍ / OBAL */}
-
       <div style={fieldStyle}>
-        <label style={labelStyle}>
-          Podání / obal
-        </label>
-
-        <select
-          name="packaging"
-          defaultValue=""
-          style={inputStyle}
-        >
-          <option value="">
-            Nezadáno
-          </option>
-
-          {PACKAGING_OPTIONS.map(
-            (option) => (
-              <option
-                key={option.value}
-                value={option.value}
-              >
-                {option.icon}{" "}
-                {option.label}
-              </option>
-            )
-          )}
+        <label style={labelStyle}>Podání / obal</label>
+        <select name="packaging" defaultValue="" style={inputStyle}>
+          <option value="">Nezadáno</option>
+          {PACKAGING_OPTIONS.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.icon} {option.label}
+            </option>
+          ))}
         </select>
       </div>
 
-      {/* POČET */}
-
       <div style={fieldStyle}>
-        <label style={labelStyle}>
-          Počet *
-        </label>
-
+        <label style={labelStyle}>Počet *</label>
         <input
           type="number"
           name="quantity"
@@ -1305,26 +763,10 @@ export default function TastingForm({
           required
           style={inputStyle}
         />
-
-        <div
-          style={{
-            marginTop: "6px",
-            fontSize: "12px",
-            opacity: 0.55,
-          }}
-        >
-          Kolikrát bylo toto pivo
-          v rámci této akce vypito.
-        </div>
       </div>
 
-      {/* MÍSTO */}
-
       <div style={fieldStyle}>
-        <label style={labelStyle}>
-          Místo
-        </label>
-
+        <label style={labelStyle}>Místo</label>
         <input
           name="place"
           placeholder="Např. doma, hospoda, festival..."
@@ -1337,11 +779,9 @@ export default function TastingForm({
         style={{
           width: "100%",
           padding: "14px 18px",
-          border:
-            "1px solid currentColor",
+          border: "1px solid currentColor",
           borderRadius: "10px",
-          background:
-            "transparent",
+          background: "transparent",
           color: "inherit",
           fontSize: "16px",
           fontWeight: "bold",
@@ -1355,39 +795,13 @@ export default function TastingForm({
   );
 }
 
-// ==================================================
-// DNEŠNÍ DATUM
-// ==================================================
-
 function getTodayDate() {
-  const today =
-    new Date();
-
-  const year =
-    today.getFullYear();
-
-  const month =
-    String(
-      today.getMonth() + 1
-    ).padStart(
-      2,
-      "0"
-    );
-
-  const day =
-    String(
-      today.getDate()
-    ).padStart(
-      2,
-      "0"
-    );
-
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const day = String(today.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
 }
-
-// ==================================================
-// STYLY
-// ==================================================
 
 const fieldStyle = {
   marginBottom: "20px",
@@ -1402,81 +816,38 @@ const labelStyle = {
 
 const inputStyle = {
   width: "100%",
-
-  boxSizing:
-    "border-box" as const,
-
+  boxSizing: "border-box" as const,
   padding: "11px 12px",
-
-  border:
-    "1px solid rgba(127,127,127,0.5)",
-
+  border: "1px solid rgba(127,127,127,0.5)",
   borderRadius: "8px",
-
-  background:
-    "transparent",
-
+  background: "transparent",
   color: "inherit",
-
   fontSize: "16px",
 };
 
 const dropdownStyle = {
-  position:
-    "absolute" as const,
-
+  position: "absolute" as const,
   zIndex: 50,
-
   left: 0,
   right: 0,
-
-  top:
-    "calc(100% + 4px)",
-
-  background:
-    "white",
-
-  color:
-    "#111",
-
-  border:
-    "1px solid #ccc",
-
-  borderRadius:
-    "8px",
-
-  overflow:
-    "hidden",
-
-  boxShadow:
-    "0 6px 20px rgba(0,0,0,0.15)",
+  top: "calc(100% + 4px)",
+  background: "white",
+  color: "#111",
+  border: "1px solid #ccc",
+  borderRadius: "8px",
+  overflow: "hidden",
+  boxShadow: "0 6px 20px rgba(0,0,0,0.15)",
 };
 
 const suggestionButtonStyle = {
   display: "block",
-
   width: "100%",
-
-  padding:
-    "10px 12px",
-
+  padding: "10px 12px",
   border: 0,
-
-  borderBottom:
-    "1px solid #eee",
-
-  background:
-    "white",
-
-  color:
-    "#111",
-
-  textAlign:
-    "left" as const,
-
-  cursor:
-    "pointer",
-
-  fontSize:
-    "15px",
+  borderBottom: "1px solid #eee",
+  background: "white",
+  color: "#111",
+  textAlign: "left" as const,
+  cursor: "pointer",
+  fontSize: "15px",
 };
