@@ -9,7 +9,16 @@ const SPECIAL_FLAGS: Record<string, string> = {
   Wales: "🏴󠁧󠁢󠁷󠁬󠁳󠁿",
   "Severní Irsko": "🇬🇧",
   Kosovo: "🇽🇰",
+  Česko: "🇨🇿",
+  "Česká republika": "🇨🇿",
+  USA: "🇺🇸",
+  "Spojené státy": "🇺🇸",
+  "Spojené státy americké": "🇺🇸",
 };
+
+const NORMALIZED_SPECIAL_FLAGS = Object.fromEntries(
+  Object.entries(SPECIAL_FLAGS).map(([name, flag]) => [normalizeCountryName(name), flag])
+) as Record<string, string>;
 
 export function normalizeCountryName(value: string) {
   return value
@@ -26,8 +35,10 @@ export function getCountryFlag(countryName: string | null | undefined) {
     return "";
   }
 
-  if (SPECIAL_FLAGS[name]) {
-    return SPECIAL_FLAGS[name];
+  const specialFlag = SPECIAL_FLAGS[name] ?? NORMALIZED_SPECIAL_FLAGS[normalizeCountryName(name)];
+
+  if (specialFlag) {
+    return specialFlag;
   }
 
   const alpha2 = countries.getAlpha2Code(name, "cs");
