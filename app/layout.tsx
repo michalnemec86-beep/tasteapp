@@ -3,6 +3,7 @@ import { Geist } from "next/font/google";
 
 import AppNav from "./AppNav";
 import AuthSessionSync from "./AuthSessionSync";
+import BreweryListStatePersistence from "./BreweryListStatePersistence";
 
 import "leaflet/dist/leaflet.css";
 import "./globals.css";
@@ -11,6 +12,7 @@ import "./homepage-timeline-theme.css";
 import "./preimport-ui-tweaks.css";
 import "./modal-responsive.css";
 import "./app-nav.css";
+import "./mobile-ux.css";
 
 const defaultUrl =
   process.env.VERCEL_URL
@@ -52,6 +54,7 @@ export default function RootLayout({
         className={`${geistSans.className} antialiased`}
       >
         <AuthSessionSync />
+        <BreweryListStatePersistence />
         <AppNav />
 
         {children}
