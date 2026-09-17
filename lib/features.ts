@@ -1,3 +1,3 @@
 export const FEATURES = {
-  achievements: false,
+  achievements: true,
 } as const;
