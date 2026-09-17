@@ -90,22 +90,25 @@ async function resolveHopIds(
 
 async function resolveBrandId(
   supabase: Awaited<ReturnType<typeof createClient>>,
-  brandName: string | null
+  brandName: string
 ) {
-  if (!brandName) return null;
+  const cleanBrandName = brandName.trim();
+  if (!cleanBrandName) {
+    throw new Error("Značka piva je povinná.");
+  }
 
   const { data: brands, error } = await supabase
     .from("brands")
     .select("id, name");
   if (error) throw new Error(error.message);
 
-  const query = normalizeText(brandName);
+  const query = normalizeText(cleanBrandName);
   const existing = brands?.find((brand) => normalizeText(brand.name) === query);
   if (existing) return existing.id;
 
   const { data: created, error: createError } = await supabase
     .from("brands")
-    .insert({ name: brandName })
+    .insert({ name: cleanBrandName })
     .select("id")
     .single();
   if (createError || !created) {
@@ -218,11 +221,18 @@ function revalidateCatalog(breweryId: number, beerId?: number) {
 
 function readBeerValues(formData: FormData) {
   const name = String(formData.get("name") ?? "").trim();
+  const brandName = String(formData.get("brandName") ?? "").trim();
+
   if (!name) throw new Error("Název piva je povinný.");
+  if (!brandName) {
+    throw new Error(
+      "Značka je povinná. Pivovar, značka a konkrétní pivo se v TasteAppu evidují samostatně."
+    );
+  }
 
   return {
     name,
-    brandName: readOptionalText(formData, "brandName"),
+    brandName,
     styleName: readOptionalText(formData, "styleName"),
     plato: readOptionalNumber(formData, "plato"),
     abv: readOptionalNumber(formData, "abv"),
