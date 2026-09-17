@@ -1,0 +1,58 @@
+/* Shared TasteApp modal behavior.
+   Keeps desktop dialogs centered and turns them into a comfortable mobile sheet. */
+
+[role="dialog"][aria-modal="true"],
+div[style*="position: fixed"][style*="z-index: 1000"] {
+  overscroll-behavior: contain;
+}
+
+/* Secondary explanatory copy in modal headers is intentionally omitted.
+   Labels and field names carry the necessary meaning. */
+[role="dialog"][aria-modal="true"] h1 + p,
+[role="dialog"][aria-modal="true"] h2 + p,
+div[style*="position: fixed"][style*="z-index: 1000"] h1 + p,
+div[style*="position: fixed"][style*="z-index: 1000"] h2 + p {
+  display: none !important;
+}
+
+@media (max-width: 720px) {
+  [role="dialog"][aria-modal="true"],
+  div[style*="position: fixed"][style*="z-index: 1000"] {
+    align-items: flex-end !important;
+    justify-content: center !important;
+    padding: 0 !important;
+  }
+
+  [role="dialog"][aria-modal="true"] > div,
+  div[style*="position: fixed"][style*="z-index: 1000"] > div {
+    width: 100% !important;
+    max-width: none !important;
+    max-height: 92dvh !important;
+    border-radius: 18px 18px 0 0 !important;
+    border-bottom: 0 !important;
+  }
+
+  [role="dialog"][aria-modal="true"] form,
+  div[style*="position: fixed"][style*="z-index: 1000"] form {
+    width: 100%;
+  }
+
+  [role="dialog"][aria-modal="true"] input,
+  [role="dialog"][aria-modal="true"] select,
+  [role="dialog"][aria-modal="true"] textarea,
+  div[style*="position: fixed"][style*="z-index: 1000"] input,
+  div[style*="position: fixed"][style*="z-index: 1000"] select,
+  div[style*="position: fixed"][style*="z-index: 1000"] textarea {
+    font-size: 16px !important;
+  }
+
+  [role="dialog"][aria-modal="true"] div[style*="grid-template-columns"],
+  div[style*="position: fixed"][style*="z-index: 1000"] div[style*="grid-template-columns"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  [role="dialog"][aria-modal="true"] button,
+  div[style*="position: fixed"][style*="z-index: 1000"] button {
+    min-height: 42px;
+  }
+}
