@@ -266,8 +266,8 @@ export default function CatalogBeerModalClient({
                   <input name="name" required value={form.name} onChange={(e) => setField("name", e.target.value)} style={inputStyle} />
                 </Field>
 
-                <Field label="Značka">
-                  <input name="brandName" list={`brands-${id}`} value={form.brandName} onChange={(e) => setField("brandName", e.target.value)} placeholder="Např. Mikkeller" style={inputStyle} />
+                <Field label="Značka" required>
+                  <input name="brandName" required list={`brands-${id}`} value={form.brandName} onChange={(e) => setField("brandName", e.target.value)} placeholder="Např. Kozel" style={inputStyle} />
                   <datalist id={`brands-${id}`}>{brandOptions.map((name) => <option key={name} value={name} />)}</datalist>
                 </Field>
 
