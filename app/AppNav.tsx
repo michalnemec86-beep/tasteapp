@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -7,6 +8,11 @@ import OnlineUsersBadge from "./OnlineUsersBadge";
 
 export default function AppNav() {
   const pathname = usePathname();
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
 
   async function handleLogout() {
     const supabase = createClient();
@@ -19,7 +25,7 @@ export default function AppNav() {
   }
 
   function isActive(href: string) {
-    return pathname.startsWith(href);
+    return href === "/" ? pathname === "/" : pathname.startsWith(href);
   }
 
   return (
@@ -52,77 +58,17 @@ export default function AppNav() {
       />
 
       <div
+        className="taste-nav-desktop"
         style={{
           maxWidth: "1500px",
           margin: "0 auto",
           minHeight: "68px",
           padding: "0 24px",
-          display: "flex",
           alignItems: "center",
           gap: "28px",
         }}
       >
-        <Link
-          href="/"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "11px",
-            flexShrink: 0,
-            color: "var(--taste-text)",
-            textDecoration: "none",
-          }}
-        >
-          <div
-            style={{
-              width: "39px",
-              height: "39px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              flexShrink: 0,
-              borderRadius: "11px",
-              border: "1px solid rgba(245,184,63,0.40)",
-              background:
-                "radial-gradient(circle at 35% 22%, rgba(255,209,112,0.20), transparent 55%), linear-gradient(145deg, rgba(231,166,47,0.14), rgba(168,98,33,0.05))",
-              color: "var(--taste-amber-bright)",
-              boxShadow:
-                "inset 0 1px 0 rgba(255,235,192,0.07), 0 0 20px rgba(231,166,47,0.08)",
-            }}
-          >
-            <HopLogo />
-          </div>
-
-          <div>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "baseline",
-                fontSize: "18px",
-                lineHeight: 1,
-                fontWeight: 850,
-                letterSpacing: "-0.025em",
-              }}
-            >
-              Taste
-              <span style={{ color: "var(--taste-amber-bright)" }}>App</span>
-            </div>
-
-            <div
-              style={{
-                marginTop: "4px",
-                color: "var(--taste-text-muted)",
-                fontSize: "8px",
-                lineHeight: 1,
-                fontWeight: 750,
-                letterSpacing: "0.15em",
-                textTransform: "uppercase",
-              }}
-            >
-              Beer journal
-            </div>
-          </div>
-        </Link>
+        <BrandLink />
 
         <div
           style={{
@@ -136,18 +82,10 @@ export default function AppNav() {
             padding: "10px 0",
           }}
         >
-          <NavLink href="/" active={pathname === "/"}>
-            Timeline
-          </NavLink>
-          <NavLink href="/stats" active={isActive("/stats")}>
-            Statistiky
-          </NavLink>
-          <NavLink href="/breweries" active={isActive("/breweries")}>
-            Pivovary
-          </NavLink>
-          <NavLink href="/profiles" active={isActive("/profiles")}>
-            Uživatelé
-          </NavLink>
+          <NavLink href="/" active={isActive("/")}>Timeline</NavLink>
+          <NavLink href="/stats" active={isActive("/stats")}>Statistiky</NavLink>
+          <NavLink href="/breweries" active={isActive("/breweries")}>Pivovary</NavLink>
+          <NavLink href="/profiles" active={isActive("/profiles")}>Uživatelé</NavLink>
         </div>
 
         <OnlineUsersBadge />
@@ -177,27 +115,9 @@ export default function AppNav() {
             textDecoration: "none",
             fontSize: "12px",
             fontWeight: 700,
-            boxShadow:
-              pathname === "/me"
-                ? "0 0 18px rgba(231,166,47,0.08)"
-                : "none",
           }}
         >
-          <span
-            style={{
-              width: "24px",
-              height: "24px",
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              borderRadius: "8px",
-              background: "rgba(231,166,47,0.09)",
-              color: "var(--taste-amber-bright)",
-            }}
-          >
-            ●
-          </span>
-          <span>Můj profil</span>
+          Můj profil
         </Link>
 
         <button
@@ -218,7 +138,122 @@ export default function AppNav() {
           Odhlásit
         </button>
       </div>
+
+      <div className="taste-nav-mobile">
+        <BrandLink compact />
+
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <Link href="/me" className="taste-mobile-profile">
+            Profil
+          </Link>
+          <button
+            type="button"
+            className="taste-mobile-menu-button"
+            aria-label={mobileOpen ? "Zavřít navigaci" : "Otevřít navigaci"}
+            aria-expanded={mobileOpen}
+            onClick={() => setMobileOpen((current) => !current)}
+          >
+            {mobileOpen ? "×" : "☰"}
+          </button>
+        </div>
+      </div>
+
+      {mobileOpen && (
+        <div className="taste-mobile-menu">
+          <MobileNavLink href="/" active={isActive("/")}>Timeline</MobileNavLink>
+          <MobileNavLink href="/stats" active={isActive("/stats")}>Statistiky</MobileNavLink>
+          <MobileNavLink href="/breweries" active={isActive("/breweries")}>Pivovary</MobileNavLink>
+          <MobileNavLink href="/profiles" active={isActive("/profiles")}>Uživatelé</MobileNavLink>
+          <MobileNavLink href="/me" active={isActive("/me")}>Můj profil</MobileNavLink>
+          <button type="button" onClick={handleLogout} className="taste-mobile-menu-logout">
+            Odhlásit
+          </button>
+        </div>
+      )}
     </nav>
+  );
+}
+
+function BrandLink({ compact = false }: { compact?: boolean }) {
+  return (
+    <Link
+      href="/"
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: compact ? "9px" : "11px",
+        flexShrink: 0,
+        color: "var(--taste-text)",
+        textDecoration: "none",
+      }}
+    >
+      <div
+        style={{
+          width: compact ? "35px" : "39px",
+          height: compact ? "35px" : "39px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flexShrink: 0,
+          borderRadius: "11px",
+          border: "1px solid rgba(245,184,63,0.40)",
+          background:
+            "radial-gradient(circle at 35% 22%, rgba(255,209,112,0.20), transparent 55%), linear-gradient(145deg, rgba(231,166,47,0.14), rgba(168,98,33,0.05))",
+          color: "var(--taste-amber-bright)",
+          boxShadow:
+            "inset 0 1px 0 rgba(255,235,192,0.07), 0 0 20px rgba(231,166,47,0.08)",
+        }}
+      >
+        <HopLogo />
+      </div>
+
+      <div>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "baseline",
+            fontSize: compact ? "17px" : "18px",
+            lineHeight: 1,
+            fontWeight: 850,
+            letterSpacing: "-0.025em",
+          }}
+        >
+          Taste<span style={{ color: "var(--taste-amber-bright)" }}>App</span>
+        </div>
+        {!compact && (
+          <div
+            style={{
+              marginTop: "4px",
+              color: "var(--taste-text-muted)",
+              fontSize: "8px",
+              lineHeight: 1,
+              fontWeight: 750,
+              letterSpacing: "0.15em",
+              textTransform: "uppercase",
+            }}
+          >
+            Beer journal
+          </div>
+        )}
+      </div>
+    </Link>
+  );
+}
+
+function MobileNavLink({
+  href,
+  active,
+  children,
+}: {
+  href: string;
+  active: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <Link href={href} className="taste-mobile-nav-link" data-active={active ? "true" : "false"}>
+      <span>{children}</span>
+      <span aria-hidden="true">›</span>
+    </Link>
   );
 }
 
@@ -254,33 +289,19 @@ function NavLink({
     >
       {children}
       {active && (
-        <>
-          <span
-            style={{
-              position: "absolute",
-              left: "13px",
-              right: "13px",
-              bottom: "2px",
-              height: "2px",
-              borderRadius: "999px",
-              background:
-                "linear-gradient(90deg, var(--taste-amber-soft), var(--taste-amber-bright))",
-              boxShadow: "0 0 15px rgba(245,184,63,0.52)",
-            }}
-          />
-          <span
-            style={{
-              position: "absolute",
-              left: "24%",
-              right: "24%",
-              bottom: "-6px",
-              height: "10px",
-              pointerEvents: "none",
-              background: "rgba(231,166,47,0.11)",
-              filter: "blur(8px)",
-            }}
-          />
-        </>
+        <span
+          style={{
+            position: "absolute",
+            left: "13px",
+            right: "13px",
+            bottom: "2px",
+            height: "2px",
+            borderRadius: "999px",
+            background:
+              "linear-gradient(90deg, var(--taste-amber-soft), var(--taste-amber-bright))",
+            boxShadow: "0 0 15px rgba(245,184,63,0.52)",
+          }}
+        />
       )}
     </Link>
   );
@@ -288,13 +309,7 @@ function NavLink({
 
 function HopLogo() {
   return (
-    <svg
-      width="23"
-      height="27"
-      viewBox="0 0 23 27"
-      fill="none"
-      aria-hidden="true"
-    >
+    <svg width="23" height="27" viewBox="0 0 23 27" fill="none" aria-hidden="true">
       <path d="M11.5 2.2C9.7 4.2 8.6 6.1 8.4 8.1C9.5 7.7 10.5 7.1 11.5 6.1C12.5 7.1 13.5 7.7 14.6 8.1C14.4 6.1 13.3 4.2 11.5 2.2Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
       <path d="M8.6 7.1C5.8 7.6 4 8.9 3.3 11.2C5.5 11.3 7.2 11.9 8.5 13.1C9.1 11.2 9.1 9.2 8.6 7.1Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
       <path d="M14.4 7.1C17.2 7.6 19 8.9 19.7 11.2C17.5 11.3 15.8 11.9 14.5 13.1C13.9 11.2 13.9 9.2 14.4 7.1Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
