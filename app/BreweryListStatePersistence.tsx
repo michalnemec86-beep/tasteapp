@@ -99,6 +99,15 @@ export default function BreweryListStatePersistence() {
       router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
     };
 
+    const storeOnly = () => {
+      if (restoring) return;
+      try {
+        sessionStorage.setItem(STORAGE_KEY, JSON.stringify(readCurrentState()));
+      } catch {
+        // Storage can be unavailable in restricted/private browsing.
+      }
+    };
+
     try {
       const urlState = readUrlState(entryParams);
       const raw = sessionStorage.getItem(STORAGE_KEY);
@@ -151,7 +160,7 @@ export default function BreweryListStatePersistence() {
         sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state));
         syncUrl(state, resetPage ? null : new URLSearchParams(window.location.search).get("page"));
       } catch {
-        // Restricted/private browsing can disable storage. Filtering still works normally.
+        // Filtering still works even if persistence is unavailable.
       }
     };
 
@@ -165,14 +174,25 @@ export default function BreweryListStatePersistence() {
       window.setTimeout(() => persist(true), 0);
     };
 
+    const handleClick = (event: MouseEvent) => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      const button = target.closest("button");
+      if (!button || button.textContent?.trim() !== "Zrušit filtry") return;
+      window.setTimeout(() => persist(true), 40);
+    };
+
     document.addEventListener("input", handleFieldEvent, true);
     document.addEventListener("change", handleFieldEvent, true);
-    window.addEventListener("pagehide", () => persist(false));
+    document.addEventListener("click", handleClick, true);
+    window.addEventListener("pagehide", storeOnly);
 
     return () => {
       restoreTimers.forEach((timer) => window.clearTimeout(timer));
       document.removeEventListener("input", handleFieldEvent, true);
       document.removeEventListener("change", handleFieldEvent, true);
+      document.removeEventListener("click", handleClick, true);
+      window.removeEventListener("pagehide", storeOnly);
     };
   }, [pathname, router]);
 
