@@ -220,6 +220,54 @@ export default function BreweryEditModalClient({
               </div>
 
               <form onSubmit={handleSubmit} style={{ padding: "20px" }}>
+                <section
+                  style={{
+                    marginBottom: "18px",
+                    padding: "15px",
+                    border: "1px solid rgba(245,184,63,0.28)",
+                    borderRadius: "12px",
+                    background: "rgba(231,166,47,0.045)",
+                  }}
+                >
+                  <div
+                    className="taste-label"
+                    style={{ marginBottom: "10px", color: "var(--taste-amber-bright)" }}
+                  >
+                    Změna názvu
+                  </div>
+
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+                      gap: "12px",
+                    }}
+                  >
+                    <Field label="Původní název">
+                      <input
+                        value={brewery.name}
+                        readOnly
+                        aria-readonly="true"
+                        style={{
+                          ...inputStyle,
+                          color: "var(--taste-text-muted)",
+                          background: "rgba(255,255,255,0.02)",
+                        }}
+                      />
+                    </Field>
+
+                    <Field label="Nový název" required>
+                      <input
+                        name="name"
+                        required
+                        autoFocus
+                        defaultValue={brewery.name}
+                        style={inputStyle}
+                      />
+                    </Field>
+                  </div>
+                </section>
+
                 <div
                   style={{
                     display: "grid",
@@ -227,29 +275,6 @@ export default function BreweryEditModalClient({
                     gap: "14px",
                   }}
                 >
-                  <Field label="Původní název">
-                    <input
-                      value={brewery.name}
-                      readOnly
-                      aria-readonly="true"
-                      style={{
-                        ...inputStyle,
-                        color: "var(--taste-text-muted)",
-                        background: "rgba(255,255,255,0.02)",
-                      }}
-                    />
-                  </Field>
-
-                  <Field label="Nový název" required>
-                    <input
-                      name="name"
-                      required
-                      autoFocus
-                      defaultValue={brewery.name}
-                      style={inputStyle}
-                    />
-                  </Field>
-
                   <Field label="Město">
                     <input name="city" defaultValue={brewery.city ?? ""} style={inputStyle} />
                   </Field>
