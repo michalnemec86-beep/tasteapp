@@ -4,7 +4,6 @@ import { useEffect } from "react";
 
 export default function ErrorPage({
   error,
-  reset,
 }: {
   error: Error & { digest?: string };
   reset: () => void;
@@ -12,6 +11,10 @@ export default function ErrorPage({
   useEffect(() => {
     console.error("TasteApp page error:", error);
   }, [error]);
+
+  function handleRefresh() {
+    window.location.reload();
+  }
 
   return (
     <main
@@ -75,22 +78,9 @@ export default function ErrorPage({
           Stránku se nepodařilo načíst
         </h1>
 
-        <p
-          style={{
-            maxWidth: "620px",
-            margin: "12px 0 0",
-            color: "var(--taste-text-soft)",
-            fontSize: "13px",
-            lineHeight: 1.6,
-          }}
-        >
-          Občas může některý z datových dotazů selhat nebo trvat déle.
-          Nemusíš obnovovat celý prohlížeč, TasteApp může načtení zkusit znovu přímo.
-        </p>
-
         <button
           type="button"
-          onClick={reset}
+          onClick={handleRefresh}
           style={{
             marginTop: "22px",
             padding: "11px 16px",
@@ -103,7 +93,7 @@ export default function ErrorPage({
             cursor: "pointer",
           }}
         >
-          Zkusit znovu
+          Obnovit stránku
         </button>
 
         {error.digest && (
