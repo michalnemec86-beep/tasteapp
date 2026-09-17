@@ -66,6 +66,10 @@ export default async function NewTastingPage() {
         abv,
         ibu,
         is_non_alcoholic,
+        brands (
+          id,
+          name
+        ),
         breweries (
           id,
           name,
@@ -84,19 +88,15 @@ export default async function NewTastingPage() {
     );
   }
 
-  /*
-   * Supabase typová inference u vnořených relací
-   * někdy vrací pole, i když aplikace pracuje
-   * s jedním pivovarem / jedním stylem.
-   *
-   * Tady data sjednotíme do skutečného tvaru,
-   * který očekává TastingForm.
-   */
-
   const normalizedBeers =
     (beers ?? []).map(
       (beer) => ({
         ...beer,
+
+        brands:
+          singleRelation(
+            beer.brands
+          ),
 
         breweries:
           singleRelation(
@@ -194,10 +194,6 @@ export default async function NewTastingPage() {
     );
   }
 
-  // ==================================================
-  // VÝSTUP
-  // ==================================================
-
   return (
     <main
       style={{
@@ -214,21 +210,6 @@ export default async function NewTastingPage() {
       <h1>
         🍺 Zapsat ochutnávku
       </h1>
-
-      <p
-        style={{
-          marginBottom:
-            "30px",
-        }}
-      >
-        Začni názvem piva.
-        Pokud ho TasteApp zná,
-        použije existující
-        záznam. Pokud ne,
-        vytvoří nové pivo a
-        zároveň uloží
-        ochutnávku.
-      </p>
 
       <TastingForm
         saveTastingAction={
