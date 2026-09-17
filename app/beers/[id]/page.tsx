@@ -261,18 +261,13 @@ export default async function BeerDetailPage({ params }: Props) {
   if (tastingError) throw new Error(tastingError.message);
   const quantity = (tastingRows ?? []).reduce((sum, row) => sum + (row.quantity ?? 1), 0);
 
-  const currentTechnical = [
-    currentPlato != null ? `${currentPlato} °P` : null,
-    currentAbv != null ? `${currentAbv} %` : null,
-    currentIbu != null ? `IBU ${currentIbu}` : null,
-  ].filter(Boolean);
-
   return (
     <main style={{ maxWidth: "1100px", margin: "0 auto", padding: "34px 24px 80px" }}>
       <PageHero
         eyebrow="Pivo"
         imageUrl="/images/heroes/catalog.jpg"
         title={beer.name}
+        subtitle=""
         action={<Link href="/stats" className="taste-button-secondary">← Statistiky</Link>}
         stats={[
           { icon: "◆", accent: "#d98945", value: brand?.name ?? "—", label: "Značka" },
