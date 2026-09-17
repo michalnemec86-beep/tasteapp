@@ -1,0 +1,89 @@
+/* Mobile readability refinements shared across TasteApp. */
+
+.taste-hero-stat > div:last-child {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.taste-hero-stat > div:last-child > div:first-child {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+@media (max-width: 900px) {
+  /* Brewery catalog keeps the brewery identity visible while the metadata scrolls. */
+  main:has(input[aria-label="Hledat v katalogu pivovarů"]) table th:first-child,
+  main:has(input[aria-label="Hledat v katalogu pivovarů"]) table td:first-child {
+    position: sticky;
+    left: 0;
+    min-width: 190px;
+    width: 190px;
+    max-width: 190px;
+  }
+
+  main:has(input[aria-label="Hledat v katalogu pivovarů"]) table th:first-child {
+    z-index: 5;
+    background:
+      linear-gradient(rgba(231,166,47,0.045), rgba(231,166,47,0.045)),
+      var(--taste-surface);
+    box-shadow: 12px 0 18px -16px rgba(0, 0, 0, 0.95);
+  }
+
+  main:has(input[aria-label="Hledat v katalogu pivovarů"]) table td:first-child {
+    z-index: 3;
+    background: var(--taste-surface);
+    box-shadow: 12px 0 18px -16px rgba(0, 0, 0, 0.95);
+    white-space: normal !important;
+  }
+
+  main:has(input[aria-label="Hledat v katalogu pivovarů"]) table td:first-child > div {
+    align-items: flex-start !important;
+  }
+
+  main:has(input[aria-label="Hledat v katalogu pivovarů"]) table td:first-child a {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    line-height: 1.25;
+  }
+}
+
+@media (max-width: 720px) {
+  /* Long hero values such as brewery names should wrap instead of being clipped. */
+  .taste-hero-stat {
+    min-width: 0;
+    padding: 8px 9px !important;
+    gap: 8px !important;
+  }
+
+  .taste-hero-stat > div:last-child > div:first-child {
+    font-size: 15px !important;
+    line-height: 1.05 !important;
+    letter-spacing: -0.02em !important;
+  }
+
+  /* Search gets a full row; filters remain compact two-per-row where space allows. */
+  main:has(input[aria-label="Hledat v katalogu pivovarů"]) input[aria-label="Hledat v katalogu pivovarů"] {
+    flex: 1 1 100% !important;
+    min-width: 100% !important;
+    font-size: 16px !important;
+  }
+
+  main:has(input[aria-label="Hledat v katalogu pivovarů"]) select[aria-label="Filtrovat podle uživatele"],
+  main:has(input[aria-label="Hledat v katalogu pivovarů"]) select[aria-label="Filtrovat podle státu"],
+  main:has(input[aria-label="Hledat v katalogu pivovarů"]) select[aria-label="Filtrovat podle města"] {
+    flex: 1 1 calc(50% - 4px) !important;
+    min-width: 0 !important;
+    max-width: 100%;
+    font-size: 16px !important;
+  }
+}
+
+@media (max-width: 420px) {
+  main:has(input[aria-label="Hledat v katalogu pivovarů"]) table th:first-child,
+  main:has(input[aria-label="Hledat v katalogu pivovarů"]) table td:first-child {
+    min-width: 172px;
+    width: 172px;
+    max-width: 172px;
+  }
+}
