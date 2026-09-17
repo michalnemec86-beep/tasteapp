@@ -59,12 +59,16 @@ export default async function BrandDetailPage({ params, searchParams }: Props) {
   const pagination = paginateItems(beers, parsePositivePage(pageParams.page));
   const beerIds = beers.map((beer) => beer.id);
   let totalQuantity = 0;
+  let totalTastingCount = 0;
+
   if (beerIds.length > 0) {
     const { data: tastings, error: tastingsError } = await supabase
       .from("tastings")
-      .select("quantity")
+      .select("id, quantity")
       .in("beer_id", beerIds);
     if (tastingsError) throw new Error(tastingsError.message);
+
+    totalTastingCount = tastings?.length ?? 0;
     totalQuantity = (tastings ?? []).reduce((sum, row) => sum + (row.quantity ?? 1), 0);
   }
 
@@ -78,6 +82,7 @@ export default async function BrandDetailPage({ params, searchParams }: Props) {
         action={<Link href="/stats" className="taste-button-secondary">← Statistiky</Link>}
         stats={[
           { icon: "◆", accent: "#d98945", value: beers.length, label: "Piv" },
+          { icon: "●", accent: "#e88835", value: totalTastingCount, label: "Ochutnávek" },
           { icon: "◉", accent: "#f2b63f", value: totalQuantity, label: "Vypitých" },
           { icon: "◎", accent: "#9cad47", value: rawBrand.country ? `${getCountryFlag(rawBrand.country)} ${rawBrand.country}` : "—", label: "Původ značky" },
         ]}
