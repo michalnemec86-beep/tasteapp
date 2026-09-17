@@ -5,11 +5,91 @@ import PageHero from "@/components/ui/PageHero";
 import { createClient } from "@/lib/supabase/server";
 
 type Props = { params: Promise<{ id: string }> };
-
 type Relation<T> = T | T[] | null;
+
+type BreweryRef = {
+  id: number;
+  name: string;
+  country: string | null;
+};
+
+type StyleRef = {
+  id: number;
+  name: string;
+};
+
+type Version = {
+  id: number;
+  version_year: number | null;
+  valid_from: string | null;
+  valid_to: string | null;
+  plato: number | null;
+  abv: number | null;
+  ibu: number | null;
+  is_current: boolean;
+  breweries: BreweryRef | null;
+  beer_styles: StyleRef | null;
+  beer_version_collaborators: Array<{
+    display_order: number;
+    breweries: BreweryRef | null;
+  }>;
+};
+
+type HistoricalDifference = {
+  brewery: BreweryRef | null;
+  style: StyleRef | null;
+  plato: number | null;
+  abv: number | null;
+  ibu: number | null;
+  collaboratorNames: string[] | null;
+};
+
+type HistoricalGroup = {
+  key: string;
+  years: number[];
+  hasUndatedVersion: boolean;
+  differences: HistoricalDifference;
+};
 
 function one<T>(value: Relation<T> | undefined): T | null {
   return Array.isArray(value) ? value[0] ?? null : value ?? null;
+}
+
+function sameNumber(a: number | null, b: number | null) {
+  return a != null && b != null && Number(a) === Number(b);
+}
+
+function normalizedNames(names: string[]) {
+  return [...names]
+    .map((name) => name.trim().toLocaleLowerCase("cs"))
+    .filter(Boolean)
+    .sort((a, b) => a.localeCompare(b, "cs"));
+}
+
+function sameNameSet(a: string[], b: string[]) {
+  if (a.length === 0 || b.length === 0) return false;
+  const left = normalizedNames(a);
+  const right = normalizedNames(b);
+  return left.length === right.length && left.every((name, index) => name === right[index]);
+}
+
+function formatYears(years: number[], hasUndatedVersion: boolean) {
+  const sorted = [...years].sort((a, b) => a - b);
+
+  if (sorted.length === 0) {
+    return "Dříve";
+  }
+
+  if (sorted.length === 1) {
+    return hasUndatedVersion ? `${sorted[0]} a dříve` : String(sorted[0]);
+  }
+
+  const consecutive = sorted.every((year, index) => index === 0 || year === sorted[index - 1] + 1);
+  const label = consecutive
+    ? `${sorted[0]}–${sorted[sorted.length - 1]}`
+    : sorted.join(", ");
+
+  return hasUndatedVersion ? `${label} a dříve` : label;
 }
 
 export default async function BeerDetailPage({ params }: Props) {
@@ -52,8 +132,8 @@ export default async function BeerDetailPage({ params }: Props) {
     ibu: number | null;
     is_non_alcoholic: boolean;
     brands: Relation<{ id: number; name: string }>;
-    breweries: Relation<{ id: number; name: string; country: string | null }>;
-    beer_styles: Relation<{ id: number; name: string }>;
+    breweries: Relation<BreweryRef>;
+    beer_styles: Relation<StyleRef>;
     beer_versions: Array<{
       id: number;
       version_year: number | null;
@@ -63,17 +143,17 @@ export default async function BeerDetailPage({ params }: Props) {
       abv: number | null;
       ibu: number | null;
       is_current: boolean;
-      breweries: Relation<{ id: number; name: string; country: string | null }>;
-      beer_styles: Relation<{ id: number; name: string }>;
+      breweries: Relation<BreweryRef>;
+      beer_styles: Relation<StyleRef>;
       beer_version_collaborators: Array<{
         display_order: number;
-        breweries: Relation<{ id: number; name: string; country: string | null }>;
+        breweries: Relation<BreweryRef>;
       }> | null;
     }> | null;
   };
 
   const brand = one(beer.brands);
-  const versions = (beer.beer_versions ?? []).map((version) => ({
+  const versions: Version[] = (beer.beer_versions ?? []).map((version) => ({
     ...version,
     breweries: one(version.breweries),
     beer_styles: one(version.beer_styles),
@@ -81,9 +161,98 @@ export default async function BeerDetailPage({ params }: Props) {
       .map((item) => ({ ...item, breweries: one(item.breweries) }))
       .sort((a, b) => a.display_order - b.display_order),
   }));
+
   const current = versions.find((version) => version.is_current) ?? null;
   const brewery = current?.breweries ?? one(beer.breweries);
   const style = current?.beer_styles ?? one(beer.beer_styles);
+  const currentPlato = current?.plato ?? beer.plato;
+  const currentAbv = current?.abv ?? beer.abv;
+  const currentIbu = current?.ibu ?? beer.ibu;
+  const currentCollaboratorNames = (current?.beer_version_collaborators ?? [])
+    .map((item) => item.breweries?.name)
+    .filter((name): name is string => Boolean(name));
+
+  const historicalGroupsMap = new Map<string, HistoricalGroup>();
+
+  for (const version of versions.filter((item) => !item.is_current)) {
+    const historicalCollaboratorNames = version.beer_version_collaborators
+      .map((item) => item.breweries?.name)
+      .filter((name): name is string => Boolean(name));
+
+    const differences: HistoricalDifference = {
+      brewery:
+        version.breweries && brewery && version.breweries.id !== brewery.id
+          ? version.breweries
+          : null,
+      style:
+        version.beer_styles && style && version.beer_styles.id !== style.id
+          ? version.beer_styles
+          : null,
+      plato:
+        version.plato != null && currentPlato != null && !sameNumber(version.plato, currentPlato)
+          ? version.plato
+          : null,
+      abv:
+        version.abv != null && currentAbv != null && !sameNumber(version.abv, currentAbv)
+          ? version.abv
+          : null,
+      ibu:
+        version.ibu != null && currentIbu != null && !sameNumber(version.ibu, currentIbu)
+          ? version.ibu
+          : null,
+      collaboratorNames:
+        historicalCollaboratorNames.length > 0 &&
+        currentCollaboratorNames.length > 0 &&
+        !sameNameSet(historicalCollaboratorNames, currentCollaboratorNames)
+          ? historicalCollaboratorNames
+          : null,
+    };
+
+    const hasMeaningfulDifference =
+      differences.brewery != null ||
+      differences.style != null ||
+      differences.plato != null ||
+      differences.abv != null ||
+      differences.ibu != null ||
+      differences.collaboratorNames != null;
+
+    if (!hasMeaningfulDifference) continue;
+
+    const key = JSON.stringify({
+      breweryId: differences.brewery?.id ?? null,
+      styleId: differences.style?.id ?? null,
+      plato: differences.plato,
+      abv: differences.abv,
+      ibu: differences.ibu,
+      collaborators: differences.collaboratorNames
+        ? normalizedNames(differences.collaboratorNames)
+        : null,
+    });
+
+    const existing = historicalGroupsMap.get(key);
+    if (existing) {
+      if (version.version_year != null && !existing.years.includes(version.version_year)) {
+        existing.years.push(version.version_year);
+      }
+      if (version.version_year == null) {
+        existing.hasUndatedVersion = true;
+      }
+      continue;
+    }
+
+    historicalGroupsMap.set(key, {
+      key,
+      years: version.version_year != null ? [version.version_year] : [],
+      hasUndatedVersion: version.version_year == null,
+      differences,
+    });
+  }
+
+  const historicalGroups = [...historicalGroupsMap.values()].sort((a, b) => {
+    const aYear = a.years.length > 0 ? Math.max(...a.years) : 0;
+    const bYear = b.years.length > 0 ? Math.max(...b.years) : 0;
+    return bYear - aYear;
+  });
 
   const { data: tastingRows, error: tastingError } = await supabase
     .from("tastings")
@@ -92,13 +261,18 @@ export default async function BeerDetailPage({ params }: Props) {
   if (tastingError) throw new Error(tastingError.message);
   const quantity = (tastingRows ?? []).reduce((sum, row) => sum + (row.quantity ?? 1), 0);
 
+  const currentTechnical = [
+    currentPlato != null ? `${currentPlato} °P` : null,
+    currentAbv != null ? `${currentAbv} %` : null,
+    currentIbu != null ? `IBU ${currentIbu}` : null,
+  ].filter(Boolean);
+
   return (
     <main style={{ maxWidth: "1100px", margin: "0 auto", padding: "34px 24px 80px" }}>
       <PageHero
         eyebrow="Pivo"
         imageUrl="/images/heroes/catalog.jpg"
         title={beer.name}
-        subtitle="Kanonický detail piva. Značka zůstává identitou produktu, zatímco výrobní pivovar se může mezi historickými verzemi měnit."
         action={<Link href="/stats" className="taste-button-secondary">← Statistiky</Link>}
         stats={[
           { icon: "◆", accent: "#d98945", value: brand?.name ?? "—", label: "Značka" },
@@ -109,46 +283,68 @@ export default async function BeerDetailPage({ params }: Props) {
       />
 
       <section className="taste-card taste-glow-honey" style={{ padding: "20px", marginBottom: "18px" }}>
-        <div className="taste-label">Zařazení</div>
+        <div className="taste-label">Aktuální parametry</div>
         <div style={{ display: "flex", flexWrap: "wrap", gap: "10px 18px", marginTop: "12px", fontSize: "13px" }}>
           {brand && <Link className="taste-entity-link" href={`/brands/${brand.id}`}>Značka: <strong>{brand.name}</strong></Link>}
           {brewery && <Link className="taste-entity-link" href={`/breweries/${brewery.id}`}>Pivovar: <strong>{brewery.name}</strong></Link>}
           {style && <Link className="taste-entity-link" href={`/styles/${style.id}`}>Styl: <strong>{style.name}</strong></Link>}
+          {currentPlato != null && <span>Stupňovitost: <strong>{currentPlato} °P</strong></span>}
+          {currentAbv != null && <span>Alkohol: <strong>{currentAbv} %</strong></span>}
+          {currentIbu != null && <span>Hořkost: <strong>IBU {currentIbu}</strong></span>}
           {beer.is_non_alcoholic && <span style={{ padding: "3px 8px", borderRadius: "999px", background: "rgba(156,173,71,0.12)", color: "#9cad47", fontSize: "10px", fontWeight: 800 }}>NEALKO</span>}
         </div>
+        {currentCollaboratorNames.length > 0 && (
+          <div style={{ marginTop: "10px", color: "var(--taste-text-muted)", fontSize: "11px" }}>
+            Spolupráce: {currentCollaboratorNames.join(", ")}
+          </div>
+        )}
       </section>
 
-      <section>
-        <div className="taste-label" style={{ marginBottom: "6px" }}>Historie produktu</div>
-        <h2 style={{ margin: "0 0 14px", fontSize: "24px" }}>Verze piva</h2>
-        <div style={{ display: "grid", gap: "10px" }}>
-          {versions.length === 0 ? (
-            <div className="taste-card" style={{ padding: "24px", color: "var(--taste-text-muted)" }}>Zatím bez verzí.</div>
-          ) : versions
-            .sort((a, b) => Number(b.is_current) - Number(a.is_current) || (b.version_year ?? 9999) - (a.version_year ?? 9999))
-            .map((version) => (
-              <article key={version.id} className={version.is_current ? "taste-card taste-glow-gold" : "taste-card"} style={{ padding: "16px" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", flexWrap: "wrap" }}>
-                  <strong>{version.is_current ? "Aktuální verze" : version.version_year ? `Verze ${version.version_year}` : "Historická verze"}</strong>
-                  <span style={{ color: "var(--taste-text-muted)", fontSize: "11px" }}>
-                    {[version.plato != null ? `${version.plato} °P` : null, version.abv != null ? `${version.abv} %` : null, version.ibu != null ? `IBU ${version.ibu}` : null].filter(Boolean).join(" · ")}
-                  </span>
-                </div>
-                <div style={{ marginTop: "7px", color: "var(--taste-text-soft)", fontSize: "12px" }}>
-                  {version.breweries ? <Link className="taste-entity-link" href={`/breweries/${version.breweries.id}`}>{version.breweries.name}</Link> : "Pivovar neurčen"}
-                  {version.beer_version_collaborators
-                    .filter((item) => item.breweries)
-                    .map((item) => (
-                      <span key={item.breweries!.id} style={{ marginLeft: "5px", fontSize: "10px" }}>
-                        + <Link className="taste-entity-link" href={`/breweries/${item.breweries!.id}`}>{item.breweries!.name}</Link>
+      {historicalGroups.length > 0 && (
+        <section>
+          <div className="taste-label" style={{ marginBottom: "6px" }}>Historie produktu</div>
+          <h2 style={{ margin: "0 0 14px", fontSize: "24px" }}>Historické odlišnosti</h2>
+          <div style={{ display: "grid", gap: "10px" }}>
+            {historicalGroups.map((group) => {
+              const differences = group.differences;
+              const technical = [
+                differences.plato != null ? `${differences.plato} °P` : null,
+                differences.abv != null ? `${differences.abv} %` : null,
+                differences.ibu != null ? `IBU ${differences.ibu}` : null,
+              ].filter(Boolean);
+
+              return (
+                <article key={group.key} className="taste-card" style={{ padding: "16px" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", flexWrap: "wrap" }}>
+                    <strong>{formatYears(group.years, group.hasUndatedVersion)}</strong>
+                    {technical.length > 0 && (
+                      <span style={{ color: "var(--taste-text-muted)", fontSize: "11px" }}>
+                        {technical.join(" · ")}
                       </span>
-                    ))}
-                  {version.beer_styles ? <> · <Link className="taste-entity-link" href={`/styles/${version.beer_styles.id}`}>{version.beer_styles.name}</Link></> : null}
-                </div>
-              </article>
-            ))}
-        </div>
-      </section>
+                    )}
+                  </div>
+
+                  <div style={{ marginTop: "7px", display: "flex", flexWrap: "wrap", gap: "6px 12px", color: "var(--taste-text-soft)", fontSize: "12px" }}>
+                    {differences.brewery && (
+                      <span>
+                        Pivovar: <Link className="taste-entity-link" href={`/breweries/${differences.brewery.id}`}>{differences.brewery.name}</Link>
+                      </span>
+                    )}
+                    {differences.style && (
+                      <span>
+                        Styl: <Link className="taste-entity-link" href={`/styles/${differences.style.id}`}>{differences.style.name}</Link>
+                      </span>
+                    )}
+                    {differences.collaboratorNames && (
+                      <span>Spolupráce: {differences.collaboratorNames.join(", ")}</span>
+                    )}
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        </section>
+      )}
     </main>
   );
 }
