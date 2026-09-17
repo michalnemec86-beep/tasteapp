@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  useEffect,
-  useState,
-} from "react";
+import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 
@@ -42,83 +39,46 @@ export default function BreweryEditModalClient({
   updateBreweryAction,
   variant = "subtle",
 }: BreweryEditModalClientProps) {
-  const [open, setOpen] =
-    useState(false);
-
-  const [saving, setSaving] =
-    useState(false);
-
-  const [error, setError] =
-    useState("");
-
+  const [open, setOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
   const router = useRouter();
 
   useEffect(() => {
-    if (!open) {
-      return;
-    }
+    if (!open) return;
 
-    const previousOverflow =
-      document.body.style.overflow;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
 
-    document.body.style.overflow =
-      "hidden";
-
-    function handleKeyDown(
-      event: KeyboardEvent
-    ) {
-      if (
-        event.key === "Escape" &&
-        !saving
-      ) {
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape" && !saving) {
         setOpen(false);
       }
     }
 
-    window.addEventListener(
-      "keydown",
-      handleKeyDown
-    );
+    window.addEventListener("keydown", handleKeyDown);
 
     return () => {
-      document.body.style.overflow =
-        previousOverflow;
-
-      window.removeEventListener(
-        "keydown",
-        handleKeyDown
-      );
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
     };
   }, [open, saving]);
 
   function closeModal() {
-    if (saving) {
-      return;
-    }
-
+    if (saving) return;
     setError("");
     setOpen(false);
   }
 
-  async function handleSubmit(
-    event: React.FormEvent<HTMLFormElement>
-  ) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    const form =
-      event.currentTarget;
-
-    const formData =
-      new FormData(form);
-
+    const formData = new FormData(event.currentTarget);
     setSaving(true);
     setError("");
 
     try {
-      await updateBreweryAction(
-        brewery.id,
-        formData
-      );
+      await updateBreweryAction(brewery.id, formData);
       setOpen(false);
       router.refresh();
     } catch (caughtError) {
@@ -172,9 +132,7 @@ export default function BreweryEditModalClient({
               }
         }
       >
-        {variant === "primary"
-          ? "Upravit pivovar"
-          : "Upravit"}
+        {variant === "primary" ? "Upravit pivovar" : "Upravit"}
       </button>
 
       {open &&
@@ -184,12 +142,7 @@ export default function BreweryEditModalClient({
             aria-modal="true"
             aria-labelledby="edit-brewery-title"
             onClick={(event) => {
-              if (
-                event.target ===
-                event.currentTarget
-              ) {
-                closeModal();
-              }
+              if (event.target === event.currentTarget) closeModal();
             }}
             style={{
               position: "fixed",
@@ -199,75 +152,48 @@ export default function BreweryEditModalClient({
               alignItems: "center",
               justifyContent: "center",
               padding: "18px",
-              background:
-                "rgba(5, 4, 3, 0.80)",
-              backdropFilter:
-                "blur(18px)",
-              WebkitBackdropFilter:
-                "blur(18px)",
+              background: "rgba(5, 4, 3, 0.80)",
+              backdropFilter: "blur(18px)",
+              WebkitBackdropFilter: "blur(18px)",
             }}
           >
             <div
-              onClick={(event) =>
-                event.stopPropagation()
-              }
+              onClick={(event) => event.stopPropagation()}
               style={{
                 position: "relative",
                 width: "100%",
-                maxWidth: "620px",
+                maxWidth: "640px",
                 maxHeight: "88vh",
                 overflowY: "auto",
-                overscrollBehavior:
-                  "contain",
-                border:
-                  "1px solid var(--taste-border-strong)",
-                borderRadius:
-                  "var(--taste-radius-lg)",
+                overscrollBehavior: "contain",
+                border: "1px solid var(--taste-border-strong)",
+                borderRadius: "var(--taste-radius-lg)",
                 background: `
-                  radial-gradient(
-                    circle at 88% 0%,
-                    rgba(231,166,47,0.09),
-                    transparent 18rem
-                  ),
-                  linear-gradient(
-                    145deg,
-                    rgba(255,255,255,0.018),
-                    transparent 42%
-                  ),
+                  radial-gradient(circle at 88% 0%, rgba(231,166,47,0.09), transparent 18rem),
+                  linear-gradient(145deg, rgba(255,255,255,0.018), transparent 42%),
                   var(--taste-surface-raised)
                 `,
-                color:
-                  "var(--taste-text)",
-                boxShadow:
-                  "0 30px 90px rgba(0,0,0,0.68)",
+                color: "var(--taste-text)",
+                boxShadow: "0 30px 90px rgba(0,0,0,0.68)",
               }}
             >
               <div
                 style={{
                   display: "flex",
-                  justifyContent:
-                    "space-between",
-                  alignItems:
-                    "flex-start",
+                  justifyContent: "space-between",
+                  alignItems: "flex-start",
                   gap: "20px",
-                  padding:
-                    "18px 20px 16px",
-                  borderBottom:
-                    "1px solid var(--taste-border)",
+                  padding: "18px 20px 16px",
+                  borderBottom: "1px solid var(--taste-border)",
                 }}
               >
                 <div>
                   <div
                     className="taste-label"
-                    style={{
-                      marginBottom:
-                        "5px",
-                      fontSize: "9px",
-                    }}
+                    style={{ marginBottom: "5px", fontSize: "9px" }}
                   >
                     Katalog pivovarů
                   </div>
-
                   <h2
                     id="edit-brewery-title"
                     style={{
@@ -275,8 +201,7 @@ export default function BreweryEditModalClient({
                       fontSize: "22px",
                       lineHeight: 1.1,
                       fontWeight: 800,
-                      letterSpacing:
-                        "-0.025em",
+                      letterSpacing: "-0.025em",
                     }}
                   >
                     Upravit pivovar
@@ -288,131 +213,75 @@ export default function BreweryEditModalClient({
                   onClick={closeModal}
                   disabled={saving}
                   aria-label="Zavřít"
-                  style={{
-                    width: "34px",
-                    height: "34px",
-                    border:
-                      "1px solid var(--taste-border)",
-                    borderRadius:
-                      "9px",
-                    background:
-                      "transparent",
-                    color:
-                      "var(--taste-text-muted)",
-                    fontSize: "19px",
-                    cursor: saving
-                      ? "default"
-                      : "pointer",
-                  }}
+                  style={closeButtonStyle}
                 >
                   ×
                 </button>
               </div>
 
-              <form
-                onSubmit={
-                  handleSubmit
-                }
-                style={{
-                  padding: "20px",
-                }}
-              >
+              <form onSubmit={handleSubmit} style={{ padding: "20px" }}>
                 <div
                   style={{
                     display: "grid",
-                    gridTemplateColumns:
-                      "repeat(auto-fit, minmax(220px, 1fr))",
+                    gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
                     gap: "14px",
                   }}
                 >
-                  <Field
-                    label="Jméno"
-                    required
-                  >
+                  <Field label="Původní název">
+                    <input
+                      value={brewery.name}
+                      readOnly
+                      aria-readonly="true"
+                      style={{
+                        ...inputStyle,
+                        color: "var(--taste-text-muted)",
+                        background: "rgba(255,255,255,0.02)",
+                      }}
+                    />
+                  </Field>
+
+                  <Field label="Nový název" required>
                     <input
                       name="name"
                       required
                       autoFocus
                       defaultValue={brewery.name}
-                      style={
-                        inputStyle
-                      }
+                      style={inputStyle}
                     />
                   </Field>
 
                   <Field label="Město">
-                    <input
-                      name="city"
-                      defaultValue={brewery.city ?? ""}
-                      style={
-                        inputStyle
-                      }
-                    />
+                    <input name="city" defaultValue={brewery.city ?? ""} style={inputStyle} />
                   </Field>
 
-                  <Field
-                    label="Stát"
-                    required
-                  >
+                  <Field label="Stát" required>
                     <select
                       name="country"
                       required
                       defaultValue={brewery.country ?? ""}
-                      style={
-                        inputStyle
-                      }
+                      style={inputStyle}
                     >
-                      <option
-                        value=""
-                        disabled
-                      >
+                      <option value="" disabled>
                         Vyber stát
                       </option>
-
-                      {countries.map(
-                        (
-                          country
-                        ) => (
-                          <option
-                            key={
-                              country.id
-                            }
-                            value={
-                              country.name
-                            }
-                          >
-                            {
-                              country.name
-                            }
-                          </option>
-                        )
-                      )}
+                      {countries.map((country) => (
+                        <option key={country.id} value={country.name}>
+                          {country.name}
+                        </option>
+                      ))}
                     </select>
                   </Field>
 
                   <Field label="Adresa">
-                    <input
-                      name="address"
-                      defaultValue={brewery.address ?? ""}
-                      style={
-                        inputStyle
-                      }
-                    />
+                    <input name="address" defaultValue={brewery.address ?? ""} style={inputStyle} />
                   </Field>
-
-                  <label style={{ display: "flex", alignItems: "center", gap: "9px", minHeight: "42px", color: "var(--taste-text-soft)", fontSize: "12px", cursor: "pointer" }}>
-                    <input name="isNomadic" type="checkbox" defaultChecked={brewery.isNomadic} />
-                    <span><strong style={{ color: "var(--taste-text)" }}>Letající pivovar</strong><br /><span style={{ color: "var(--taste-text-muted)", fontSize: "10px" }}>Bez vlastní výrobní adresy; zůstává plnohodnotným pivovarem ve statistikách.</span></span>
-                  </label>
 
                   <Field label="Web">
                     <input
                       name="website"
                       defaultValue={brewery.website ?? ""}
                       placeholder="https://…"
-                      style={
-                        inputStyle
-                      }
+                      style={inputStyle}
                     />
                   </Field>
 
@@ -424,9 +293,7 @@ export default function BreweryEditModalClient({
                       min="1000"
                       max="2100"
                       inputMode="numeric"
-                      style={
-                        inputStyle
-                      }
+                      style={inputStyle}
                     />
                   </Field>
 
@@ -438,9 +305,7 @@ export default function BreweryEditModalClient({
                       min="1000"
                       max="2100"
                       inputMode="numeric"
-                      style={
-                        inputStyle
-                      }
+                      style={inputStyle}
                     />
                   </Field>
 
@@ -453,10 +318,7 @@ export default function BreweryEditModalClient({
                       max="90"
                       step="any"
                       inputMode="decimal"
-                      placeholder="např. 50.123456"
-                      style={
-                        inputStyle
-                      }
+                      style={inputStyle}
                     />
                   </Field>
 
@@ -469,32 +331,44 @@ export default function BreweryEditModalClient({
                       max="180"
                       step="any"
                       inputMode="decimal"
-                      placeholder="např. 14.123456"
-                      style={
-                        inputStyle
-                      }
+                      style={inputStyle}
                     />
                   </Field>
                 </div>
+
+                <label
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "9px",
+                    minHeight: "42px",
+                    marginTop: "14px",
+                    color: "var(--taste-text-soft)",
+                    fontSize: "12px",
+                    cursor: "pointer",
+                  }}
+                >
+                  <input
+                    name="isNomadic"
+                    type="checkbox"
+                    defaultChecked={brewery.isNomadic}
+                  />
+                  <strong style={{ color: "var(--taste-text)" }}>
+                    Letající pivovar
+                  </strong>
+                </label>
 
                 {error && (
                   <div
                     role="alert"
                     style={{
-                      marginTop:
-                        "15px",
-                      padding:
-                        "10px 12px",
-                      border:
-                        "1px solid rgba(220,100,75,0.35)",
-                      borderRadius:
-                        "9px",
-                      background:
-                        "rgba(220,100,75,0.08)",
-                      color:
-                        "var(--taste-text)",
-                      fontSize:
-                        "12px",
+                      marginTop: "15px",
+                      padding: "10px 12px",
+                      border: "1px solid rgba(220,100,75,0.35)",
+                      borderRadius: "9px",
+                      background: "rgba(220,100,75,0.08)",
+                      color: "var(--taste-text)",
+                      fontSize: "12px",
                       lineHeight: 1.45,
                     }}
                   >
@@ -505,40 +379,27 @@ export default function BreweryEditModalClient({
                 <div
                   style={{
                     display: "flex",
-                    justifyContent:
-                      "flex-end",
+                    justifyContent: "flex-end",
                     gap: "9px",
-                    marginTop:
-                      "20px",
-                    paddingTop:
-                      "16px",
-                    borderTop:
-                      "1px solid var(--taste-border)",
+                    marginTop: "20px",
+                    paddingTop: "16px",
+                    borderTop: "1px solid var(--taste-border)",
                   }}
                 >
                   <button
                     type="button"
-                    onClick={
-                      closeModal
-                    }
-                    disabled={
-                      saving
-                    }
+                    onClick={closeModal}
+                    disabled={saving}
                     className="taste-button-secondary"
                   >
                     Zrušit
                   </button>
-
                   <button
                     type="submit"
-                    disabled={
-                      saving
-                    }
+                    disabled={saving}
                     className="taste-button-primary"
                   >
-                    {saving
-                      ? "Ukládám…"
-                      : "Uložit změny"}
+                    {saving ? "Ukládám…" : "Uložit změny"}
                   </button>
                 </div>
               </form>
@@ -557,42 +418,24 @@ function Field({
 }: {
   label: string;
   required?: boolean;
-  children:
-    React.ReactNode;
+  children: React.ReactNode;
 }) {
   return (
-    <label
-      style={{
-        display: "grid",
-        gap: "6px",
-      }}
-    >
+    <label style={{ display: "grid", gap: "6px" }}>
       <span
         style={{
-          color:
-            "var(--taste-text-muted)",
+          color: "var(--taste-text-muted)",
           fontSize: "10px",
           fontWeight: 700,
-          textTransform:
-            "uppercase",
-          letterSpacing:
-            "0.055em",
+          textTransform: "uppercase",
+          letterSpacing: "0.055em",
         }}
       >
         {label}
         {required && (
-          <span
-            style={{
-              color:
-                "var(--taste-amber-bright)",
-            }}
-          >
-            {" "}
-            *
-          </span>
+          <span style={{ color: "var(--taste-amber-bright)" }}> *</span>
         )}
       </span>
-
       {children}
     </label>
   );
@@ -603,12 +446,21 @@ const inputStyle = {
   height: "40px",
   boxSizing: "border-box",
   padding: "0 11px",
-  border:
-    "1px solid var(--taste-border)",
+  border: "1px solid var(--taste-border)",
   borderRadius: "9px",
-  background:
-    "var(--taste-surface)",
+  background: "var(--taste-surface)",
   color: "var(--taste-text)",
   fontSize: "12px",
   outline: "none",
+} as const;
+
+const closeButtonStyle = {
+  width: "34px",
+  height: "34px",
+  border: "1px solid var(--taste-border)",
+  borderRadius: "9px",
+  background: "transparent",
+  color: "var(--taste-text-muted)",
+  fontSize: "19px",
+  cursor: "pointer",
 } as const;
