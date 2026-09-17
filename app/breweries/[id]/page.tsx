@@ -1586,125 +1586,122 @@ export default async function BreweryDetailPage({
             </button>
           </form>
 
-          {user.id ===
-            "17be5dc3-a3f9-4fd2-ae90-dee7692034fc" && (
-            <form
-              action={updateBrewery.bind(
-                null,
-                brewery.id
-              )}
+          <form
+            action={updateBrewery.bind(
+              null,
+              brewery.id
+            )}
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: "8px",
+              alignItems: "flex-end",
+              marginTop: "16px",
+              paddingTop: "16px",
+              borderTop: "1px solid rgba(231,166,47,0.14)",
+            }}
+          >
+            <input type="hidden" name="city" value={brewery.city ?? ""} />
+            <input type="hidden" name="country" value={brewery.country ?? ""} />
+            <input type="hidden" name="address" value={brewery.address ?? ""} />
+            <input type="hidden" name="website" value={brewery.website ?? ""} />
+            <input type="hidden" name="foundedYear" value={brewery.founded_year ?? ""} />
+            <input type="hidden" name="closedYear" value={brewery.closed_year ?? ""} />
+            <input type="hidden" name="latitude" value={brewery.latitude ?? ""} />
+            <input type="hidden" name="longitude" value={brewery.longitude ?? ""} />
+            {brewery.is_nomadic && (
+              <input type="hidden" name="isNomadic" value="on" />
+            )}
+
+            <label
               style={{
-                display: "flex",
-                flexWrap: "wrap",
-                gap: "8px",
-                alignItems: "flex-end",
-                marginTop: "16px",
-                paddingTop: "16px",
-                borderTop: "1px solid rgba(231,166,47,0.14)",
+                display: "grid",
+                gap: "5px",
+                flex: "1 1 240px",
               }}
             >
-              <input type="hidden" name="city" value={brewery.city ?? ""} />
-              <input type="hidden" name="country" value={brewery.country ?? ""} />
-              <input type="hidden" name="address" value={brewery.address ?? ""} />
-              <input type="hidden" name="website" value={brewery.website ?? ""} />
-              <input type="hidden" name="foundedYear" value={brewery.founded_year ?? ""} />
-              <input type="hidden" name="closedYear" value={brewery.closed_year ?? ""} />
-              <input type="hidden" name="latitude" value={brewery.latitude ?? ""} />
-              <input type="hidden" name="longitude" value={brewery.longitude ?? ""} />
-              {brewery.is_nomadic && (
-                <input type="hidden" name="isNomadic" value="on" />
-              )}
-
-              <label
+              <span
                 style={{
-                  display: "grid",
-                  gap: "5px",
-                  flex: "1 1 240px",
+                  color: "var(--taste-text-muted)",
+                  fontSize: "10px",
+                  fontWeight: 700,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.055em",
                 }}
               >
-                <span
-                  style={{
-                    color: "var(--taste-text-muted)",
-                    fontSize: "10px",
-                    fontWeight: 700,
-                    textTransform: "uppercase",
-                    letterSpacing: "0.055em",
-                  }}
-                >
-                  Současný název
-                </span>
+                Současný název
+              </span>
 
-                <input
-                  value={brewery.name}
-                  readOnly
-                  aria-readonly="true"
-                  style={{
-                    width: "100%",
-                    height: "38px",
-                    boxSizing: "border-box",
-                    padding: "0 11px",
-                    border: "1px solid var(--taste-border)",
-                    borderRadius: "9px",
-                    background: "rgba(255,255,255,0.018)",
-                    color: "var(--taste-text-muted)",
-                    fontSize: "12px",
-                    outline: "none",
-                  }}
-                />
-              </label>
-
-              <label
+              <input
+                value={brewery.name}
+                readOnly
+                aria-readonly="true"
                 style={{
-                  display: "grid",
-                  gap: "5px",
-                  flex: "1 1 240px",
-                }}
-              >
-                <span
-                  style={{
-                    color: "var(--taste-text-muted)",
-                    fontSize: "10px",
-                    fontWeight: 700,
-                    textTransform: "uppercase",
-                    letterSpacing: "0.055em",
-                  }}
-                >
-                  Nový název
-                </span>
-
-                <input
-                  name="name"
-                  required
-                  defaultValue={brewery.name}
-                  style={{
-                    width: "100%",
-                    height: "38px",
-                    boxSizing: "border-box",
-                    padding: "0 11px",
-                    border: "1px solid var(--taste-border)",
-                    borderRadius: "9px",
-                    background: "var(--taste-surface)",
-                    color: "var(--taste-text)",
-                    fontSize: "12px",
-                    outline: "none",
-                  }}
-                />
-              </label>
-
-              <button
-                type="submit"
-                className="taste-button-secondary"
-                style={{
+                  width: "100%",
                   height: "38px",
-                  fontSize: "11px",
-                  fontWeight: 650,
-                  whiteSpace: "nowrap",
+                  boxSizing: "border-box",
+                  padding: "0 11px",
+                  border: "1px solid var(--taste-border)",
+                  borderRadius: "9px",
+                  background: "rgba(255,255,255,0.018)",
+                  color: "var(--taste-text-muted)",
+                  fontSize: "12px",
+                  outline: "none",
+                }}
+              />
+            </label>
+
+            <label
+              style={{
+                display: "grid",
+                gap: "5px",
+                flex: "1 1 240px",
+              }}
+            >
+              <span
+                style={{
+                  color: "var(--taste-text-muted)",
+                  fontSize: "10px",
+                  fontWeight: 700,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.055em",
                 }}
               >
-                Změnit název
-              </button>
-            </form>
-          )}
+                Nový název
+              </span>
+
+              <input
+                name="name"
+                required
+                defaultValue={brewery.name}
+                style={{
+                  width: "100%",
+                  height: "38px",
+                  boxSizing: "border-box",
+                  padding: "0 11px",
+                  border: "1px solid var(--taste-border)",
+                  borderRadius: "9px",
+                  background: "var(--taste-surface)",
+                  color: "var(--taste-text)",
+                  fontSize: "12px",
+                  outline: "none",
+                }}
+              />
+            </label>
+
+            <button
+              type="submit"
+              className="taste-button-secondary"
+              style={{
+                height: "38px",
+                fontSize: "11px",
+                fontWeight: 650,
+                whiteSpace: "nowrap",
+              }}
+            >
+              Změnit název
+            </button>
+          </form>
         </div>
       </section>
     </main>
