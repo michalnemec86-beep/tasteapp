@@ -1,0 +1,111 @@
+.taste-nav-desktop {
+  display: flex;
+}
+
+.taste-nav-mobile {
+  display: none;
+}
+
+.taste-mobile-menu {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .taste-nav-desktop {
+    display: none !important;
+  }
+
+  .taste-nav-mobile {
+    display: flex !important;
+    min-height: 60px;
+    padding: 0 14px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .taste-mobile-menu {
+    display: grid;
+    gap: 6px;
+    padding: 8px 12px 14px;
+    border-top: 1px solid rgba(231,166,47,0.18);
+    background:
+      linear-gradient(180deg, rgba(31,19,11,0.99), rgba(18,11,7,0.99));
+    box-shadow: 0 18px 34px rgba(0,0,0,0.34);
+  }
+
+  .taste-mobile-nav-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 46px;
+    padding: 0 13px;
+    border: 1px solid transparent;
+    border-radius: 11px;
+    color: var(--taste-text-soft);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  .taste-mobile-nav-link[data-active="true"] {
+    border-color: rgba(245,184,63,0.34);
+    background: rgba(231,166,47,0.08);
+    color: var(--taste-amber-bright);
+  }
+
+  .taste-mobile-nav-link:hover,
+  .taste-mobile-nav-link:focus-visible {
+    background: rgba(231,166,47,0.07);
+    color: var(--taste-text);
+    outline: none;
+  }
+
+  .taste-mobile-menu-button {
+    width: 42px;
+    height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(231,166,47,0.30);
+    border-radius: 11px;
+    background: rgba(231,166,47,0.045);
+    color: var(--taste-text-soft);
+    font-size: 21px;
+    cursor: pointer;
+  }
+
+  .taste-mobile-profile {
+    min-height: 40px;
+    padding: 0 11px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(231,166,47,0.24);
+    border-radius: 10px;
+    background: rgba(231,166,47,0.035);
+    color: var(--taste-text-soft);
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .taste-mobile-menu-logout {
+    width: 100%;
+    min-height: 46px;
+    padding: 0 13px;
+    border: 1px solid rgba(231,166,47,0.18);
+    border-radius: 11px;
+    background: transparent;
+    color: var(--taste-text-muted);
+    text-align: left;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  main {
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+  }
+}
