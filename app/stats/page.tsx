@@ -356,28 +356,40 @@ export default async function StatsPage({
       ? {
           param: "beer",
           label: "Pivo",
-          value: contextSourceStats.beers.find((item) => String(item.id) === String(requestedBeerId))?.name ?? `#${requestedBeerId}`,
+          value:
+            contextSourceStats.beers.find(
+              (item) => String(item.id) === String(requestedBeerId)
+            )?.name ?? `#${requestedBeerId}`,
         }
       : null,
     requestedBrandId
       ? {
           param: "brand",
           label: "Značka",
-          value: contextSourceStats.brands.find((item) => String(item.id) === String(requestedBrandId))?.name ?? `#${requestedBrandId}`,
+          value:
+            contextSourceStats.brands.find(
+              (item) => String(item.id) === String(requestedBrandId)
+            )?.name ?? `#${requestedBrandId}`,
         }
       : null,
     requestedBreweryId
       ? {
           param: "brewery",
           label: "Pivovar",
-          value: contextSourceStats.breweries.find((item) => String(item.id) === String(requestedBreweryId))?.name ?? `#${requestedBreweryId}`,
+          value:
+            contextSourceStats.breweries.find(
+              (item) => String(item.id) === String(requestedBreweryId)
+            )?.name ?? `#${requestedBreweryId}`,
         }
       : null,
     requestedStyleId
       ? {
           param: "style",
           label: "Styl",
-          value: contextSourceStats.styles.find((item) => String(item.id) === String(requestedStyleId))?.name ?? `#${requestedStyleId}`,
+          value:
+            contextSourceStats.styles.find(
+              (item) => String(item.id) === String(requestedStyleId)
+            )?.name ?? `#${requestedStyleId}`,
         }
       : null,
     requestedCountry
@@ -387,10 +399,18 @@ export default async function StatsPage({
       ? {
           param: "hop",
           label: "Chmel",
-          value: contextSourceStats.hops.find((item) => String(item.id) === String(requestedHopId))?.name ?? `#${requestedHopId}`,
+          value:
+            contextSourceStats.hops.find(
+              (item) => String(item.id) === String(requestedHopId)
+            )?.name ?? `#${requestedHopId}`,
         }
       : null,
-  ].filter((filter): filter is { param: string; label: string; value: string } => Boolean(filter));
+  ].filter(
+    (
+      filter
+    ): filter is { param: string; label: string; value: string } =>
+      Boolean(filter)
+  );
 
   const stats = {
     beers: sortRanking(rawStats.beers, sortMode),
@@ -878,16 +898,3 @@ function sortRanking(
           : a.name.localeCompare(b.name, "cs");
 
       case "name-asc":
-        return a.name.localeCompare(b.name, "cs");
-
-      case "name-desc":
-        return b.name.localeCompare(a.name, "cs");
-
-      case "count-desc":
-      default:
-        return b.count !== a.count
-          ? b.count - a.count
-          : a.name.localeCompare(b.name, "cs");
-    }
-  });
-}
