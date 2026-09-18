@@ -127,7 +127,7 @@ export default function AppNav() {
             fontWeight: 700,
           }}
         >
-          Můj profil
+          Můj pivní deník
         </Link>
 
         <button
@@ -169,7 +169,8 @@ export default function AppNav() {
 
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
           <Link href="/me" className="taste-mobile-profile">
-            Profil
+            <span className="taste-mobile-profile-full">Můj pivní deník</span>
+            <span className="taste-mobile-profile-compact">Deník</span>
           </Link>
           <button
             type="button"
@@ -189,7 +190,7 @@ export default function AppNav() {
           <MobileNavLink href="/stats" active={isActive("/stats")}>Statistiky</MobileNavLink>
           <MobileNavLink href="/breweries" active={isActive("/breweries")}>Pivovary</MobileNavLink>
           <MobileNavLink href="/profiles" active={isActive("/profiles")}>Uživatelé</MobileNavLink>
-          <MobileNavLink href="/me" active={isActive("/me")}>Můj profil</MobileNavLink>
+          <MobileNavLink href="/me" active={isActive("/me")}>Můj pivní deník</MobileNavLink>
           <button type="button" onClick={handleLogout} className="taste-mobile-menu-logout">
             Odhlásit
           </button>
