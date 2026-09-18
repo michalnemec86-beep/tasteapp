@@ -7,6 +7,7 @@ import {
   useState,
 } from "react";
 import { createPortal } from "react-dom";
+import { getCountryEvidenceHref } from "@/lib/country-flags";
 
 type RankingItem = {
   id: string | number;
@@ -117,7 +118,7 @@ function getItemHref(
     case "Pivní styly":
       return `/stats?style=${encodeURIComponent(String(item.id))}`;
     case "Státy":
-      return `/stats?country=${encodeURIComponent(item.name)}`;
+      return getCountryEvidenceHref(item.name);
     case "Chmely":
       return `/stats?hop=${encodeURIComponent(String(item.id))}`;
     default:
