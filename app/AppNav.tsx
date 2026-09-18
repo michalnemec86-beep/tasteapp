@@ -2,12 +2,13 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import OnlineUsersBadge from "./OnlineUsersBadge";
 
 export default function AppNav() {
   const pathname = usePathname();
+  const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
@@ -18,6 +19,15 @@ export default function AppNav() {
     const supabase = createClient();
     await supabase.auth.signOut();
     window.location.replace("/auth/login");
+  }
+
+  function handleBack() {
+    if (window.history.length > 1) {
+      router.back();
+      return;
+    }
+
+    router.push("/");
   }
 
   if (pathname.startsWith("/auth")) {
@@ -140,7 +150,22 @@ export default function AppNav() {
       </div>
 
       <div className="taste-nav-mobile">
-        <BrandLink compact />
+        <div className="taste-mobile-brand-group">
+          {pathname !== "/" && (
+            <button
+              type="button"
+              className="taste-mobile-back-button"
+              aria-label="Zpět"
+              title="Zpět"
+              onClick={handleBack}
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M15 18l-6-6 6-6" />
+              </svg>
+            </button>
+          )}
+          <BrandLink compact />
+        </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
           <Link href="/me" className="taste-mobile-profile">
