@@ -92,7 +92,7 @@ export default function AppNav() {
             padding: "10px 0",
           }}
         >
-          <NavLink href="/" active={isActive("/")}>Timeline</NavLink>
+          <NavLink href="/" active={isActive("/")}>Aktivita v hospodě</NavLink>
           <NavLink href="/stats" active={isActive("/stats")}>Statistiky</NavLink>
           <NavLink href="/breweries" active={isActive("/breweries")}>Pivovary</NavLink>
           <NavLink href="/profiles" active={isActive("/profiles")}>Uživatelé</NavLink>
@@ -185,7 +185,7 @@ export default function AppNav() {
 
       {mobileOpen && (
         <div className="taste-mobile-menu">
-          <MobileNavLink href="/" active={isActive("/")}>Timeline</MobileNavLink>
+          <MobileNavLink href="/" active={isActive("/")}>Aktivita v hospodě</MobileNavLink>
           <MobileNavLink href="/stats" active={isActive("/stats")}>Statistiky</MobileNavLink>
           <MobileNavLink href="/breweries" active={isActive("/breweries")}>Pivovary</MobileNavLink>
           <MobileNavLink href="/profiles" active={isActive("/profiles")}>Uživatelé</MobileNavLink>
