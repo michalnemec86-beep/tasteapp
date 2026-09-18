@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import OnlineUsersBadge from "./OnlineUsersBadge";
 
 export default function AppNav() {
   const pathname = usePathname();
@@ -97,8 +96,6 @@ export default function AppNav() {
           <NavLink href="/breweries" active={isActive("/breweries")}>Pivovary</NavLink>
           <NavLink href="/profiles" active={isActive("/profiles")}>Uživatelé</NavLink>
         </div>
-
-        <OnlineUsersBadge />
 
         <Link
           href="/me"
