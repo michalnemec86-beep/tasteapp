@@ -1084,7 +1084,7 @@ export default async function HomePage() {
                     "5px",
                 }}
               >
-                Komunita
+                Hospoda
               </div>
 
               <h2
@@ -1570,7 +1570,7 @@ function TastingTimelineCard({
                       visual.accent,
                   }}
                 >
-                  Ochutnávka
+                  Vypil
                 </div>
 
                 <div
