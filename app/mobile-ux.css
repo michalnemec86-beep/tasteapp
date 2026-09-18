@@ -11,6 +11,10 @@
   word-break: normal;
 }
 
+.taste-czech-map-count-label-mobile {
+  display: none;
+}
+
 @media (max-width: 900px) {
   /* Brewery catalog keeps the brewery identity visible while the metadata scrolls. */
   main:has(input[aria-label="Hledat v katalogu pivovarů"]) table th:first-child,
@@ -49,6 +53,103 @@
 }
 
 @media (max-width: 720px) {
+  .taste-world-map {
+    padding: 14px 14px 8px !important;
+  }
+
+  .taste-world-map .taste-world-map-header {
+    gap: 5px !important;
+    margin-bottom: 4px !important;
+  }
+
+  .taste-brewery-world-map .taste-world-map-header {
+    display: block !important;
+  }
+
+  .taste-brewery-world-map .taste-world-map-eyebrow {
+    margin-bottom: 4px !important;
+    color: var(--taste-text) !important;
+    font-size: 20px !important;
+    line-height: 1.05 !important;
+    font-weight: 800 !important;
+    letter-spacing: -0.025em !important;
+  }
+
+  .taste-brewery-world-map .taste-world-map-title {
+    color: var(--taste-text-muted) !important;
+    font-size: 11px !important;
+    line-height: 1.25 !important;
+    font-weight: 600 !important;
+    letter-spacing: 0 !important;
+  }
+
+  .taste-brewery-world-map .taste-world-map-count {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    margin-top: 3px;
+    text-align: left !important;
+  }
+
+  .taste-brewery-world-map .taste-world-map-count-value,
+  .taste-brewery-world-map .taste-world-map-count-label {
+    margin-top: 0 !important;
+    color: var(--taste-text-muted) !important;
+    font-size: 10px !important;
+    line-height: 1.2 !important;
+    font-weight: 600 !important;
+    letter-spacing: 0 !important;
+  }
+
+  .taste-world-map .taste-world-map-stage {
+    height: 240px !important;
+    min-height: 240px !important;
+  }
+
+  .taste-czech-map-header {
+    display: block !important;
+    padding: 14px 15px 11px !important;
+  }
+
+  .taste-czech-map-header .taste-label {
+    display: none;
+  }
+
+  .taste-czech-map-header h2 {
+    font-size: 20px !important;
+    line-height: 1.05 !important;
+    font-weight: 800 !important;
+  }
+
+  .taste-czech-map-count {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    margin-top: 5px;
+    text-align: left !important;
+  }
+
+  .taste-czech-map-count-value,
+  .taste-czech-map-count-label {
+    margin-top: 0 !important;
+    color: var(--taste-text-muted) !important;
+    font-size: 10px !important;
+    line-height: 1.2 !important;
+    font-weight: 600 !important;
+  }
+
+  .taste-czech-map-count-label-desktop {
+    display: none;
+  }
+
+  .taste-czech-map-count-label-mobile {
+    display: block;
+  }
+
+  .taste-czech-map-stage {
+    height: 270px !important;
+  }
+
   /* Keep the homepage greeting and main actions visible without filling the screen. */
   .taste-page-hero-mobile-compact {
     margin-bottom: 12px !important;
