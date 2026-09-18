@@ -264,7 +264,6 @@ export default async function BreweryDetailPage({ params }: Props) {
         stats={[
           { icon: "🍺", value: consumedBeerCount, label: "Vypitých piv" },
           { icon: "◆", value: brandCount, label: "Značek" },
-          { icon: "◷", value: brewery.founded_year ?? "—", label: "Rok založení" },
         ]}
       />
 
