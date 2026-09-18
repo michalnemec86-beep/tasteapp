@@ -41,6 +41,7 @@ type RankingCardClientProps = {
   items: RankingItem[];
   itemHrefPrefix?: string;
   tone?: RankingTone;
+  anchorId?: string;
 };
 
 const PREVIEW_LIMIT = 10;
@@ -134,6 +135,7 @@ export default function RankingCardClient({
   items,
   itemHrefPrefix,
   tone = "gold",
+  anchorId,
 }: RankingCardClientProps) {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -170,7 +172,9 @@ export default function RankingCardClient({
   return (
     <>
       <section
+        id={anchorId}
         style={{
+          scrollMarginTop: "88px",
           position: "relative",
           overflow: "hidden",
           padding: "20px",
