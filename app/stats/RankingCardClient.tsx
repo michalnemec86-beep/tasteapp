@@ -42,6 +42,7 @@ type RankingCardClientProps = {
   itemHrefPrefix?: string;
   tone?: RankingTone;
   anchorId?: string;
+  disableItemLinks?: boolean;
 };
 
 const PREVIEW_LIMIT = 10;
@@ -136,6 +137,7 @@ export default function RankingCardClient({
   itemHrefPrefix,
   tone = "gold",
   anchorId,
+  disableItemLinks = false,
 }: RankingCardClientProps) {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -208,6 +210,7 @@ export default function RankingCardClient({
             maximum={maximum}
             itemHrefPrefix={itemHrefPrefix}
             tone={cardTone}
+            disableItemLinks={disableItemLinks}
           />
         )}
 
@@ -328,6 +331,7 @@ export default function RankingCardClient({
                   maximum={maximum}
                   itemHrefPrefix={itemHrefPrefix}
                   tone={cardTone}
+                  disableItemLinks={disableItemLinks}
                 />
               </div>
             </section>
@@ -466,12 +470,14 @@ function RankingList({
   maximum,
   itemHrefPrefix,
   tone,
+  disableItemLinks = false,
 }: {
   title: string;
   items: RankingItem[];
   maximum: number;
   itemHrefPrefix?: string;
   tone: RankingToneStyle;
+  disableItemLinks?: boolean;
 }) {
   return (
     <div
@@ -489,11 +495,13 @@ function RankingList({
               )
             : 0;
 
-        const href = getItemHref(
-          title,
-          item,
-          itemHrefPrefix
-        );
+        const href = disableItemLinks
+          ? null
+          : getItemHref(
+              title,
+              item,
+              itemHrefPrefix
+            );
 
         const nameStyle = {
           minWidth: 0,
