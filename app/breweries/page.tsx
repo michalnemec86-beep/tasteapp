@@ -189,6 +189,7 @@ export default async function BreweriesPage({
           city: brewery.city,
           latitude: brewery.latitude,
           longitude: brewery.longitude,
+          closedYear: brewery.closed_year,
         },
       ];
     }
