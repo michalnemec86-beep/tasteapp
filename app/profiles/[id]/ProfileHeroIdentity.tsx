@@ -134,7 +134,7 @@ export default function ProfileHeroIdentity({
               }}
             >
               {isMe
-                ? "Můj profil"
+                ? "Můj pivní deník"
                 : "Pivní cestovatel"}
             </div>
 
