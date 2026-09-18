@@ -224,6 +224,11 @@ export default function PageHero({
           </div>
 
           <h1
+            className={
+              isBreweryDetailHero
+                ? "taste-page-hero-title taste-page-hero-brewery-title"
+                : "taste-page-hero-title"
+            }
             style={{
               maxWidth: "620px",
               margin: 0,
