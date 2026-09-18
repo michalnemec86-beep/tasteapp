@@ -35,6 +35,18 @@ function CzechMapViewport() {
   const map = useMap();
 
   useEffect(() => {
+    const desktopWheelQuery = window.matchMedia(
+      "(min-width: 721px) and (pointer: fine)"
+    );
+
+    function syncWheelZoom() {
+      if (desktopWheelQuery.matches) {
+        map.scrollWheelZoom.enable();
+      } else {
+        map.scrollWheelZoom.disable();
+      }
+    }
+
     function applyView() {
       map.invalidateSize({
         animate: false,
@@ -70,6 +82,12 @@ function CzechMapViewport() {
     }
 
     applyView();
+    syncWheelZoom();
+
+    desktopWheelQuery.addEventListener(
+      "change",
+      syncWheelZoom
+    );
 
     map.on(
       "resize",
@@ -77,6 +95,11 @@ function CzechMapViewport() {
     );
 
     return () => {
+      desktopWheelQuery.removeEventListener(
+        "change",
+        syncWheelZoom
+      );
+
       map.off(
         "resize",
         applyView
