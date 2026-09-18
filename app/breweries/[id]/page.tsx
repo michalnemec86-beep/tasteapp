@@ -270,7 +270,17 @@ export default async function BreweryDetailPage({ params }: Props) {
       <section className="taste-card" style={{ padding: "22px" }}>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: "18px" }}>
           <DetailItem label="Město" value={brewery.city} />
-          <DetailItem label="Stát" value={brewery.country} />
+          <DetailItem
+            label="Stát"
+            value={brewery.country ? (
+              <Link
+                href={`/breweries?focus=1&country=${encodeURIComponent(brewery.country)}`}
+                className="taste-entity-link"
+              >
+                {brewery.country}
+              </Link>
+            ) : null}
+          />
           <DetailItem label={brewery.is_nomadic ? "Typ pivovaru" : "Adresa"} value={brewery.is_nomadic ? "Letající pivovar" : brewery.address} />
           <DetailItem label="Web" value={brewery.website} />
           <DetailItem
@@ -453,7 +463,7 @@ export default async function BreweryDetailPage({ params }: Props) {
   );
 }
 
-function DetailItem({ label, value }: { label: string; value: string | number | null }) {
+function DetailItem({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div>
       <div className="taste-label" style={{ marginBottom: "5px" }}>{label}</div>
