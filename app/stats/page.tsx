@@ -33,6 +33,7 @@ type StatsPageProps = {
   searchParams: Promise<{
     user?: string | string[];
     focus?: string | string[];
+    metric?: string | string[];
     sort?: string | string[];
     year?: string | string[];
     month?: string | string[];
@@ -65,6 +66,7 @@ export default async function StatsPage({
 
   const requestedUser = getStringParam(params.user);
   const requestedFocus = getStringParam(params.focus);
+  const requestedMetric = getStringParam(params.metric);
   const requestedSort = getStringParam(params.sort);
   const requestedYear = getStringParam(params.year);
   const requestedMonth = getStringParam(params.month);
@@ -426,8 +428,14 @@ export default async function StatsPage({
         beers: {
           title: "Piva",
           subtitle: "Konkrétní ochutnaná piva",
-          label: "Různých piv",
-          value: totalBeers,
+          label:
+            requestedMetric === "quantity"
+              ? "Vypitých piv"
+              : "Různých piv",
+          value:
+            requestedMetric === "quantity"
+              ? totalTastings
+              : totalBeers,
           icon: <AppIcon name="label" size={18} />,
           accent: "#e88835",
         },
