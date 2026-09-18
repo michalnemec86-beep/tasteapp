@@ -530,6 +530,7 @@ export default async function StatsPage({
           }}
         >
           <RankingCardClient
+            anchorId="piva"
             title="Piva"
             tone="gold"
             subtitle="Konkrétní ochutnaná piva"
@@ -538,6 +539,7 @@ export default async function StatsPage({
           />
 
           <RankingCardClient
+            anchorId="znacky"
             title="Značky"
             tone="honey"
             subtitle="Produktové značky napříč pivovary a historií"
@@ -547,6 +549,7 @@ export default async function StatsPage({
           />
 
           <RankingCardClient
+            anchorId="pivovary"
             title="Pivovary"
             tone="honey"
             subtitle="Podle počtu vypitých piv"
@@ -556,6 +559,7 @@ export default async function StatsPage({
           />
 
           <RankingCardClient
+            anchorId="styly"
             title="Pivní styly"
             tone="amber"
             subtitle="Nejčastěji zastoupené styly"
@@ -564,6 +568,7 @@ export default async function StatsPage({
           />
 
           <RankingCardClient
+            anchorId="staty"
             title="Státy"
             tone="copper"
             subtitle="Země původu pivovarů"
@@ -572,6 +577,7 @@ export default async function StatsPage({
           />
 
           <RankingCardClient
+            anchorId="chmely"
             title="Chmely"
             tone="malt"
             subtitle="Chmely použitých piv"
