@@ -53,6 +53,7 @@ type BreweryRow = {
   id: number;
   name: string;
   country: string | null;
+  logo_url: string | null;
 };
 
 type CountryRow = {
@@ -303,7 +304,8 @@ export default async function HomePage() {
           breweries (
             id,
             name,
-            country
+            country,
+            logo_url
           ),
           beer_styles (
             id,
@@ -318,10 +320,11 @@ export default async function HomePage() {
           beer_version_collaborators (
             display_order,
             breweries (
-              id,
-              name,
-              country
-            )
+            id,
+            name,
+            country,
+            logo_url
+          )
           )
         ),
         beers (
@@ -337,7 +340,8 @@ export default async function HomePage() {
           breweries (
             id,
             name,
-            country
+            country,
+            logo_url
           ),
           beer_styles (
             id,
@@ -398,10 +402,11 @@ export default async function HomePage() {
         ibu,
         is_non_alcoholic,
         breweries (
-          id,
-          name,
-          country
-        ),
+            id,
+            name,
+            country,
+            logo_url
+          ),
         beer_styles (
           id,
           name
@@ -1314,6 +1319,7 @@ function TastingTimelineCard({
 
   const breweryName = tastingBrewery?.name ?? null;
   const breweryId = tastingBrewery?.id ?? null;
+  const breweryLogoUrl = tastingBrewery?.logo_url ?? null;
   const collaborators = [...(tasting.beer_versions?.beer_version_collaborators ?? [])]
     .sort((a, b) => a.display_order - b.display_order)
     .map((item) => item.breweries)
