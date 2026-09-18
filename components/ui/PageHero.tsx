@@ -27,6 +27,8 @@ type PageHeroProps = {
   visualText?: string;
   mobileCompact?: boolean;
   hideRightContent?: boolean;
+  breweryLogoUrl?: string | null;
+  breweryLogoAlt?: string;
 };
 
 export default function PageHero({
@@ -41,6 +43,8 @@ export default function PageHero({
   visualText,
   mobileCompact = false,
   hideRightContent = false,
+  breweryLogoUrl,
+  breweryLogoAlt = "Logo pivovaru",
 }: PageHeroProps) {
   const hasRightContent =
     !hideRightContent &&
@@ -206,6 +210,10 @@ export default function PageHero({
             pointerEvents: "none",
           }}
         />
+
+        {isBreweryDetailHero && breweryLogoUrl && (
+          <BreweryLogoVisual src={breweryLogoUrl} alt={breweryLogoAlt} />
+        )}
 
         <div className="taste-page-hero-copy relative z-[2] flex flex-col justify-center px-6 py-7 lg:px-8 lg:py-6">
           <div
@@ -404,6 +412,38 @@ function getCountryNameFromHeroTitle(title: ReactNode) {
   }
 
   return undefined;
+}
+
+function BreweryLogoVisual({ src, alt }: { src: string; alt: string }) {
+  return (
+    <div
+      style={{
+        position: "absolute",
+        zIndex: 3,
+        top: "50%",
+        right: "clamp(18px, 4vw, 58px)",
+        width: "clamp(96px, 15vw, 170px)",
+        height: "clamp(76px, 11vw, 124px)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        transform: "translateY(-50%)",
+        pointerEvents: "none",
+      }}
+    >
+      <img
+        src={src}
+        alt={alt}
+        style={{
+          display: "block",
+          width: "100%",
+          height: "100%",
+          objectFit: "contain",
+          filter: "drop-shadow(0 10px 22px rgba(0,0,0,0.48))",
+        }}
+      />
+    </div>
+  );
 }
 
 function CountryBreweryVisual({
