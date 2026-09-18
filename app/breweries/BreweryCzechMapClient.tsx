@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import TasteLoader from "@/components/ui/TasteLoader";
 
 import type {
   BreweryMapItem,
@@ -22,7 +23,7 @@ const BreweryCzechMap = dynamic(
           fontSize: "12px",
         }}
       >
-        Načítám mapu pivovarů…
+        <TasteLoader label="Načítám mapu pivovarů" compact />
       </div>
     ),
   }
