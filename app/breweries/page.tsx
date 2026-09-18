@@ -384,7 +384,7 @@ export default async function BreweriesPage({
       <PageHero
         eyebrow={
           isFocusedDrilldown
-            ? "Země původu"
+            ? "Státní evidence"
             : "Pivovarský adresář"
         }
         imageUrl="/images/heroes/breweries.jpg"
