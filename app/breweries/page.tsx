@@ -373,6 +373,20 @@ export default async function BreweriesPage({
     0
   );
 
+  const visibleTastedBeerCount = visibleTableRows.reduce(
+    (sum, brewery) =>
+      sum + brewery.beers.filter((beer) => beer.tastingCount > 0).length,
+    0
+  );
+
+  const visibleBrandCount = new Set(
+    visibleTableRows.flatMap((brewery) =>
+      brewery.beers
+        .map((beer) => beer.brandId)
+        .filter((brandId): brandId is number => brandId != null)
+    )
+  ).size;
+
   return (
     <main
       style={{
@@ -435,15 +449,17 @@ export default async function BreweriesPage({
             icon: <AppIcon name="beer" size={18} />,
             accent: "#e88835",
             value: isFocusedDrilldown
-              ? visibleRecordedBeerCount
+              ? visibleTastedBeerCount
               : recordedBeerCount,
-            label: "Zaznamenaných piv",
+            label: isFocusedDrilldown
+              ? "Ochutnaných piv"
+              : "Zaznamenaných piv",
           },
           {
-            icon: <AppIcon name="globe" size={18} />,
+            icon: isFocusedDrilldown ? "◆" : <AppIcon name="globe" size={18} />,
             accent: "#d65b42",
-            value: isFocusedDrilldown ? 1 : countryCount,
-            label: "Států",
+            value: isFocusedDrilldown ? visibleBrandCount : countryCount,
+            label: isFocusedDrilldown ? "Značek" : "Států",
           },
         ]}
       />
