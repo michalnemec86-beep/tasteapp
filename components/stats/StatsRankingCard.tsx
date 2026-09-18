@@ -81,6 +81,61 @@ export default async function StatsRankingCard(
   );
 }
 
+function RankingItemLabel({ item }: { item: RankingItem }) {
+  return (
+    <span
+      style={{
+        minWidth: 0,
+        maxWidth: "100%",
+        display: "inline-flex",
+        alignItems: "center",
+        gap: "6px",
+      }}
+    >
+      {item.logoUrl ? (
+        <span
+          style={{
+            width: "22px",
+            height: "16px",
+            flexShrink: 0,
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            overflow: "hidden",
+            borderRadius: "5px",
+            background: "rgba(255,255,255,0.035)",
+          }}
+        >
+          <img
+            src={item.logoUrl}
+            alt=""
+            aria-hidden="true"
+            style={{
+              maxWidth: "100%",
+              maxHeight: "100%",
+              objectFit: "contain",
+              padding: "2px",
+            }}
+          />
+        </span>
+      ) : item.flag ? (
+        <span style={{ flexShrink: 0 }}>{item.flag}</span>
+      ) : null}
+
+      <span
+        style={{
+          minWidth: 0,
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+        }}
+      >
+        {item.name}
+      </span>
+    </span>
+  );
+}
+
 function RankingCardView({
   title,
   subtitle,
@@ -268,21 +323,11 @@ function RankingCardView({
                         textDecoration: "none",
                       }}
                     >
-                      {item.flag ? (
-                        <span style={{ marginRight: "6px" }}>
-                          {item.flag}
-                        </span>
-                      ) : null}
-                      {item.name}
+                      <RankingItemLabel item={item} />
                     </Link>
                   ) : (
                     <>
-                      {item.flag ? (
-                        <span style={{ marginRight: "6px" }}>
-                          {item.flag}
-                        </span>
-                      ) : null}
-                      {item.name}
+                      <RankingItemLabel item={item} />
                     </>
                   )}
                 </div>
