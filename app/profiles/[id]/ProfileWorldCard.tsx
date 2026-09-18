@@ -344,7 +344,7 @@ export default function ProfileWorldCard({
                         </div>
 
                         <Link
-                          href={`/stats?country=${encodeURIComponent(item.name)}`}
+                          href={`/breweries?focus=1&country=${encodeURIComponent(item.name)}`}
                           className="taste-entity-link"
                           style={{
                             overflow:
