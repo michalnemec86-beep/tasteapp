@@ -49,6 +49,72 @@
 }
 
 @media (max-width: 720px) {
+  /* Keep the homepage greeting and main actions visible without filling the screen. */
+  .taste-page-hero-mobile-compact {
+    margin-bottom: 12px !important;
+  }
+
+  .taste-page-hero-mobile-compact .taste-page-hero-layout {
+    min-height: 0 !important;
+  }
+
+  .taste-page-hero-mobile-compact .taste-page-hero-copy {
+    padding: 15px 15px 10px !important;
+  }
+
+  .taste-page-hero-mobile-compact .taste-label,
+  .taste-page-hero-mobile-compact .taste-page-hero-subtitle {
+    display: none;
+  }
+
+  .taste-page-hero-mobile-compact h1 {
+    font-size: 25px !important;
+    line-height: 1.05 !important;
+  }
+
+  .taste-page-hero-mobile-compact .taste-page-hero-action-column {
+    min-height: 0 !important;
+    padding: 0 15px 11px !important;
+  }
+
+  .taste-page-hero-mobile-compact .taste-page-hero-action {
+    max-width: none !important;
+  }
+
+  .taste-page-hero-mobile-compact .taste-brewery-of-day {
+    padding: 9px 11px !important;
+  }
+
+  .taste-page-hero-mobile-compact .taste-page-hero-stats {
+    padding: 5px !important;
+  }
+
+  .taste-page-hero-mobile-compact .taste-page-hero-stats > div {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 5px !important;
+  }
+
+  .taste-page-hero-mobile-compact .taste-hero-stat {
+    min-height: 48px !important;
+    padding: 6px !important;
+    gap: 6px !important;
+  }
+
+  .taste-page-hero-mobile-compact .taste-hero-stat > div:first-child {
+    width: 25px !important;
+    height: 25px !important;
+  }
+
+  .taste-page-hero-mobile-compact .taste-hero-stat > div:last-child > div:first-child {
+    font-size: 15px !important;
+  }
+
+  .taste-page-hero-mobile-compact .taste-hero-stat > div:last-child > div:last-child {
+    margin-top: 2px !important;
+    font-size: 8px !important;
+    line-height: 1.05 !important;
+  }
+
   /* Long hero values such as brewery names should wrap instead of being clipped. */
   .taste-hero-stat {
     min-width: 0;
