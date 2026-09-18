@@ -23,6 +23,8 @@ type UserBreweryStats = {
 export type BreweryBeerItem = {
   id: number;
   name: string;
+  brandId: number | null;
+  brandName: string | null;
   styleName: string | null;
   plato: number | null;
   abv: number | null;
@@ -42,6 +44,7 @@ export type BreweryTableRow = {
   latitude: number | null;
   longitude: number | null;
   beerCount: number;
+  brandCount: number;
   foundedYear: number | null;
   historyFromYear: number | null;
   consumedCount: number;
@@ -66,7 +69,7 @@ type SortKey =
   | "name"
   | "city"
   | "country"
-  | "beerCount"
+  | "brandCount"
   | "foundedYear"
   | "consumedCount"
   | "closedYear"
@@ -150,8 +153,8 @@ const columns: {
     label: "Stát",
   },
   {
-    key: "beerCount",
-    label: "Sortiment",
+    key: "brandCount",
+    label: "Značky",
     align: "center",
   },
   {
@@ -235,8 +238,8 @@ export default function BreweryTableClient({
     useState("");
 
   const [
-    beerListBrewery,
-    setBeerListBrewery,
+    brandListBrewery,
+    setBrandListBrewery,
   ] =
     useState<BreweryTableRow | null>(
       null
@@ -357,6 +360,7 @@ export default function BreweryTableClient({
             row.city,
             row.country,
             row.historyText,
+            ...row.beers.map((beer) => beer.brandName),
           ]
             .filter(Boolean)
             .join(" ")
@@ -374,22 +378,29 @@ export default function BreweryTableClient({
         const stats =
           row.userStats[selectedUserId];
 
+        const beers = row.beers
+          .filter(
+            (beer) =>
+              (beer.userTastingCounts[selectedUserId] ?? 0) > 0
+          )
+          .map((beer) => ({
+            ...beer,
+            tastingCount:
+              beer.userTastingCounts[selectedUserId] ?? 0,
+          }));
+
         return {
           ...row,
           beerCount:
             stats?.beerCount ?? 0,
+          brandCount: new Set(
+            beers
+              .map((beer) => beer.brandId)
+              .filter((brandId): brandId is number => brandId != null)
+          ).size,
           consumedCount:
             stats?.consumedCount ?? 0,
-          beers: row.beers
-            .filter(
-              (beer) =>
-                (beer.userTastingCounts[selectedUserId] ?? 0) > 0
-            )
-            .map((beer) => ({
-              ...beer,
-              tastingCount:
-                beer.userTastingCounts[selectedUserId] ?? 0,
-            })),
+          beers,
         };
       });
 
@@ -933,15 +944,15 @@ export default function BreweryTableClient({
                           "center",
                       }}
                     >
-                      {brewery.beerCount > 0 ? (
+                      {brewery.brandCount > 0 ? (
                         <button
                           type="button"
                           onClick={() =>
-                            setBeerListBrewery(
+                            setBrandListBrewery(
                               brewery
                             )
                           }
-                          title="Zobrazit zaznamenaná piva"
+                          title="Zobrazit evidované značky"
                           style={{
                             padding: 0,
                             border: 0,
@@ -958,7 +969,7 @@ export default function BreweryTableClient({
                               "pointer",
                           }}
                         >
-                          {brewery.beerCount}
+                          {brewery.brandCount}
                         </button>
                       ) : (
                         0
@@ -1179,9 +1190,9 @@ export default function BreweryTableClient({
           </div>
         )}
 
-      {beerListBrewery && (
-        <BreweryBeersModal
-          brewery={beerListBrewery}
+      {brandListBrewery && (
+        <BreweryBrandsModal
+          brewery={brandListBrewery}
           userName={
             selectedUserId
               ? profiles.find(
@@ -1193,7 +1204,7 @@ export default function BreweryTableClient({
               : null
           }
           onClose={() =>
-            setBeerListBrewery(
+            setBrandListBrewery(
               null
             )
           }
@@ -1204,10 +1215,10 @@ export default function BreweryTableClient({
 }
 
 // ==================================================
-// MODAL ZAZNAMENANÝCH PIV
+// MODAL EVIDOVANÝCH ZNAČEK
 // ==================================================
 
-function BreweryBeersModal({
+function BreweryBrandsModal({
   brewery,
   userName,
   onClose,
@@ -1249,16 +1260,39 @@ function BreweryBeersModal({
     };
   }, [onClose]);
 
-  const beers = [
-    ...brewery.beers,
-  ].sort((a, b) =>
-    a.name.localeCompare(
-      b.name,
-      "cs",
-      {
-        sensitivity: "base",
-      }
-    )
+  const brandsById = new Map<
+    number,
+    {
+      id: number;
+      name: string;
+      beers: BreweryBeerItem[];
+    }
+  >();
+
+  for (const beer of brewery.beers) {
+    if (beer.brandId == null || !beer.brandName) {
+      continue;
+    }
+
+    const existing = brandsById.get(beer.brandId);
+
+    if (existing) {
+      existing.beers.push(beer);
+    } else {
+      brandsById.set(beer.brandId, {
+        id: beer.brandId,
+        name: beer.brandName,
+        beers: [beer],
+      });
+    }
+  }
+
+  const brands = Array.from(brandsById.values()).sort((a, b) =>
+    a.name.localeCompare(b.name, "cs", { sensitivity: "base" })
+  );
+
+  const unassignedBeers = brewery.beers.filter(
+    (beer) => beer.brandId == null
   );
 
   return createPortal(
@@ -1289,7 +1323,7 @@ function BreweryBeersModal({
       <section
         role="dialog"
         aria-modal="true"
-        aria-label={`Piva pivovaru ${brewery.name}`}
+        aria-label={`Značky pivovaru ${brewery.name}`}
         style={{
           width: "min(560px, 100%)",
           maxHeight: "82vh",
@@ -1326,7 +1360,7 @@ function BreweryBeersModal({
                   "5px",
               }}
             >
-              Zaznamenaná piva
+              Evidované značky
             </div>
 
             <h2
@@ -1353,10 +1387,12 @@ function BreweryBeersModal({
                   "11px",
               }}
             >
-              {beers.length}{" "}
-              {beers.length === 1
-                ? "pivo"
-                : "piv"}
+              {brands.length}{" "}
+              {brands.length === 1
+                ? "značka"
+                : brands.length >= 2 && brands.length <= 4
+                  ? "značky"
+                  : "značek"}
 
               {userName
                 ? ` · ${userName}`
@@ -1400,10 +1436,27 @@ function BreweryBeersModal({
               "8px 22px 18px",
           }}
         >
-          {beers.map(
-            (beer, index) => (
+          {unassignedBeers.length > 0 && (
+            <div
+              style={{
+                margin: "10px 0 4px",
+                padding: "10px 12px",
+                border: "1px solid rgba(214,91,62,0.34)",
+                borderRadius: "10px",
+                background: "rgba(214,91,62,0.06)",
+                color: "#e28a73",
+                fontSize: "11px",
+                fontWeight: 700,
+              }}
+            >
+              {unassignedBeers.length} {unassignedBeers.length === 1 ? "pivo nemá" : "piv nemá"} přiřazenou značku
+            </div>
+          )}
+
+          {brands.map(
+            (brand, index) => (
               <div
-                key={beer.id}
+                key={brand.id}
                 style={{
                   display: "grid",
                   gridTemplateColumns:
@@ -1414,8 +1467,7 @@ function BreweryBeersModal({
                   padding:
                     "13px 0",
                   borderBottom:
-                    index <
-                    beers.length - 1
+                    index < brands.length - 1
                       ? "1px solid rgba(255,255,255,0.055)"
                       : "none",
                 }}
@@ -1425,7 +1477,8 @@ function BreweryBeersModal({
                     minWidth: 0,
                   }}
                 >
-                  <div
+                  <Link
+                    href={`/brands/${brand.id}`}
                     style={{
                       color:
                         "var(--taste-text)",
@@ -1435,62 +1488,30 @@ function BreweryBeersModal({
                         750,
                       lineHeight:
                         1.3,
+                      textDecoration: "none",
                     }}
                   >
-                    {beer.name}
-                  </div>
+                    {brand.name}
+                  </Link>
 
                   <div
                     style={{
-                      display:
-                        "flex",
-                      flexWrap:
-                        "wrap",
-                      alignItems:
-                        "center",
-                      gap:
-                        "5px",
                       marginTop:
                         "6px",
+                      color: "var(--taste-text-muted)",
+                      fontSize: "10px",
+                      lineHeight: 1.4,
                     }}
                   >
-                    {beer.styleName && (
-                      <span
-                        style={{
-                          color:
-                            "var(--taste-text-soft)",
-                          fontSize:
-                            "10px",
-                          fontWeight:
-                            650,
-                        }}
-                      >
-                        {beer.styleName}
-                      </span>
-                    )}
-
-                    {beer.plato != null && (
-                      <BeerMetaBadge>
-                        {beer.plato} °P
-                      </BeerMetaBadge>
-                    )}
-
-                    {beer.abv != null && (
-                      <BeerMetaBadge>
-                        {beer.abv} %
-                      </BeerMetaBadge>
-                    )}
-
-                    {beer.ibu != null && (
-                      <BeerMetaBadge>
-                        IBU {beer.ibu}
-                      </BeerMetaBadge>
-                    )}
+                    {brand.beers
+                      .map((beer) => beer.name)
+                      .sort((a, b) => a.localeCompare(b, "cs", { sensitivity: "base" }))
+                      .join(" · ")}
                   </div>
                 </div>
 
                 <span
-                  title="Počet ochutnávek"
+                  title="Počet piv pod značkou"
                   style={{
                     color:
                       "var(--taste-amber-bright)",
@@ -1502,7 +1523,7 @@ function BreweryBeersModal({
                       "nowrap",
                   }}
                 >
-                  {beer.tastingCount}×
+                  {brand.beers.length} {brand.beers.length === 1 ? "pivo" : "piv"}
                 </span>
               </div>
             )
@@ -1511,36 +1532,6 @@ function BreweryBeersModal({
       </section>
     </div>,
     document.body
-  );
-}
-
-function BeerMetaBadge({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <span
-      style={{
-        padding: "2px 6px",
-        border:
-          "1px solid rgba(231,166,47,0.18)",
-        borderRadius:
-          "999px",
-        background:
-          "rgba(231,166,47,0.055)",
-        color:
-          "var(--taste-text-muted)",
-        fontSize:
-          "9px",
-        fontWeight:
-          700,
-        whiteSpace:
-          "nowrap",
-      }}
-    >
-      {children}
-    </span>
   );
 }
 
