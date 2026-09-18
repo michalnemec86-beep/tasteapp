@@ -889,6 +889,7 @@ export default async function HomePage() {
 
       <PageHero
         mobileCompact
+        hideRightContent
         eyebrow="Pivní deník"
         imageUrl="/images/heroes/home.jpg"
         imagePosition="68% 30%"
@@ -902,39 +903,6 @@ export default async function HomePage() {
           </>
         }
         subtitle="Zapiš další ochutnávku, sleduj svoje pivní objevy a nech TasteApp skládat příběh z pivovarů, stylů, zemí a chmelů."
-        action={
-          <div
-            style={{
-              width: "100%",
-              display: "grid",
-              gap: "9px",
-            }}
-          >
-            <BreweryOfDayCard
-              brewery={
-                breweryOfDay
-              }
-            />
-
-            <TastingModal
-              beers={
-                allBeers
-              }
-              breweries={
-                allBreweries
-              }
-              countries={
-                countries ?? []
-              }
-              styles={
-                allStyles
-              }
-              hops={
-                allHops
-              }
-            />
-          </div>
-        }
         stats={[
           {
             icon: (
@@ -1059,60 +1027,22 @@ export default async function HomePage() {
         <section className="order-1 xl:order-2 xl:col-span-6">
 
           <div
-            style={{
-              display:
-                "flex",
-
-              justifyContent:
-                "space-between",
-
-              alignItems:
-                "flex-end",
-
-              gap:
-                "16px",
-
-              marginBottom:
-                "15px",
-            }}
+            className="taste-label"
+            style={{ marginBottom: "10px" }}
           >
-            <div>
-              <div
-                className="taste-label"
-                style={{
-                  marginBottom:
-                    "5px",
-                }}
-              >
-                Hospoda
-              </div>
+            Hospoda
+          </div>
 
-              <h2
-                style={{
-                  margin: 0,
+          <div className="taste-timeline-actions">
+            <BreweryOfDayCard brewery={breweryOfDay} />
 
-                  fontSize:
-                    "24px",
-
-                  letterSpacing:
-                    "-0.02em",
-                }}
-              >
-                Timeline
-              </h2>
-            </div>
-
-            <span
-              style={{
-                fontSize:
-                  "12px",
-
-                color:
-                  "var(--taste-text-muted)",
-              }}
-            >
-              Nejnovější aktivita
-            </span>
+            <TastingModal
+              beers={allBeers}
+              breweries={allBreweries}
+              countries={countries ?? []}
+              styles={allStyles}
+              hops={allHops}
+            />
           </div>
 
           {visibleTimeline.length ===
