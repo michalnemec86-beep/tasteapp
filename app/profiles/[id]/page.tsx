@@ -889,7 +889,7 @@ export default async function ProfilePage({
             accent: "#f3b43f",
             value: profileStats.totalQuantity,
             label: "Vypitých piv",
-            href: `/stats?user=${profile.id}&focus=beers`,
+            href: `/stats?user=${profile.id}&focus=beers&metric=quantity`,
           },
           {
             icon: (
