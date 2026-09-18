@@ -928,8 +928,14 @@ export default function BreweryTableClient({
                           "nowrap",
                       }}
                     >
-                      {brewery.country ||
-                        "—"}
+                      {brewery.country ? (
+                        <Link
+                          href={`/breweries?focus=1&country=${encodeURIComponent(brewery.country)}`}
+                          className="taste-entity-link"
+                        >
+                          {brewery.country}
+                        </Link>
+                      ) : "—"}
                     </td>
 
                     <td
