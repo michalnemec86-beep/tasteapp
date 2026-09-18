@@ -105,6 +105,7 @@ export default async function BreweryOfDayCard({
   return (
     <Link
       href={`/breweries/${displayedBrewery.id}`}
+      className="taste-brewery-of-day"
       style={{
         width: "100%",
         display: "block",
@@ -164,16 +165,6 @@ export default async function BreweryOfDayCard({
         {displayedBrewery.name}
       </div>
 
-      <div
-        style={{
-          marginTop: "5px",
-          color:
-            "var(--taste-text-soft)",
-          fontSize: "11px",
-        }}
-      >
-        {displayedBrewery.country}
-      </div>
     </Link>
   );
 }
