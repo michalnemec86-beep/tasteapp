@@ -5,7 +5,7 @@ export default function Loading() {
     <main
       className="taste-route-loading"
       aria-busy="true"
-      aria-label="Načítání TasteAppu"
+      aria-label="Načítání Pivníku"
       style={{
         maxWidth: "1500px",
         margin: "0 auto",
@@ -35,7 +35,7 @@ export default function Loading() {
             zIndex: 2,
           }}
         >
-          <TasteLoader label="Načítám TasteApp" />
+          <TasteLoader label="Načítám Pivník" />
         </div>
 
         <div
