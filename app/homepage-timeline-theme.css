@@ -26,6 +26,10 @@ main > .grid.grid-cols-1.gap-4.xl\:grid-cols-12 > section.order-1.xl\:order-2.xl
     0 0 32px rgba(126, 154, 62, 0.035);
 }
 
+.taste-page-hero-mobile-compact .taste-page-hero-copy > .taste-label {
+  display: none;
+}
+
 main > .grid.grid-cols-1.gap-4.xl\:grid-cols-12 > section.order-1.xl\:order-2.xl\:col-span-6 > .taste-label {
   color: #9fb84f !important;
 }
