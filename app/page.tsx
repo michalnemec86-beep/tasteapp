@@ -1536,13 +1536,43 @@ function TastingTimelineCard({
                         <Link
                           href={`/breweries/${breweryId}`}
                           style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "6px",
                             color:
                               "inherit",
                             textDecoration:
                               "none",
                           }}
                         >
-                          {breweryName}
+                          {breweryLogoUrl && (
+                            <span
+                              style={{
+                                width: "25px",
+                                height: "18px",
+                                flexShrink: 0,
+                                display: "inline-flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                overflow: "hidden",
+                                borderRadius: "5px",
+                                background: "rgba(255,255,255,0.035)",
+                              }}
+                            >
+                              <img
+                                src={breweryLogoUrl}
+                                alt=""
+                                aria-hidden="true"
+                                style={{
+                                  maxWidth: "100%",
+                                  maxHeight: "100%",
+                                  objectFit: "contain",
+                                  padding: "2px",
+                                }}
+                              />
+                            </span>
+                          )}
+                          <span>{breweryName}</span>
                         </Link>
                         {collaborators.map((collaborator) => (
                           <span
