@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import { getCountryHeroTheme } from "@/lib/country-flags";
+import { getCountryFlag, getCountryHeroTheme } from "@/lib/country-flags";
 
 type HeroStat = {
   icon: ReactNode;
@@ -27,6 +27,7 @@ type PageHeroProps = {
   visualText?: string;
   mobileCompact?: boolean;
   hideRightContent?: boolean;
+  countryFlagName?: string;
 };
 
 export default function PageHero({
@@ -41,6 +42,7 @@ export default function PageHero({
   visualText,
   mobileCompact = false,
   hideRightContent = false,
+  countryFlagName,
 }: PageHeroProps) {
   const hasRightContent =
     !hideRightContent &&
@@ -57,6 +59,10 @@ export default function PageHero({
   const effectiveImageUrl = isBreweryDetailHero
     ? "/images/heroes/breweries.jpg"
     : imageUrl;
+
+  const breweryCountryFlag = isBreweryDetailHero
+    ? getCountryFlag(countryFlagName)
+    : "";
 
   const isBreweryHero =
     !hasCountryHero &&
@@ -118,6 +124,10 @@ export default function PageHero({
               : "scale(1.015)",
           }}
         />
+
+        {isBreweryDetailHero && breweryCountryFlag && (
+          <BreweryCountryFlagVisual flag={breweryCountryFlag} />
+        )}
 
         {hasCountryHero && countryHeroTheme && (
           <CountryBreweryVisual
@@ -403,6 +413,41 @@ function getCountryNameFromHeroTitle(title: ReactNode) {
   }
 
   return undefined;
+}
+
+function BreweryCountryFlagVisual({ flag }: { flag: string }) {
+  return (
+    <div
+      aria-hidden="true"
+      style={{
+        position: "absolute",
+        top: 0,
+        right: "-1.5%",
+        bottom: 0,
+        width: "46%",
+        minWidth: "180px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        overflow: "hidden",
+        pointerEvents: "none",
+      }}
+    >
+      <div
+        style={{
+          transform: "scale(1.26) rotate(-2deg)",
+          opacity: 0.22,
+          filter: "saturate(0.92) contrast(1.04)",
+          fontSize: "clamp(150px, 21vw, 270px)",
+          lineHeight: 1,
+          textShadow: "0 16px 34px rgba(0,0,0,0.22)",
+          userSelect: "none",
+        }}
+      >
+        {flag}
+      </div>
+    </div>
+  );
 }
 
 function CountryBreweryVisual({
