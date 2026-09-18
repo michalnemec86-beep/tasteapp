@@ -407,6 +407,7 @@ function getCountryNameFromHeroTitle(title: ReactNode) {
 
   const breweryPrefix = "Pivovary · ";
   const beerPrefix = "Piva podle země: ";
+  const statsPrefix = "Pivní statistiky · ";
 
   if (title.startsWith(breweryPrefix)) {
     return title.slice(breweryPrefix.length).trim();
@@ -414,6 +415,10 @@ function getCountryNameFromHeroTitle(title: ReactNode) {
 
   if (title.startsWith(beerPrefix)) {
     return title.slice(beerPrefix.length).trim();
+  }
+
+  if (title.startsWith(statsPrefix)) {
+    return title.slice(statsPrefix.length).trim();
   }
 
   return undefined;
