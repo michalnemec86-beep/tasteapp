@@ -369,11 +369,6 @@ export default function BeerWorldMap({
     mappedCountries.map((item) => [item.code, item.count])
   );
 
-  const maximum =
-    mappedCountries.length > 0
-      ? Math.max(...mappedCountries.map((item) => item.count))
-      : 0;
-
   function styleCountry({
     countryValue,
   }: CountryContext<string | number>): CSSProperties {
@@ -455,6 +450,7 @@ export default function BeerWorldMap({
 
   return (
     <section
+      className={`taste-world-map${focusEurope ? " taste-brewery-world-map" : ""}`}
       style={{
         position: "relative",
         overflow: "hidden",
@@ -480,6 +476,7 @@ export default function BeerWorldMap({
       }}
     >
       <div
+        className="taste-world-map-header"
         style={{
           display: "flex",
           justifyContent: "space-between",
@@ -491,12 +488,13 @@ export default function BeerWorldMap({
       >
         <div>
           <div
-            className="taste-label"
+            className="taste-label taste-world-map-eyebrow"
             style={{ marginBottom: "5px" }}
           >
             {eyebrow}
           </div>
           <h2
+            className="taste-world-map-title"
             style={{
               margin: 0,
               fontSize: "22px",
@@ -509,8 +507,9 @@ export default function BeerWorldMap({
           </h2>
         </div>
 
-        <div style={{ textAlign: "right" }}>
+        <div className="taste-world-map-count" style={{ textAlign: "right" }}>
           <div
+            className="taste-world-map-count-value"
             style={{
               color: "var(--taste-amber-bright)",
               fontSize: "22px",
@@ -522,6 +521,7 @@ export default function BeerWorldMap({
             {mappedCountries.length}
           </div>
           <div
+            className="taste-world-map-count-label"
             style={{
               marginTop: "4px",
               color: "var(--taste-text-muted)",
@@ -535,6 +535,7 @@ export default function BeerWorldMap({
 
       <div
         ref={mapStageRef}
+        className="taste-world-map-stage"
         style={{
           width: "100%",
           position: "relative",
@@ -644,35 +645,6 @@ export default function BeerWorldMap({
           </div>
         )}
       </div>
-
-      {data.length > 0 && (
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            gap: "14px",
-            flexWrap: "wrap",
-            paddingTop: "11px",
-            borderTop:
-              "1px solid rgba(231,166,47,0.09)",
-            color: "var(--taste-text-muted)",
-            fontSize: "10px",
-          }}
-        >
-          <span>
-            Zvýrazněné země jsou proklikávací.
-          </span>
-          <span>
-            maximum:{" "}
-            <strong
-              style={{ color: "var(--taste-text-soft)" }}
-            >
-              {maximum}×
-            </strong>
-          </span>
-        </div>
-      )}
 
       {hasGroupedUkRegion && (
         <div
