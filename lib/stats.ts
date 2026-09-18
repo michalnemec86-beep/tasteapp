@@ -188,8 +188,12 @@ export function buildTasteStats(
       addToRanking(styleMap, style.id, style.name, quantity);
     }
 
+    const versionHopRows =
+      tasting.beer_versions?.beer_version_hops ?? [];
     const hopRows =
-      tasting.beer_versions?.beer_version_hops ?? beer.beer_hops ?? [];
+      versionHopRows.length > 0
+        ? versionHopRows
+        : beer.beer_hops ?? [];
 
     for (const hopRow of hopRows) {
       const hop = hopRow.hops;
