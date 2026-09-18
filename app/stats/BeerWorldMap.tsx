@@ -441,10 +441,8 @@ export default function BeerWorldMap({
 
     const code = String(countryCode).toUpperCase();
     const czechName = nameByCode.get(code) ?? countryName;
-    const target = focusEurope ? "/breweries" : "/beers";
-
     router.push(
-      `${target}?focus=1&country=${encodeURIComponent(czechName)}`
+      `/breweries?focus=1&country=${encodeURIComponent(czechName)}`
     );
   }
 
