@@ -334,12 +334,10 @@ export default async function StatsPage({
     }
 
     if (requestedHopId) {
-      const versionHopRows =
-        tasting.beer_versions?.beer_version_hops ?? [];
       const hopRows =
-        versionHopRows.length > 0
-          ? versionHopRows
-          : tasting.beers?.beer_hops ?? [];
+        tasting.beer_versions?.beer_version_hops ??
+        tasting.beers?.beer_hops ??
+        [];
 
       if (!hopRows.some((row) => row.hops?.id === requestedHopId)) {
         return false;
@@ -508,7 +506,7 @@ export default async function StatsPage({
           focusedView && selectedProfile ? (
             <Link
               href={`/profiles/${selectedProfile.id}`}
-              className="taste-button-secondary"
+              className="taste-button-secondary taste-focused-stats-profile-link"
               style={{ fontSize: "12px", fontWeight: 650 }}
             >
               ← Profil
@@ -574,16 +572,17 @@ export default async function StatsPage({
         }
       />
 
-      <StatsFilterBarClient
-        profiles={allProfiles}
-        selectedUserId={selectedUserId}
-        selectedYear={selectedYear}
-        selectedMonth={selectedMonth}
-        selectedPackaging={selectedPackaging}
-        sortMode={sortMode}
-        firstYear={FIRST_YEAR}
-        hideProfileSelector={Boolean(selectedFocus)}
-      />
+      {!selectedFocus && (
+        <StatsFilterBarClient
+          profiles={allProfiles}
+          selectedUserId={selectedUserId}
+          selectedYear={selectedYear}
+          selectedMonth={selectedMonth}
+          selectedPackaging={selectedPackaging}
+          sortMode={sortMode}
+          firstYear={FIRST_YEAR}
+        />
+      )}
 
       {filteredTastings.length === 0 && (
         <div

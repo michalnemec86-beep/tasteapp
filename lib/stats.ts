@@ -188,12 +188,11 @@ export function buildTasteStats(
       addToRanking(styleMap, style.id, style.name, quantity);
     }
 
-    const versionHopRows =
-      tasting.beer_versions?.beer_version_hops ?? [];
+    // If a tasting points to a historical beer version, that version is
+    // authoritative even when it has no hops. Falling back in that case would
+    // leak hops added later to the current beer catalogue into old tastings.
     const hopRows =
-      versionHopRows.length > 0
-        ? versionHopRows
-        : beer.beer_hops ?? [];
+      tasting.beer_versions?.beer_version_hops ?? beer.beer_hops ?? [];
 
     for (const hopRow of hopRows) {
       const hop = hopRow.hops;
