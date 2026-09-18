@@ -4,6 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import PageHero from "@/components/ui/PageHero";
 import BreweryEditModalClient from "../BreweryEditModalClient";
+import BreweryLogoManagerClient from "../BreweryLogoManagerClient";
 import BreweryNameHistoryItemClient from "../BreweryNameHistoryItemClient";
 import CatalogBeerCreateModalClient from "../CatalogBeerCreateModalClient";
 import CatalogBeerEditModalClient from "../CatalogBeerEditModalClient";
@@ -18,6 +19,11 @@ import {
   deleteCatalogBeer,
   updateCatalogBeer,
 } from "../catalog-actions";
+import {
+  findBreweryLogoCandidates,
+  removeBreweryLogo,
+  saveBreweryLogoCandidate,
+} from "../logo-actions";
 
 function one<T>(value: T | T[] | null | undefined): T | null {
   return Array.isArray(value) ? value[0] ?? null : value ?? null;
@@ -62,6 +68,7 @@ export default async function BreweryDetailPage({ params }: Props) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/auth/login");
+  const isCatalogAdmin = user.id === "17be5dc3-a3f9-4fd2-ae90-dee7692034fc";
 
   const [
     breweryResult,
@@ -270,6 +277,20 @@ export default async function BreweryDetailPage({ params }: Props) {
       />
 
       <section className="taste-card" style={{ padding: "22px" }}>
+        {isCatalogAdmin && (
+          <div style={{ marginBottom: "20px", paddingBottom: "18px", borderBottom: "1px solid var(--taste-border)" }}>
+            <BreweryLogoManagerClient
+              breweryId={brewery.id}
+              breweryName={brewery.name}
+              website={brewery.website}
+              initialLogoUrl={brewery.logo_url}
+              findCandidatesAction={findBreweryLogoCandidates}
+              saveCandidateAction={saveBreweryLogoCandidate}
+              removeLogoAction={removeBreweryLogo}
+            />
+          </div>
+        )}
+
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: "18px" }}>
           <DetailItem label="Město" value={brewery.city} />
           <DetailItem
