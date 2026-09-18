@@ -889,7 +889,6 @@ export default async function HomePage() {
 
       <PageHero
         mobileCompact
-        hideRightContent
         eyebrow="Pivní deník"
         imageUrl="/images/heroes/home.jpg"
         imagePosition="68% 30%"
@@ -903,6 +902,11 @@ export default async function HomePage() {
           </>
         }
         subtitle="Zapiš další ochutnávku, sleduj svoje pivní objevy a nech TasteApp skládat příběh z pivovarů, stylů, zemí a chmelů."
+        action={
+          <div className="taste-desktop-brewery-of-day">
+            <BreweryOfDayCard brewery={breweryOfDay} />
+          </div>
+        }
         stats={[
           {
             icon: (
@@ -973,6 +977,10 @@ export default async function HomePage() {
         ]}
       />
 
+      <div className="taste-mobile-brewery-of-day">
+        <BreweryOfDayCard brewery={breweryOfDay} />
+      </div>
+
       {/* ==================================================
           DASHBOARD
       ================================================== */}
@@ -1034,8 +1042,6 @@ export default async function HomePage() {
           </div>
 
           <div className="taste-timeline-actions">
-            <BreweryOfDayCard brewery={breweryOfDay} />
-
             <TastingModal
               beers={allBeers}
               breweries={allBreweries}
