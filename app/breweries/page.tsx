@@ -79,6 +79,10 @@ export default async function BreweriesPage({
         beers (
           id,
           name,
+          brands (
+            id,
+            name
+          ),
           plato,
           abv,
           ibu,
@@ -263,9 +267,17 @@ export default async function BreweriesPage({
             ? beer.beer_styles[0] ?? null
             : beer.beer_styles ?? null;
 
+          const brand = Array.isArray(
+            beer.brands
+          )
+            ? beer.brands[0] ?? null
+            : beer.brands ?? null;
+
           return {
             id: beer.id,
             name: beer.name,
+            brandId: brand?.id ?? null,
+            brandName: brand?.name ?? null,
             styleName: beerStyle?.name ?? null,
             plato: beer.plato,
             abv: beer.abv,
@@ -319,6 +331,11 @@ export default async function BreweriesPage({
         latitude: brewery.latitude,
         longitude: brewery.longitude,
         beerCount: brewery.beers?.length ?? 0,
+        brandCount: new Set(
+          beerItems
+            .map((beer) => beer.brandId)
+            .filter((brandId): brandId is number => brandId != null)
+        ).size,
         foundedYear: brewery.founded_year,
         historyFromYear,
         consumedCount,
