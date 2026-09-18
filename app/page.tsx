@@ -30,6 +30,7 @@ import StatsRankingCard from "@/components/stats/StatsRankingCard";
 import BreweryOfDayCard from "@/components/home/BreweryOfDayCard";
 import PageHero from "@/components/ui/PageHero";
 import AppIcon from "@/components/ui/AppIcon";
+import { getCzechVocative } from "@/lib/czech-vocative";
 import { getTimelineVisual } from "@/lib/timeline-visual";
 
 import {
@@ -887,6 +888,7 @@ export default async function HomePage() {
       ================================================== */}
 
       <PageHero
+        mobileCompact
         eyebrow="Pivní deník"
         imageUrl="/images/heroes/home.jpg"
         imagePosition="68% 30%"
@@ -894,7 +896,7 @@ export default async function HomePage() {
           <>
             Na zdraví
             {currentProfile
-              ? `, ${currentProfile.display_name}`
+              ? `, ${getCzechVocative(currentProfile.real_name ?? currentProfile.display_name)}`
               : ""}
             .
           </>
