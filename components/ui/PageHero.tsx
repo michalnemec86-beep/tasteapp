@@ -25,6 +25,7 @@ type PageHeroProps = {
   imagePosition?: string;
   visualVariant?: HeroVisualVariant;
   visualText?: string;
+  mobileCompact?: boolean;
 };
 
 export default function PageHero({
@@ -37,6 +38,7 @@ export default function PageHero({
   imagePosition = "center",
   visualVariant = "beer",
   visualText,
+  mobileCompact = false,
 }: PageHeroProps) {
   const hasRightContent =
     visualVariant === "beer" || visualVariant === "stats";
@@ -61,6 +63,7 @@ export default function PageHero({
 
   return (
     <section
+      className={mobileCompact ? "taste-page-hero-mobile-compact" : undefined}
       style={{
         position: "relative",
         overflow: "hidden",
@@ -76,7 +79,7 @@ export default function PageHero({
       }}
     >
       <div
-        className="relative grid min-h-[188px] grid-cols-1 lg:grid-cols-[minmax(0,1.28fr)_minmax(250px,0.72fr)]"
+        className="taste-page-hero-layout relative grid min-h-[188px] grid-cols-1 lg:grid-cols-[minmax(0,1.28fr)_minmax(250px,0.72fr)]"
         style={{ overflow: "hidden" }}
       >
         <div
@@ -225,7 +228,7 @@ export default function PageHero({
           }}
         />
 
-        <div className="relative z-[2] flex flex-col justify-center px-6 py-7 lg:px-8 lg:py-6">
+        <div className="taste-page-hero-copy relative z-[2] flex flex-col justify-center px-6 py-7 lg:px-8 lg:py-6">
           <div
             className="taste-label"
             style={{ marginBottom: "6px" }}
@@ -249,6 +252,7 @@ export default function PageHero({
           </h1>
 
           <p
+            className="taste-page-hero-subtitle"
             style={{
               maxWidth: "560px",
               margin: "9px 0 0",
@@ -263,7 +267,7 @@ export default function PageHero({
         </div>
 
         {hasRightContent && (
-          <div className="relative z-[3] flex min-h-[82px] items-center justify-center px-6 pb-6 lg:min-h-0 lg:px-8 lg:py-5">
+          <div className="taste-page-hero-action-column relative z-[3] flex min-h-[82px] items-center justify-center px-6 pb-6 lg:min-h-0 lg:px-8 lg:py-5">
             {action ? (
               <div
                 className="taste-page-hero-action"
@@ -288,6 +292,7 @@ export default function PageHero({
 
       {stats.length > 0 && (
         <div
+          className="taste-page-hero-stats"
           style={{
             position: "relative",
             zIndex: 4,
