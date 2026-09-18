@@ -1,10 +1,10 @@
 import type { ReactNode } from "react";
 
-import { getCountryHeroTiles } from "@/lib/country-hero";
+import { getCountryHeroTheme } from "@/lib/country-flags";
 
 type HeroStat = {
   icon: ReactNode;
-  value: number | string;
+  value: ReactNode;
   label: string;
   accent?: string;
 };
@@ -47,8 +47,8 @@ export default function PageHero({
     (visualVariant === "beer" || visualVariant === "stats");
 
   const countryName = getCountryNameFromHeroTitle(title);
-  const countryHeroTiles = getCountryHeroTiles(countryName);
-  const hasCountryHero = Boolean(countryHeroTiles?.length);
+  const countryHeroTheme = getCountryHeroTheme(countryName);
+  const hasCountryHero = Boolean(countryHeroTheme);
 
   const isBreweryDetailHero =
     eyebrow === "Detail pivovaru" &&
@@ -121,35 +121,12 @@ export default function PageHero({
           }}
         />
 
-        {hasCountryHero && countryHeroTiles && (
-          <div
-            aria-hidden="true"
-            style={{
-              position: "absolute",
-              right: 0,
-              top: "50%",
-              height: "125%",
-              aspectRatio: "1600 / 533",
-              display: "flex",
-              overflow: "hidden",
-              transform: "translateY(-50%)",
-              pointerEvents: "none",
-            }}
-          >
-            {countryHeroTiles.map((src) => (
-              <div
-                key={src}
-                style={{
-                  width: `${100 / countryHeroTiles.length}%`,
-                  height: "100%",
-                  flex: "0 0 auto",
-                  backgroundImage: `url("${src}")`,
-                  backgroundSize: "100% 100%",
-                  backgroundRepeat: "no-repeat",
-                }}
-              />
-            ))}
-          </div>
+        {hasCountryHero && countryHeroTheme && (
+          <CountryBreweryVisual
+            country={countryName ?? ""}
+            flag={countryHeroTheme.flag}
+            colors={countryHeroTheme.colors}
+          />
         )}
 
         <div
@@ -428,6 +405,65 @@ function getCountryNameFromHeroTitle(title: ReactNode) {
   }
 
   return undefined;
+}
+
+function CountryBreweryVisual({
+  country,
+  flag,
+  colors,
+}: {
+  country: string;
+  flag: string;
+  colors: readonly string[];
+}) {
+  const gradient = `linear-gradient(90deg, ${colors
+    .map((color, index) => `${color} ${(index / colors.length) * 100}%, ${color} ${((index + 1) / colors.length) * 100}%`)
+    .join(", ")})`;
+
+  return (
+    <div
+      aria-label={`Pivovar v národních barvách – ${country}`}
+      role="img"
+      style={{
+        position: "absolute",
+        right: "clamp(18px, 5vw, 74px)",
+        top: "50%",
+        width: "clamp(190px, 31vw, 410px)",
+        height: "78%",
+        transform: "translateY(-50%)",
+        opacity: 0.92,
+        pointerEvents: "none",
+      }}
+    >
+      <div
+        style={{
+          position: "absolute",
+          inset: "8% 3% 4%",
+          borderRadius: "50%",
+          background: `radial-gradient(circle, ${colors[1] ?? colors[0]}42, transparent 66%)`,
+          filter: "blur(12px)",
+        }}
+      />
+      <svg viewBox="0 0 420 210" width="100%" height="100%" aria-hidden="true">
+        <defs>
+          <filter id="country-brewery-shadow" x="-30%" y="-30%" width="160%" height="180%">
+            <feDropShadow dx="0" dy="8" stdDeviation="8" floodColor="#000000" floodOpacity="0.45" />
+          </filter>
+        </defs>
+        <g filter="url(#country-brewery-shadow)">
+          <path d="M70 88 143 43l73 45v93H70Z" fill="#1a100a" stroke="#f2b63f" strokeOpacity=".48" strokeWidth="3" />
+          <path d="M214 91h132v90H214Z" fill="#1a100a" stroke="#f2b63f" strokeOpacity=".48" strokeWidth="3" />
+          <path d="M238 91V38h31v53M303 91V22h27v69" fill="#1a100a" stroke="#f2b63f" strokeOpacity=".48" strokeWidth="3" />
+          <path d="M58 91 143 34l85 57" fill="none" stroke="#f2b63f" strokeOpacity=".72" strokeWidth="6" strokeLinejoin="round" />
+          <foreignObject x="82" y="96" width="252" height="70">
+            <div style={{ width: "100%", height: "100%", borderRadius: "8px", background: gradient, opacity: 0.94 }} />
+          </foreignObject>
+          <path d="M132 181v-48h34v48M245 117h25v25h-25zM292 117h25v25h-25z" fill="#170d07" fillOpacity=".86" />
+        </g>
+        <text x="360" y="58" textAnchor="middle" fontSize="42">{flag}</text>
+      </svg>
+    </div>
+  );
 }
 
 function FallbackMark({
