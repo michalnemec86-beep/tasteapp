@@ -1213,7 +1213,7 @@ export default async function HomePage() {
             items={
               globalStats.countries
             }
-            getItemHref={(item) => `/stats?country=${encodeURIComponent(item.name)}`}
+            getItemHref={(item) => `/breweries?focus=1&country=${encodeURIComponent(item.name)}`}
           />
 
         </aside>
