@@ -79,7 +79,7 @@ export default async function BreweryDetailPage({ params }: Props) {
         id, name, city, country, address, website, is_nomadic,
         founded_year, closed_year, latitude, longitude,
         beers (
-          id, name, plato, abv, ibu, is_non_alcoholic,
+          id, name, brand_id, plato, abv, ibu, is_non_alcoholic,
           beer_styles ( name ),
           beer_hops ( hops ( name ) ),
           beer_versions (
@@ -172,6 +172,25 @@ export default async function BreweryDetailPage({ params }: Props) {
     })
     .sort((a: any, b: any) => a.name.localeCompare(b.name, "cs", { sensitivity: "base" }));
 
+  const consumedBeerCount = breweryBeers.reduce(
+    (total: number, beer: any) =>
+      total +
+      (beer.tastings ?? []).reduce(
+        (beerTotal: number, tasting: any) =>
+          beerTotal + (tasting.quantity ?? 1),
+        0
+      ),
+    0
+  );
+
+  const brandCount = new Set(
+    breweryBeers
+      .map((beer: any) => beer.brand_id)
+      .filter((brandId: unknown): brandId is number =>
+        typeof brandId === "number"
+      )
+  ).size;
+
   const relatedIds = Array.from(new Set([
     ...(outgoingResult.data ?? []).map((item) => item.to_brewery_id),
     ...(incomingResult.data ?? []).map((item) => item.from_brewery_id),
@@ -243,7 +262,8 @@ export default async function BreweryDetailPage({ params }: Props) {
           </div>
         }
         stats={[
-          { icon: "🍺", value: brewery.beers?.length ?? 0, label: "Zaznamenaných piv" },
+          { icon: "🍺", value: consumedBeerCount, label: "Vypitých piv" },
+          { icon: "◆", value: brandCount, label: "Značek" },
           { icon: "◷", value: brewery.founded_year ?? "—", label: "Rok založení" },
         ]}
       />
