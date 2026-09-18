@@ -2,10 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
-import {
-  buildTasteStats,
-  type RankingItem,
-} from "@/lib/stats";
+import { buildTasteStats } from "@/lib/stats";
 import { normalizeCountryName } from "@/lib/country-flags";
 import PageHero from "@/components/ui/PageHero";
 import AppIcon from "@/components/ui/AppIcon";
@@ -212,7 +209,7 @@ export default async function CountryStatsPage({
       <PageHero
         eyebrow="Pivní země"
         imageUrl="/images/heroes/breweries.jpg"
-        visualVariant="catalog"
+        visualVariant="stats"
         title={`Pivní statistiky · ${countryName}`}
         subtitle={`Souhrnný pohled na pivovary, ochutnaná piva, značky, styly a chmely spojené se zemí ${countryName}.`}
         action={
