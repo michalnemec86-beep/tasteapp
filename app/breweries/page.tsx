@@ -790,6 +790,7 @@ export default async function BreweriesPage({
                   eyebrow="Pivovarský svět"
                   title="Mapa evidovaných pivovarů"
                   countLabel="států s pivovary"
+                  countryLinkMode="breweries"
                   focusEurope
                 />
               </div>
