@@ -326,7 +326,7 @@ export default async function ProfilesPage() {
       }}
     >
       <PageHero
-        eyebrow="Komunita"
+        eyebrow="Hospoda"
         imageUrl="/images/heroes/users.jpg"
         visualVariant="profile"
         title="Uživatelé TasteAppu"
@@ -340,7 +340,7 @@ export default async function ProfilesPage() {
               fontWeight: 650,
             }}
           >
-            ← Timeline
+            ← Aktivita v hospodě
           </Link>
         }
       />
@@ -355,15 +355,6 @@ export default async function ProfilesPage() {
             marginBottom: "15px",
           }}
         >
-          <div
-            className="taste-label"
-            style={{
-              marginBottom: "5px",
-            }}
-          >
-            Pivní komunita
-          </div>
-
           <h2
             style={{
               margin: 0,
