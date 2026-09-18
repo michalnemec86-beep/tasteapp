@@ -848,3 +848,15 @@
       );
   }
 
+
+
+/* Mobile brewery hero: keep long brewery names clear of the logo. */
+@media (max-width: 639px) {
+  .taste-page-hero-brewery-title {
+    max-width: calc(100% - 104px) !important;
+    font-size: clamp(22px, 6.7vw, 26px) !important;
+    line-height: 1.05 !important;
+    letter-spacing: -0.035em !important;
+    overflow-wrap: anywhere;
+  }
+}
