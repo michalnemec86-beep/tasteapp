@@ -40,6 +40,7 @@ export default function AppNav() {
 
   return (
     <nav
+      className="taste-app-nav"
       style={{
         position: "sticky",
         top: 0,
