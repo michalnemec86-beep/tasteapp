@@ -27,6 +27,7 @@ type StatsFilterBarClientProps = {
   selectedPackaging?: string;
   sortMode: SortMode;
   firstYear?: number;
+  hideProfileSelector?: boolean;
 };
 
 const MONTHS = [
@@ -52,6 +53,7 @@ export default function StatsFilterBarClient({
   selectedPackaging,
   sortMode,
   firstYear = 2005,
+  hideProfileSelector = false,
 }: StatsFilterBarClientProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -111,20 +113,22 @@ export default function StatsFilterBarClient({
         boxShadow: "var(--taste-shadow-soft)",
       }}
     >
-      <FilterSelect
-        label="Uživatel"
-        value={selectedUserId ?? ""}
-        onChange={(value) =>
-          updateParams({ user: value || null })
-        }
-      >
-        <option value="">Celkem</option>
-        {profiles.map((profile) => (
-          <option key={profile.id} value={profile.id}>
-            {profile.display_name}
-          </option>
-        ))}
-      </FilterSelect>
+      {!hideProfileSelector && (
+        <FilterSelect
+          label="Uživatel"
+          value={selectedUserId ?? ""}
+          onChange={(value) =>
+            updateParams({ user: value || null })
+          }
+        >
+          <option value="">Celkem</option>
+          {profiles.map((profile) => (
+            <option key={profile.id} value={profile.id}>
+              {profile.display_name}
+            </option>
+          ))}
+        </FilterSelect>
+      )}
 
       <FilterSelect
         label="Rok"
