@@ -24,6 +24,46 @@
     gap: 10px;
   }
 
+  .taste-mobile-brand-group {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .taste-mobile-back-button {
+    width: 40px;
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    padding: 0;
+    border: 1px solid rgba(231,166,47,0.24);
+    border-radius: 10px;
+    background: rgba(231,166,47,0.035);
+    color: var(--taste-text-soft);
+    cursor: pointer;
+  }
+
+  .taste-mobile-back-button:hover,
+  .taste-mobile-back-button:focus-visible {
+    border-color: rgba(245,184,63,0.42);
+    background: rgba(231,166,47,0.08);
+    color: var(--taste-amber-bright);
+    outline: none;
+  }
+
+  .taste-mobile-back-button svg {
+    width: 22px;
+    height: 22px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
   .taste-mobile-menu {
     display: grid;
     gap: 6px;
