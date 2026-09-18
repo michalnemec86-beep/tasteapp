@@ -7,6 +7,7 @@ type HeroStat = {
   value: ReactNode;
   label: string;
   accent?: string;
+  href?: string;
 };
 
 type HeroVisualVariant =
@@ -307,10 +308,14 @@ export default function PageHero({
             }}
           >
             {stats.map((stat, index) => (
-              <div
+              <a
                 key={stat.label}
+                href={stat.href}
+                aria-label={stat.href ? `${stat.label}: ${stat.value}` : undefined}
                 className="taste-hero-stat"
                 style={{
+                  textDecoration: "none",
+                  cursor: stat.href ? "pointer" : "default",
                   minHeight: "58px",
                   display: "flex",
                   alignItems: "center",
@@ -391,7 +396,7 @@ export default function PageHero({
                     {stat.label}
                   </div>
                 </div>
-              </div>
+              </a>
             ))}
           </div>
         </div>
