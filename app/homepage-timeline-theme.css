@@ -32,10 +32,18 @@ main > .grid.grid-cols-1.gap-4.xl\:grid-cols-12 > section.order-1.xl\:order-2.xl
 
 .taste-timeline-actions {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   align-items: stretch;
   gap: 9px;
   margin-bottom: 15px;
+}
+
+.taste-desktop-brewery-of-day {
+  width: 100%;
+}
+
+.taste-mobile-brewery-of-day {
+  display: none;
 }
 
 .taste-timeline-actions .taste-button-primary {
