@@ -26,17 +26,20 @@ main > .grid.grid-cols-1.gap-4.xl\:grid-cols-12 > section.order-1.xl\:order-2.xl
     0 0 32px rgba(126, 154, 62, 0.035);
 }
 
-main > .grid.grid-cols-1.gap-4.xl\:grid-cols-12 > section.order-1.xl\:order-2.xl\:col-span-6 > div:first-child .taste-label {
+main > .grid.grid-cols-1.gap-4.xl\:grid-cols-12 > section.order-1.xl\:order-2.xl\:col-span-6 > .taste-label {
   color: #9fb84f !important;
 }
 
-main > .grid.grid-cols-1.gap-4.xl\:grid-cols-12 > section.order-1.xl\:order-2.xl\:col-span-6 > div:first-child h2 {
-  color: #c2d27f !important;
-  text-shadow: 0 0 20px rgba(159, 184, 79, 0.12);
+.taste-timeline-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 9px;
+  margin-bottom: 15px;
 }
 
-main > .grid.grid-cols-1.gap-4.xl\:grid-cols-12 > section.order-1.xl\:order-2.xl\:col-span-6 > div:first-child > span {
-  color: #8fa266 !important;
+.taste-timeline-actions .taste-button-primary {
+  height: 100%;
 }
 
 /* Svislá osa mezi událostmi */
@@ -86,5 +89,11 @@ main > .grid.grid-cols-1.gap-4.xl\:grid-cols-12 > section.order-1.xl\:order-2.xl
 @media (max-width: 1279px) {
   main > .grid.grid-cols-1.gap-4.xl\:grid-cols-12 > section.order-1.xl\:order-2.xl\:col-span-6 {
     padding: 15px;
+  }
+}
+
+@media (max-width: 640px) {
+  .taste-timeline-actions {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
