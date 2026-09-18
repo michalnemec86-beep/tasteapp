@@ -53,9 +53,18 @@ export default function BreweryLogoManagerClient({
     useState("");
 
   async function handleFind() {
-    setLoadingCandidates(true);
     setError("");
     setMessage("");
+
+    if (!website?.trim()) {
+      setCandidates([]);
+      setError(
+        "Pivovar zatím nemá uložený oficiální web. Doplň ho přes „Upravit pivovar“ a potom můžeme logo automaticky dohledat."
+      );
+      return;
+    }
+
+    setLoadingCandidates(true);
 
     try {
       const found =
@@ -237,13 +246,24 @@ export default function BreweryLogoManagerClient({
             className="taste-button-secondary"
             onClick={handleFind}
             disabled={
-              !website ||
               loadingCandidates ||
               savingUrl !== null ||
               removing
             }
             style={{
               fontSize: "11px",
+              cursor:
+                loadingCandidates ||
+                savingUrl !== null ||
+                removing
+                  ? "wait"
+                  : "pointer",
+              opacity:
+                loadingCandidates ||
+                savingUrl !== null ||
+                removing
+                  ? 0.65
+                  : 1,
             }}
           >
             {loadingCandidates
