@@ -91,7 +91,8 @@ export default async function StatsPage({
             breweries (
               id,
               name,
-              country
+              country,
+              logo_url
             ),
             beer_styles (
               id,
@@ -114,7 +115,8 @@ export default async function StatsPage({
             breweries (
               id,
               name,
-              country
+              country,
+              logo_url
             ),
             beer_styles (
               id,
