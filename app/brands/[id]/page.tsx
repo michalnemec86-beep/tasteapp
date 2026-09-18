@@ -84,7 +84,19 @@ export default async function BrandDetailPage({ params, searchParams }: Props) {
           { icon: "◆", accent: "#d98945", value: beers.length, label: "Piv" },
           { icon: "●", accent: "#e88835", value: totalTastingCount, label: "Ochutnávek" },
           { icon: "◉", accent: "#f2b63f", value: totalQuantity, label: "Vypitých" },
-          { icon: "◎", accent: "#9cad47", value: rawBrand.country ? `${getCountryFlag(rawBrand.country)} ${rawBrand.country}` : "—", label: "Původ značky" },
+          {
+            icon: "◎",
+            accent: "#9cad47",
+            value: rawBrand.country ? (
+              <Link
+                href={`/breweries?focus=1&country=${encodeURIComponent(rawBrand.country)}`}
+                className="taste-entity-link"
+              >
+                {getCountryFlag(rawBrand.country)} {rawBrand.country}
+              </Link>
+            ) : "—",
+            label: "Původ značky",
+          },
         ]}
       />
 
