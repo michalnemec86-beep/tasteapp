@@ -26,6 +26,7 @@ type PageHeroProps = {
   visualVariant?: HeroVisualVariant;
   visualText?: string;
   mobileCompact?: boolean;
+  hideRightContent?: boolean;
 };
 
 export default function PageHero({
@@ -39,9 +40,11 @@ export default function PageHero({
   visualVariant = "beer",
   visualText,
   mobileCompact = false,
+  hideRightContent = false,
 }: PageHeroProps) {
   const hasRightContent =
-    visualVariant === "beer" || visualVariant === "stats";
+    !hideRightContent &&
+    (visualVariant === "beer" || visualVariant === "stats");
 
   const countryName = getCountryNameFromHeroTitle(title);
   const countryHeroTiles = getCountryHeroTiles(countryName);
