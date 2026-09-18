@@ -14,6 +14,7 @@ type RankingItem = {
   name: string;
   count: number;
   flag?: string;
+  logoUrl?: string;
 };
 
 type RankingTone =
@@ -400,6 +401,61 @@ function RankingHeader({
   );
 }
 
+function RankingItemLabel({ item }: { item: RankingItem }) {
+  return (
+    <span
+      style={{
+        minWidth: 0,
+        maxWidth: "100%",
+        display: "inline-flex",
+        alignItems: "center",
+        gap: "7px",
+      }}
+    >
+      {item.logoUrl ? (
+        <span
+          style={{
+            width: "24px",
+            height: "18px",
+            flexShrink: 0,
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            overflow: "hidden",
+            borderRadius: "5px",
+            background: "rgba(255,255,255,0.035)",
+          }}
+        >
+          <img
+            src={item.logoUrl}
+            alt=""
+            aria-hidden="true"
+            style={{
+              maxWidth: "100%",
+              maxHeight: "100%",
+              objectFit: "contain",
+              padding: "2px",
+            }}
+          />
+        </span>
+      ) : item.flag ? (
+        <span style={{ flexShrink: 0 }}>{item.flag}</span>
+      ) : null}
+
+      <span
+        style={{
+          minWidth: 0,
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+        }}
+      >
+        {item.name}
+      </span>
+    </span>
+  );
+}
+
 function RankingList({
   title,
   items,
@@ -484,13 +540,11 @@ function RankingList({
                     maxWidth: "100%",
                   }}
                 >
-                  {item.flag ? <span style={{ marginRight: "7px" }}>{item.flag}</span> : null}
-                  {item.name}
+                  <RankingItemLabel item={item} />
                 </Link>
               ) : (
                 <div title={item.name} style={nameStyle}>
-                  {item.flag ? <span style={{ marginRight: "7px" }}>{item.flag}</span> : null}
-                  {item.name}
+                  <RankingItemLabel item={item} />
                 </div>
               )}
 
