@@ -76,7 +76,7 @@ export default async function BreweryDetailPage({ params }: Props) {
     supabase
       .from("breweries")
       .select(`
-        id, name, city, country, address, website, is_nomadic,
+        id, name, city, country, address, website, logo_url, is_nomadic,
         founded_year, closed_year, latitude, longitude,
         beers (
           id, name, brand_id, plato, abv, ibu, is_non_alcoholic,
@@ -236,6 +236,8 @@ export default async function BreweryDetailPage({ params }: Props) {
         eyebrow="Detail pivovaru"
         imageUrl="/images/heroes/catalog.jpg"
         visualVariant="catalog"
+        breweryLogoUrl={brewery.logo_url}
+        breweryLogoAlt={`Logo ${brewery.name}`}
         title={brewery.name}
         subtitle={[brewery.city, brewery.country].filter(Boolean).join(" · ")}
         action={
