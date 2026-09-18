@@ -6,6 +6,7 @@ export type RankingItem = {
   name: string;
   count: number;
   flag?: string;
+  logoUrl?: string;
 };
 
 export type TasteStats = {
@@ -34,6 +35,7 @@ type StatsBrewery = {
   id: number;
   name: string;
   country: string | null;
+  logo_url?: string | null;
 };
 
 type StatsBrand = {
@@ -67,12 +69,19 @@ function addToRanking(
   id: number | string,
   name: string,
   amount = 1,
-  flag?: string
+  flag?: string,
+  logoUrl?: string
 ) {
   const existing = map.get(id);
 
   if (existing) {
     existing.count += amount;
+    if (!existing.flag && flag) {
+      existing.flag = flag;
+    }
+    if (!existing.logoUrl && logoUrl) {
+      existing.logoUrl = logoUrl;
+    }
     return;
   }
 
@@ -81,6 +90,7 @@ function addToRanking(
     name,
     count: amount,
     ...(flag ? { flag } : {}),
+    ...(logoUrl ? { logoUrl } : {}),
   });
 }
 
@@ -153,7 +163,9 @@ export function buildTasteStats(
         breweryMap,
         brewery.id,
         brewery.name,
-        quantity
+        quantity,
+        undefined,
+        brewery.logo_url ?? undefined
       );
 
       const country = brewery.country?.trim();
