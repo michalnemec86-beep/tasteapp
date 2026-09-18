@@ -889,6 +889,7 @@ export default async function ProfilePage({
             accent: "#f3b43f",
             value: profileStats.totalQuantity,
             label: "Vypitých piv",
+            href: `/stats?user=${profile.id}`,
           },
           {
             icon: (
@@ -900,6 +901,7 @@ export default async function ProfilePage({
             accent: "#d98945",
             value: profileStats.uniqueBeers,
             label: "Různých piv",
+            href: `/stats?user=${profile.id}#piva`,
           },
           {
             icon: (
@@ -911,6 +913,7 @@ export default async function ProfilePage({
             accent: "#d98945",
             value: profileStats.uniqueBrands,
             label: "Značek",
+            href: `/stats?user=${profile.id}#znacky`,
           },
           {
             icon: (
@@ -922,12 +925,14 @@ export default async function ProfilePage({
             accent: "#d5a13c",
             value: profileStats.uniqueBreweries,
             label: "Pivovarů",
+            href: `/stats?user=${profile.id}#pivovary`,
           },
           {
             icon: "◐",
             accent: "#8ea348",
             value: profileStats.uniqueStyles,
             label: "Pivních stylů",
+            href: `/stats?user=${profile.id}#styly`,
           },
           {
             icon: (
@@ -939,6 +944,7 @@ export default async function ProfilePage({
             accent: "#d37f43",
             value: profileStats.uniqueCountries,
             label: "Států",
+            href: `/stats?user=${profile.id}#staty`,
           },
         ]}
       />
