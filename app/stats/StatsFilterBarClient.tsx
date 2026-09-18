@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   usePathname,
   useRouter,
@@ -98,21 +99,44 @@ export default function StatsFilterBarClient({
     });
   }
 
+  const activeFilterCount = [
+    !hideProfileSelector && Boolean(selectedUserId),
+    Boolean(selectedYear),
+    Boolean(selectedMonth),
+    Boolean(selectedPackaging),
+    sortMode !== "count-desc",
+  ].filter(Boolean).length;
+  const [filtersOpen, setFiltersOpen] = useState(activeFilterCount > 0);
+
   return (
-    <section
-      style={{
-        display: "flex",
-        alignItems: "end",
-        gap: "12px",
-        flexWrap: "wrap",
-        padding: "15px 16px",
-        marginBottom: "18px",
-        border: "1px solid var(--taste-border)",
-        borderRadius: "var(--taste-radius-lg)",
-        background: "var(--taste-surface)",
-        boxShadow: "var(--taste-shadow-soft)",
-      }}
+    <details
+      className="taste-collapsible-filters"
+      open={filtersOpen || activeFilterCount > 0}
+      onToggle={(event) => setFiltersOpen(event.currentTarget.open)}
+      style={{ marginBottom: "18px" }}
     >
+      <summary className="taste-filter-toggle">
+        <span>Filtry</span>
+        {activeFilterCount > 0 && (
+          <span className="taste-filter-count">{activeFilterCount}</span>
+        )}
+        <span className="taste-filter-chevron" aria-hidden="true">⌄</span>
+      </summary>
+
+      <section
+        style={{
+          display: "flex",
+          alignItems: "end",
+          gap: "12px",
+          flexWrap: "wrap",
+          padding: "15px 16px",
+          marginTop: "8px",
+          border: "1px solid var(--taste-border)",
+          borderRadius: "var(--taste-radius-lg)",
+          background: "var(--taste-surface)",
+          boxShadow: "var(--taste-shadow-soft)",
+        }}
+      >
       {!hideProfileSelector && (
         <FilterSelect
           label="Uživatel"
@@ -203,7 +227,8 @@ export default function StatsFilterBarClient({
         <option value="name-asc">A–Z</option>
         <option value="name-desc">Z–A</option>
       </FilterSelect>
-    </section>
+      </section>
+    </details>
   );
 }
 

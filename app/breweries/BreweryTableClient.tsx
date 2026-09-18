@@ -230,6 +230,9 @@ export default function BreweryTableClient({
   const [search, setSearch] =
     useState("");
 
+  const [filtersOpen, setFiltersOpen] =
+    useState(false);
+
   const [selectedUserId, setSelectedUserId] =
     useState("");
 
@@ -520,15 +523,33 @@ export default function BreweryTableClient({
 
   return (
     <>
-      <div
-        style={{
-          display: "flex",
-          flexWrap: "wrap",
-          gap: "8px",
-          alignItems: "center",
-          marginBottom: "12px",
-        }}
+      <details
+        className="taste-collapsible-filters"
+        open={filtersOpen || hasActiveFilters}
+        onToggle={(event) => setFiltersOpen(event.currentTarget.open)}
+        style={{ marginBottom: "12px" }}
       >
+        <summary className="taste-filter-toggle">
+          <span>Hledání a filtry</span>
+          {hasActiveFilters && (
+            <span className="taste-filter-count">Aktivní</span>
+          )}
+          <span className="taste-filter-chevron" aria-hidden="true">⌄</span>
+        </summary>
+
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: "8px",
+            alignItems: "center",
+            marginTop: "8px",
+            padding: "12px",
+            border: "1px solid var(--taste-border)",
+            borderRadius: "var(--taste-radius-lg)",
+            background: "var(--taste-surface)",
+          }}
+        >
         <input
           type="search"
           value={search}
@@ -660,7 +681,8 @@ export default function BreweryTableClient({
             Zrušit filtry
           </button>
         )}
-      </div>
+        </div>
+      </details>
 
       <div
         style={{
