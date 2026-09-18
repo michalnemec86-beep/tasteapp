@@ -317,7 +317,13 @@ export default async function StatsPage({
     }
 
     if (requestedHopId) {
-      const hopRows = tasting.beer_versions?.beer_version_hops ?? tasting.beers?.beer_hops ?? [];
+      const versionHopRows =
+        tasting.beer_versions?.beer_version_hops ?? [];
+      const hopRows =
+        versionHopRows.length > 0
+          ? versionHopRows
+          : tasting.beers?.beer_hops ?? [];
+
       if (!hopRows.some((row) => row.hops?.id === requestedHopId)) {
         return false;
       }
