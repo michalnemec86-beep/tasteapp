@@ -368,11 +368,6 @@ export default async function BreweriesPage({
     (brewery) => brewery.closedYear == null
   ).length;
 
-  const visibleRecordedBeerCount = visibleTableRows.reduce(
-    (sum, brewery) => sum + brewery.beerCount,
-    0
-  );
-
   const visibleTastedBeerCount = visibleTableRows.reduce(
     (sum, brewery) =>
       sum + brewery.beers.filter((beer) => beer.tastingCount > 0).length,
