@@ -29,28 +29,6 @@ function one<T>(value: T | T[] | null | undefined): T | null {
   return Array.isArray(value) ? value[0] ?? null : value ?? null;
 }
 
-function normalizeValue(value: number | string | null | undefined) {
-  if (value == null || value === "") return null;
-  const numeric = Number(value);
-  return Number.isFinite(numeric) ? numeric : String(value);
-}
-
-function versionSignature(version: {
-  styleName?: string | null;
-  plato?: number | string | null;
-  abv?: number | string | null;
-  ibu?: number | string | null;
-  hopNames?: string[];
-}) {
-  return JSON.stringify({
-    style: version.styleName?.trim().toLocaleLowerCase("cs") ?? null,
-    plato: normalizeValue(version.plato),
-    abv: normalizeValue(version.abv),
-    ibu: normalizeValue(version.ibu),
-    hops: [...(version.hopNames ?? [])].map((item) => item.toLocaleLowerCase("cs")).sort(),
-  });
-}
-
 function relationLabel(type: string, direction: "from" | "to") {
   if (type === "continues_as") return direction === "from" ? "Pokračuje jako" : "Navazuje na";
   if (type === "branches_into") return direction === "from" ? "Vznikl z něj" : "Vznikl z";
@@ -149,35 +127,44 @@ export default async function BreweryDetailPage({ params }: Props) {
 
   const breweryBeers = (brewery.beers ?? [])
     .map((beer: any) => {
-      const style = one(beer.beer_styles);
-      const hopNames = (beer.beer_hops ?? [])
+      const fallbackStyle = one(beer.beer_styles);
+      const fallbackHopNames = (beer.beer_hops ?? [])
         .map((item: any) => one(item.hops)?.name)
         .filter(Boolean) as string[];
 
-      const seen = new Set([
-        versionSignature({ styleName: style?.name, plato: beer.plato, abv: beer.abv, ibu: beer.ibu, hopNames }),
-      ]);
+      const versions = beer.beer_versions ?? [];
+      const currentVersion =
+        versions.find((version: any) => version.is_current) ?? null;
 
-      const versionHistory = (beer.beer_versions ?? [])
-        .filter((version: any) => !version.is_current)
-        .map((version: any) => {
-          const versionStyle = one(version.beer_styles);
-          const versionHopNames = (version.beer_version_hops ?? [])
+      const currentStyle = currentVersion
+        ? one(currentVersion.beer_styles)
+        : null;
+
+      const currentHopNames = currentVersion
+        ? (currentVersion.beer_version_hops ?? [])
             .map((item: any) => one(item.hops)?.name)
-            .filter(Boolean) as string[];
-          return { ...version, styleName: versionStyle?.name ?? null, hopNames: versionHopNames };
-        })
-        .sort((a: any, b: any) => (b.version_year ?? 0) - (a.version_year ?? 0))
-        .filter((version: any) => {
-          const signature = versionSignature({ styleName: version.styleName, plato: version.plato, abv: version.abv, ibu: version.ibu, hopNames: version.hopNames });
-          if (seen.has(signature)) return false;
-          seen.add(signature);
-          return true;
-        });
+            .filter(Boolean) as string[]
+        : [];
 
-      return { ...beer, styleName: style?.name ?? "", hopNames, versionHistory };
+      return {
+        ...beer,
+        plato: currentVersion?.plato ?? beer.plato,
+        abv: currentVersion?.abv ?? beer.abv,
+        ibu: currentVersion?.ibu ?? beer.ibu,
+        styleName: currentStyle?.name ?? fallbackStyle?.name ?? "",
+        hopNames:
+          currentHopNames.length > 0
+            ? currentHopNames
+            : fallbackHopNames,
+        currentVersionId: currentVersion?.id ?? null,
+        versionCount: versions.length,
+      };
     })
-    .sort((a: any, b: any) => a.name.localeCompare(b.name, "cs", { sensitivity: "base" }));
+    .sort((a: any, b: any) =>
+      a.name.localeCompare(b.name, "cs", {
+        sensitivity: "base",
+      })
+    );
 
   const consumedBeerCount = breweryBeers.reduce(
     (total: number, beer: any) =>
@@ -349,23 +336,16 @@ export default async function BreweryDetailPage({ params }: Props) {
                       {beer.abv != null && <Badge>{beer.abv} %</Badge>}
                       {beer.ibu != null && <Badge>IBU {beer.ibu}</Badge>}
                     </div>
-                    {beer.versionHistory.length > 0 && (
-                      <div style={{ display: "grid", gap: "3px", marginTop: "7px" }}>
-                        {beer.versionHistory.map((version: any) => {
-                          const meta = [
-                            version.styleName,
-                            version.plato != null ? `${version.plato}°` : null,
-                            version.abv != null ? `${version.abv} %` : null,
-                            version.ibu != null ? `IBU ${version.ibu}` : null,
-                            version.hopNames.length > 0 ? `Chmel: ${version.hopNames.join(", ")}` : null,
-                          ].filter(Boolean);
-                          return (
-                            <div key={version.id} style={{ display: "flex", flexWrap: "wrap", gap: "4px", color: "var(--taste-text-muted)", fontSize: "9px", opacity: .72 }}>
-                              <span style={{ minWidth: "34px", color: "var(--taste-text-soft)", fontWeight: 750 }}>{version.version_year ?? "dříve"}</span>
-                              {meta.length > 0 && <span>{meta.join(" · ")}</span>}
-                            </div>
-                          );
-                        })}
+                    {beer.versionCount > 1 && (
+                      <div
+                        style={{
+                          marginTop: "7px",
+                          color: "var(--taste-text-muted)",
+                          fontSize: "9px",
+                          opacity: 0.72,
+                        }}
+                      >
+                        {formatVersionCount(beer.versionCount)}
                       </div>
                     )}
                   </div>
@@ -484,6 +464,12 @@ export default async function BreweryDetailPage({ params }: Props) {
       </section>
     </main>
   );
+}
+
+function formatVersionCount(count: number) {
+  if (count === 1) return "1 verze";
+  if (count >= 2 && count <= 4) return `${count} verze`;
+  return `${count} verzí`;
 }
 
 function DetailItem({ label, value }: { label: string; value: React.ReactNode }) {
