@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import { getCountryFlag, getCountryHeroTheme } from "@/lib/country-flags";
+import { getCountryHeroTheme } from "@/lib/country-flags";
 
 type HeroStat = {
   icon: ReactNode;
@@ -27,7 +27,6 @@ type PageHeroProps = {
   visualText?: string;
   mobileCompact?: boolean;
   hideRightContent?: boolean;
-  countryFlagName?: string;
 };
 
 export default function PageHero({
@@ -42,7 +41,6 @@ export default function PageHero({
   visualText,
   mobileCompact = false,
   hideRightContent = false,
-  countryFlagName,
 }: PageHeroProps) {
   const hasRightContent =
     !hideRightContent &&
@@ -60,9 +58,6 @@ export default function PageHero({
     ? "/images/heroes/breweries.jpg"
     : imageUrl;
 
-  const breweryCountryFlag = isBreweryDetailHero
-    ? getCountryFlag(countryFlagName)
-    : "";
 
   const isBreweryHero =
     !hasCountryHero &&
@@ -125,15 +120,11 @@ export default function PageHero({
           }}
         />
 
-        {isBreweryDetailHero && breweryCountryFlag && (
-          <BreweryCountryFlagVisual flag={breweryCountryFlag} />
-        )}
 
         {hasCountryHero && countryHeroTheme && (
           <CountryBreweryVisual
             country={countryName ?? ""}
             flag={countryHeroTheme.flag}
-            colors={countryHeroTheme.colors}
           />
         )}
 
@@ -415,17 +406,24 @@ function getCountryNameFromHeroTitle(title: ReactNode) {
   return undefined;
 }
 
-function BreweryCountryFlagVisual({ flag }: { flag: string }) {
+function CountryBreweryVisual({
+  country,
+  flag,
+}: {
+  country: string;
+  flag: string;
+}) {
   return (
     <div
-      aria-hidden="true"
+      aria-label={`Vlajka státu – ${country}`}
+      role="img"
       style={{
         position: "absolute",
         top: 0,
         right: "-1.5%",
         bottom: 0,
-        width: "46%",
-        minWidth: "180px",
+        width: "48%",
+        minWidth: "190px",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -435,80 +433,13 @@ function BreweryCountryFlagVisual({ flag }: { flag: string }) {
     >
       <div
         style={{
-          transform: "scale(1.26) rotate(-2deg)",
-          opacity: 0.22,
-          filter: "saturate(0.92) contrast(1.04)",
-          fontSize: "clamp(150px, 21vw, 270px)",
+          transform: "scale(1.3) rotate(-2deg)",
+          opacity: 0.24,
+          filter: "saturate(0.96) contrast(1.04)",
+          fontSize: "clamp(160px, 22vw, 285px)",
           lineHeight: 1,
-          textShadow: "0 16px 34px rgba(0,0,0,0.22)",
+          textShadow: "0 18px 38px rgba(0,0,0,0.24)",
           userSelect: "none",
-        }}
-      >
-        {flag}
-      </div>
-    </div>
-  );
-}
-
-function CountryBreweryVisual({
-  country,
-  flag,
-  colors,
-}: {
-  country: string;
-  flag: string;
-  colors: readonly string[];
-}) {
-  const flagGradient = `linear-gradient(90deg, ${colors
-    .map((color, index) => `${color} ${(index / colors.length) * 100}%, ${color} ${((index + 1) / colors.length) * 100}%`)
-    .join(", ")})`;
-
-  return (
-    <div
-      aria-label={`Pivovar v národních barvách – ${country}`}
-      role="img"
-      style={{
-        position: "absolute",
-        inset: 0,
-        pointerEvents: "none",
-      }}
-    >
-      <div
-        style={{
-          position: "absolute",
-          inset: "0 0 0 48%",
-          background: flagGradient,
-          mixBlendMode: "color",
-          opacity: 0.58,
-        }}
-      />
-      <div
-        style={{
-          position: "absolute",
-          inset: "0 0 0 46%",
-          background: `radial-gradient(circle at 72% 42%, ${colors[1] ?? colors[0]}42, transparent 47%)`,
-          mixBlendMode: "screen",
-        }}
-      />
-      <div
-        style={{
-          position: "absolute",
-          right: "clamp(20px, 5vw, 72px)",
-          top: "50%",
-          width: "clamp(72px, 8.2vw, 104px)",
-          height: "clamp(72px, 8.2vw, 104px)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          transform: "translateY(-50%) rotate(-2deg)",
-          border: "1px solid rgba(255,235,200,0.34)",
-          borderRadius: "24px",
-          background: "linear-gradient(145deg, rgba(30,18,10,0.72), rgba(13,8,5,0.48))",
-          boxShadow: `0 18px 38px rgba(0,0,0,0.42), 0 0 34px ${colors[0]}35, inset 0 1px 0 rgba(255,255,255,0.12)`,
-          backdropFilter: "blur(7px)",
-          fontSize: "clamp(38px, 4.7vw, 62px)",
-          lineHeight: 1,
-          textShadow: "0 6px 18px rgba(0,0,0,0.42)",
         }}
       >
         {flag || "🍺"}
