@@ -21,9 +21,18 @@ type SortMode =
   | "name-asc"
   | "name-desc";
 
+type StatsFocus =
+  | "beers"
+  | "brands"
+  | "breweries"
+  | "styles"
+  | "countries"
+  | "hops";
+
 type StatsPageProps = {
   searchParams: Promise<{
     user?: string | string[];
+    focus?: string | string[];
     sort?: string | string[];
     year?: string | string[];
     month?: string | string[];
@@ -55,6 +64,7 @@ export default async function StatsPage({
   const params = await searchParams;
 
   const requestedUser = getStringParam(params.user);
+  const requestedFocus = getStringParam(params.focus);
   const requestedSort = getStringParam(params.sort);
   const requestedYear = getStringParam(params.year);
   const requestedMonth = getStringParam(params.month);
@@ -218,6 +228,11 @@ export default async function StatsPage({
     : null;
 
   const selectedUserId = selectedProfile?.id;
+
+  const selectedFocus =
+    selectedProfile && isStatsFocus(requestedFocus)
+      ? requestedFocus
+      : undefined;
 
   const currentYear = new Date().getFullYear();
   const requestedYearNumber = requestedYear
@@ -406,6 +421,59 @@ export default async function StatsPage({
       .filter(Boolean)
   ).size;
 
+  const focusedView = selectedFocus
+    ? {
+        beers: {
+          title: "Piva",
+          subtitle: "Konkrétní ochutnaná piva",
+          label: "Různých piv",
+          value: totalBeers,
+          icon: <AppIcon name="label" size={18} />,
+          accent: "#e88835",
+        },
+        brands: {
+          title: "Značky",
+          subtitle: "Produktové značky v ochutnávkách",
+          label: "Značek",
+          value: totalBrands,
+          icon: <AppIcon name="label" size={18} />,
+          accent: "#d98a43",
+        },
+        breweries: {
+          title: "Pivovary",
+          subtitle: "Pivovary v ochutnávkách",
+          label: "Pivovarů",
+          value: totalBreweries,
+          icon: <AppIcon name="brewery" size={18} />,
+          accent: "#d65b42",
+        },
+        styles: {
+          title: "Pivní styly",
+          subtitle: "Styly v ochutnávkách",
+          label: "Stylů",
+          value: totalStyles,
+          icon: <AppIcon name="hop" size={18} />,
+          accent: "#9cad47",
+        },
+        countries: {
+          title: "Státy",
+          subtitle: "Země původu pivovarů v ochutnávkách",
+          label: "Států",
+          value: totalCountries,
+          icon: <AppIcon name="globe" size={18} />,
+          accent: "#b77a36",
+        },
+        hops: {
+          title: "Chmely",
+          subtitle: "Chmely použitých piv",
+          label: "Chmelů",
+          value: stats.hops.length,
+          icon: <AppIcon name="hop" size={18} />,
+          accent: "#879a43",
+        },
+      }[selectedFocus]
+    : null;
+
   return (
     <main
       style={{
@@ -415,61 +483,87 @@ export default async function StatsPage({
       }}
     >
       <PageHero
-        eyebrow="Pivní data"
+        eyebrow={focusedView ? "Osobní statistiky" : "Pivní data"}
         imageUrl="/images/heroes/stats.jpg"
         visualVariant="stats"
-        title="Statistiky"
-        subtitle="Podívej se na svůj pivní svět v číslech. Piva, značky, pivovary, styly, země, chmely i způsob podání na jednom místě."
-        action={
-          <Link
-            href="/breweries"
-            className="taste-button-secondary"
-            style={{
-              fontSize: "12px",
-              fontWeight: 650,
-            }}
-          >
-            ← Pivovary
-          </Link>
+        title={
+          focusedView && selectedProfile
+            ? `${focusedView.title} · ${selectedProfile.display_name}`
+            : "Statistiky"
         }
-        stats={[
-          {
-            icon: <AppIcon name="beer" size={18} />,
-            accent: "#f2b63f",
-            value: totalTastings,
-            label: "Vypitých piv",
-          },
-          {
-            icon: <AppIcon name="label" size={18} />,
-            accent: "#e88835",
-            value: totalBeers,
-            label: "Různých piv",
-          },
-          {
-            icon: <AppIcon name="label" size={18} />,
-            accent: "#d98a43",
-            value: totalBrands,
-            label: "Značek",
-          },
-          {
-            icon: <AppIcon name="brewery" size={18} />,
-            accent: "#d65b42",
-            value: totalBreweries,
-            label: "Pivovarů",
-          },
-          {
-            icon: "◐",
-            accent: "#9cad47",
-            value: totalStyles,
-            label: "Stylů",
-          },
-          {
-            icon: <AppIcon name="globe" size={18} />,
-            accent: "#b77a36",
-            value: totalCountries,
-            label: "Států",
-          },
-        ]}
+        subtitle={
+          focusedView && selectedProfile
+            ? `Pouze ${focusedView.title.toLowerCase()} z ochutnávek uživatele ${selectedProfile.display_name}.`
+            : "Podívej se na svůj pivní svět v číslech. Piva, značky, pivovary, styly, země, chmely i způsob podání na jednom místě."
+        }
+        action={
+          focusedView && selectedProfile ? (
+            <Link
+              href={`/profiles/${selectedProfile.id}`}
+              className="taste-button-secondary"
+              style={{ fontSize: "12px", fontWeight: 650 }}
+            >
+              ← Profil
+            </Link>
+          ) : (
+            <Link
+              href="/breweries"
+              className="taste-button-secondary"
+              style={{ fontSize: "12px", fontWeight: 650 }}
+            >
+              ← Pivovary
+            </Link>
+          )
+        }
+        stats={
+          focusedView
+            ? [
+                {
+                  icon: focusedView.icon,
+                  accent: focusedView.accent,
+                  value: focusedView.value,
+                  label: focusedView.label,
+                },
+              ]
+            : [
+                {
+                  icon: <AppIcon name="beer" size={18} />,
+                  accent: "#f2b63f",
+                  value: totalTastings,
+                  label: "Vypitých piv",
+                },
+                {
+                  icon: <AppIcon name="label" size={18} />,
+                  accent: "#e88835",
+                  value: totalBeers,
+                  label: "Různých piv",
+                },
+                {
+                  icon: <AppIcon name="label" size={18} />,
+                  accent: "#d98a43",
+                  value: totalBrands,
+                  label: "Značek",
+                },
+                {
+                  icon: <AppIcon name="brewery" size={18} />,
+                  accent: "#d65b42",
+                  value: totalBreweries,
+                  label: "Pivovarů",
+                },
+                {
+                  icon: "◐",
+                  accent: "#9cad47",
+                  value: totalStyles,
+                  label: "Stylů",
+                },
+                {
+                  icon: <AppIcon name="globe" size={18} />,
+                  accent: "#b77a36",
+                  value: totalCountries,
+                  label: "Států",
+                },
+              ]
+        }
       />
 
       <StatsFilterBarClient
@@ -480,6 +574,7 @@ export default async function StatsPage({
         selectedPackaging={selectedPackaging}
         sortMode={sortMode}
         firstYear={FIRST_YEAR}
+        hideProfileSelector={Boolean(selectedFocus)}
       />
 
       {filteredTastings.length === 0 && (
@@ -497,7 +592,9 @@ export default async function StatsPage({
         </div>
       )}
 
-      <PackagingSummaryCard items={stats.packaging} />
+      {!selectedFocus && (
+        <PackagingSummaryCard items={stats.packaging} />
+      )}
 
       <section>
         <div style={{ marginBottom: "15px" }}>
@@ -516,7 +613,7 @@ export default async function StatsPage({
               letterSpacing: "-0.025em",
             }}
           >
-            Pivní přehled
+            {focusedView ? focusedView.title : "Pivní přehled"}
           </h2>
         </div>
 
@@ -529,69 +626,88 @@ export default async function StatsPage({
             alignItems: "start",
           }}
         >
-          <RankingCardClient
-            anchorId="piva"
-            title="Piva"
-            tone="gold"
-            subtitle="Konkrétní ochutnaná piva"
-            icon={<AppIcon name="label" size={20} />}
-            items={stats.beers}
-          />
+          {(!selectedFocus || selectedFocus === "beers") && (
+            <RankingCardClient
+              anchorId="piva"
+              title="Piva"
+              tone="gold"
+              subtitle="Konkrétní ochutnaná piva"
+              icon={<AppIcon name="label" size={20} />}
+              items={stats.beers}
+              disableItemLinks={Boolean(selectedFocus)}
+            />
+          )}
 
-          <RankingCardClient
-            anchorId="znacky"
-            title="Značky"
-            tone="honey"
-            subtitle="Produktové značky napříč pivovary a historií"
-            icon={<AppIcon name="label" size={20} />}
-            items={stats.brands}
-            itemHrefPrefix="/brands"
-          />
+          {(!selectedFocus || selectedFocus === "brands") && (
+            <RankingCardClient
+              anchorId="znacky"
+              title="Značky"
+              tone="honey"
+              subtitle="Produktové značky napříč pivovary a historií"
+              icon={<AppIcon name="label" size={20} />}
+              items={stats.brands}
+              itemHrefPrefix="/brands"
+              disableItemLinks={Boolean(selectedFocus)}
+            />
+          )}
 
-          <RankingCardClient
-            anchorId="pivovary"
-            title="Pivovary"
-            tone="honey"
-            subtitle="Podle počtu vypitých piv"
-            icon={<AppIcon name="brewery" size={20} />}
-            items={stats.breweries}
-            itemHrefPrefix="/breweries"
-          />
+          {(!selectedFocus || selectedFocus === "breweries") && (
+            <RankingCardClient
+              anchorId="pivovary"
+              title="Pivovary"
+              tone="honey"
+              subtitle="Podle počtu vypitých piv"
+              icon={<AppIcon name="brewery" size={20} />}
+              items={stats.breweries}
+              itemHrefPrefix="/breweries"
+              disableItemLinks={Boolean(selectedFocus)}
+            />
+          )}
 
-          <RankingCardClient
-            anchorId="styly"
-            title="Pivní styly"
-            tone="amber"
-            subtitle="Nejčastěji zastoupené styly"
-            icon={<AppIcon name="hop" size={20} />}
-            items={stats.styles}
-          />
+          {(!selectedFocus || selectedFocus === "styles") && (
+            <RankingCardClient
+              anchorId="styly"
+              title="Pivní styly"
+              tone="amber"
+              subtitle="Nejčastěji zastoupené styly"
+              icon={<AppIcon name="hop" size={20} />}
+              items={stats.styles}
+              disableItemLinks={Boolean(selectedFocus)}
+            />
+          )}
 
-          <RankingCardClient
-            anchorId="staty"
-            title="Státy"
-            tone="copper"
-            subtitle="Země původu pivovarů"
-            icon={<AppIcon name="globe" size={20} />}
-            items={stats.countries}
-          />
+          {(!selectedFocus || selectedFocus === "countries") && (
+            <RankingCardClient
+              anchorId="staty"
+              title="Státy"
+              tone="copper"
+              subtitle="Země původu pivovarů"
+              icon={<AppIcon name="globe" size={20} />}
+              items={stats.countries}
+              disableItemLinks={Boolean(selectedFocus)}
+            />
+          )}
 
-          <RankingCardClient
-            anchorId="chmely"
-            title="Chmely"
-            tone="malt"
-            subtitle="Chmely použitých piv"
-            icon={<AppIcon name="hop" size={20} />}
-            items={stats.hops}
-          />
+          {(!selectedFocus || selectedFocus === "hops") && (
+            <RankingCardClient
+              anchorId="chmely"
+              title="Chmely"
+              tone="malt"
+              subtitle="Chmely použitých piv"
+              icon={<AppIcon name="hop" size={20} />}
+              items={stats.hops}
+              disableItemLinks={Boolean(selectedFocus)}
+            />
+          )}
         </div>
       </section>
 
-      {filteredTastings.length > 0 && (
-        <div style={{ marginBottom: "30px" }}>
-          <BeerWorldMap items={rawStats.countries} />
-        </div>
-      )}
+      {filteredTastings.length > 0 &&
+        (!selectedFocus || selectedFocus === "countries") && (
+          <div style={{ marginBottom: "30px" }}>
+            <BeerWorldMap items={rawStats.countries} />
+          </div>
+        )}
     </main>
   );
 }
@@ -653,6 +769,19 @@ function getMonth(
   const month = Number(dateString.slice(5, 7));
 
   return Number.isInteger(month) ? month : null;
+}
+
+function isStatsFocus(
+  value: string | undefined
+): value is StatsFocus {
+  return (
+    value === "beers" ||
+    value === "brands" ||
+    value === "breweries" ||
+    value === "styles" ||
+    value === "countries" ||
+    value === "hops"
+  );
 }
 
 function isSortMode(
