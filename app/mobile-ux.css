@@ -1,4 +1,4 @@
-/* Mobile readability refinements shared across TasteApp. */
+/* Mobile readability refinements shared across Pivník. */
 
 .taste-hero-stat > div:last-child {
   min-width: 0;
@@ -260,5 +260,103 @@
     min-width: 172px;
     width: 172px;
     max-width: 172px;
+  }
+}
+
+
+/* Installed PWA handoff: a short branded layer while the app hydrates. */
+.pivnik-launch-screen {
+  display: none;
+}
+
+@media (display-mode: standalone) {
+  .taste-app-nav {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  body {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .pivnik-launch-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding:
+      calc(24px + env(safe-area-inset-top))
+      calc(24px + env(safe-area-inset-right))
+      calc(24px + env(safe-area-inset-bottom))
+      calc(24px + env(safe-area-inset-left));
+    background:
+      radial-gradient(
+        circle at 50% 38%,
+        rgba(231, 166, 47, 0.13),
+        transparent 15rem
+      ),
+      linear-gradient(180deg, #1b1009 0%, #160e08 52%, #0d0906 100%);
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transition:
+      opacity 180ms ease,
+      visibility 180ms ease;
+  }
+
+  .pivnik-launch-screen.is-hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  .pivnik-launch-mark {
+    width: 92px;
+    height: 92px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(245, 184, 63, 0.38);
+    border-radius: 26px;
+    background:
+      radial-gradient(
+        circle at 35% 22%,
+        rgba(255, 209, 112, 0.18),
+        transparent 56%
+      ),
+      linear-gradient(
+        145deg,
+        rgba(231, 166, 47, 0.13),
+        rgba(168, 98, 33, 0.045)
+      ),
+      #21150c;
+    color: var(--taste-amber-bright);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 235, 192, 0.06),
+      0 18px 54px rgba(0, 0, 0, 0.32),
+      0 0 42px rgba(231, 166, 47, 0.08);
+  }
+
+  .pivnik-launch-name {
+    margin-top: 18px;
+    color: var(--taste-text);
+    font-size: 29px;
+    line-height: 1;
+    font-weight: 850;
+    letter-spacing: -0.035em;
+  }
+
+  .pivnik-launch-tagline {
+    margin-top: 8px;
+    color: var(--taste-text-muted);
+    font-size: 10px;
+    line-height: 1;
+    font-weight: 750;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
   }
 }
