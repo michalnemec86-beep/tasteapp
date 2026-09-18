@@ -413,7 +413,7 @@ export default async function HomePage() {
     supabase
       .from("breweries")
       .select(
-        "id, name, country"
+        "id, name, country, logo_url"
       )
       .order("name");
 
