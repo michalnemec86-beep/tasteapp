@@ -8,7 +8,7 @@ import {
   type PointerEvent as ReactPointerEvent,
 } from "react";
 import dynamic from "next/dynamic";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 import type {
   CountryContext,
@@ -41,7 +41,6 @@ type BeerWorldMapProps = {
   title?: string;
   countLabel?: string;
   focusEurope?: boolean;
-  countryLinkMode?: "stats" | "breweries";
 };
 
 type MapShadeStep = {
@@ -185,10 +184,8 @@ export default function BeerWorldMap({
   title = "Mapa ochutnaných zemí",
   countLabel = "ochutnaných zemí",
   focusEurope = false,
-  countryLinkMode = "stats",
 }: BeerWorldMapProps) {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const mapStageRef = useRef<HTMLDivElement>(null);
   const didDragRef = useRef(false);
 
@@ -445,16 +442,9 @@ export default function BeerWorldMap({
     const code = String(countryCode).toUpperCase();
     const czechName = nameByCode.get(code) ?? countryName;
 
-    if (countryLinkMode === "breweries") {
-      router.push(
-        `/breweries?focus=1&country=${encodeURIComponent(czechName)}`
-      );
-      return;
-    }
-
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("country", czechName);
-    router.push(`/stats?${params.toString()}`);
+    router.push(
+      `/stats/country/${encodeURIComponent(czechName)}`
+    );
   }
 
   return (
