@@ -1,3 +1,5 @@
+import TasteLoader from "@/components/ui/TasteLoader";
+
 export default function Loading() {
   return (
     <main
@@ -25,6 +27,17 @@ export default function Loading() {
           boxShadow: "var(--taste-shadow-soft)",
         }}
       >
+        <div
+          style={{
+            position: "absolute",
+            top: "22px",
+            right: "24px",
+            zIndex: 2,
+          }}
+        >
+          <TasteLoader label="Načítám TasteApp" />
+        </div>
+
         <div
           style={{
             display: "grid",
