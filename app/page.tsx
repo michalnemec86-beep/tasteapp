@@ -923,6 +923,7 @@ export default async function HomePage() {
             accent: "#f2b63f",
             value: totalTastings,
             label: "Vypitých piv",
+            href: "/stats#piva",
           },
           {
             icon: (
@@ -934,6 +935,7 @@ export default async function HomePage() {
             accent: "#d98a43",
             value: totalBeers,
             label: "Různých piv",
+            href: "/stats#piva",
           },
           {
             icon: (
@@ -945,6 +947,7 @@ export default async function HomePage() {
             accent: "#c46f38",
             value: totalBrands,
             label: "Značek",
+            href: "/stats#znacky",
           },
           {
             icon: (
@@ -956,6 +959,7 @@ export default async function HomePage() {
             accent: "#e88835",
             value: totalBreweries,
             label: "Pivovarů",
+            href: "/stats#pivovary",
           },
           {
             icon: (
@@ -967,6 +971,7 @@ export default async function HomePage() {
             accent: "#9cad47",
             value: totalStyles,
             label: "Stylů",
+            href: "/stats#styly",
           },
           {
             icon: (
@@ -978,6 +983,7 @@ export default async function HomePage() {
             accent: "#d65b42",
             value: totalCountries,
             label: "Států",
+            href: "/stats#staty",
           },
         ]}
       />

@@ -5,6 +5,7 @@ import type { RankingItem } from "@/lib/stats";
 
 type PackagingSummaryCardProps = {
   items: RankingItem[];
+  contextParams?: Record<string, string | undefined>;
 };
 
 type PackagingTone = {
@@ -51,6 +52,7 @@ const FALLBACK_TONE: PackagingTone = PACKAGING_TONES.other;
 
 export default function PackagingSummaryCard({
   items,
+  contextParams = {},
 }: PackagingSummaryCardProps) {
   const total = items.reduce(
     (sum, item) => sum + item.count,
@@ -124,11 +126,20 @@ export default function PackagingSummaryCard({
                 PACKAGING_TONES[String(item.id)] ?? FALLBACK_TONE;
               const percentage =
                 total > 0 ? (item.count / total) * 100 : 0;
+              const params = new URLSearchParams();
+
+              for (const [key, value] of Object.entries(contextParams)) {
+                if (value) {
+                  params.set(key, value);
+                }
+              }
+
+              params.set("packaging", String(item.id));
 
               return (
                 <Link
                   key={item.id}
-                  href={`/stats/packaging/${encodeURIComponent(String(item.id))}`}
+                  href={`/stats?${params.toString()}`}
                   style={{
                     display: "block",
                     padding: "14px",

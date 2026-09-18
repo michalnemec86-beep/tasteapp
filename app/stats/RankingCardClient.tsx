@@ -120,7 +120,7 @@ function getItemHref(
     case "Značky":
       return `/brands/${item.id}`;
     case "Pivní styly":
-      return `/stats?style=${encodeURIComponent(String(item.id))}`;
+      return `/styles/${item.id}`;
     case "Státy":
       return getCountryEvidenceHref(item.name);
     case "Chmely":

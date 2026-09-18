@@ -29,6 +29,11 @@ type StatsFilterBarClientProps = {
   sortMode: SortMode;
   firstYear?: number;
   hideProfileSelector?: boolean;
+  contextFilters?: Array<{
+    param: string;
+    label: string;
+    value: string;
+  }>;
 };
 
 const MONTHS = [
@@ -55,6 +60,7 @@ export default function StatsFilterBarClient({
   sortMode,
   firstYear = 2005,
   hideProfileSelector = false,
+  contextFilters = [],
 }: StatsFilterBarClientProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -105,6 +111,7 @@ export default function StatsFilterBarClient({
     Boolean(selectedMonth),
     Boolean(selectedPackaging),
     sortMode !== "count-desc",
+    ...contextFilters.map(() => true),
   ].filter(Boolean).length;
   const [filtersOpen, setFiltersOpen] = useState(activeFilterCount > 0);
 
@@ -137,6 +144,43 @@ export default function StatsFilterBarClient({
           boxShadow: "var(--taste-shadow-soft)",
         }}
       >
+      {contextFilters.length > 0 && (
+        <div
+          style={{
+            flex: "1 1 100%",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            flexWrap: "wrap",
+          }}
+        >
+          {contextFilters.map((filter) => (
+            <button
+              key={filter.param}
+              type="button"
+              onClick={() => updateParams({ [filter.param]: null })}
+              aria-label={`Zrušit filtr ${filter.label}: ${filter.value}`}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "7px",
+                minHeight: "32px",
+                padding: "6px 10px",
+                border: "1px solid rgba(231,166,47,0.34)",
+                borderRadius: "999px",
+                background: "rgba(231,166,47,0.09)",
+                color: "var(--taste-amber-bright)",
+                fontSize: "11px",
+                fontWeight: 700,
+                cursor: "pointer",
+              }}
+            >
+              <span>{filter.label}: {filter.value}</span>
+              <span aria-hidden="true">×</span>
+            </button>
+          ))}
+        </div>
+      )}
       {!hideProfileSelector && (
         <FilterSelect
           label="Uživatel"

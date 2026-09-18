@@ -290,7 +290,10 @@ export default async function CountryStatsPage({
         </Link>
       </section>
 
-      <PackagingSummaryCard items={stats.packaging} />
+      <PackagingSummaryCard
+        items={stats.packaging}
+        contextParams={{ country: countryName }}
+      />
 
       <section>
         <div style={{ marginBottom: "15px" }}>
