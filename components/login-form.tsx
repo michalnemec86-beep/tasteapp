@@ -91,7 +91,7 @@ export function LoginForm({
               </Button>
             </div>
             <div className="mt-4 text-center text-sm text-muted-foreground">
-              TasteApp je pouze pro pozvané uživatele.
+              Pivník je pouze pro pozvané uživatele.
             </div>
           </form>
         </CardContent>
