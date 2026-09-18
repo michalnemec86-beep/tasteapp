@@ -21,6 +21,81 @@ body:has(.taste-route-loading) * {
   cursor: wait !important;
 }
 
+.taste-loader {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--taste-text-soft);
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.taste-loader-mark {
+  position: relative;
+  width: 46px;
+  height: 46px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  border: 1px solid rgba(231, 166, 47, 0.22);
+  border-radius: 14px;
+  background:
+    radial-gradient(circle at 35% 24%, rgba(255, 209, 112, 0.15), transparent 54%),
+    linear-gradient(145deg, rgba(231, 166, 47, 0.09), rgba(35, 21, 11, 0.88));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 235, 192, 0.06),
+    0 8px 22px rgba(0, 0, 0, 0.3),
+    0 0 22px rgba(231, 166, 47, 0.07);
+}
+
+.taste-loader-ring {
+  position: absolute;
+  inset: 4px;
+  border: 2px solid rgba(231, 166, 47, 0.13);
+  border-top-color: var(--taste-amber-bright);
+  border-right-color: rgba(217, 137, 69, 0.78);
+  border-radius: 50%;
+  animation: taste-loader-spin 900ms linear infinite;
+  box-shadow: 0 0 12px rgba(231, 166, 47, 0.11);
+}
+
+.taste-loader-mark svg {
+  width: 17px;
+  height: 20px;
+  position: relative;
+  z-index: 1;
+  stroke: var(--taste-amber-bright);
+  stroke-width: 1.45;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 6px rgba(245, 184, 63, 0.24));
+}
+
+.taste-loader-compact {
+  flex-direction: column;
+  gap: 8px;
+}
+
+.taste-loader-compact .taste-loader-mark {
+  width: 42px;
+  height: 42px;
+  border-radius: 13px;
+}
+
+@keyframes taste-loader-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .taste-loader-ring {
+    animation-duration: 1800ms;
+  }
+}
+
 .taste-entity-link {
   text-decoration: none !important;
   transition:
