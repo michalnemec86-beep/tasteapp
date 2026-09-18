@@ -24,7 +24,7 @@ type BreweryLogoManagerClientProps = {
   ) => Promise<SaveLogoResult>;
   removeLogoAction: (
     breweryId: number
-  ) => Promise<{ success: true }>;
+  ) => Promise<{ success: boolean }>;
 };
 
 export default function BreweryLogoManagerClient({
