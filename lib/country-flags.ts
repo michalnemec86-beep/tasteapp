@@ -76,7 +76,7 @@ const COUNTRY_COLOR_PALETTES: Record<string, readonly string[]> = {
 };
 
 export function getCountryEvidenceHref(countryName: string) {
-  return `/breweries?focus=1&country=${encodeURIComponent(countryName)}`;
+  return `/stats/country/${encodeURIComponent(countryName)}`;
 }
 
 export function getCountryHeroTheme(countryName: string | null | undefined) {
