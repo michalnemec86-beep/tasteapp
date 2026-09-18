@@ -236,7 +236,6 @@ export default async function BreweryDetailPage({ params }: Props) {
         eyebrow="Detail pivovaru"
         imageUrl="/images/heroes/catalog.jpg"
         visualVariant="catalog"
-        countryFlagName={brewery.country ?? undefined}
         title={brewery.name}
         subtitle={[brewery.city, brewery.country].filter(Boolean).join(" · ")}
         action={
