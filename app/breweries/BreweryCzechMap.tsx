@@ -8,6 +8,7 @@ import {
   Marker,
   Popup,
   TileLayer,
+  Tooltip,
   useMap,
 } from "react-leaflet";
 import L from "leaflet";
@@ -18,6 +19,7 @@ export type BreweryMapItem = {
   city: string | null;
   latitude: number;
   longitude: number;
+  closedYear: number | null;
 };
 
 type BreweryCzechMapProps = {
@@ -90,6 +92,7 @@ export default function BreweryCzechMap({
 }: BreweryCzechMapProps) {
   return (
     <section
+      className="taste-czech-brewery-map"
       style={{
         overflow: "hidden",
         border: "1px solid var(--taste-border)",
@@ -99,6 +102,7 @@ export default function BreweryCzechMap({
       }}
     >
       <div
+        className="taste-czech-map-header"
         style={{
           display: "flex",
           justifyContent: "space-between",
@@ -133,11 +137,13 @@ export default function BreweryCzechMap({
         </div>
 
         <div
+          className="taste-czech-map-count"
           style={{
             textAlign: "right",
           }}
         >
           <div
+            className="taste-czech-map-count-value"
             style={{
               color: "var(--taste-amber-bright)",
               fontSize: "22px",
@@ -149,6 +155,7 @@ export default function BreweryCzechMap({
           </div>
 
           <div
+            className="taste-czech-map-count-label taste-czech-map-count-label-desktop"
             style={{
               marginTop: "4px",
               color: "var(--taste-text-muted)",
@@ -157,10 +164,14 @@ export default function BreweryCzechMap({
           >
             zakreslených pivovarů
           </div>
+          <div className="taste-czech-map-count-label taste-czech-map-count-label-mobile">
+            zapsaných pivovarů
+          </div>
         </div>
       </div>
 
       <div
+        className="taste-czech-map-stage"
         style={{
           width: "100%",
           height: "480px",
@@ -198,22 +209,30 @@ export default function BreweryCzechMap({
                 html: `
                   <div
                     style="
-                      width: 18px;
-                      height: 18px;
+                      width: 14px;
+                      height: 14px;
                       border-radius: 50%;
-                      background: #e7a62f;
-                      border: 3px solid #fff1c2;
+                      background: ${brewery.closedYear == null ? "#e7a62f" : "#77736c"};
+                      border: 2px solid ${brewery.closedYear == null ? "#fff1c2" : "#d1cdc5"};
                       box-shadow:
-                        0 0 0 3px rgba(231,166,47,0.22),
+                        0 0 0 2px ${brewery.closedYear == null ? "rgba(231,166,47,0.22)" : "rgba(130,126,119,0.22)"},
                         0 3px 10px rgba(0,0,0,0.55);
                     "
                   ></div>
                 `,
-                iconSize: [18, 18],
-                iconAnchor: [9, 9],
-                popupAnchor: [0, -12],
+                iconSize: [14, 14],
+                iconAnchor: [7, 7],
+                popupAnchor: [0, -10],
               })}
             >
+              <Tooltip
+                direction="top"
+                offset={[0, -8]}
+                opacity={1}
+              >
+                {brewery.name}
+              </Tooltip>
+
               <Popup>
                 <strong>{brewery.name}</strong>
 
