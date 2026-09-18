@@ -1,9 +1,10 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist } from "next/font/google";
 
 import AppNav from "./AppNav";
 import AuthSessionSync from "./AuthSessionSync";
 import BreweryListStatePersistence from "./BreweryListStatePersistence";
+import PivnikLaunchScreen from "./PivnikLaunchScreen";
 
 import "leaflet/dist/leaflet.css";
 import "./globals.css";
@@ -20,14 +21,50 @@ const defaultUrl =
     : "http://127.0.0.1:3000";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(
-    defaultUrl
-  ),
-
-  title: "TasteApp",
-
+  metadataBase: new URL(defaultUrl),
+  title: {
+    default: "Pivník",
+    template: "%s | Pivník",
+  },
+  applicationName: "Pivník",
   description:
-    "Pivní deník, statistiky a společné ochutnávky.",
+    "Pivní deník, statistiky, pivovary a společné ochutnávky.",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    title: "Pivník",
+    statusBarStyle: "black-translucent",
+  },
+  icons: {
+    icon: [
+      {
+        url: "/pwa-icon/192.png",
+        sizes: "192x192",
+        type: "image/png",
+      },
+      {
+        url: "/pwa-icon/512.png",
+        sizes: "512x512",
+        type: "image/png",
+      },
+    ],
+    apple: [
+      {
+        url: "/pwa-icon/180.png",
+        sizes: "180x180",
+        type: "image/png",
+      },
+    ],
+  },
+  formatDetection: {
+    telephone: false,
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#160e08",
+  colorScheme: "dark",
+  viewportFit: "cover",
 };
 
 const geistSans =
@@ -53,6 +90,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.className} antialiased`}
       >
+        <PivnikLaunchScreen />
         <AuthSessionSync />
         <BreweryListStatePersistence />
         <AppNav />
