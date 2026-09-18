@@ -348,6 +348,7 @@ export default async function StatsPage({
   });
 
   const rawStats = buildTasteStats(filteredTastings);
+  const personalStats = buildTasteStats(allTastings, user.id);
 
   const stats = {
     beers: sortRanking(rawStats.beers, sortMode),
@@ -642,6 +643,7 @@ export default async function StatsPage({
               icon={<AppIcon name="label" size={20} />}
               items={stats.beers}
               disableItemLinks={Boolean(selectedFocus)}
+              personalItemIds={personalStats.beers.map((item) => item.id)}
             />
           )}
 
@@ -655,6 +657,7 @@ export default async function StatsPage({
               items={stats.brands}
               itemHrefPrefix="/brands"
               disableItemLinks={Boolean(selectedFocus)}
+              personalItemIds={personalStats.brands.map((item) => item.id)}
             />
           )}
 
@@ -668,6 +671,7 @@ export default async function StatsPage({
               items={stats.breweries}
               itemHrefPrefix="/breweries"
               disableItemLinks={Boolean(selectedFocus)}
+              personalItemIds={personalStats.breweries.map((item) => item.id)}
             />
           )}
 
@@ -680,6 +684,7 @@ export default async function StatsPage({
               icon={<AppIcon name="hop" size={20} />}
               items={stats.styles}
               disableItemLinks={Boolean(selectedFocus)}
+              personalItemIds={personalStats.styles.map((item) => item.id)}
             />
           )}
 
@@ -692,6 +697,7 @@ export default async function StatsPage({
               icon={<AppIcon name="globe" size={20} />}
               items={stats.countries}
               disableItemLinks={Boolean(selectedFocus)}
+              personalItemIds={personalStats.countries.map((item) => item.id)}
             />
           )}
 
@@ -704,6 +710,7 @@ export default async function StatsPage({
               icon={<AppIcon name="hop" size={20} />}
               items={stats.hops}
               disableItemLinks={Boolean(selectedFocus)}
+              personalItemIds={personalStats.hops.map((item) => item.id)}
             />
           )}
         </div>

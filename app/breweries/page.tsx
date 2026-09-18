@@ -194,6 +194,9 @@ export default async function BreweriesPage({
           latitude: brewery.latitude,
           longitude: brewery.longitude,
           closedYear: brewery.closed_year,
+          isPersonal: (brewery.beers ?? []).some((beer) =>
+            (beer.tastings ?? []).some((tasting) => tasting.user_id === user.id)
+          ),
         },
       ];
     }
@@ -591,6 +594,10 @@ export default async function BreweriesPage({
                       padding: "17px 18px",
                       color: "inherit",
                       textDecoration: "none",
+                      borderColor:
+                        (brewery.userStats[user.id]?.consumedCount ?? 0) > 0
+                          ? "rgba(242,182,63,0.48)"
+                          : undefined,
                     }}
                   >
                     <div
@@ -605,12 +612,24 @@ export default async function BreweriesPage({
                         <h3
                           style={{
                             margin: 0,
-                            color: "var(--taste-text)",
+                            color:
+                              (brewery.userStats[user.id]?.consumedCount ?? 0) > 0
+                                ? "var(--taste-amber-bright)"
+                                : "var(--taste-text)",
                             fontSize: "16px",
                             fontWeight: 750,
                           }}
                         >
                           {brewery.name}
+                          {(brewery.userStats[user.id]?.consumedCount ?? 0) > 0 && (
+                            <span
+                              title="Máš ve své evidenci"
+                              aria-label="Máš ve své evidenci"
+                              style={{ marginLeft: "8px", fontSize: "14px" }}
+                            >
+                              🍺
+                            </span>
+                          )}
                         </h3>
                         <div
                           style={{
@@ -778,6 +797,7 @@ export default async function BreweriesPage({
                 profiles={profiles ?? []}
                 countries={countries ?? []}
                 updateBreweryAction={updateBrewery}
+                currentUserId={user.id}
               />
             )}
           </section>

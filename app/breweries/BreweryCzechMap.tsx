@@ -20,6 +20,7 @@ export type BreweryMapItem = {
   latitude: number;
   longitude: number;
   closedYear: number | null;
+  isPersonal: boolean;
 };
 
 type BreweryCzechMapProps = {
@@ -229,7 +230,23 @@ export default function BreweryCzechMap({
               ]}
               icon={L.divIcon({
                 className: "",
-                html: `
+                html: brewery.isPersonal
+                  ? `
+                  <div title="Máš ve své evidenci" style="
+                    width: 25px;
+                    height: 25px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    border-radius: 50%;
+                    background: #3a2513;
+                    border: 2px solid #ffd36f;
+                    box-shadow: 0 0 0 3px rgba(231,166,47,0.24), 0 4px 12px rgba(0,0,0,0.62);
+                    font-size: 13px;
+                    line-height: 1;
+                  ">🍺</div>
+                `
+                  : `
                   <div
                     style="
                       width: 14px;
@@ -243,8 +260,8 @@ export default function BreweryCzechMap({
                     "
                   ></div>
                 `,
-                iconSize: [14, 14],
-                iconAnchor: [7, 7],
+                iconSize: brewery.isPersonal ? [25, 25] : [14, 14],
+                iconAnchor: brewery.isPersonal ? [12, 12] : [7, 7],
                 popupAnchor: [0, -10],
               })}
             >
@@ -253,7 +270,7 @@ export default function BreweryCzechMap({
                 offset={[0, -8]}
                 opacity={1}
               >
-                {brewery.name}
+                {brewery.name}{brewery.isPersonal ? " · máš v evidenci" : ""}
               </Tooltip>
 
               <Popup>

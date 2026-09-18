@@ -43,6 +43,7 @@ type RankingCardClientProps = {
   tone?: RankingTone;
   anchorId?: string;
   disableItemLinks?: boolean;
+  personalItemIds?: Array<string | number>;
 };
 
 const PREVIEW_LIMIT = 10;
@@ -138,6 +139,7 @@ export default function RankingCardClient({
   tone = "gold",
   anchorId,
   disableItemLinks = false,
+  personalItemIds = [],
 }: RankingCardClientProps) {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -211,6 +213,7 @@ export default function RankingCardClient({
             itemHrefPrefix={itemHrefPrefix}
             tone={cardTone}
             disableItemLinks={disableItemLinks}
+            personalItemIds={personalItemIds}
           />
         )}
 
@@ -332,6 +335,7 @@ export default function RankingCardClient({
                   itemHrefPrefix={itemHrefPrefix}
                   tone={cardTone}
                   disableItemLinks={disableItemLinks}
+                  personalItemIds={personalItemIds}
                 />
               </div>
             </section>
@@ -471,6 +475,7 @@ function RankingList({
   itemHrefPrefix,
   tone,
   disableItemLinks = false,
+  personalItemIds,
 }: {
   title: string;
   items: RankingItem[];
@@ -478,7 +483,10 @@ function RankingList({
   itemHrefPrefix?: string;
   tone: RankingToneStyle;
   disableItemLinks?: boolean;
+  personalItemIds: Array<string | number>;
 }) {
+  const personalIds = new Set(personalItemIds.map(String));
+
   return (
     <div
       style={{
@@ -487,6 +495,7 @@ function RankingList({
       }}
     >
       {items.map((item, index) => {
+        const isPersonal = personalIds.has(String(item.id));
         const percentage =
           maximum > 0
             ? Math.max(
@@ -509,11 +518,13 @@ function RankingList({
           textOverflow: "ellipsis",
           whiteSpace: "nowrap" as const,
           color:
-            index === 0
+            isPersonal
+              ? tone.accent
+              : index === 0
               ? "var(--taste-text)"
               : "var(--taste-text-soft)",
           fontSize: "12px",
-          fontWeight: index === 0 ? 700 : 550,
+          fontWeight: isPersonal ? 800 : index === 0 ? 700 : 550,
         };
 
         return (
@@ -522,7 +533,7 @@ function RankingList({
               style={{
                 display: "grid",
                 gridTemplateColumns:
-                  "25px minmax(0,1fr) auto",
+                  "25px minmax(0,1fr) 20px auto",
                 alignItems: "center",
                 gap: "8px",
                 marginBottom: "6px",
@@ -559,6 +570,21 @@ function RankingList({
                   <RankingItemLabel item={item} />
                 </div>
               )}
+
+              <span
+                title={isPersonal ? "Máš ve své evidenci" : undefined}
+                aria-label={isPersonal ? "Máš ve své evidenci" : undefined}
+                aria-hidden={isPersonal ? undefined : true}
+                style={{
+                  color: tone.accent,
+                  fontSize: "13px",
+                  lineHeight: 1,
+                  textAlign: "center",
+                  filter: "saturate(0.88)",
+                }}
+              >
+                {isPersonal ? "🍺" : ""}
+              </span>
 
               <div
                 style={{

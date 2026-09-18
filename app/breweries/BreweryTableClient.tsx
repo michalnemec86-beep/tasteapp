@@ -129,6 +129,7 @@ type BreweryTableClientProps = {
   rows: BreweryTableRow[];
   profiles: ProfileOption[];
   countries: CountryOption[];
+  currentUserId: string;
   updateBreweryAction: (
     breweryId: number,
     formData: FormData
@@ -190,6 +191,7 @@ export default function BreweryTableClient({
   rows,
   profiles,
   countries,
+  currentUserId,
   updateBreweryAction,
 }: BreweryTableClientProps) {
   const router = useRouter();
@@ -843,7 +845,11 @@ export default function BreweryTableClient({
               </tr>
             ) : (
               paginatedRows.map(
-                (brewery) => (
+                (brewery) => {
+                  const isPersonal =
+                    (brewery.userStats[currentUserId]?.consumedCount ?? 0) > 0;
+
+                  return (
                   <tr
                     key={
                       brewery.id
@@ -875,14 +881,27 @@ export default function BreweryTableClient({
                         <Link
                           href={`/breweries/${brewery.id}`}
                           style={{
-                            color: "var(--taste-text)",
+                            color: isPersonal
+                              ? "var(--taste-amber-bright)"
+                              : "var(--taste-text)",
                             textDecoration: "none",
+                            fontWeight: isPersonal ? 850 : 700,
                             borderBottom:
                               "1px solid rgba(231,166,47,0.22)",
                           }}
                         >
                           {brewery.name}
                         </Link>
+
+                        {isPersonal && (
+                          <span
+                            title="Máš ve své evidenci"
+                            aria-label="Máš ve své evidenci"
+                            style={{ fontSize: "13px", lineHeight: 1 }}
+                          >
+                            🍺
+                          </span>
+                        )}
 
                         <BreweryEditModalClient
                           brewery={{
@@ -1073,7 +1092,8 @@ export default function BreweryTableClient({
                       }
                     </td>
                   </tr>
-                )
+                  );
+                }
               )
             )}
           </tbody>

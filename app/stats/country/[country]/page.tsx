@@ -171,6 +171,7 @@ export default async function CountryStatsPage({
   }
 
   const stats = buildTasteStats(countryTastings);
+  const personalStats = buildTasteStats(countryTastings, user.id);
 
   const tastingUnits = countryTastings.reduce(
     (sum, tasting) => sum + (tasting.quantity ?? 1),
@@ -323,6 +324,7 @@ export default async function CountryStatsPage({
             subtitle="Ochutnaná piva z této země"
             icon={<AppIcon name="beer" size={20} />}
             items={stats.beers}
+            personalItemIds={personalStats.beers.map((item) => item.id)}
           />
 
           <RankingCardClient
@@ -332,6 +334,7 @@ export default async function CountryStatsPage({
             icon={<AppIcon name="label" size={20} />}
             items={stats.brands}
             itemHrefPrefix="/brands"
+            personalItemIds={personalStats.brands.map((item) => item.id)}
           />
 
           <RankingCardClient
@@ -341,6 +344,7 @@ export default async function CountryStatsPage({
             icon={<AppIcon name="brewery" size={20} />}
             items={stats.breweries}
             itemHrefPrefix="/breweries"
+            personalItemIds={personalStats.breweries.map((item) => item.id)}
           />
 
           <RankingCardClient
@@ -349,6 +353,7 @@ export default async function CountryStatsPage({
             subtitle="Styly zastoupené v této zemi"
             icon={<AppIcon name="hop" size={20} />}
             items={stats.styles}
+            personalItemIds={personalStats.styles.map((item) => item.id)}
           />
 
           <RankingCardClient
@@ -357,6 +362,7 @@ export default async function CountryStatsPage({
             subtitle="Dohledané chmely použitých piv"
             icon={<AppIcon name="hop" size={20} />}
             items={stats.hops}
+            personalItemIds={personalStats.hops.map((item) => item.id)}
           />
         </div>
       </section>
