@@ -2416,8 +2416,8 @@ function AchievementTimelineCard({
       row.user_id
     );
 
-  const systemAccent =
-    SYSTEM_COPPER;
+  const achievementAccent =
+    "#f5c16d";
 
   const displayName =
     profile
@@ -2437,10 +2437,10 @@ function AchievementTimelineCard({
           left: "5px",
           top: "-10px",
           bottom: "-10px",
-          width: "3px",
+          width: "2px",
           borderRadius: "999px",
           background:
-            "linear-gradient(180deg, rgba(184,115,51,0.33), rgba(184,115,51,0.72), rgba(184,115,51,0.33))",
+            "linear-gradient(180deg, rgba(245,193,109,0.18), rgba(245,193,109,0.78), rgba(245,193,109,0.18))",
         }}
       />
 
@@ -2451,11 +2451,14 @@ function AchievementTimelineCard({
           top: "23px",
           width: "11px",
           height: "11px",
-          borderRadius: "3px",
           border:
-            `1px solid ${systemAccent}`,
+            `1px solid ${achievementAccent}`,
+          borderRadius:
+            "2px",
           background:
-            `${systemAccent}66`,
+            "rgba(245,193,109,0.42)",
+          transform:
+            "rotate(45deg)",
           boxShadow:
             "none",
           zIndex: 2,
@@ -2468,34 +2471,34 @@ function AchievementTimelineCard({
           overflow: "hidden",
           padding: "12px 13px",
           border:
-            `1px solid ${systemAccent}78`,
+            "1px solid rgba(245,193,109,0.52)",
           borderRadius: "13px",
           background: `
             linear-gradient(
-              118deg,
-              rgba(184,115,51,0.34) 0%,
-              rgba(231,166,47,0.13) 19%,
-              rgba(87,49,22,0.42) 43%,
-              rgba(45,28,16,0.98) 67%,
+              112deg,
+              rgba(245,193,109,0.24) 0%,
+              rgba(207,143,41,0.12) 18%,
+              rgba(83,48,20,0.46) 42%,
+              rgba(45,28,16,0.98) 68%,
               rgba(35,22,12,0.99) 100%
             )
           `,
           boxShadow:
-            "inset 0 1px 0 rgba(255,214,159,0.10), 0 6px 16px rgba(0,0,0,0.18)",
+            "inset 0 1px 0 rgba(255,234,190,0.12), 0 6px 16px rgba(0,0,0,0.18)",
         }}
       >
         <div
           style={{
             position: "absolute",
             left: 0,
-            top: "13px",
-            bottom: "13px",
-            width: "4px",
+            top: "11px",
+            bottom: "11px",
+            width: "3px",
             borderRadius:
               "0 999px 999px 0",
             background:
-              systemAccent,
-            opacity: 0.96,
+              achievementAccent,
+            opacity: 0.9,
           }}
         />
 
@@ -2503,16 +2506,16 @@ function AchievementTimelineCard({
           style={{
             display: "grid",
             gridTemplateColumns:
-              "38px minmax(0,1fr)",
-            gap: "10px",
+              "42px minmax(0,1fr)",
+            gap: "11px",
             alignItems:
               "center",
           }}
         >
           <div
             style={{
-              width: "38px",
-              height: "38px",
+              width: "42px",
+              height: "42px",
               flexShrink: 0,
               display: "flex",
               alignItems:
@@ -2520,14 +2523,21 @@ function AchievementTimelineCard({
               justifyContent:
                 "center",
               border:
-                `1px solid ${systemAccent}78`,
+                "1px solid rgba(245,193,109,0.58)",
               borderRadius:
-                "11px",
-              background:
-                `${systemAccent}38`,
-              fontSize: "20px",
+                "50%",
+              background: `
+                linear-gradient(
+                  145deg,
+                  rgba(245,193,109,0.30),
+                  rgba(113,64,20,0.42)
+                )
+              `,
+              color:
+                achievementAccent,
+              fontSize: "21px",
               boxShadow:
-                "inset 0 1px 0 rgba(255,222,176,0.10)",
+                "inset 0 1px 0 rgba(255,239,204,0.16)",
             }}
           >
             {achievement.icon}
@@ -2573,19 +2583,40 @@ function AchievementTimelineCard({
                 marginTop:
                   "5px",
                 color:
-                  "var(--taste-text-soft)",
+                  achievementAccent,
                 fontSize:
                   "11px",
                 lineHeight:
                   1.4,
                 fontWeight:
-                  650,
+                  750,
               }}
             >
-              {achievement.name} -{" "}
-              {formatAchievementDate(
-                row.unlocked_at
-              )}
+              {achievement.name}
+              <span
+                style={{
+                  margin:
+                    "0 5px",
+                  color:
+                    "var(--taste-text-muted)",
+                  fontWeight:
+                    500,
+                }}
+              >
+                ·
+              </span>
+              <span
+                style={{
+                  color:
+                    "var(--taste-text-soft)",
+                  fontWeight:
+                    600,
+                }}
+              >
+                {formatAchievementDate(
+                  row.unlocked_at
+                )}
+              </span>
             </div>
           </div>
         </div>
