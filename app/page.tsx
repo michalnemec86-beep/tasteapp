@@ -31,7 +31,6 @@ import BreweryOfDayCard from "@/components/home/BreweryOfDayCard";
 import PageHero from "@/components/ui/PageHero";
 import AppIcon from "@/components/ui/AppIcon";
 import { getCzechVocative } from "@/lib/czech-vocative";
-import { getTimelineVisual } from "@/lib/timeline-visual";
 
 import {
   updateTastingInModal,
@@ -199,10 +198,18 @@ type AchievementRow = {
 type CatalogEventRow = {
   id: number;
   actor_user_id: string;
-  event_type: "beer_created" | "beer_confirmed" | "beer_version_created";
+  event_type:
+    | "beer_created"
+    | "beer_confirmed"
+    | "beer_version_created"
+    | "brand_created"
+    | "brewery_created"
+    | "hop_created";
   created_at: string;
   beers: { id: number; name: string; brands: { id: number; name: string } | null } | null;
   breweries: { id: number; name: string } | null;
+  brands: { id: number; name: string } | null;
+  hops: { id: number; name: string } | null;
 };
 
 type TimelineEvent =
@@ -423,7 +430,9 @@ export default async function HomePage() {
     .select(`
       id, actor_user_id, event_type, created_at,
       beers ( id, name, brands ( id, name ) ),
-      breweries ( id, name )
+      breweries ( id, name ),
+      brands ( id, name ),
+      hops ( id, name )
     `)
     .eq("show_in_timeline", true)
     .order("created_at", { ascending: false })
@@ -639,6 +648,8 @@ export default async function HomePage() {
     created_at: string;
     beers: ({ id: number; name: string; brands: { id: number; name: string } | Array<{ id: number; name: string }> | null } | Array<{ id: number; name: string; brands: { id: number; name: string } | Array<{ id: number; name: string }> | null }>) | null;
     breweries: { id: number; name: string } | Array<{ id: number; name: string }> | null;
+    brands: { id: number; name: string } | Array<{ id: number; name: string }> | null;
+    hops: { id: number; name: string } | Array<{ id: number; name: string }> | null;
   }>;
   const allCatalogEvents = rawCatalogEvents.map((event) => {
     const beer = singleRelation(event.beers);
@@ -646,6 +657,8 @@ export default async function HomePage() {
       ...event,
       beers: beer ? { ...beer, brands: singleRelation(beer.brands) } : null,
       breweries: singleRelation(event.breweries),
+      brands: singleRelation(event.brands),
+      hops: singleRelation(event.hops),
     };
   }) as CatalogEventRow[];
 
@@ -1328,11 +1341,11 @@ export default async function HomePage() {
 
 const TIMELINE_USER_ACCENTS = [
   "#f2b63f",
-  "#e88835",
+  "#5f9fc4",
   "#d65b42",
-  "#9cad47",
-  "#b77a36",
-  "#c68139",
+  "#83a94f",
+  "#9b75c9",
+  "#d98a43",
 ] as const;
 
 function getTimelineUserAccent(
@@ -1384,10 +1397,17 @@ function TastingTimelineCard({
   const quantity =
     tasting.quantity ?? 1;
 
-  const visual =
-    getTimelineVisual(
-      tasting.id
+  const userAccent =
+    getTimelineUserAccent(
+      tasting.user_id
     );
+
+  const visual = {
+    accent: userAccent,
+    background: `${userAccent}12`,
+    border: `${userAccent}52`,
+    glow: `${userAccent}24`,
+  };
 
   const packagingIcon =
     tasting.packaging === "bottle"
@@ -1400,11 +1420,6 @@ function TastingTimelineCard({
               tasting.packaging === null
             ? "package"
             : "beer";
-
-  const userAccent =
-    getTimelineUserAccent(
-      tasting.user_id
-    );
 
   const beerName =
     tasting.beers?.name ??
@@ -1483,7 +1498,7 @@ function TastingTimelineCard({
           bottom: "-10px",
           width: "1px",
           background:
-            "linear-gradient(180deg, rgba(231,166,47,0.08), rgba(231,166,47,0.40), rgba(231,166,47,0.08))",
+            `linear-gradient(180deg, ${userAccent}10, ${userAccent}66, ${userAccent}10)`,
         }}
       />
 
@@ -2052,27 +2067,277 @@ function TastingTimelineCard({
   );
 }
 
+const SYSTEM_EVENT_VISUALS = {
+  beer_created: {
+    accent: "#4f9b9b",
+    icon: "beer",
+    eyebrow: "Systém · nové pivo",
+    action: "přidal nové pivo do sortimentu",
+  },
+  beer_confirmed: {
+    accent: "#78a65a",
+    icon: "beer",
+    eyebrow: "Systém · katalog",
+    action: "potvrdil pivo jako katalogové",
+  },
+  beer_version_created: {
+    accent: "#6f86c7",
+    icon: "beer",
+    eyebrow: "Systém · nová verze",
+    action: "vytvořil novou aktuální verzi piva",
+  },
+  brand_created: {
+    accent: "#9b75c9",
+    icon: "label",
+    eyebrow: "Systém · nová značka",
+    action: "zapsal novou značku",
+  },
+  brewery_created: {
+    accent: "#5f9fc4",
+    icon: "brewery",
+    eyebrow: "Systém · nový pivovar",
+    action: "zapsal nový pivovar",
+  },
+  hop_created: {
+    accent: "#7fa447",
+    icon: "hop",
+    eyebrow: "Systém · nový chmel",
+    action: "zapsal nový chmel",
+  },
+} as const;
+
 function CatalogTimelineCard({ row, profile }: { row: CatalogEventRow; profile: ProfileRow | null }) {
-  const labels = {
-    beer_created: "přidal nové pivo do sortimentu",
-    beer_confirmed: "potvrdil pivo jako katalogové",
-    beer_version_created: "vytvořil novou aktuální verzi piva",
-  } as const;
+  const visual = SYSTEM_EVENT_VISUALS[row.event_type];
+  const userAccent = getTimelineUserAccent(row.actor_user_id);
+  const initial = profile?.display_name?.charAt(0).toUpperCase() ?? "?";
+
+  const entity =
+    row.event_type === "brand_created" && row.brands ? (
+      <Link href={`/brands/${row.brands.id}`} className="taste-entity-link">
+        {row.brands.name}
+      </Link>
+    ) : row.event_type === "brewery_created" && row.breweries ? (
+      <Link href={`/breweries/${row.breweries.id}`} className="taste-entity-link">
+        {row.breweries.name}
+      </Link>
+    ) : row.event_type === "hop_created" && row.hops ? (
+      <span>{row.hops.name}</span>
+    ) : row.beers ? (
+      <Link href={`/beers/${row.beers.id}`} className="taste-entity-link">
+        {row.beers.name}
+      </Link>
+    ) : (
+      <span>Nový katalogový záznam</span>
+    );
 
   return (
     <div style={{ position: "relative", paddingLeft: "20px" }}>
-      <div style={{ position: "absolute", left: "5px", top: "-10px", bottom: "-10px", width: "1px", background: "linear-gradient(180deg, rgba(242,182,63,.04), rgba(242,182,63,.28), rgba(242,182,63,.04))" }} />
-      <div style={{ position: "absolute", left: "1px", top: "24px", width: "9px", height: "9px", borderRadius: "50%", border: "1px solid #f2b63f", background: "var(--taste-surface-raised)" }} />
-      <article className="taste-card" style={{ padding: "14px 16px" }}>
-        <div style={{ color: "var(--taste-text-muted)", fontSize: "11px", lineHeight: 1.55 }}>
-          <strong style={{ color: "var(--taste-text)" }}>{profile?.display_name ?? "Uživatel"}</strong>{" "}
-          {labels[row.event_type]}{" "}
-          {row.beers ? <Link href={`/beers/${row.beers.id}`} className="taste-entity-link" style={{ fontWeight: 800 }}>{row.beers.name}</Link> : "pivo"}
-          {row.beers?.brands && <span> · značka {row.beers.brands.name}</span>}
-          {row.breweries && <span> · <Link href={`/breweries/${row.breweries.id}`} className="taste-entity-link">{row.breweries.name}</Link></span>}
-        </div>
-        <div style={{ marginTop: "6px", color: "var(--taste-text-muted)", fontSize: "9px" }}>
-          {new Intl.DateTimeFormat("cs-CZ", { dateStyle: "medium", timeStyle: "short" }).format(new Date(row.created_at))}
+      <div
+        style={{
+          position: "absolute",
+          left: "5px",
+          top: "-10px",
+          bottom: "-10px",
+          width: "1px",
+          background: `linear-gradient(180deg, ${visual.accent}0D, ${visual.accent}55, ${visual.accent}0D)`,
+        }}
+      />
+      <div
+        style={{
+          position: "absolute",
+          left: "1px",
+          top: "24px",
+          width: "9px",
+          height: "9px",
+          borderRadius: "50%",
+          border: `1px solid ${visual.accent}`,
+          background: "var(--taste-bg-deep)",
+          boxShadow: `0 0 11px ${visual.accent}45`,
+          zIndex: 2,
+        }}
+      />
+
+      <article
+        style={{
+          position: "relative",
+          overflow: "hidden",
+          padding: "12px 13px",
+          border: `1px solid ${visual.accent}45`,
+          borderRadius: "13px",
+          background: `
+            radial-gradient(circle at 88% 18%, ${visual.accent}18, transparent 13rem),
+            linear-gradient(145deg, ${visual.accent}0D, transparent 48%),
+            var(--taste-surface)
+          `,
+          boxShadow: "0 7px 20px rgba(0,0,0,0.16)",
+        }}
+      >
+        <div
+          style={{
+            position: "absolute",
+            left: 0,
+            top: "13px",
+            bottom: "13px",
+            width: "2px",
+            borderRadius: "999px",
+            background: visual.accent,
+            opacity: 0.72,
+          }}
+        />
+
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_140px] sm:gap-4">
+          <div className="order-2 min-w-0 sm:order-1">
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "38px minmax(0,1fr)",
+                gap: "10px",
+                alignItems: "start",
+              }}
+            >
+              <div
+                style={{
+                  width: "38px",
+                  height: "38px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  border: `1px solid ${visual.accent}55`,
+                  borderRadius: "11px",
+                  background: `${visual.accent}12`,
+                  color: visual.accent,
+                  boxShadow: `0 0 13px ${visual.accent}18`,
+                }}
+              >
+                <AppIcon name={visual.icon} size={21} strokeWidth={1.8} />
+              </div>
+
+              <div style={{ minWidth: 0 }}>
+                <div
+                  className="taste-label"
+                  style={{
+                    marginBottom: "3px",
+                    color: visual.accent,
+                    opacity: 0.9,
+                  }}
+                >
+                  {visual.eyebrow}
+                </div>
+
+                <h3
+                  style={{
+                    margin: 0,
+                    color: "var(--taste-text)",
+                    fontSize: "15px",
+                    lineHeight: 1.2,
+                    fontWeight: 800,
+                    letterSpacing: "-0.02em",
+                  }}
+                >
+                  {entity}
+                </h3>
+
+                <div
+                  style={{
+                    marginTop: "5px",
+                    color: "var(--taste-text-soft)",
+                    fontSize: "10px",
+                    lineHeight: 1.45,
+                  }}
+                >
+                  {visual.action}
+                  {row.event_type.startsWith("beer_") && row.beers?.brands && (
+                    <span> · značka {row.beers.brands.name}</span>
+                  )}
+                  {row.event_type !== "brewery_created" && row.breweries && (
+                    <span>
+                      {" · "}
+                      <Link href={`/breweries/${row.breweries.id}`} className="taste-entity-link">
+                        {row.breweries.name}
+                      </Link>
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div
+            className="order-1 sm:order-2"
+            style={{
+              minWidth: 0,
+              display: "flex",
+              alignItems: "center",
+              gap: "9px",
+              padding: "7px 8px",
+              border: `1px solid ${userAccent}30`,
+              borderRadius: "10px",
+              background: `${userAccent}09`,
+              alignSelf: "start",
+            }}
+          >
+            <Link
+              href={`/profiles/${row.actor_user_id}`}
+              aria-label={profile?.display_name ?? "Profil uživatele"}
+              style={{
+                width: "32px",
+                height: "32px",
+                flexShrink: 0,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                overflow: "hidden",
+                borderRadius: "9px",
+                border: `1px solid ${userAccent}55`,
+                backgroundColor: `${userAccent}12`,
+                backgroundImage: profile?.avatar_url ? `url("${profile.avatar_url}")` : undefined,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+                color: userAccent,
+                textDecoration: "none",
+                fontSize: "10px",
+                fontWeight: 850,
+              }}
+            >
+              {!profile?.avatar_url && initial}
+            </Link>
+
+            <div style={{ minWidth: 0, flex: 1 }}>
+              <Link
+                href={`/profiles/${row.actor_user_id}`}
+                style={{
+                  display: "block",
+                  overflow: "hidden",
+                  color: userAccent,
+                  fontSize: "10px",
+                  fontWeight: 800,
+                  lineHeight: 1.2,
+                  textDecoration: "none",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {profile?.display_name ?? "Neznámý uživatel"}
+              </Link>
+              <div
+                style={{
+                  marginTop: "3px",
+                  color: "var(--taste-text-muted)",
+                  fontSize: "9px",
+                  lineHeight: 1.3,
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {new Intl.DateTimeFormat("cs-CZ", {
+                  day: "numeric",
+                  month: "numeric",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                }).format(new Date(row.created_at))}
+              </div>
+            </div>
+          </div>
         </div>
       </article>
     </div>
