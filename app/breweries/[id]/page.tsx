@@ -64,7 +64,8 @@ export default async function BreweryDetailPage({ params }: Props) {
         id, name, city, country, address, website, logo_url, is_nomadic,
         founded_year, closed_year, latitude, longitude,
         beers (
-          id, name, brand_id, plato, abv, ibu, is_non_alcoholic,
+          id, name, plato, abv, ibu, is_non_alcoholic,
+          brands ( id, name ),
           beer_styles ( name ),
           beer_hops ( hops ( name ) ),
           beer_versions (
@@ -127,6 +128,7 @@ export default async function BreweryDetailPage({ params }: Props) {
 
   const breweryBeers = (brewery.beers ?? [])
     .map((beer: any) => {
+      const brand = one(beer.brands);
       const fallbackStyle = one(beer.beer_styles);
       const fallbackHopNames = (beer.beer_hops ?? [])
         .map((item: any) => one(item.hops)?.name)
@@ -148,6 +150,7 @@ export default async function BreweryDetailPage({ params }: Props) {
 
       return {
         ...beer,
+        brand,
         plato: currentVersion?.plato ?? beer.plato,
         abv: currentVersion?.abv ?? beer.abv,
         ibu: currentVersion?.ibu ?? beer.ibu,
@@ -179,10 +182,8 @@ export default async function BreweryDetailPage({ params }: Props) {
 
   const brandCount = new Set(
     breweryBeers
-      .map((beer: any) => beer.brand_id)
-      .filter((brandId: unknown): brandId is number =>
-        typeof brandId === "number"
-      )
+      .map((beer: any) => beer.brand?.id)
+      .filter((brandId: unknown): brandId is number => typeof brandId === "number")
   ).size;
 
   const relatedIds = Array.from(new Set([
@@ -258,8 +259,9 @@ export default async function BreweryDetailPage({ params }: Props) {
           </div>
         }
         stats={[
-          { icon: "🍺", value: consumedBeerCount, label: "Vypitých piv" },
+          { icon: "🍺", value: breweryBeers.length, label: "Piv v katalogu" },
           { icon: "◆", value: brandCount, label: "Značek" },
+          { icon: "✓", value: consumedBeerCount, label: "Vypitých piv" },
         ]}
       />
 
@@ -314,7 +316,9 @@ export default async function BreweryDetailPage({ params }: Props) {
                 hops={hops}
                 createBeerAction={createCatalogBeer.bind(null, brewery.id)}
               />
-              <div style={{ color: "var(--taste-text-muted)", fontSize: "10px" }}>{breweryBeers.length} {breweryBeers.length === 1 ? "pivo" : "piv"}</div>
+              <div style={{ color: "var(--taste-text-muted)", fontSize: "10px" }}>
+                {breweryBeers.length} {formatBeerCount(breweryBeers.length)} · {brandCount} {formatBrandCount(brandCount)}
+              </div>
             </div>
           </div>
 
@@ -326,9 +330,18 @@ export default async function BreweryDetailPage({ params }: Props) {
                   style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) auto", alignItems: "center", gap: "14px", padding: "10px 0", borderBottom: index < breweryBeers.length - 1 ? "1px solid rgba(255,255,255,.055)" : "none" }}
                 >
                   <div style={{ minWidth: 0 }}>
+                    <div className="taste-label" style={{ marginBottom: "4px", fontSize: "8px" }}>Pivo</div>
                     <Link href={`/beers/${beer.id}`} className="taste-entity-link" style={{ color: "var(--taste-text)", fontSize: "13px", fontWeight: 700, lineHeight: 1.3 }}>
                       {beer.name}
                     </Link>
+                    {beer.brand && (
+                      <div style={{ marginTop: "5px", color: "var(--taste-text-muted)", fontSize: "10px" }}>
+                        <span style={{ marginRight: "5px" }}>Značka:</span>
+                        <Link href={`/brands/${beer.brand.id}`} className="taste-entity-link" style={{ color: "var(--taste-amber-bright)", fontWeight: 700 }}>
+                          {beer.brand.name}
+                        </Link>
+                      </div>
+                    )}
                     <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "5px", marginTop: "6px" }}>
                       {beer.is_non_alcoholic && <Badge>NEALKO</Badge>}
                       {beer.styleName && <span style={{ color: "var(--taste-text-soft)", fontSize: "10px", fontWeight: 650 }}>{beer.styleName}</span>}
@@ -470,6 +483,14 @@ function formatVersionCount(count: number) {
   if (count === 1) return "1 verze";
   if (count >= 2 && count <= 4) return `${count} verze`;
   return `${count} verzí`;
+}
+
+function formatBeerCount(count: number) {
+  return count === 1 ? "pivo" : count >= 2 && count <= 4 ? "piva" : "piv";
+}
+
+function formatBrandCount(count: number) {
+  return count === 1 ? "značka" : count >= 2 && count <= 4 ? "značky" : "značek";
 }
 
 function DetailItem({ label, value }: { label: string; value: React.ReactNode }) {

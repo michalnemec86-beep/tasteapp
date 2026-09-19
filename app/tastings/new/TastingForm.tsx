@@ -129,10 +129,30 @@ export default function TastingForm({
   // PIVO
   // ==================================================
 
-  const beerSuggestions = beers.filter((beer) => {
-    if (beerName.trim().length < 3) return false;
-    return normalizeText(beer.name).includes(normalizeText(beerName));
-  });
+  const beerSuggestions = beers
+    .filter((beer) => {
+      if (beerName.trim().length < 3) return false;
+      const query = normalizeText(beerName);
+      return (
+        normalizeText(beer.name).includes(query) ||
+        normalizeText(beer.brands?.name ?? "").includes(query)
+      );
+    })
+    .sort((a, b) => {
+      const selectedBrewery = normalizeText(breweryName);
+      const aMatchesBrewery =
+        selectedBrewery.length > 0 &&
+        normalizeText(a.breweries?.name ?? "") === selectedBrewery;
+      const bMatchesBrewery =
+        selectedBrewery.length > 0 &&
+        normalizeText(b.breweries?.name ?? "") === selectedBrewery;
+
+      if (aMatchesBrewery !== bMatchesBrewery) {
+        return aMatchesBrewery ? -1 : 1;
+      }
+
+      return a.name.localeCompare(b.name, "cs", { sensitivity: "base" });
+    });
 
   function selectBeer(beer: ExistingBeer) {
     setExistingBeerId(String(beer.id));
@@ -151,6 +171,24 @@ export default function TastingForm({
         .filter((name): name is string => Boolean(name))
     );
     setBeerOpen(false);
+  }
+
+  function findExactBeer(breweryValue = breweryName) {
+    const sameName = beers.filter(
+      (beer) => normalizeText(beer.name) === normalizeText(beerName)
+    );
+    const normalizedBrewery = normalizeText(breweryValue);
+
+    if (normalizedBrewery) {
+      return (
+        sameName.find(
+          (beer) =>
+            normalizeText(beer.breweries?.name ?? "") === normalizedBrewery
+        ) ?? null
+      );
+    }
+
+    return sameName.length === 1 ? sameName[0] : null;
   }
 
   function changeBeerName(value: string) {
@@ -185,6 +223,12 @@ export default function TastingForm({
   });
 
   function selectBrewery(brewery: Brewery) {
+    const exactBeer = findExactBeer(brewery.name);
+    if (exactBeer) {
+      selectBeer(exactBeer);
+      return;
+    }
+
     setBreweryName(brewery.name);
     setBreweryCountry(brewery.country ?? "");
     setBreweryOpen(false);
@@ -301,7 +345,13 @@ export default function TastingForm({
             value={beerName}
             onChange={(event) => changeBeerName(event.target.value)}
             onFocus={() => setBeerOpen(true)}
-            onBlur={() => setTimeout(() => setBeerOpen(false), 150)}
+            onBlur={() =>
+              setTimeout(() => {
+                const exactBeer = findExactBeer();
+                if (exactBeer) selectBeer(exactBeer);
+                else setBeerOpen(false);
+              }, 150)
+            }
             placeholder="Např. Kozel 11°"
             autoComplete="off"
             required
@@ -318,17 +368,34 @@ export default function TastingForm({
                   onClick={() => selectBeer(beer)}
                   style={suggestionButtonStyle}
                 >
-                  <strong>{beer.name}</strong>
-                  {beer.brands?.name && (
-                    <div style={{ fontSize: "12px", opacity: 0.72, marginTop: "2px" }}>
-                      {beer.brands.name}
-                    </div>
-                  )}
-                  {beer.breweries?.name && (
-                    <div style={{ fontSize: "13px", opacity: 0.7, marginTop: "2px" }}>
-                      {beer.breweries.name}
-                    </div>
-                  )}
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "54px minmax(0, 1fr)",
+                      columnGap: "8px",
+                      rowGap: "3px",
+                      textAlign: "left",
+                    }}
+                  >
+                    <span style={suggestionLabelStyle}>Pivo</span>
+                    <strong>{beer.name}</strong>
+                    {beer.brands?.name && (
+                      <>
+                        <span style={suggestionLabelStyle}>Značka</span>
+                        <span style={{ fontSize: "12px", opacity: 0.82 }}>
+                          {beer.brands.name}
+                        </span>
+                      </>
+                    )}
+                    {beer.breweries?.name && (
+                      <>
+                        <span style={suggestionLabelStyle}>Pivovar</span>
+                        <span style={{ fontSize: "12px", opacity: 0.72 }}>
+                          {beer.breweries.name}
+                        </span>
+                      </>
+                    )}
+                  </div>
                 </button>
               ))}
             </div>
@@ -360,6 +427,18 @@ export default function TastingForm({
             <option key={name} value={name} />
           ))}
         </datalist>
+        <div
+          style={{
+            marginTop: "5px",
+            color: "var(--taste-text-muted)",
+            fontSize: "10px",
+            lineHeight: 1.4,
+          }}
+        >
+          {existingBeerId
+            ? "Značka je předvyplněná podle vybraného piva z katalogu."
+            : "Značka je obchodní označení; název piva označuje konkrétní pivo."}
+        </div>
       </div>
 
       {/* PIVOVAR */}
@@ -869,4 +948,13 @@ const suggestionButtonStyle = {
   textAlign: "left" as const,
   cursor: "pointer",
   fontSize: "15px",
+};
+
+const suggestionLabelStyle = {
+  paddingTop: "2px",
+  color: "#776b60",
+  fontSize: "9px",
+  fontWeight: 800,
+  letterSpacing: "0.06em",
+  textTransform: "uppercase" as const,
 };
