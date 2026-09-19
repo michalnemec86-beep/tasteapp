@@ -21,6 +21,27 @@ export default function ProfileBreweriesView({
   const [query, setQuery] = useState("");
   const [country, setCountry] = useState("");
   const [showCountries, setShowCountries] = useState(false);
+  const [letter, setLetter] = useState("");
+  const [showLetters, setShowLetters] = useState(false);
+
+  function initial(name: string) {
+    const first = name.trim().charAt(0).toLocaleUpperCase("cs");
+    const normalized = first.normalize("NFD").replace(/\p{M}/gu, "");
+
+    return /^[A-Z]$/.test(normalized) ? normalized : "#";
+  }
+
+  const letters = useMemo(
+    () =>
+      Array.from(new Set(items.map((item) => initial(item.name)))).sort(
+        (a, b) => {
+          if (a === "#") return 1;
+          if (b === "#") return -1;
+          return a.localeCompare(b, "cs");
+        }
+      ),
+    [items]
+  );
 
   const countries = useMemo(
     () =>
@@ -40,6 +61,7 @@ export default function ProfileBreweriesView({
     return items
       .filter((item) => {
         if (country && item.country !== country) return false;
+        if (letter && initial(item.name) !== letter) return false;
         if (!needle) return true;
 
         return [item.name, item.country].some((value) =>
@@ -65,13 +87,17 @@ export default function ProfileBreweriesView({
 
         return b.count - a.count || a.name.localeCompare(b.name, "cs");
       });
-  }, [country, items, query, sort]);
+  }, [country, items, letter, query, sort]);
 
   function selectSort(nextSort: BrewerySort) {
     setSort(nextSort);
     if (nextSort !== "country") {
       setCountry("");
       setShowCountries(false);
+    }
+    if (nextSort !== "alpha") {
+      setLetter("");
+      setShowLetters(false);
     }
   }
 
@@ -107,8 +133,25 @@ export default function ProfileBreweriesView({
         </div>
 
         <div className="taste-tasting-sort-buttons">
+          <button
+            type="button"
+            className="taste-button-secondary"
+            aria-expanded={showLetters}
+            aria-pressed={sort === "alpha" || Boolean(letter)}
+            onClick={() => {
+              const nextVisible = !showLetters;
+              setShowLetters(nextVisible);
+              if (nextVisible) {
+                setSort("alpha");
+                setCountry("");
+                setShowCountries(false);
+              }
+            }}
+          >
+            Abecedně
+          </button>
+
           {([
-            ["alpha", "Abecedně"],
             ["most", "Nejvíce"],
             ["least", "Nejméně"],
           ] as const).map(([key, label]) => (
@@ -131,12 +174,40 @@ export default function ProfileBreweriesView({
             onClick={() => {
               const nextVisible = !showCountries;
               setShowCountries(nextVisible);
-              if (nextVisible) setSort("country");
+              if (nextVisible) {
+                setSort("country");
+                setLetter("");
+                setShowLetters(false);
+              }
             }}
           >
             Podle států
           </button>
         </div>
+
+        {showLetters && (
+          <div className="taste-tasting-letters" aria-label="Vybrat počáteční písmeno pivovaru">
+            <button
+              type="button"
+              className="taste-button-secondary"
+              aria-pressed={!letter}
+              onClick={() => setLetter("")}
+            >
+              Všechna
+            </button>
+            {letters.map((item) => (
+              <button
+                key={item}
+                type="button"
+                className="taste-button-secondary"
+                aria-pressed={letter === item}
+                onClick={() => setLetter(item)}
+              >
+                {item}
+              </button>
+            ))}
+          </div>
+        )}
 
         {showCountries && (
           <label className="taste-tasting-country-select">
