@@ -27,6 +27,8 @@ type StatsFilterBarClientProps = {
   selectedMonth?: number;
   selectedPackaging?: string;
   sortMode: SortMode;
+  selectedLetter?: string;
+  letters?: string[];
   firstYear?: number;
   hideProfileSelector?: boolean;
   contextFilters?: Array<{
@@ -58,6 +60,8 @@ export default function StatsFilterBarClient({
   selectedMonth,
   selectedPackaging,
   sortMode,
+  selectedLetter = "",
+  letters = [],
   firstYear = 2005,
   hideProfileSelector = false,
   contextFilters = [],
@@ -110,12 +114,95 @@ export default function StatsFilterBarClient({
     Boolean(selectedYear),
     Boolean(selectedMonth),
     Boolean(selectedPackaging),
-    sortMode !== "count-desc",
     ...contextFilters.map(() => true),
   ].filter(Boolean).length;
   const [filtersOpen, setFiltersOpen] = useState(activeFilterCount > 0);
+  const [lettersOpen, setLettersOpen] = useState(
+    sortMode === "name-asc" || Boolean(selectedLetter)
+  );
 
   return (
+    <>
+    <div className="taste-tasting-sort" style={{ marginBottom: "12px" }}>
+      <div className="taste-tasting-sort-buttons" aria-label="Řazení statistik">
+        <button
+          type="button"
+          className="taste-button-secondary"
+          aria-expanded={lettersOpen}
+          aria-pressed={sortMode === "name-asc" || Boolean(selectedLetter)}
+          onClick={() => {
+            const nextOpen = !lettersOpen;
+            setLettersOpen(nextOpen);
+            if (nextOpen && sortMode !== "name-asc") {
+              updateParams({ sort: "name-asc", letter: null });
+            }
+          }}
+        >
+          Abecedně
+        </button>
+
+        <button
+          type="button"
+          className="taste-button-secondary"
+          aria-pressed={sortMode === "count-desc"}
+          onClick={() => {
+            setLettersOpen(false);
+            updateParams({ sort: null, letter: null });
+          }}
+        >
+          Nejvíce
+        </button>
+
+        <button
+          type="button"
+          className="taste-button-secondary"
+          aria-pressed={sortMode === "count-asc"}
+          onClick={() => {
+            setLettersOpen(false);
+            updateParams({ sort: "count-asc", letter: null });
+          }}
+        >
+          Nejméně
+        </button>
+
+        <button
+          type="button"
+          className="taste-button-secondary"
+          aria-pressed={sortMode === "name-desc"}
+          onClick={() => {
+            setLettersOpen(false);
+            updateParams({ sort: "name-desc", letter: null });
+          }}
+        >
+          Z–A
+        </button>
+      </div>
+
+      {lettersOpen && (
+        <div className="taste-tasting-letters" aria-label="Vybrat počáteční písmeno">
+          <button
+            type="button"
+            className="taste-button-secondary"
+            aria-pressed={!selectedLetter}
+            onClick={() => updateParams({ sort: "name-asc", letter: null })}
+          >
+            Všechna
+          </button>
+          {letters.map((letter) => (
+            <button
+              key={letter}
+              type="button"
+              className="taste-button-secondary"
+              aria-pressed={selectedLetter === letter}
+              onClick={() => updateParams({ sort: "name-asc", letter })}
+            >
+              {letter}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+
     <details
       className="taste-collapsible-filters"
       open={filtersOpen || activeFilterCount > 0}
@@ -254,25 +341,9 @@ export default function StatsFilterBarClient({
         ))}
       </FilterSelect>
 
-      <FilterSelect
-        label="Řazení"
-        value={sortMode}
-        onChange={(value) =>
-          updateParams({
-            sort:
-              value === "count-desc"
-                ? null
-                : value,
-          })
-        }
-      >
-        <option value="count-desc">↓ Nejvíce</option>
-        <option value="count-asc">↑ Nejméně</option>
-        <option value="name-asc">A–Z</option>
-        <option value="name-desc">Z–A</option>
-      </FilterSelect>
       </section>
     </details>
+    </>
   );
 }
 

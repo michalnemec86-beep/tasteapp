@@ -44,6 +44,7 @@ type StatsPageProps = {
     style?: string | string[];
     country?: string | string[];
     hop?: string | string[];
+    letter?: string | string[];
   }>;
 };
 
@@ -79,6 +80,8 @@ export default async function StatsPage({
   const requestedStyle = getStringParam(params.style);
   const requestedCountry = getStringParam(params.country);
   const requestedHop = getStringParam(params.hop);
+  const selectedLetter = getStringParam(params.letter)
+    ?.toLocaleUpperCase("cs") ?? "";
 
   const sortMode: SortMode = isSortMode(requestedSort)
     ? requestedSort
@@ -412,19 +415,39 @@ export default async function StatsPage({
       Boolean(filter)
   );
 
+  const alphabetItems = [
+    ...rawStats.beers,
+    ...rawStats.brands,
+    ...rawStats.breweries,
+    ...rawStats.styles,
+    ...rawStats.countries,
+    ...rawStats.hops,
+  ];
+  const availableLetters = Array.from(
+    new Set(alphabetItems.map((item) => rankingInitial(item.name)))
+  ).sort((a, b) => {
+    if (a === "#") return 1;
+    if (b === "#") return -1;
+    return a.localeCompare(b, "cs");
+  });
+  const filterByLetter = (items: RankingItem[]) =>
+    selectedLetter
+      ? items.filter((item) => rankingInitial(item.name) === selectedLetter)
+      : items;
+
   const stats = {
-    beers: sortRanking(rawStats.beers, sortMode),
-    brands: sortRanking(rawStats.brands, sortMode),
+    beers: sortRanking(filterByLetter(rawStats.beers), sortMode),
+    brands: sortRanking(filterByLetter(rawStats.brands), sortMode),
     breweries: sortRanking(
-      rawStats.breweries,
+      filterByLetter(rawStats.breweries),
       sortMode
     ),
-    styles: sortRanking(rawStats.styles, sortMode),
+    styles: sortRanking(filterByLetter(rawStats.styles), sortMode),
     countries: sortRanking(
-      rawStats.countries,
+      filterByLetter(rawStats.countries),
       sortMode
     ),
-    hops: sortRanking(rawStats.hops, sortMode),
+    hops: sortRanking(filterByLetter(rawStats.hops), sortMode),
     packaging: sortRanking(
       rawStats.packaging,
       sortMode
@@ -635,6 +658,8 @@ export default async function StatsPage({
           selectedMonth={selectedMonth}
           selectedPackaging={selectedPackaging}
           sortMode={sortMode}
+          selectedLetter={selectedLetter}
+          letters={availableLetters}
           firstYear={FIRST_YEAR}
           contextFilters={contextFilters}
         />
@@ -775,6 +800,7 @@ export default async function StatsPage({
             year: selectedYear ? String(selectedYear) : undefined,
             month: selectedMonth ? String(selectedMonth) : undefined,
             sort: sortMode !== "count-desc" ? sortMode : undefined,
+            letter: selectedLetter || undefined,
             beer: requestedBeerId ? String(requestedBeerId) : undefined,
             brand: requestedBrandId ? String(requestedBrandId) : undefined,
             brewery: requestedBreweryId ? String(requestedBreweryId) : undefined,
@@ -902,4 +928,11 @@ function sortRanking(
           : a.name.localeCompare(b.name, "cs");
     }
   });
+}
+
+function rankingInitial(name: string) {
+  const first = name.trim().charAt(0).toLocaleUpperCase("cs");
+  const normalized = first.normalize("NFD").replace(/\p{M}/gu, "");
+
+  return /^[A-Z]$/.test(normalized) ? normalized : "#";
 }
