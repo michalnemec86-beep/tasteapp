@@ -1341,11 +1341,11 @@ export default async function HomePage() {
 
 const TIMELINE_USER_ACCENTS = [
   "#f2b63f",
-  "#5f9fc4",
+  "#e88835",
   "#d65b42",
-  "#83a94f",
-  "#9b75c9",
-  "#d98a43",
+  "#9cad47",
+  "#a86221",
+  "#cf8f29",
 ] as const;
 
 function getTimelineUserAccent(
@@ -2069,37 +2069,37 @@ function TastingTimelineCard({
 
 const SYSTEM_EVENT_VISUALS = {
   beer_created: {
-    accent: "#4f9b9b",
+    accent: "#e7a62f",
     icon: "beer",
     eyebrow: "Systém · nové pivo",
     action: "přidal nové pivo do sortimentu",
   },
   beer_confirmed: {
-    accent: "#78a65a",
+    accent: "#9cad47",
     icon: "beer",
     eyebrow: "Systém · katalog",
     action: "potvrdil pivo jako katalogové",
   },
   beer_version_created: {
-    accent: "#6f86c7",
+    accent: "#cf8f29",
     icon: "beer",
     eyebrow: "Systém · nová verze",
     action: "vytvořil novou aktuální verzi piva",
   },
   brand_created: {
-    accent: "#9b75c9",
+    accent: "#f5c16d",
     icon: "label",
     eyebrow: "Systém · nová značka",
     action: "zapsal novou značku",
   },
   brewery_created: {
-    accent: "#5f9fc4",
+    accent: "#a86221",
     icon: "brewery",
     eyebrow: "Systém · nový pivovar",
     action: "zapsal nový pivovar",
   },
   hop_created: {
-    accent: "#7fa447",
+    accent: "#7f9840",
     icon: "hop",
     eyebrow: "Systém · nový chmel",
     action: "zapsal nový chmel",
@@ -2139,7 +2139,7 @@ function CatalogTimelineCard({ row, profile }: { row: CatalogEventRow; profile: 
           top: "-10px",
           bottom: "-10px",
           width: "1px",
-          background: `linear-gradient(180deg, ${visual.accent}0D, ${visual.accent}55, ${visual.accent}0D)`,
+          background: `linear-gradient(180deg, ${visual.accent}18, ${visual.accent}88, ${visual.accent}18)`,
         }}
       />
       <div
@@ -2162,12 +2162,12 @@ function CatalogTimelineCard({ row, profile }: { row: CatalogEventRow; profile: 
           position: "relative",
           overflow: "hidden",
           padding: "12px 13px",
-          border: `1px solid ${visual.accent}45`,
+          border: `1px solid ${visual.accent}70`,
           borderRadius: "13px",
           background: `
-            radial-gradient(circle at 88% 18%, ${visual.accent}18, transparent 13rem),
-            linear-gradient(145deg, ${visual.accent}0D, transparent 48%),
-            var(--taste-surface)
+            radial-gradient(circle at 88% 18%, ${visual.accent}2E, transparent 13rem),
+            linear-gradient(145deg, ${visual.accent}1F, transparent 52%),
+            var(--taste-surface-raised)
           `,
           boxShadow: "0 7px 20px rgba(0,0,0,0.16)",
         }}
@@ -2202,11 +2202,11 @@ function CatalogTimelineCard({ row, profile }: { row: CatalogEventRow; profile: 
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  border: `1px solid ${visual.accent}55`,
+                  border: `1px solid ${visual.accent}78`,
                   borderRadius: "11px",
-                  background: `${visual.accent}12`,
+                  background: `${visual.accent}26`,
                   color: visual.accent,
-                  boxShadow: `0 0 13px ${visual.accent}18`,
+                  boxShadow: `0 0 16px ${visual.accent}2E`,
                 }}
               >
                 <AppIcon name={visual.icon} size={21} strokeWidth={1.8} />
@@ -2364,7 +2364,7 @@ function AchievementTimelineCard({
     );
 
   const systemAccent =
-    "#b77a36";
+    "#f5c16d";
 
   const initial =
     profile
@@ -2388,7 +2388,7 @@ function AchievementTimelineCard({
           bottom: "-10px",
           width: "1px",
           background:
-            "linear-gradient(180deg, rgba(183,122,54,0.05), rgba(183,122,54,0.24), rgba(183,122,54,0.05))",
+            "linear-gradient(180deg, rgba(245,193,109,0.10), rgba(245,193,109,0.48), rgba(245,193,109,0.10))",
         }}
       />
 
@@ -2416,20 +2416,20 @@ function AchievementTimelineCard({
           overflow: "hidden",
           padding: "12px 13px",
           border:
-            `1px solid ${systemAccent}3D`,
+            `1px solid ${systemAccent}70`,
           borderRadius: "13px",
           background: `
             radial-gradient(
               circle at 88% 18%,
-              ${systemAccent}18,
+              ${systemAccent}2E,
               transparent 13rem
             ),
             linear-gradient(
               145deg,
-              ${systemAccent}0D,
-              transparent 48%
+              ${systemAccent}1F,
+              transparent 52%
             ),
-            var(--taste-surface)
+            var(--taste-surface-raised)
           `,
           boxShadow:
             "0 7px 20px rgba(0,0,0,0.16)",
@@ -2473,14 +2473,14 @@ function AchievementTimelineCard({
                   justifyContent:
                     "center",
                   border:
-                    `1px solid ${systemAccent}55`,
+                    `1px solid ${systemAccent}78`,
                   borderRadius:
                     "11px",
                   background:
-                    `${systemAccent}12`,
+                    `${systemAccent}26`,
                   fontSize: "20px",
                   boxShadow:
-                    `0 0 13px ${systemAccent}18`,
+                    `0 0 16px ${systemAccent}2E`,
                 }}
               >
                 {achievement.icon}
