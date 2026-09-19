@@ -103,6 +103,21 @@
   text-transform: none;
 }
 
+.taste-profile-brewery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 10px;
+}
+
+.taste-profile-brewery-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  min-height: 82px;
+  padding: 15px 16px;
+}
+
 @media (max-width: 720px) {
   .taste-tasting-search {
     display: grid;
@@ -133,6 +148,16 @@
 
   .taste-tasting-country-select select {
     width: 100%;
+  }
+
+  .taste-profile-brewery-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .taste-profile-brewery-item {
+    min-height: 72px;
+    padding: 12px 13px;
   }
 }
 

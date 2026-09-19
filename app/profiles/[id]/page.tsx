@@ -45,6 +45,7 @@ import ProfileHeroIdentity from "./ProfileHeroIdentity";
 import ProfileTastingControls, {
   type TastingSort,
 } from "./ProfileTastingControls";
+import ProfileBreweriesView from "./ProfileBreweriesView";
 
 import {
   updateTastingInModal,
@@ -604,6 +605,14 @@ export default async function ProfilePage({
     buildTasteStats(
       allTastings
     );
+
+  const breweryCountriesById = new Map(
+    (breweries ?? []).map((brewery) => [String(brewery.id), brewery.country])
+  );
+  const profileBreweryItems = tasteStats.breweries.map((brewery) => ({
+    ...brewery,
+    country: breweryCountriesById.get(String(brewery.id)) ?? null,
+  }));
 
   const quickProfileItems = [
     {
@@ -1332,10 +1341,7 @@ export default async function ProfilePage({
       </>}
 
       {view === "breweries" && (
-        <ProfileBreweriesCard
-          items={tasteStats.breweries}
-          limit={tasteStats.breweries.length}
-        />
+        <ProfileBreweriesView items={profileBreweryItems} />
       )}
 
       {/* ==================================================
