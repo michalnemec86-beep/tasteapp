@@ -116,7 +116,8 @@ async function getCurrentUser(supabase: SupabaseClient) {
 
 async function resolveBrewery(
   supabase: SupabaseClient,
-  values: TastingFormValues
+  values: TastingFormValues,
+  userId: string
 ) {
   let canonicalCountry = "";
 
@@ -171,6 +172,16 @@ async function resolveBrewery(
     if (error || !created) {
       throw new Error(error?.message || "Pivovar se nepodařilo vytvořit.");
     }
+
+    const { error: breweryEventError } = await supabase
+      .from("catalog_events")
+      .insert({
+        actor_user_id: userId,
+        brewery_id: created.id,
+        event_type: "brewery_created",
+      });
+    if (breweryEventError) throw new Error(breweryEventError.message);
+
     brewery = created;
   } else if (canonicalCountry && brewery.country !== canonicalCountry) {
     const { data: updated, error } = await supabase
@@ -190,7 +201,8 @@ async function resolveBrewery(
 
 async function resolveBrandId(
   supabase: SupabaseClient,
-  brandName: string
+  brandName: string,
+  userId: string
 ) {
   const cleanName = brandName.trim();
   if (!cleanName) {
@@ -219,6 +231,15 @@ async function resolveBrandId(
   if (createError || !created) {
     throw new Error(createError?.message || "Značku se nepodařilo vytvořit.");
   }
+
+  const { error: brandEventError } = await supabase
+    .from("catalog_events")
+    .insert({
+      actor_user_id: userId,
+      brand_id: created.id,
+      event_type: "brand_created",
+    });
+  if (brandEventError) throw new Error(brandEventError.message);
 
   return created.id;
 }
@@ -408,7 +429,7 @@ async function resolveBeer(
     return { beerId: selectedBeer.id, isNewBeer: false };
   }
 
-  const brandId = await resolveBrandId(supabase, values.brandName);
+  const brandId = await resolveBrandId(supabase, values.brandName, userId);
 
   const { data: breweryBeers, error: breweryBeersError } = await supabase
     .from("beers")
@@ -519,7 +540,7 @@ async function resolveCatalogData(
   values: TastingFormValues,
   userId: string
 ) {
-  const brewery = await resolveBrewery(supabase, values);
+  const brewery = await resolveBrewery(supabase, values, userId);
   const styleId = await resolveStyle(supabase, values.styleName);
   const { beerId, isNewBeer } = await resolveBeer(
     supabase,
