@@ -1354,13 +1354,11 @@ export default async function HomePage() {
 
 const TIMELINE_USER_ACCENTS = [
   "#f2b63f",
-  "#e88835",
+  "#8ea34a",
   "#d65b42",
-  "#9cad47",
   "#a86221",
+  "#e88835",
   "#cf8f29",
-  "#f5c16d",
-  "#7f9840",
 ] as const;
 
 function getTimelineUserAccent(
@@ -1391,61 +1389,85 @@ function buildTimelineUserAccentMap(
   const assignments =
     new Map<string, string>();
 
-  let lastAccent:
-    string | null = null;
-
   for (const event of events) {
-    const userId =
-      event.type === "tasting"
-        ? event.tasting.user_id
-        : event.type === "achievement"
-          ? event.achievement.user_id
-          : event.catalogEvent.actor_user_id;
-
-    let accent =
-      assignments.get(
-        userId
-      );
-
-    if (!accent) {
-      const used =
-        new Set(
-          assignments.values()
-        );
-
-      const preferred =
-        getTimelineUserAccent(
-          userId
-        );
-
-      accent =
-        !used.has(preferred) &&
-        preferred !== lastAccent
-          ? preferred
-          : TIMELINE_USER_ACCENTS.find(
-              (candidate) =>
-                !used.has(candidate) &&
-                candidate !==
-                  lastAccent
-            ) ??
-            TIMELINE_USER_ACCENTS.find(
-              (candidate) =>
-                candidate !==
-                lastAccent
-            ) ??
-            preferred;
-
-      assignments.set(
-        userId,
-        accent
-      );
+    if (
+      event.type !==
+      "tasting"
+    ) {
+      continue;
     }
 
-    lastAccent =
-      accent;
+    const userId =
+      event.tasting.user_id;
+
+    if (
+      assignments.has(
+        userId
+      )
+    ) {
+      continue;
+    }
+
+    const accent =
+      TIMELINE_USER_ACCENTS[
+        assignments.size %
+          TIMELINE_USER_ACCENTS.length
+      ];
+
+    assignments.set(
+      userId,
+      accent
+    );
   }
 
   return assignments;
+}
+
+function getTastingGlowVisual(
+  tastingId: number
+) {
+  const variants = [
+    {
+      x: 82,
+      y: 18,
+      radius: "14rem",
+      alpha: "46",
+      shadow: "38",
+    },
+    {
+      x: 18,
+      y: 72,
+      radius: "17rem",
+      alpha: "3F",
+      shadow: "34",
+    },
+    {
+      x: 68,
+      y: 82,
+      radius: "15rem",
+      alpha: "4C",
+      shadow: "3D",
+    },
+    {
+      x: 26,
+      y: 20,
+      radius: "16rem",
+      alpha: "44",
+      shadow: "36",
+    },
+    {
+      x: 92,
+      y: 58,
+      radius: "18rem",
+      alpha: "42",
+      shadow: "3A",
+    },
+  ] as const;
+
+  return variants[
+    Math.abs(tastingId) %
+      variants.length
+  ];
 }
 
 function TastingTimelineCard({
@@ -1477,6 +1499,11 @@ function TastingTimelineCard({
   const quantity =
     tasting.quantity ?? 1;
 
+  const glowVisual =
+    getTastingGlowVisual(
+      tasting.id
+    );
+
   const visual = {
     accent: userAccent,
     background:
@@ -1484,7 +1511,7 @@ function TastingTimelineCard({
     border:
       `${userAccent}52`,
     glow:
-      `${userAccent}24`,
+      `${userAccent}${glowVisual.alpha}`,
   };
 
   const packagingIcon =
@@ -1700,9 +1727,9 @@ function TastingTimelineCard({
             "14px",
           background: `
             radial-gradient(
-              circle at 88% 16%,
+              circle at ${glowVisual.x}% ${glowVisual.y}%,
               ${visual.glow},
-              transparent 15rem
+              transparent ${glowVisual.radius}
             ),
             linear-gradient(
               145deg,
@@ -1713,7 +1740,7 @@ function TastingTimelineCard({
           `,
           boxShadow: `
             0 8px 24px rgba(0,0,0,0.18),
-            0 0 22px ${visual.glow}
+            0 0 34px ${userAccent}${glowVisual.shadow}
           `,
         }}
       >
@@ -2089,45 +2116,43 @@ function TastingTimelineCard({
 
 const SYSTEM_EVENT_VISUALS = {
   beer_created: {
-    accent: "#e7a62f",
     icon: "beer",
     eyebrow: "Systém · nové pivo",
     action: "přidal nové pivo do sortimentu",
   },
   beer_confirmed: {
-    accent: "#9cad47",
     icon: "beer",
     eyebrow: "Systém · katalog",
     action: "potvrdil pivo jako katalogové",
   },
   beer_version_created: {
-    accent: "#cf8f29",
     icon: "beer",
     eyebrow: "Systém · nová verze",
     action: "vytvořil novou aktuální verzi piva",
   },
   brand_created: {
-    accent: "#f5c16d",
     icon: "label",
     eyebrow: "Systém · nová značka",
     action: "zapsal novou značku",
   },
   brewery_created: {
-    accent: "#a86221",
     icon: "brewery",
     eyebrow: "Systém · nový pivovar",
     action: "zapsal nový pivovar",
   },
   hop_created: {
-    accent: "#7f9840",
     icon: "hop",
     eyebrow: "Systém · nový chmel",
     action: "zapsal nový chmel",
   },
 } as const;
 
+const SYSTEM_COPPER =
+  "#b87333";
+
 function CatalogTimelineCard({ row, profile }: { row: CatalogEventRow; profile: ProfileRow | null }) {
   const visual = SYSTEM_EVENT_VISUALS[row.event_type];
+  const systemAccent = SYSTEM_COPPER;
   const userAccent = getTimelineUserAccent(row.actor_user_id);
   const initial = profile?.display_name?.charAt(0).toUpperCase() ?? "?";
 
@@ -2160,7 +2185,7 @@ function CatalogTimelineCard({ row, profile }: { row: CatalogEventRow; profile: 
           bottom: "-10px",
           width: "3px",
           borderRadius: "999px",
-          background: `linear-gradient(180deg, ${visual.accent}42, ${visual.accent}, ${visual.accent}42)`,
+          background: `linear-gradient(180deg, ${systemAccent}54, ${systemAccent}B8, ${systemAccent}54)`,
         }}
       />
       <div
@@ -2171,9 +2196,9 @@ function CatalogTimelineCard({ row, profile }: { row: CatalogEventRow; profile: 
           width: "11px",
           height: "11px",
           borderRadius: "3px",
-          border: `1px solid ${visual.accent}`,
-          background: `${visual.accent}38`,
-          boxShadow: `0 0 10px ${visual.accent}35`,
+          border: `1px solid ${systemAccent}`,
+          background: `${systemAccent}66`,
+          boxShadow: "none",
           zIndex: 2,
         }}
       />
@@ -2183,12 +2208,20 @@ function CatalogTimelineCard({ row, profile }: { row: CatalogEventRow; profile: 
           position: "relative",
           overflow: "hidden",
           padding: "12px 13px",
-          border: `1px solid ${visual.accent}96`,
+          border: `1px solid ${systemAccent}78`,
           borderRadius: "13px",
           background: `
-            linear-gradient(135deg, ${visual.accent}3D 0%, rgba(52,32,17,0.98) 42%, rgba(35,22,12,0.99) 100%)
+            linear-gradient(
+              118deg,
+              rgba(184,115,51,0.34) 0%,
+              rgba(231,166,47,0.13) 19%,
+              rgba(87,49,22,0.42) 43%,
+              rgba(45,28,16,0.98) 67%,
+              rgba(35,22,12,0.99) 100%
+            )
           `,
-          boxShadow: "0 7px 18px rgba(0,0,0,0.22)",
+          boxShadow:
+            "inset 0 1px 0 rgba(255,214,159,0.10), 0 6px 16px rgba(0,0,0,0.18)",
         }}
       >
         <div
@@ -2199,7 +2232,7 @@ function CatalogTimelineCard({ row, profile }: { row: CatalogEventRow; profile: 
             bottom: "13px",
             width: "4px",
             borderRadius: "0 999px 999px 0",
-            background: visual.accent,
+            background: systemAccent,
             opacity: 0.96,
           }}
         />
@@ -2221,11 +2254,12 @@ function CatalogTimelineCard({ row, profile }: { row: CatalogEventRow; profile: 
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  border: `1px solid ${visual.accent}78`,
+                  border: `1px solid ${systemAccent}78`,
                   borderRadius: "11px",
-                  background: `${visual.accent}38`,
-                  color: visual.accent,
-                  boxShadow: `0 0 16px ${visual.accent}3D`,
+                  background: `${systemAccent}38`,
+                  color: systemAccent,
+                  boxShadow:
+                    "inset 0 1px 0 rgba(255,222,176,0.10)",
                 }}
               >
                 <AppIcon name={visual.icon} size={21} strokeWidth={1.8} />
@@ -2236,7 +2270,7 @@ function CatalogTimelineCard({ row, profile }: { row: CatalogEventRow; profile: 
                   className="taste-label"
                   style={{
                     marginBottom: "3px",
-                    color: visual.accent,
+                    color: systemAccent,
                     opacity: 0.9,
                   }}
                 >
@@ -2383,7 +2417,7 @@ function AchievementTimelineCard({
     );
 
   const systemAccent =
-    "#f5c16d";
+    SYSTEM_COPPER;
 
   const displayName =
     profile
@@ -2406,7 +2440,7 @@ function AchievementTimelineCard({
           width: "3px",
           borderRadius: "999px",
           background:
-            "linear-gradient(180deg, rgba(245,193,109,0.34), rgba(245,193,109,0.95), rgba(245,193,109,0.34))",
+            "linear-gradient(180deg, rgba(184,115,51,0.33), rgba(184,115,51,0.72), rgba(184,115,51,0.33))",
         }}
       />
 
@@ -2421,9 +2455,9 @@ function AchievementTimelineCard({
           border:
             `1px solid ${systemAccent}`,
           background:
-            `${systemAccent}38`,
+            `${systemAccent}66`,
           boxShadow:
-            `0 0 10px ${systemAccent}35`,
+            "none",
           zIndex: 2,
         }}
       />
@@ -2434,18 +2468,20 @@ function AchievementTimelineCard({
           overflow: "hidden",
           padding: "12px 13px",
           border:
-            `1px solid ${systemAccent}96`,
+            `1px solid ${systemAccent}78`,
           borderRadius: "13px",
           background: `
             linear-gradient(
-              135deg,
-              ${systemAccent}3D 0%,
-              rgba(52,32,17,0.98) 42%,
+              118deg,
+              rgba(184,115,51,0.34) 0%,
+              rgba(231,166,47,0.13) 19%,
+              rgba(87,49,22,0.42) 43%,
+              rgba(45,28,16,0.98) 67%,
               rgba(35,22,12,0.99) 100%
             )
           `,
           boxShadow:
-            "0 7px 18px rgba(0,0,0,0.22)",
+            "inset 0 1px 0 rgba(255,214,159,0.10), 0 6px 16px rgba(0,0,0,0.18)",
         }}
       >
         <div
@@ -2491,7 +2527,7 @@ function AchievementTimelineCard({
                 `${systemAccent}38`,
               fontSize: "20px",
               boxShadow:
-                `0 0 16px ${systemAccent}3D`,
+                "inset 0 1px 0 rgba(255,222,176,0.10)",
             }}
           >
             {achievement.icon}
