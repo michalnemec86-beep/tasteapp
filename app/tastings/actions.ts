@@ -202,7 +202,8 @@ async function resolveBrewery(
 async function resolveBrandId(
   supabase: SupabaseClient,
   brandName: string,
-  userId: string
+  userId: string,
+  breweryId: number
 ) {
   const cleanName = brandName.trim();
   if (!cleanName) {
@@ -237,6 +238,7 @@ async function resolveBrandId(
     .insert({
       actor_user_id: userId,
       brand_id: created.id,
+      brewery_id: breweryId,
       event_type: "brand_created",
     });
   if (brandEventError) throw new Error(brandEventError.message);
@@ -429,7 +431,7 @@ async function resolveBeer(
     return { beerId: selectedBeer.id, isNewBeer: false };
   }
 
-  const brandId = await resolveBrandId(supabase, values.brandName, userId);
+  const brandId = await resolveBrandId(supabase, values.brandName, userId, breweryId);
 
   const { data: breweryBeers, error: breweryBeersError } = await supabase
     .from("beers")
