@@ -1709,11 +1709,11 @@ function TastingTimelineCard({
               ${visual.background},
               transparent 48%
             ),
-            var(--taste-surface)
+            rgba(33,21,12,0.82)
           `,
           boxShadow: `
-            0 10px 28px rgba(0,0,0,0.22),
-            0 0 26px ${visual.glow}
+            0 8px 24px rgba(0,0,0,0.18),
+            0 0 22px ${visual.glow}
           `,
         }}
       >
@@ -2158,21 +2158,22 @@ function CatalogTimelineCard({ row, profile }: { row: CatalogEventRow; profile: 
           left: "5px",
           top: "-10px",
           bottom: "-10px",
-          width: "1px",
-          background: `linear-gradient(180deg, ${visual.accent}18, ${visual.accent}88, ${visual.accent}18)`,
+          width: "3px",
+          borderRadius: "999px",
+          background: `linear-gradient(180deg, ${visual.accent}42, ${visual.accent}, ${visual.accent}42)`,
         }}
       />
       <div
         style={{
           position: "absolute",
-          left: "1px",
-          top: "24px",
-          width: "9px",
-          height: "9px",
-          borderRadius: "50%",
+          left: "0px",
+          top: "23px",
+          width: "11px",
+          height: "11px",
+          borderRadius: "3px",
           border: `1px solid ${visual.accent}`,
-          background: "var(--taste-bg-deep)",
-          boxShadow: `0 0 11px ${visual.accent}45`,
+          background: `${visual.accent}38`,
+          boxShadow: `0 0 10px ${visual.accent}35`,
           zIndex: 2,
         }}
       />
@@ -2182,14 +2183,12 @@ function CatalogTimelineCard({ row, profile }: { row: CatalogEventRow; profile: 
           position: "relative",
           overflow: "hidden",
           padding: "12px 13px",
-          border: `1px solid ${visual.accent}88`,
+          border: `1px solid ${visual.accent}96`,
           borderRadius: "13px",
           background: `
-            radial-gradient(circle at 88% 18%, ${visual.accent}48, transparent 13rem),
-            linear-gradient(145deg, ${visual.accent}33, transparent 52%),
-            var(--taste-surface-raised)
+            linear-gradient(135deg, ${visual.accent}3D 0%, rgba(52,32,17,0.98) 42%, rgba(35,22,12,0.99) 100%)
           `,
-          boxShadow: "0 7px 20px rgba(0,0,0,0.16)",
+          boxShadow: "0 7px 18px rgba(0,0,0,0.22)",
         }}
       >
         <div
@@ -2198,10 +2197,10 @@ function CatalogTimelineCard({ row, profile }: { row: CatalogEventRow; profile: 
             left: 0,
             top: "13px",
             bottom: "13px",
-            width: "2px",
-            borderRadius: "999px",
+            width: "4px",
+            borderRadius: "0 999px 999px 0",
             background: visual.accent,
-            opacity: 0.72,
+            opacity: 0.96,
           }}
         />
 
@@ -2404,26 +2403,27 @@ function AchievementTimelineCard({
           left: "5px",
           top: "-10px",
           bottom: "-10px",
-          width: "1px",
+          width: "3px",
+          borderRadius: "999px",
           background:
-            "linear-gradient(180deg, rgba(245,193,109,0.10), rgba(245,193,109,0.48), rgba(245,193,109,0.10))",
+            "linear-gradient(180deg, rgba(245,193,109,0.34), rgba(245,193,109,0.95), rgba(245,193,109,0.34))",
         }}
       />
 
       <div
         style={{
           position: "absolute",
-          left: "1px",
-          top: "24px",
-          width: "9px",
-          height: "9px",
-          borderRadius: "50%",
+          left: "0px",
+          top: "23px",
+          width: "11px",
+          height: "11px",
+          borderRadius: "3px",
           border:
             `1px solid ${systemAccent}`,
           background:
-            "var(--taste-bg-deep)",
+            `${systemAccent}38`,
           boxShadow:
-            `0 0 10px ${systemAccent}45`,
+            `0 0 10px ${systemAccent}35`,
           zIndex: 2,
         }}
       />
@@ -2434,23 +2434,18 @@ function AchievementTimelineCard({
           overflow: "hidden",
           padding: "12px 13px",
           border:
-            `1px solid ${systemAccent}88`,
+            `1px solid ${systemAccent}96`,
           borderRadius: "13px",
           background: `
-            radial-gradient(
-              circle at 88% 18%,
-              ${systemAccent}48,
-              transparent 13rem
-            ),
             linear-gradient(
-              145deg,
-              ${systemAccent}33,
-              transparent 52%
-            ),
-            var(--taste-surface-raised)
+              135deg,
+              ${systemAccent}3D 0%,
+              rgba(52,32,17,0.98) 42%,
+              rgba(35,22,12,0.99) 100%
+            )
           `,
           boxShadow:
-            "0 7px 20px rgba(0,0,0,0.16)",
+            "0 7px 18px rgba(0,0,0,0.22)",
         }}
       >
         <div
@@ -2459,12 +2454,12 @@ function AchievementTimelineCard({
             left: 0,
             top: "13px",
             bottom: "13px",
-            width: "2px",
+            width: "4px",
             borderRadius:
-              "999px",
+              "0 999px 999px 0",
             background:
               systemAccent,
-            opacity: 0.55,
+            opacity: 0.96,
           }}
         />
 
