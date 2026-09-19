@@ -159,16 +159,6 @@ async function addBreweryBrands(
       .single();
     if (createError || !created) throw new Error(createError?.message || `Značku „${brandName}“ se nepodařilo vytvořit.`);
 
-    const { error: brandEventError } = await supabase
-      .from("catalog_events")
-      .insert({
-        actor_user_id: userId,
-        brand_id: created.id,
-        brewery_id: breweryId,
-        event_type: "brand_created",
-      });
-    if (brandEventError) throw new Error(brandEventError.message);
-
     brandIds.push(created.id);
   }
 
@@ -381,15 +371,6 @@ export async function createBrewery(
   }
 
   if (!createdBrewery) throw new Error("Pivovar se nepodařilo vytvořit.");
-
-  const { error: breweryEventError } = await supabase
-    .from("catalog_events")
-    .insert({
-      actor_user_id: user.id,
-      brewery_id: createdBrewery.id,
-      event_type: "brewery_created",
-    });
-  if (breweryEventError) throw new Error(breweryEventError.message);
 
   await addBreweryBrands(supabase, user.id, createdBrewery.id, brandNames);
 
