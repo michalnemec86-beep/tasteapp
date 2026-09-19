@@ -244,7 +244,7 @@ export default function PageHero({
             {title}
           </h1>
 
-          <p
+          {subtitle && <p
             className="taste-page-hero-subtitle"
             style={{
               maxWidth: "560px",
@@ -256,7 +256,7 @@ export default function PageHero({
             }}
           >
             {subtitle}
-          </p>
+          </p>}
         </div>
 
         {hasRightContent && (

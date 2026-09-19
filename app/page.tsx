@@ -92,6 +92,14 @@ type CatalogBeerRow = {
   beer_styles:
     | BeerStyleRow
     | null;
+
+  beer_hops:
+    | {
+        hops:
+          | HopRow
+          | null;
+      }[]
+    | null;
 };
 
 type TastingBeerRow = {
@@ -401,6 +409,10 @@ export default async function HomePage() {
         abv,
         ibu,
         is_non_alcoholic,
+        brands (
+          id,
+          name
+        ),
         breweries (
             id,
             name,
@@ -410,6 +422,12 @@ export default async function HomePage() {
         beer_styles (
           id,
           name
+        ),
+        beer_hops (
+          hops (
+            id,
+            name
+          )
         )
       `)
       .order("name");

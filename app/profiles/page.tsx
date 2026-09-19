@@ -329,8 +329,8 @@ export default async function ProfilesPage() {
         eyebrow="Hospoda"
         imageUrl="/images/heroes/users.jpg"
         visualVariant="profile"
-        title="Uživatelé TasteAppu"
-        subtitle="Každý pivní deník vypráví trochu jiný příběh. Prohlédni si objevy, pivovary a pivní cesty jednotlivých uživatelů."
+        title="Hospoda"
+        subtitle=""
         action={
           <Link
             href="/"
@@ -463,6 +463,7 @@ export default async function ProfilesPage() {
                     profile.id
                   }
                   href={`/profiles/${profile.id}`}
+                  className="taste-profile-card"
                   style={{
                     position:
                       "relative",
@@ -679,6 +680,7 @@ export default async function ProfilesPage() {
                   </div>
 
                   <div
+                    className="taste-profile-card-stats"
                     style={{
                       display:
                         "grid",

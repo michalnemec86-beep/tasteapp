@@ -290,17 +290,6 @@ export default function ProfileHeroIdentity({
         }}
       >
         <Link
-          href={`/stats?user=${profileId}`}
-          className="taste-button-primary"
-          style={{
-            fontSize: "11px",
-            textAlign: "center",
-          }}
-        >
-          Statistiky profilu
-        </Link>
-
-        <Link
           href="/profiles"
           className="taste-button-secondary"
           style={{
@@ -316,7 +305,7 @@ export default function ProfileHeroIdentity({
               "inset 0 1px 0 rgba(255,235,195,0.035)",
           }}
         >
-          ← Všichni uživatelé
+          ← Štamgasti
         </Link>
       </div>
     </div>

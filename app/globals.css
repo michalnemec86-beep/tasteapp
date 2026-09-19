@@ -883,6 +883,32 @@
   user-select: none;
 }
 
+.taste-beer-catalog-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+
+.taste-beer-catalog-controls input {
+  min-width: min(330px, 100%);
+  min-height: 40px;
+  padding: 9px 12px;
+  border: 1px solid var(--taste-border-strong);
+  border-radius: 10px;
+  background: var(--taste-surface);
+  color: var(--taste-text);
+  font-size: 14px;
+}
+
+.taste-beer-catalog-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+  gap: 13px;
+}
+
 .taste-filter-toggle::-webkit-details-marker {
   display: none;
 }

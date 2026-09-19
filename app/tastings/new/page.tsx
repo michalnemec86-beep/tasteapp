@@ -34,7 +34,11 @@ function singleRelation<T>(
 // NOVÁ OCHUTNÁVKA
 // ==================================================
 
-export default async function NewTastingPage() {
+export default async function NewTastingPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ beer?: string | string[] }>;
+}) {
   const supabase =
     await createClient();
 
@@ -48,6 +52,12 @@ export default async function NewTastingPage() {
       "/auth/login"
     );
   }
+
+  const requestedBeer = (await searchParams).beer;
+  const initialBeerId =
+    typeof requestedBeer === "string" && Number.isInteger(Number(requestedBeer))
+      ? Number(requestedBeer)
+      : undefined;
 
   // ==================================================
   // PIVA
@@ -78,6 +88,12 @@ export default async function NewTastingPage() {
         beer_styles (
           id,
           name
+        ),
+        beer_hops (
+          hops (
+            id,
+            name
+          )
         )
       `)
       .order("name");
@@ -107,6 +123,12 @@ export default async function NewTastingPage() {
           singleRelation(
             beer.beer_styles
           ),
+
+        beer_hops:
+          (beer.beer_hops ?? []).map((row) => ({
+            ...row,
+            hops: singleRelation(row.hops),
+          })),
       })
     );
 
@@ -230,6 +252,7 @@ export default async function NewTastingPage() {
         hops={
           hops ?? []
         }
+        initialBeerId={initialBeerId}
       />
     </main>
   );

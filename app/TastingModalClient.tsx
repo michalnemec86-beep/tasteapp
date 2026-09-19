@@ -51,6 +51,13 @@ type ExistingBeer = {
     id: number;
     name: string;
   } | null;
+
+  beer_hops?: Array<{
+    hops: {
+      id: number;
+      name: string;
+    } | null;
+  }> | null;
 };
 
 type TastingModalClientProps = {

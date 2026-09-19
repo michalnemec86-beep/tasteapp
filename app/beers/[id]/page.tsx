@@ -268,7 +268,7 @@ export default async function BeerDetailPage({ params }: Props) {
         imageUrl="/images/heroes/catalog.jpg"
         title={beer.name}
         subtitle=""
-        action={<Link href="/stats" className="taste-button-secondary">← Statistiky</Link>}
+        action={<Link href="/beers" className="taste-button-secondary">← Pivní lístek</Link>}
         stats={[
           { icon: "◆", accent: "#d98945", value: brand?.name ?? "—", label: "Značka" },
           { icon: "●", accent: "#e88835", value: brewery?.name ?? "—", label: "Aktuální pivovar" },

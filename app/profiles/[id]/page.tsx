@@ -56,6 +56,9 @@ type ProfilePageProps = {
   params: Promise<{
     id: string;
   }>;
+  searchParams: Promise<{
+    view?: string | string[];
+  }>;
 };
 
 // ==================================================
@@ -78,9 +81,15 @@ function singleRelation<T>(
 
 export default async function ProfilePage({
   params,
+  searchParams,
 }: ProfilePageProps) {
   const { id } =
     await params;
+  const requestedView = (await searchParams).view;
+  const view =
+    requestedView === "beers" || requestedView === "medals"
+      ? requestedView
+      : "stats";
 
   const supabase =
     await createClient();
@@ -960,6 +969,45 @@ export default async function ProfilePage({
           },
         ]}
       />
+      <nav
+        aria-label="Části pivního deníku"
+        style={{
+          display: "flex",
+          gap: "8px",
+          flexWrap: "wrap",
+          marginBottom: "22px",
+        }}
+      >
+        {[
+          { key: "stats", label: "Moje statistiky", href: `/profiles/${profile.id}` },
+          { key: "beers", label: "Co jsem vypil", href: `/profiles/${profile.id}?view=beers` },
+          { key: "medals", label: "Medaile", href: `/profiles/${profile.id}?view=medals` },
+        ].map((item) => {
+          const active = view === item.key;
+
+          return (
+            <Link
+              key={item.key}
+              href={item.href}
+              className="taste-button-secondary"
+              aria-current={active ? "page" : undefined}
+              style={{
+                background: active
+                  ? "linear-gradient(180deg, rgba(231,166,47,0.20), rgba(168,98,33,0.10))"
+                  : undefined,
+                borderColor: active ? "rgba(245,184,63,0.52)" : undefined,
+                color: active ? "var(--taste-amber-bright)" : undefined,
+                fontSize: "12px",
+                fontWeight: 750,
+              }}
+            >
+              {item.label}
+            </Link>
+          );
+        })}
+      </nav>
+
+      {view === "stats" && <>
       {/* ==================================================
           PIVNÍ OTISK
       ================================================== */}
@@ -969,49 +1017,6 @@ export default async function ProfilePage({
           marginBottom: "38px",
         }}
       >
-        <div
-          style={{
-            marginBottom: "14px",
-          }}
-        >
-          <div
-            className="taste-label"
-            style={{
-              marginBottom: "5px",
-            }}
-          >
-            Osobní profil
-          </div>
-
-          <h2
-            style={{
-              margin: 0,
-              fontSize: "24px",
-              letterSpacing:
-                "-0.025em",
-            }}
-          >
-            Pivní otisk
-          </h2>
-
-          <p
-            style={{
-              maxWidth: "620px",
-              margin:
-                "6px 0 0",
-              color:
-                "var(--taste-text-muted)",
-              fontSize: "11px",
-              lineHeight: 1.55,
-            }}
-          >
-            Rychlý pohled na to,
-            co se v ochutnávkách
-            tohoto profilu objevuje
-            nejčastěji.
-          </p>
-        </div>
-
         <div
           style={{
             display: "grid",
@@ -1204,25 +1209,26 @@ export default async function ProfilePage({
           profileStats.firstTasting
         }
       />
+      </>}
 
       {/* ==================================================
           MEDAILOVÉ CESTY
       ================================================== */}
 
-      <ProfileAchievementJourneys
+      {view === "medals" && <ProfileAchievementJourneys
         series={
           achievementSeries
         }
         earnedSeriesCount={
           earnedSeriesCount
         }
-      />
+      />}
 
       {/* ==================================================
           HISTORIE
       ================================================== */}
 
-      <section>
+      {view === "beers" && <section>
         <div
           style={{
             display:
@@ -1744,7 +1750,7 @@ export default async function ProfilePage({
             }
           )}
         </div>
-      </section>
+      </section>}
     </main>
   );
 }

@@ -558,12 +558,12 @@ export default async function StatsPage({
         title={
           focusedView && selectedProfile
             ? `${focusedView.title} · ${selectedProfile.display_name}`
-            : "Statistiky"
+            : "Co a jak pijeme"
         }
         subtitle={
           focusedView && selectedProfile
             ? `Pouze ${focusedView.title.toLowerCase()} z ochutnávek uživatele ${selectedProfile.display_name}.`
-            : "Podívej se na svůj pivní svět v číslech. Piva, značky, pivovary, styly, země, chmely i způsob podání na jednom místě."
+            : "Společné statistiky všech lidí v hospodě."
         }
         action={
           focusedView && selectedProfile ? (
@@ -574,15 +574,7 @@ export default async function StatsPage({
             >
               ← Profil
             </Link>
-          ) : (
-            <Link
-              href="/breweries"
-              className="taste-button-secondary"
-              style={{ fontSize: "12px", fontWeight: 650 }}
-            >
-              ← Pivovary
-            </Link>
-          )
+          ) : undefined
         }
         stats={
           focusedView
@@ -661,24 +653,6 @@ export default async function StatsPage({
         >
           Pro tento výběr zatím nejsou žádné ochutnávky.
         </div>
-      )}
-
-      {!selectedFocus && (
-        <PackagingSummaryCard
-          items={stats.packaging}
-          contextParams={{
-            user: selectedUserId,
-            year: selectedYear ? String(selectedYear) : undefined,
-            month: selectedMonth ? String(selectedMonth) : undefined,
-            sort: sortMode !== "count-desc" ? sortMode : undefined,
-            beer: requestedBeerId ? String(requestedBeerId) : undefined,
-            brand: requestedBrandId ? String(requestedBrandId) : undefined,
-            brewery: requestedBreweryId ? String(requestedBreweryId) : undefined,
-            style: requestedStyleId ? String(requestedStyleId) : undefined,
-            country: requestedCountry,
-            hop: requestedHopId ? String(requestedHopId) : undefined,
-          }}
-        />
       )}
 
       <section>
@@ -793,6 +767,24 @@ export default async function StatsPage({
         </div>
       </section>
 
+      {!selectedFocus && (
+        <PackagingSummaryCard
+          items={stats.packaging}
+          contextParams={{
+            user: selectedUserId,
+            year: selectedYear ? String(selectedYear) : undefined,
+            month: selectedMonth ? String(selectedMonth) : undefined,
+            sort: sortMode !== "count-desc" ? sortMode : undefined,
+            beer: requestedBeerId ? String(requestedBeerId) : undefined,
+            brand: requestedBrandId ? String(requestedBrandId) : undefined,
+            brewery: requestedBreweryId ? String(requestedBreweryId) : undefined,
+            style: requestedStyleId ? String(requestedStyleId) : undefined,
+            country: requestedCountry,
+            hop: requestedHopId ? String(requestedHopId) : undefined,
+          }}
+        />
+      )}
+
       {filteredTastings.length > 0 &&
         (!selectedFocus || selectedFocus === "countries") && (
           <div style={{ marginBottom: "30px" }}>
@@ -898,3 +890,16 @@ function sortRanking(
           : a.name.localeCompare(b.name, "cs");
 
       case "name-asc":
+        return a.name.localeCompare(b.name, "cs");
+
+      case "name-desc":
+        return b.name.localeCompare(a.name, "cs");
+
+      case "count-desc":
+      default:
+        return b.count !== a.count
+          ? b.count - a.count
+          : a.name.localeCompare(b.name, "cs");
+    }
+  });
+}

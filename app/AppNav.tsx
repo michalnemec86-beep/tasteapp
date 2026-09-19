@@ -94,9 +94,10 @@ export default function AppNav() {
           }}
         >
           <NavLink href="/" active={isActive("/")}>Aktivita v hospodě</NavLink>
-          <NavLink href="/stats" active={isActive("/stats")}>Statistiky</NavLink>
+          <NavLink href="/stats" active={isActive("/stats")}>Co a jak pijeme</NavLink>
+          <NavLink href="/beers" active={isActive("/beers")}>Pivní lístek</NavLink>
           <NavLink href="/breweries" active={isActive("/breweries")}>Pivovary</NavLink>
-          <NavLink href="/profiles" active={isActive("/profiles")}>Uživatelé</NavLink>
+          <NavLink href="/profiles" active={isActive("/profiles")}>Štamgasti</NavLink>
         </div>
 
         <Link
@@ -186,9 +187,10 @@ export default function AppNav() {
       {mobileOpen && (
         <div className="taste-mobile-menu">
           <MobileNavLink href="/" active={isActive("/")}>Aktivita v hospodě</MobileNavLink>
-          <MobileNavLink href="/stats" active={isActive("/stats")}>Statistiky</MobileNavLink>
+          <MobileNavLink href="/stats" active={isActive("/stats")}>Co a jak pijeme</MobileNavLink>
+          <MobileNavLink href="/beers" active={isActive("/beers")}>Pivní lístek</MobileNavLink>
           <MobileNavLink href="/breweries" active={isActive("/breweries")}>Pivovary</MobileNavLink>
-          <MobileNavLink href="/profiles" active={isActive("/profiles")}>Uživatelé</MobileNavLink>
+          <MobileNavLink href="/profiles" active={isActive("/profiles")}>Štamgasti</MobileNavLink>
           <MobileNavLink href="/me" active={isActive("/me")}>Můj pivní deník</MobileNavLink>
           <button type="button" onClick={handleLogout} className="taste-mobile-menu-logout">
             Odhlásit

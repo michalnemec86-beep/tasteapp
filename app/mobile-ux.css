@@ -53,6 +53,58 @@
 }
 
 @media (max-width: 720px) {
+  .taste-beer-catalog-controls {
+    align-items: stretch !important;
+  }
+
+  .taste-beer-catalog-controls input {
+    width: 100% !important;
+    min-width: 100% !important;
+    font-size: 16px !important;
+  }
+
+  .taste-beer-catalog-grid {
+    grid-template-columns: 1fr !important;
+    gap: 9px !important;
+  }
+
+  .taste-beer-catalog-card {
+    padding: 13px !important;
+  }
+
+  .taste-profile-card {
+    padding: 12px !important;
+  }
+
+  .taste-profile-card > div:first-child {
+    gap: 9px !important;
+  }
+
+  .taste-profile-card > div:first-child > div:first-child {
+    width: 46px !important;
+    height: 46px !important;
+    font-size: 18px !important;
+  }
+
+  .taste-profile-card-stats {
+    gap: 5px !important;
+    margin-top: 11px !important;
+  }
+
+  .taste-profile-card-stats > div {
+    padding: 7px 6px !important;
+    border-radius: 8px !important;
+  }
+
+  .taste-profile-card-stats > div > div:nth-child(2) {
+    font-size: 14px !important;
+  }
+
+  .taste-profile-card-stats > div > div:last-child {
+    margin-top: 3px !important;
+    font-size: 7px !important;
+  }
+
   .taste-world-map {
     padding: 14px 14px 8px !important;
   }

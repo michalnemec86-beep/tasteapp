@@ -62,12 +62,6 @@ export default function PackagingSummaryCard({
   return (
     <section style={{ marginBottom: "28px" }}>
       <div style={{ marginBottom: "14px" }}>
-        <div
-          className="taste-label"
-          style={{ marginBottom: "5px" }}
-        >
-          Způsob podání
-        </div>
         <h2
           style={{
             margin: 0,
@@ -79,17 +73,6 @@ export default function PackagingSummaryCard({
         >
           Čepované, láhev nebo plechovka
         </h2>
-        <p
-          style={{
-            maxWidth: "680px",
-            margin: "6px 0 0",
-            color: "var(--taste-text-muted)",
-            fontSize: "11px",
-            lineHeight: 1.5,
-          }}
-        >
-          Přehled způsobu podání podle skutečného počtu vypitých piv.
-        </p>
       </div>
 
       <article

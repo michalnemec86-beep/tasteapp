@@ -49,6 +49,13 @@ type ExistingBeer = {
     id: number;
     name: string;
   } | null;
+
+  beer_hops?: Array<{
+    hops: {
+      id: number;
+      name: string;
+    } | null;
+  }> | null;
 };
 
 type TastingFormProps = {
@@ -61,6 +68,7 @@ type TastingFormProps = {
   countries: Country[];
   styles: BeerStyle[];
   hops: Hop[];
+  initialBeerId?: number;
 };
 
 function normalizeText(text: string) {
@@ -78,18 +86,24 @@ export default function TastingForm({
   countries,
   styles,
   hops,
+  initialBeerId,
 }: TastingFormProps) {
-  const [beerName, setBeerName] = useState("");
-  const [existingBeerId, setExistingBeerId] = useState("");
-  const [brandName, setBrandName] = useState("");
-  const [breweryName, setBreweryName] = useState("");
-  const [breweryCountry, setBreweryCountry] = useState("");
-  const [styleName, setStyleName] = useState("");
-  const [plato, setPlato] = useState("");
-  const [abv, setAbv] = useState("");
-  const [ibu, setIbu] = useState("");
-  const [isNonAlcoholic, setIsNonAlcoholic] = useState(false);
-  const [selectedHops, setSelectedHops] = useState<string[]>([]);
+  const initialBeer = beers.find((beer) => beer.id === initialBeerId) ?? null;
+  const [beerName, setBeerName] = useState(initialBeer?.name ?? "");
+  const [existingBeerId, setExistingBeerId] = useState(initialBeer ? String(initialBeer.id) : "");
+  const [brandName, setBrandName] = useState(initialBeer?.brands?.name ?? "");
+  const [breweryName, setBreweryName] = useState(initialBeer?.breweries?.name ?? "");
+  const [breweryCountry, setBreweryCountry] = useState(initialBeer?.breweries?.country ?? "");
+  const [styleName, setStyleName] = useState(initialBeer?.beer_styles?.name ?? "");
+  const [plato, setPlato] = useState(initialBeer?.plato != null ? String(initialBeer.plato) : "");
+  const [abv, setAbv] = useState(initialBeer?.abv != null ? String(initialBeer.abv) : "");
+  const [ibu, setIbu] = useState(initialBeer?.ibu != null ? String(initialBeer.ibu) : "");
+  const [isNonAlcoholic, setIsNonAlcoholic] = useState(initialBeer?.is_non_alcoholic ?? false);
+  const [selectedHops, setSelectedHops] = useState<string[]>(
+    (initialBeer?.beer_hops ?? [])
+      .map((row) => row.hops?.name)
+      .filter((name): name is string => Boolean(name))
+  );
   const [hopValue, setHopValue] = useState("");
   const [beerOpen, setBeerOpen] = useState(false);
   const [breweryOpen, setBreweryOpen] = useState(false);
@@ -131,6 +145,11 @@ export default function TastingForm({
     setAbv(beer.abv !== null ? String(beer.abv) : "");
     setIbu(beer.ibu !== null ? String(beer.ibu) : "");
     setIsNonAlcoholic(beer.is_non_alcoholic);
+    setSelectedHops(
+      (beer.beer_hops ?? [])
+        .map((row) => row.hops?.name)
+        .filter((name): name is string => Boolean(name))
+    );
     setBeerOpen(false);
   }
 

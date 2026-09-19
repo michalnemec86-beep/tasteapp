@@ -589,7 +589,7 @@ export default function BreweryTableClient({
           style={selectStyle}
         >
           <option value="">
-            Všichni uživatelé
+            Všichni štamgasti
           </option>
 
           {profiles.map(
