@@ -2366,12 +2366,10 @@ function AchievementTimelineCard({
   const systemAccent =
     "#f5c16d";
 
-  const initial =
+  const displayName =
     profile
-      ?.display_name
-      ?.charAt(0)
-      .toUpperCase() ??
-    "?";
+      ?.display_name ??
+    "Neznámý uživatel";
 
   return (
     <div
@@ -2450,273 +2448,93 @@ function AchievementTimelineCard({
           }}
         />
 
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_140px] sm:gap-4">
-          <div className="order-2 min-w-0 sm:order-1">
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns:
-                  "38px minmax(0,1fr)",
-                gap: "10px",
-                alignItems:
-                  "start",
-              }}
-            >
-              <div
-                style={{
-                  width: "38px",
-                  height: "38px",
-                  flexShrink: 0,
-                  display: "flex",
-                  alignItems:
-                    "center",
-                  justifyContent:
-                    "center",
-                  border:
-                    `1px solid ${systemAccent}78`,
-                  borderRadius:
-                    "11px",
-                  background:
-                    `${systemAccent}26`,
-                  fontSize: "20px",
-                  boxShadow:
-                    `0 0 16px ${systemAccent}2E`,
-                }}
-              >
-                {achievement.icon}
-              </div>
-
-              <div
-                style={{
-                  minWidth: 0,
-                }}
-              >
-                <div
-                  className="taste-label"
-                  style={{
-                    marginBottom:
-                      "3px",
-                    color:
-                      systemAccent,
-                    opacity: 0.88,
-                  }}
-                >
-                  Systém · nový odznak
-                </div>
-
-                <h3
-                  style={{
-                    margin: 0,
-                    color:
-                      "var(--taste-text)",
-                    fontSize:
-                      "15px",
-                    lineHeight:
-                      1.2,
-                    fontWeight:
-                      800,
-                    letterSpacing:
-                      "-0.02em",
-                  }}
-                >
-                  {achievement.name}
-                </h3>
-
-                <p
-                  style={{
-                    margin:
-                      "4px 0 0",
-                    color:
-                      "var(--taste-text-soft)",
-                    fontSize:
-                      "10px",
-                    lineHeight:
-                      1.45,
-                  }}
-                >
-                  {
-                    achievement.description
-                  }
-                </p>
-
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems:
-                      "center",
-                    gap: "9px",
-                    flexWrap:
-                      "wrap",
-                    marginTop:
-                      "7px",
-                    paddingTop:
-                      "7px",
-                    borderTop:
-                      `1px solid ${systemAccent}1F`,
-                  }}
-                >
-                  <span
-                    style={{
-                      color:
-                        systemAccent,
-                      fontSize:
-                        "9px",
-                      fontWeight:
-                        750,
-                    }}
-                  >
-                    ✓ Splněno
-                  </span>
-
-                  <Link
-                    href={`/profiles/${row.user_id}`}
-                    style={{
-                      color:
-                        "var(--taste-text-muted)",
-                      textDecoration:
-                        "none",
-                      fontSize:
-                        "9px",
-                    }}
-                  >
-                    Zobrazit odznaky →
-                  </Link>
-                </div>
-              </div>
-            </div>
-          </div>
-
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns:
+              "38px minmax(0,1fr)",
+            gap: "10px",
+            alignItems:
+              "center",
+          }}
+        >
           <div
-            className="order-1 sm:order-2"
             style={{
-              minWidth: 0,
+              width: "38px",
+              height: "38px",
+              flexShrink: 0,
               display: "flex",
               alignItems:
                 "center",
-              gap: "9px",
-              padding:
-                "7px 8px",
+              justifyContent:
+                "center",
               border:
-                `1px solid ${userAccent}30`,
+                `1px solid ${systemAccent}78`,
               borderRadius:
-                "10px",
+                "11px",
               background:
-                `${userAccent}09`,
-              alignSelf:
-                "start",
+                `${systemAccent}26`,
+              fontSize: "20px",
+              boxShadow:
+                `0 0 16px ${systemAccent}2E`,
             }}
           >
-            <Link
-              href={`/profiles/${row.user_id}`}
-              aria-label={
-                profile
-                  ?.display_name ??
-                "Profil uživatele"
-              }
-              style={{
-                width: "32px",
-                height: "32px",
-                flexShrink: 0,
-                display: "flex",
-                alignItems:
-                  "center",
-                justifyContent:
-                  "center",
-                overflow: "hidden",
-                borderRadius:
-                  "9px",
-                border:
-                  `1px solid ${userAccent}55`,
-                backgroundColor:
-                  `${userAccent}12`,
-                backgroundImage:
-                  profile?.avatar_url
-                    ? `url("${profile.avatar_url}")`
-                    : undefined,
-                backgroundSize:
-                  "cover",
-                backgroundPosition:
-                  "center",
-                color:
-                  userAccent,
-                textDecoration:
-                  "none",
-                fontSize: "10px",
-                fontWeight: 850,
-                boxShadow:
-                  `0 0 10px ${userAccent}18`,
-              }}
-            >
-              {!profile?.avatar_url &&
-                initial}
-            </Link>
+            {achievement.icon}
+          </div>
 
-            <div
+          <div
+            style={{
+              minWidth: 0,
+            }}
+          >
+            <h3
               style={{
-                minWidth: 0,
-                flex: 1,
+                margin: 0,
+                color:
+                  "var(--taste-text)",
+                fontSize:
+                  "15px",
+                lineHeight:
+                  1.25,
+                fontWeight:
+                  800,
+                letterSpacing:
+                  "-0.02em",
               }}
             >
+              Uživatel{" "}
               <Link
                 href={`/profiles/${row.user_id}`}
                 style={{
-                  display:
-                    "block",
-                  overflow:
-                    "hidden",
                   color:
                     userAccent,
-                  fontSize:
-                    "10px",
-                  fontWeight: 800,
-                  lineHeight: 1.2,
                   textDecoration:
                     "none",
-                  textOverflow:
-                    "ellipsis",
-                  whiteSpace:
-                    "nowrap",
                 }}
               >
-                {profile
-                  ?.display_name ??
-                  "Neznámý uživatel"}
-              </Link>
+                {displayName}
+              </Link>{" "}
+              získal nový odznak!
+            </h3>
 
-              <div
-                style={{
-                  marginTop:
-                    "3px",
-                  color:
-                    "var(--taste-text-muted)",
-                  fontSize:
-                    "9px",
-                  lineHeight:
-                    1.3,
-                  whiteSpace:
-                    "nowrap",
-                }}
-              >
-                {formatAchievementDate(
-                  row.unlocked_at
-                )}
-              </div>
-
-              <div
-                style={{
-                  marginTop:
-                    "2px",
-                  color:
-                    systemAccent,
-                  fontSize:
-                    "8px",
-                  fontWeight:
-                    650,
-                  opacity: 0.72,
-                }}
-              >
-                získal odznak
-              </div>
+            <div
+              style={{
+                marginTop:
+                  "5px",
+                color:
+                  "var(--taste-text-soft)",
+                fontSize:
+                  "11px",
+                lineHeight:
+                  1.4,
+                fontWeight:
+                  650,
+              }}
+            >
+              {achievement.name} -{" "}
+              {formatAchievementDate(
+                row.unlocked_at
+              )}
             </div>
           </div>
         </div>
