@@ -90,7 +90,9 @@ async function resolveHopIds(
 
 async function resolveBrandId(
   supabase: Awaited<ReturnType<typeof createClient>>,
-  brandName: string
+  brandName: string,
+  userId: string,
+  breweryId: number
 ) {
   const cleanBrandName = brandName.trim();
   if (!cleanBrandName) {
@@ -114,6 +116,17 @@ async function resolveBrandId(
   if (createError || !created) {
     throw new Error(createError?.message || "Značku se nepodařilo vytvořit.");
   }
+
+  const { error: brandEventError } = await supabase
+    .from("catalog_events")
+    .insert({
+      actor_user_id: userId,
+      brand_id: created.id,
+      brewery_id: breweryId,
+      event_type: "brand_created",
+    });
+  if (brandEventError) throw new Error(brandEventError.message);
+
   return created.id;
 }
 
@@ -266,7 +279,7 @@ export async function createCatalogBeer(breweryId: number, formData: FormData) {
   const [styleId, hopIds, brandId, collaboratorIds] = await Promise.all([
     resolveStyleId(supabase, values.styleName),
     resolveHopIds(supabase, values.hopNames),
-    resolveBrandId(supabase, values.brandName),
+    resolveBrandId(supabase, values.brandName, user.id, breweryId),
     resolveCollaboratorIds(supabase, breweryId, values.collaboratorNames),
   ]);
 
