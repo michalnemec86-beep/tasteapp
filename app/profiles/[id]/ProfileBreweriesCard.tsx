@@ -6,6 +6,7 @@ import type {
 
 type ProfileBreweriesCardProps = {
   items: RankingItem[];
+  limit?: number;
 };
 
 const tones = [
@@ -41,9 +42,10 @@ const tones = [
 
 export default function ProfileBreweriesCard({
   items,
+  limit = 8,
 }: ProfileBreweriesCardProps) {
   const visibleItems =
-    items.slice(0, 8);
+    items.slice(0, limit);
 
   const winner =
     visibleItems[0] ?? null;

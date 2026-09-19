@@ -1066,7 +1066,7 @@ export default function ProfileAchievementJourneys({
                 "-0.025em",
             }}
           >
-            Medailové cesty
+            Hospodské ocenění
           </h2>
 
           <p

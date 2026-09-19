@@ -11,6 +11,33 @@
   margin-bottom: 16px;
 }
 
+.taste-tasting-search {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  max-width: 620px;
+}
+
+.taste-tasting-search input {
+  flex: 1 1 320px;
+  min-width: 0;
+  min-height: 40px;
+  padding: 9px 12px;
+  border: 1px solid var(--taste-border-strong);
+  border-radius: 10px;
+  outline: none;
+  background: var(--taste-surface);
+  color: var(--taste-text);
+  font-size: 14px;
+}
+
+.taste-tasting-search .taste-button-secondary {
+  cursor: pointer;
+  padding-inline: 13px;
+  font-size: 11px;
+  font-weight: 750;
+}
+
 .taste-tasting-sort-buttons {
   display: flex;
   flex-wrap: wrap;
@@ -25,6 +52,27 @@
 }
 
 .taste-tasting-sort-buttons .taste-button-secondary[aria-pressed="true"] {
+  border-color: rgba(245, 184, 63, 0.55);
+  background: rgba(231, 166, 47, 0.14);
+  color: var(--taste-amber-bright);
+}
+
+.taste-tasting-letters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.taste-tasting-letters .taste-button-secondary {
+  min-width: 34px;
+  cursor: pointer;
+  justify-content: center;
+  padding: 7px 9px;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.taste-tasting-letters .taste-button-secondary[aria-pressed="true"] {
   border-color: rgba(245, 184, 63, 0.55);
   background: rgba(231, 166, 47, 0.14);
   color: var(--taste-amber-bright);
@@ -56,6 +104,18 @@
 }
 
 @media (max-width: 720px) {
+  .taste-tasting-search {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    max-width: none;
+  }
+
+  .taste-tasting-search input {
+    grid-column: 1 / -1;
+    width: 100%;
+    font-size: 16px;
+  }
+
   .taste-tasting-sort-buttons {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));

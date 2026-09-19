@@ -63,6 +63,8 @@ type ProfilePageProps = {
     view?: string | string[];
     sort?: string | string[];
     country?: string | string[];
+    q?: string | string[];
+    letter?: string | string[];
   }>;
 };
 
@@ -93,7 +95,9 @@ export default async function ProfilePage({
   const resolvedSearchParams = await searchParams;
   const requestedView = resolvedSearchParams.view;
   const view =
-    requestedView === "beers" || requestedView === "medals"
+    requestedView === "beers" ||
+    requestedView === "breweries" ||
+    requestedView === "medals"
       ? requestedView
       : "stats";
   const requestedSort = resolvedSearchParams.sort;
@@ -106,6 +110,14 @@ export default async function ProfilePage({
   const selectedCountry =
     typeof resolvedSearchParams.country === "string"
       ? resolvedSearchParams.country
+      : "";
+  const tastingQuery =
+    typeof resolvedSearchParams.q === "string"
+      ? resolvedSearchParams.q.trim()
+      : "";
+  const selectedLetter =
+    typeof resolvedSearchParams.letter === "string"
+      ? resolvedSearchParams.letter.toLocaleUpperCase("cs")
       : "";
 
   const supabase =
@@ -501,14 +513,60 @@ export default async function ProfilePage({
     )
   ).sort((a, b) => a.localeCompare(b, "cs"));
 
+  function tastingInitial(name: string | null | undefined) {
+    const first = name?.trim().charAt(0).toLocaleUpperCase("cs") ?? "";
+    const normalized = first.normalize("NFD").replace(/\p{M}/gu, "");
+
+    return /^[A-Z]$/.test(normalized) ? normalized : "#";
+  }
+
+  const tastingLetters = Array.from(
+    new Set(allTastings.map((tasting) => tastingInitial(tasting.beers?.name)))
+  ).sort((a, b) => {
+    if (a === "#") return 1;
+    if (b === "#") return -1;
+    return a.localeCompare(b, "cs");
+  });
+
+  const normalizedTastingQuery = tastingQuery.toLocaleLowerCase("cs");
+
   const visibleTastings = allTastings
     .filter((tasting) => {
-      if (!selectedCountry) return true;
+      const brewery =
+        tasting.beer_versions?.breweries ?? tasting.beers?.breweries;
 
-      return (
-        (tasting.beer_versions?.breweries ?? tasting.beers?.breweries)
-          ?.country === selectedCountry
-      );
+      if (selectedCountry && brewery?.country !== selectedCountry) {
+        return false;
+      }
+
+      if (
+        selectedLetter &&
+        tastingInitial(tasting.beers?.name) !== selectedLetter
+      ) {
+        return false;
+      }
+
+      if (normalizedTastingQuery) {
+        const searchableValues = [
+          tasting.beers?.name,
+          tasting.beers?.brands?.name,
+          brewery?.name,
+          brewery?.country,
+          tasting.beers?.beer_styles?.name,
+          tasting.place,
+          tasting.notes,
+        ];
+
+        if (
+          !searchableValues.some((value) =>
+            value?.toLocaleLowerCase("cs").includes(normalizedTastingQuery)
+          )
+        ) {
+          return false;
+        }
+      }
+
+      return true;
     })
     .sort((a, b) => {
       const beerA = a.beers?.name ?? "";
@@ -1042,7 +1100,8 @@ export default async function ProfilePage({
         {[
           { key: "stats", label: "Moje statistiky", href: `/profiles/${profile.id}` },
           { key: "beers", label: "Co jsem vypil", href: `/profiles/${profile.id}?view=beers` },
-          { key: "medals", label: "Medaile", href: `/profiles/${profile.id}?view=medals` },
+          { key: "breweries", label: "Moje pivovary", href: `/profiles/${profile.id}?view=breweries` },
+          { key: "medals", label: "Hospodské ocenění", href: `/profiles/${profile.id}?view=medals` },
         ].map((item) => {
           const active = view === item.key;
 
@@ -1272,6 +1331,13 @@ export default async function ProfilePage({
       />
       </>}
 
+      {view === "breweries" && (
+        <ProfileBreweriesCard
+          items={tasteStats.breweries}
+          limit={tasteStats.breweries.length}
+        />
+      )}
+
       {/* ==================================================
           MEDAILOVÉ CESTY
       ================================================== */}
@@ -1358,6 +1424,9 @@ export default async function ProfilePage({
           sort={tastingSort}
           country={selectedCountry}
           countries={tastingCountries}
+          query={tastingQuery}
+          letter={selectedLetter}
+          letters={tastingLetters}
         />
 
         {visibleTastings.length ===
@@ -1378,8 +1447,8 @@ export default async function ProfilePage({
                 "13px",
             }}
           >
-            {selectedCountry
-              ? `Pro zemi ${selectedCountry} tu zatím není žádná ochutnávka.`
+            {selectedCountry || selectedLetter || tastingQuery
+              ? "Tomuto výběru neodpovídá žádná ochutnávka."
               : "Tento uživatel zatím nemá žádnou ochutnávku."}
           </div>
         )}

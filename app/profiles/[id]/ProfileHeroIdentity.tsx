@@ -289,6 +289,19 @@ export default function ProfileHeroIdentity({
           gap: "7px",
         }}
       >
+        {isMe && (
+          <Link
+            href="/tastings/new"
+            className="taste-button-primary"
+            style={{
+              fontSize: "11px",
+              textAlign: "center",
+            }}
+          >
+            + Zapsat ochutnávku
+          </Link>
+        )}
+
         <Link
           href="/profiles"
           className="taste-button-secondary"
