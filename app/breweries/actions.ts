@@ -124,6 +124,49 @@ async function requireUser() {
   };
 }
 
+function readBrandNames(formData: FormData) {
+  return Array.from(new Set(
+    String(formData.get("brandNames") ?? "")
+      .split(",")
+      .map((name) => name.trim())
+      .filter(Boolean)
+  ));
+}
+
+async function addBreweryBrands(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+  breweryId: number,
+  brandNames: string[]
+) {
+  if (brandNames.length === 0) return;
+
+  const { data: existing, error } = await supabase.from("brands").select("id, name");
+  if (error) throw new Error(error.message);
+
+  const brandIds: number[] = [];
+  for (const brandName of brandNames) {
+    const found = existing?.find((brand) => normalizeText(brand.name) === normalizeText(brandName));
+    if (found) {
+      brandIds.push(found.id);
+      continue;
+    }
+
+    const { data: created, error: createError } = await supabase
+      .from("brands")
+      .insert({ name: brandName })
+      .select("id")
+      .single();
+    if (createError || !created) throw new Error(createError?.message || `Značku „${brandName}“ se nepodařilo vytvořit.`);
+    brandIds.push(created.id);
+  }
+
+  const { error: linkError } = await supabase.from("brewery_brands").upsert(
+    brandIds.map((brandId) => ({ brewery_id: breweryId, brand_id: brandId, created_by: userId }))
+  );
+  if (linkError) throw new Error(linkError.message);
+}
+
 function readBreweryFormData(
   formData: FormData
 ) {
@@ -248,12 +291,14 @@ export async function createBrewery(
 ) {
   const {
     supabase,
+    user,
   } = await requireUser();
 
   const values =
     readBreweryFormData(
       formData
     );
+  const brandNames = readBrandNames(formData);
 
   const canonicalCountry =
     await getCanonicalCountry(
@@ -291,6 +336,7 @@ export async function createBrewery(
   }
 
   const {
+    data: createdBrewery,
     error: insertError,
   } = await supabase
     .from("breweries")
@@ -313,13 +359,18 @@ export async function createBrewery(
         values.isNomadic ? null : values.latitude,
       longitude:
         values.isNomadic ? null : values.longitude,
-    });
+    })
+    .select("id")
+    .single();
 
   if (insertError) {
     throw new Error(
       insertError.message
     );
   }
+
+  if (!createdBrewery) throw new Error("Pivovar se nepodařilo vytvořit.");
+  await addBreweryBrands(supabase, user.id, createdBrewery.id, brandNames);
 
   revalidatePath(
     "/breweries"
@@ -332,6 +383,7 @@ export async function updateBrewery(
 ) {
   const {
     supabase,
+    user,
   } = await requireUser();
 
   if (
@@ -349,6 +401,7 @@ export async function updateBrewery(
     readBreweryFormData(
       formData
     );
+  const brandNames = readBrandNames(formData);
 
   const canonicalCountry =
     await getCanonicalCountry(
@@ -421,6 +474,8 @@ export async function updateBrewery(
       updateError.message
     );
   }
+
+  await addBreweryBrands(supabase, user.id, breweryId, brandNames);
 
   revalidatePath(
     "/breweries"

@@ -63,6 +63,9 @@ export default async function BreweryDetailPage({ params }: Props) {
       .select(`
         id, name, city, country, address, website, logo_url, is_nomadic,
         founded_year, closed_year, latitude, longitude,
+        brewery_brands (
+          brands ( id, name )
+        ),
         beers (
           id, name, plato, abv, ibu, is_non_alcoholic,
           brands ( id, name ),
@@ -73,7 +76,7 @@ export default async function BreweryDetailPage({ params }: Props) {
             beer_styles ( name ),
             beer_version_hops ( hops ( name ) )
           ),
-          tastings ( id, quantity )
+          tastings ( id, user_id, tasted_on, quantity )
         ),
         brewery_name_history ( id, previous_name, from_year, changed_year )
       `)
@@ -161,6 +164,9 @@ export default async function BreweryDetailPage({ params }: Props) {
             : fallbackHopNames,
         currentVersionId: currentVersion?.id ?? null,
         versionCount: versions.length,
+        canEdit: isCatalogAdmin || (beer.tastings ?? []).some(
+          (tasting: any) => tasting.user_id === user.id && tasting.tasted_on >= "2026-09-01"
+        ),
       };
     })
     .sort((a: any, b: any) =>
@@ -180,11 +186,15 @@ export default async function BreweryDetailPage({ params }: Props) {
     0
   );
 
-  const brandCount = new Set(
-    breweryBeers
+  const linkedBrands = (brewery.brewery_brands ?? [])
+    .map((row: any) => one(row.brands))
+    .filter((brand: any): brand is { id: number; name: string } => Boolean(brand));
+  const brandCount = new Set([
+    ...linkedBrands.map((brand) => brand.id),
+    ...breweryBeers
       .map((beer: any) => beer.brand?.id)
-      .filter((brandId: unknown): brandId is number => typeof brandId === "number")
-  ).size;
+      .filter((brandId: unknown): brandId is number => typeof brandId === "number"),
+  ]).size;
 
   const relatedIds = Array.from(new Set([
     ...(outgoingResult.data ?? []).map((item) => item.to_brewery_id),
@@ -364,24 +374,26 @@ export default async function BreweryDetailPage({ params }: Props) {
                   </div>
 
                   <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                    <CatalogBeerEditModalClient
-                      breweryName={brewery.name}
-                      beer={{
-                        id: beer.id,
-                        name: beer.name,
-                        plato: beer.plato,
-                        abv: beer.abv,
-                        ibu: beer.ibu,
-                        isNonAlcoholic: beer.is_non_alcoholic,
-                        styleName: beer.styleName,
-                        hopNames: beer.hopNames,
-                        tastingCount: beer.tastings?.length ?? 0,
-                      }}
-                      styles={styles}
-                      hops={hops}
-                      updateBeerAction={updateCatalogBeer.bind(null, brewery.id, beer.id)}
-                      deleteBeerAction={deleteCatalogBeer.bind(null, brewery.id, beer.id)}
-                    />
+                    {beer.canEdit && (
+                      <CatalogBeerEditModalClient
+                        breweryName={brewery.name}
+                        beer={{
+                          id: beer.id,
+                          name: beer.name,
+                          plato: beer.plato,
+                          abv: beer.abv,
+                          ibu: beer.ibu,
+                          isNonAlcoholic: beer.is_non_alcoholic,
+                          styleName: beer.styleName,
+                          hopNames: beer.hopNames,
+                          tastingCount: beer.tastings?.length ?? 0,
+                        }}
+                        styles={styles}
+                        hops={hops}
+                        updateBeerAction={updateCatalogBeer.bind(null, brewery.id, beer.id)}
+                        deleteBeerAction={deleteCatalogBeer.bind(null, brewery.id, beer.id)}
+                      />
+                    )}
                     <div style={{ color: "var(--taste-amber-bright)", fontSize: "11px", fontWeight: 750, whiteSpace: "nowrap" }}>
                       {(beer.tastings ?? []).reduce((sum: number, tasting: any) => sum + (tasting.quantity ?? 1), 0)}×
                     </div>
@@ -393,6 +405,19 @@ export default async function BreweryDetailPage({ params }: Props) {
             <div style={{ color: "var(--taste-text-muted)", fontSize: "12px" }}>Zatím není zaznamenané žádné pivo.</div>
           )}
         </div>
+
+        {linkedBrands.length > 0 && (
+          <div style={{ marginTop: "22px", paddingTop: "18px", borderTop: "1px solid var(--taste-border)" }}>
+            <div className="taste-label" style={{ marginBottom: "9px" }}>Značky pivovaru</div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "7px" }}>
+              {linkedBrands.sort((a, b) => a.name.localeCompare(b.name, "cs")).map((brand) => (
+                <Link key={brand.id} href={`/brands/${brand.id}`} className="taste-button-secondary" style={{ padding: "6px 9px", fontSize: "10px" }}>
+                  {brand.name}
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
 
         {collaborations.length > 0 && (
           <div style={{ marginTop: "24px", paddingTop: "18px", borderTop: "1px solid var(--taste-border)" }}>

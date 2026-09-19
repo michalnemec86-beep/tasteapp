@@ -80,6 +80,7 @@ type CatalogBeerRow = {
   abv: number | null;
   ibu: number | null;
   is_non_alcoholic: boolean;
+  is_catalog: boolean;
 
   brands:
     | { id: number; name: string }
@@ -195,6 +196,15 @@ type AchievementRow = {
   show_in_timeline: boolean;
 };
 
+type CatalogEventRow = {
+  id: number;
+  actor_user_id: string;
+  event_type: "beer_created" | "beer_confirmed" | "beer_version_created";
+  created_at: string;
+  beers: { id: number; name: string; brands: { id: number; name: string } | null } | null;
+  breweries: { id: number; name: string } | null;
+};
+
 type TimelineEvent =
   | {
       type: "tasting";
@@ -205,7 +215,16 @@ type TimelineEvent =
       type: "achievement";
       sortAt: number;
       achievement: AchievementRow;
+    }
+  | {
+      type: "catalog";
+      sortAt: number;
+      catalogEvent: CatalogEventRow;
     };
+
+function singleRelation<T>(value: T | T[] | null | undefined): T | null {
+  return Array.isArray(value) ? value[0] ?? null : value ?? null;
+}
 
 // ==================================================
 // PIVOVAR DNE
@@ -399,6 +418,17 @@ export default async function HomePage() {
         }
       );
 
+  const catalogEventsPromise = supabase
+    .from("catalog_events")
+    .select(`
+      id, actor_user_id, event_type, created_at,
+      beers ( id, name, brands ( id, name ) ),
+      breweries ( id, name )
+    `)
+    .eq("show_in_timeline", true)
+    .order("created_at", { ascending: false })
+    .limit(60);
+
   const beersPromise =
     supabase
       .from("beers")
@@ -409,6 +439,7 @@ export default async function HomePage() {
         abv,
         ibu,
         is_non_alcoholic,
+        is_catalog,
         brands (
           id,
           name
@@ -430,6 +461,7 @@ export default async function HomePage() {
           )
         )
       `)
+      .order("is_catalog", { ascending: false })
       .order("name");
 
   const breweriesPromise =
@@ -468,6 +500,7 @@ export default async function HomePage() {
     profilesResult,
     tastingsResult,
     achievementsResult,
+    catalogEventsResult,
     beersResult,
     breweriesResult,
     countriesResult,
@@ -478,6 +511,7 @@ export default async function HomePage() {
       profilesPromise,
       tastingsPromise,
       achievementsPromise,
+      catalogEventsPromise,
       beersPromise,
       breweriesPromise,
       countriesPromise,
@@ -502,6 +536,8 @@ export default async function HomePage() {
     error: achievementsError,
   } =
     achievementsResult;
+
+  const { data: catalogEvents, error: catalogEventsError } = catalogEventsResult;
 
   const {
     data: beers,
@@ -551,6 +587,8 @@ export default async function HomePage() {
     );
   }
 
+  if (catalogEventsError) throw new Error(catalogEventsError.message);
+
   if (beersError) {
     throw new Error(
       beersError.message
@@ -593,6 +631,23 @@ export default async function HomePage() {
   const allAchievements =
     (achievements ??
       []) as AchievementRow[];
+
+  const rawCatalogEvents = (catalogEvents ?? []) as unknown as Array<{
+    id: number;
+    actor_user_id: string;
+    event_type: CatalogEventRow["event_type"];
+    created_at: string;
+    beers: ({ id: number; name: string; brands: { id: number; name: string } | Array<{ id: number; name: string }> | null } | Array<{ id: number; name: string; brands: { id: number; name: string } | Array<{ id: number; name: string }> | null }>) | null;
+    breweries: { id: number; name: string } | Array<{ id: number; name: string }> | null;
+  }>;
+  const allCatalogEvents = rawCatalogEvents.map((event) => {
+    const beer = singleRelation(event.beers);
+    return {
+      ...event,
+      beers: beer ? { ...beer, brands: singleRelation(beer.brands) } : null,
+      breweries: singleRelation(event.breweries),
+    };
+  }) as CatalogEventRow[];
 
   const allBeers =
     (beers ??
@@ -863,6 +918,12 @@ export default async function HomePage() {
         achievement,
       })
     ),
+
+    ...allCatalogEvents.map((catalogEvent) => ({
+      type: "catalog" as const,
+      sortAt: new Date(catalogEvent.created_at).getTime(),
+      catalogEvent,
+    })),
   ];
 
   timeline.sort(
@@ -1148,6 +1209,16 @@ export default async function HomePage() {
                       achievement={
                         achievement
                       }
+                    />
+                  );
+                }
+
+                if (event.type === "catalog") {
+                  return (
+                    <CatalogTimelineCard
+                      key={`catalog-${event.catalogEvent.id}`}
+                      row={event.catalogEvent}
+                      profile={getProfile(event.catalogEvent.actor_user_id)}
                     />
                   );
                 }
@@ -1975,6 +2046,33 @@ function TastingTimelineCard({
               )}
             </div>
           </div>
+        </div>
+      </article>
+    </div>
+  );
+}
+
+function CatalogTimelineCard({ row, profile }: { row: CatalogEventRow; profile: ProfileRow | null }) {
+  const labels = {
+    beer_created: "přidal nové pivo do sortimentu",
+    beer_confirmed: "potvrdil pivo jako katalogové",
+    beer_version_created: "vytvořil novou aktuální verzi piva",
+  } as const;
+
+  return (
+    <div style={{ position: "relative", paddingLeft: "20px" }}>
+      <div style={{ position: "absolute", left: "5px", top: "-10px", bottom: "-10px", width: "1px", background: "linear-gradient(180deg, rgba(242,182,63,.04), rgba(242,182,63,.28), rgba(242,182,63,.04))" }} />
+      <div style={{ position: "absolute", left: "1px", top: "24px", width: "9px", height: "9px", borderRadius: "50%", border: "1px solid #f2b63f", background: "var(--taste-surface-raised)" }} />
+      <article className="taste-card" style={{ padding: "14px 16px" }}>
+        <div style={{ color: "var(--taste-text-muted)", fontSize: "11px", lineHeight: 1.55 }}>
+          <strong style={{ color: "var(--taste-text)" }}>{profile?.display_name ?? "Uživatel"}</strong>{" "}
+          {labels[row.event_type]}{" "}
+          {row.beers ? <Link href={`/beers/${row.beers.id}`} className="taste-entity-link" style={{ fontWeight: 800 }}>{row.beers.name}</Link> : "pivo"}
+          {row.beers?.brands && <span> · značka {row.beers.brands.name}</span>}
+          {row.breweries && <span> · <Link href={`/breweries/${row.breweries.id}`} className="taste-entity-link">{row.breweries.name}</Link></span>}
+        </div>
+        <div style={{ marginTop: "6px", color: "var(--taste-text-muted)", fontSize: "9px" }}>
+          {new Intl.DateTimeFormat("cs-CZ", { dateStyle: "medium", timeStyle: "short" }).format(new Date(row.created_at))}
         </div>
       </article>
     </div>

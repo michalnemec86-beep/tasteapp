@@ -388,7 +388,8 @@ async function resolveBeer(
   supabase: SupabaseClient,
   values: TastingFormValues,
   breweryId: number,
-  styleId: number | null
+  styleId: number | null,
+  userId: string
 ) {
   if (values.existingBeerId) {
     const parsedBeerId = Number(values.existingBeerId);
@@ -407,10 +408,13 @@ async function resolveBeer(
     return { beerId: selectedBeer.id, isNewBeer: false };
   }
 
+  const brandId = await resolveBrandId(supabase, values.brandName);
+
   const { data: breweryBeers, error: breweryBeersError } = await supabase
     .from("beers")
-    .select("id, name")
-    .eq("brewery_id", breweryId);
+    .select("id, name, brand_id")
+    .eq("brewery_id", breweryId)
+    .eq("brand_id", brandId);
   if (breweryBeersError) throw new Error(breweryBeersError.message);
 
   const existingBeer = breweryBeers?.find(
@@ -420,8 +424,6 @@ async function resolveBeer(
   if (existingBeer) {
     return { beerId: existingBeer.id, isNewBeer: false };
   }
-
-  const brandId = await resolveBrandId(supabase, values.brandName);
 
   const { data: newBeer, error: beerError } = await supabase
     .from("beers")
@@ -434,6 +436,7 @@ async function resolveBeer(
       abv: values.abvValue ? Number(values.abvValue) : null,
       ibu: values.ibuValue ? Number(values.ibuValue) : null,
       is_non_alcoholic: values.isNonAlcoholic,
+      created_by: userId,
     })
     .select("id")
     .single();
@@ -441,6 +444,19 @@ async function resolveBeer(
   if (beerError || !newBeer) {
     throw new Error(beerError?.message || "Pivo se nepodařilo vytvořit.");
   }
+
+  const { error: brandLinkError } = await supabase
+    .from("brewery_brands")
+    .upsert({ brewery_id: breweryId, brand_id: brandId, created_by: userId });
+  if (brandLinkError) throw new Error(brandLinkError.message);
+
+  const { error: eventError } = await supabase.from("catalog_events").insert({
+    actor_user_id: userId,
+    beer_id: newBeer.id,
+    brewery_id: breweryId,
+    event_type: "beer_created",
+  });
+  if (eventError) throw new Error(eventError.message);
 
   return { beerId: newBeer.id, isNewBeer: true };
 }
@@ -500,7 +516,8 @@ async function addBeerHops(
 
 async function resolveCatalogData(
   supabase: SupabaseClient,
-  values: TastingFormValues
+  values: TastingFormValues,
+  userId: string
 ) {
   const brewery = await resolveBrewery(supabase, values);
   const styleId = await resolveStyle(supabase, values.styleName);
@@ -508,7 +525,8 @@ async function resolveCatalogData(
     supabase,
     values,
     brewery.id,
-    styleId
+    styleId,
+    userId
   );
   const hopIds = await resolveHopIds(supabase, values.hopNames);
 
@@ -521,6 +539,8 @@ async function resolveCatalogData(
 
 function revalidateTastingPages(userId: string) {
   revalidatePath("/");
+  revalidatePath("/beers");
+  revalidatePath("/breweries");
   revalidatePath("/stats");
   revalidatePath("/tastings");
   revalidatePath("/profiles");
@@ -531,7 +551,7 @@ async function saveTastingCore(formData: FormData) {
   const supabase = await createClient();
   const user = await getCurrentUser(supabase);
   const values = readTastingFormData(formData);
-  const { beerId, breweryId } = await resolveCatalogData(supabase, values);
+  const { beerId, breweryId } = await resolveCatalogData(supabase, values, user.id);
 
   const collaboratorBreweryIds = await validateCollaboratorBreweryIds(
     supabase,

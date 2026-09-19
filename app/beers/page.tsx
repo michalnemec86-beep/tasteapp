@@ -5,6 +5,7 @@ import AppIcon from "@/components/ui/AppIcon";
 import { createClient } from "@/lib/supabase/server";
 
 import BeerCatalogClient, { type BeerCatalogItem } from "./BeerCatalogClient";
+import { confirmCatalogBeer } from "./actions";
 
 type Relation<T> = T | T[] | null;
 
@@ -29,7 +30,7 @@ export default async function BeerCatalogPage() {
     const { data, error } = await supabase
       .from("beers")
       .select(`
-        id, name, plato, abv, ibu, is_non_alcoholic,
+        id, name, plato, abv, ibu, is_non_alcoholic, is_catalog,
         brands ( id, name ),
         breweries ( id, name, country ),
         beer_styles ( id, name ),
@@ -65,6 +66,7 @@ export default async function BeerCatalogPage() {
       abv: number | null;
       ibu: number | null;
       is_non_alcoholic: boolean | null;
+      is_catalog: boolean | null;
       brands: Relation<{ id: number; name: string }>;
       breweries: Relation<{ id: number; name: string; country: string | null }>;
       beer_styles: Relation<{ id: number; name: string }>;
@@ -101,13 +103,14 @@ export default async function BeerCatalogPage() {
       abv: current?.abv ?? beer.abv,
       ibu: current?.ibu ?? beer.ibu,
       isNonAlcoholic: Boolean(beer.is_non_alcoholic),
+      isCatalog: Boolean(beer.is_catalog),
       hops,
       totalQuantity: tastings.reduce((sum, tasting) => sum + (tasting.quantity ?? 1), 0),
       myQuantity: tastings
         .filter((tasting) => tasting.user_id === user.id)
         .reduce((sum, tasting) => sum + (tasting.quantity ?? 1), 0),
     };
-  });
+  }).sort((a, b) => Number(b.isCatalog) - Number(a.isCatalog) || a.name.localeCompare(b.name, "cs", { sensitivity: "base" }));
 
   const tastedCount = beers.filter((beer) => beer.totalQuantity > 0).length;
   const myCount = beers.filter((beer) => beer.myQuantity > 0).length;
@@ -127,7 +130,11 @@ export default async function BeerCatalogPage() {
         ]}
       />
 
-      <BeerCatalogClient beers={beers} />
+      <BeerCatalogClient
+        beers={beers}
+        isCatalogAdmin={user.id === "17be5dc3-a3f9-4fd2-ae90-dee7692034fc"}
+        confirmAction={confirmCatalogBeer}
+      />
     </main>
   );
 }

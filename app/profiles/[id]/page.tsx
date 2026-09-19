@@ -269,6 +269,11 @@ export default async function ProfilePage({
         plato,
         abv,
         ibu,
+        is_catalog,
+        brands (
+          id,
+          name
+        ),
         breweries (
           id,
           name,
@@ -279,6 +284,7 @@ export default async function ProfilePage({
           name
         )
       `)
+      .order("is_catalog", { ascending: false })
       .order("name");
 
   const breweriesPromise =
@@ -493,6 +499,11 @@ export default async function ProfilePage({
         breweries:
           singleRelation(
             beer.breweries
+          ),
+
+        brands:
+          singleRelation(
+            beer.brands
           ),
 
         beer_styles:

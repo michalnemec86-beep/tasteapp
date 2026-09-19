@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState, type ReactNode } from "react";
+import CatalogConfirmButton from "./CatalogConfirmButton";
 
 export type BeerCatalogItem = {
   id: number;
@@ -13,6 +14,7 @@ export type BeerCatalogItem = {
   abv: number | null;
   ibu: number | null;
   isNonAlcoholic: boolean;
+  isCatalog: boolean;
   hops: Array<{ id: number; name: string }>;
   totalQuantity: number;
   myQuantity: number;
@@ -22,7 +24,15 @@ type FilterMode = "all" | "tasted" | "mine";
 
 const PAGE_SIZE = 60;
 
-export default function BeerCatalogClient({ beers }: { beers: BeerCatalogItem[] }) {
+export default function BeerCatalogClient({
+  beers,
+  isCatalogAdmin,
+  confirmAction,
+}: {
+  beers: BeerCatalogItem[];
+  isCatalogAdmin: boolean;
+  confirmAction: (beerId: number) => Promise<{ success: boolean }>;
+}) {
   const [filter, setFilter] = useState<FilterMode>("all");
   const [search, setSearch] = useState("");
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
@@ -170,6 +180,12 @@ export default function BeerCatalogClient({ beers }: { beers: BeerCatalogItem[] 
               >
                 + Zapsat ochutnávku
               </Link>
+
+              {isCatalogAdmin && (
+                <div style={{ marginTop: "10px" }}>
+                  <CatalogConfirmButton beerId={beer.id} isCatalog={beer.isCatalog} confirmAction={confirmAction} />
+                </div>
+              )}
             </article>
           ))}
         </div>

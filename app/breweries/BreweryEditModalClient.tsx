@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 
 type Country = {
   id: number;
@@ -42,6 +43,8 @@ export default function BreweryEditModalClient({
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [brandNames, setBrandNames] = useState("");
+  const [brandOptions, setBrandOptions] = useState<string[]>([]);
   const router = useRouter();
 
   useEffect(() => {
@@ -70,6 +73,28 @@ export default function BreweryEditModalClient({
     setOpen(false);
   }
 
+  async function prepareOpen() {
+    setError("");
+    setOpen(true);
+    const supabase = createClient();
+    const [brandsResult, linkedResult] = await Promise.all([
+      supabase.from("brands").select("name").order("name"),
+      supabase.from("brewery_brands").select("brands ( name )").eq("brewery_id", brewery.id),
+    ]);
+    if (brandsResult.error || linkedResult.error) {
+      setError(brandsResult.error?.message || linkedResult.error?.message || "Značky se nepodařilo načíst.");
+      return;
+    }
+    setBrandOptions((brandsResult.data ?? []).map((brand) => brand.name));
+    const linkedRows = (linkedResult.data ?? []) as unknown as Array<{
+      brands: { name: string } | Array<{ name: string }> | null;
+    }>;
+    setBrandNames(linkedRows
+      .map((row) => Array.isArray(row.brands) ? row.brands[0]?.name : row.brands?.name)
+      .filter((name): name is string => Boolean(name))
+      .join(", "));
+  }
+
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -96,10 +121,7 @@ export default function BreweryEditModalClient({
     <>
       <button
         type="button"
-        onClick={() => {
-          setError("");
-          setOpen(true);
-        }}
+        onClick={prepareOpen}
         title="Upravit pivovar"
         className={
           variant === "primary"
@@ -308,6 +330,11 @@ export default function BreweryEditModalClient({
                       placeholder="https://…"
                       style={inputStyle}
                     />
+                  </Field>
+
+                  <Field label="Značky">
+                    <input name="brandNames" list={`brewery-brands-${brewery.id}`} value={brandNames} onChange={(event) => setBrandNames(event.target.value)} placeholder="Např. Kozel, Excelent" style={inputStyle} />
+                    <datalist id={`brewery-brands-${brewery.id}`}>{brandOptions.map((name) => <option key={name} value={name} />)}</datalist>
                   </Field>
 
                   <Field label="Rok založení">
