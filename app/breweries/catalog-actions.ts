@@ -247,10 +247,14 @@ function readBeerValues(formData: FormData) {
 }
 
 export async function createCatalogBeer(breweryId: number, formData: FormData) {
-  const { supabase } = await requireUser();
+  const { supabase, user } = await requireUser();
   if (!Number.isInteger(breweryId) || breweryId < 1) throw new Error("Neplatné ID pivovaru.");
 
   const values = readBeerValues(formData);
+
+  if (!values.styleName || values.plato == null || values.abv == null) {
+    throw new Error("Pro pivo v sortimentu je povinný styl, stupňovitost a obsah alkoholu.");
+  }
 
   const { data: brewery, error: breweryError } = await supabase
     .from("breweries")
@@ -259,21 +263,22 @@ export async function createCatalogBeer(breweryId: number, formData: FormData) {
     .maybeSingle();
   if (breweryError || !brewery) throw new Error(breweryError?.message || "Pivovar nebyl nalezen.");
 
-  const { data: beers, error: beersError } = await supabase
-    .from("beers")
-    .select("id, name")
-    .eq("brewery_id", breweryId);
-  if (beersError) throw new Error(beersError.message);
-  if (beers?.some((beer) => normalizeText(beer.name) === normalizeText(values.name))) {
-    throw new Error("Pivo s tímto názvem už u tohoto pivovaru existuje.");
-  }
-
   const [styleId, hopIds, brandId, collaboratorIds] = await Promise.all([
     resolveStyleId(supabase, values.styleName),
     resolveHopIds(supabase, values.hopNames),
     resolveBrandId(supabase, values.brandName),
     resolveCollaboratorIds(supabase, breweryId, values.collaboratorNames),
   ]);
+
+  const { data: beers, error: beersError } = await supabase
+    .from("beers")
+    .select("id, name, brand_id")
+    .eq("brewery_id", breweryId)
+    .eq("brand_id", brandId);
+  if (beersError) throw new Error(beersError.message);
+  if (beers?.some((beer) => normalizeText(beer.name) === normalizeText(values.name))) {
+    throw new Error("Stejné pivo už pro tento pivovar a značku existuje.");
+  }
 
   const { data: beer, error: beerError } = await supabase
     .from("beers")
@@ -289,6 +294,7 @@ export async function createCatalogBeer(breweryId: number, formData: FormData) {
       notes: values.notes,
       photo_url: values.photoUrl,
       is_non_alcoholic: values.isNonAlcoholic,
+      created_by: user.id,
     })
     .select("id")
     .single();
@@ -299,22 +305,39 @@ export async function createCatalogBeer(breweryId: number, formData: FormData) {
 
     const { data: version, error: versionError } = await supabase
       .from("beer_versions")
-      .insert({
-        beer_id: beer.id,
+      .update({
         brewery_id: breweryId,
         style_id: styleId,
         plato: values.plato,
         abv: values.abv,
         ibu: values.ibu,
+        ebc: values.ebc,
         notes: values.notes,
-        is_current: true,
+        photo_url: values.photoUrl,
+        is_non_alcoholic: values.isNonAlcoholic,
+        created_by: user.id,
       })
+      .eq("beer_id", beer.id)
+      .eq("is_current", true)
       .select("id")
       .single();
     if (versionError || !version) throw new Error(versionError?.message || "Aktuální verzi piva se nepodařilo vytvořit.");
 
     await replaceVersionHops(supabase, version.id, hopIds);
     await replaceCollaborators(supabase, version.id, collaboratorIds);
+
+    const { error: linkError } = await supabase
+      .from("brewery_brands")
+      .upsert({ brewery_id: breweryId, brand_id: brandId, created_by: user.id });
+    if (linkError) throw new Error(linkError.message);
+
+    const { error: eventError } = await supabase.from("catalog_events").insert({
+      actor_user_id: user.id,
+      beer_id: beer.id,
+      brewery_id: breweryId,
+      event_type: "beer_created",
+    });
+    if (eventError) throw new Error(eventError.message);
   } catch (error) {
     await supabase.from("beers").delete().eq("id", beer.id);
     throw error;
@@ -337,92 +360,40 @@ export async function updateCatalogBeer(
 
   const { data: beer, error: beerError } = await supabase
     .from("beers")
-    .select("id, brewery_id")
+    .select("id, brewery_id, name, brand_id, brands ( name )")
     .eq("id", beerId)
     .eq("brewery_id", breweryId)
     .maybeSingle();
   if (beerError || !beer) throw new Error(beerError?.message || "Pivo nebylo nalezeno u tohoto pivovaru.");
 
-  const { data: otherBeers, error: otherError } = await supabase
-    .from("beers")
-    .select("id, name")
-    .eq("brewery_id", breweryId)
-    .neq("id", beerId);
-  if (otherError) throw new Error(otherError.message);
-  if (otherBeers?.some((item) => normalizeText(item.name) === normalizeText(values.name))) {
-    throw new Error("Pivo s tímto názvem už u tohoto pivovaru existuje.");
+  const brandRelation = Array.isArray(beer.brands) ? beer.brands[0] : beer.brands;
+  if (
+    normalizeText(values.name) !== normalizeText(beer.name) ||
+    normalizeText(values.brandName) !== normalizeText(brandRelation?.name ?? "")
+  ) {
+    throw new Error("Pivovar, značka a název tvoří pevnou identitu piva a při běžné editaci je nelze změnit.");
   }
 
-  const [styleId, hopIds, brandId, collaboratorIds] = await Promise.all([
+  const [styleId, hopIds, collaboratorIds] = await Promise.all([
     resolveStyleId(supabase, values.styleName),
     resolveHopIds(supabase, values.hopNames),
-    resolveBrandId(supabase, values.brandName),
     resolveCollaboratorIds(supabase, breweryId, values.collaboratorNames),
   ]);
 
-  const { error: updateError } = await supabase
-    .from("beers")
-    .update({
-      name: values.name,
-      brand_id: brandId,
-      style_id: styleId,
-      plato: values.plato,
-      abv: values.abv,
-      ibu: values.ibu,
-      ebc: values.ebc,
-      notes: values.notes,
-      photo_url: values.photoUrl,
-      is_non_alcoholic: values.isNonAlcoholic,
-    })
-    .eq("id", beerId)
-    .eq("brewery_id", breweryId);
-  if (updateError) throw new Error(updateError.message);
-
-  await replaceBeerHops(supabase, beerId, hopIds);
-
-  const { data: currentVersion, error: currentError } = await supabase
-    .from("beer_versions")
-    .select("id")
-    .eq("beer_id", beerId)
-    .eq("is_current", true)
-    .maybeSingle();
-  if (currentError) throw new Error(currentError.message);
-
-  let versionId = currentVersion?.id ?? null;
-  if (versionId) {
-    const { error } = await supabase
-      .from("beer_versions")
-      .update({
-        brewery_id: breweryId,
-        style_id: styleId,
-        plato: values.plato,
-        abv: values.abv,
-        ibu: values.ibu,
-        notes: values.notes,
-      })
-      .eq("id", versionId);
-    if (error) throw new Error(error.message);
-  } else {
-    const { data: created, error } = await supabase
-      .from("beer_versions")
-      .insert({
-        beer_id: beerId,
-        brewery_id: breweryId,
-        style_id: styleId,
-        plato: values.plato,
-        abv: values.abv,
-        ibu: values.ibu,
-        notes: values.notes,
-        is_current: true,
-      })
-      .select("id")
-      .single();
-    if (error || !created) throw new Error(error?.message || "Aktuální verzi piva se nepodařilo vytvořit.");
-    versionId = created.id;
-  }
-
-  await replaceVersionHops(supabase, versionId, hopIds);
-  await replaceCollaborators(supabase, versionId, collaboratorIds);
+  const { error: versionError } = await supabase.rpc("update_catalog_beer_version", {
+    p_beer_id: beerId,
+    p_style_id: styleId,
+    p_plato: values.plato,
+    p_abv: values.abv,
+    p_ibu: values.ibu,
+    p_ebc: values.ebc,
+    p_notes: values.notes,
+    p_photo_url: values.photoUrl,
+    p_is_non_alcoholic: values.isNonAlcoholic,
+    p_hop_ids: hopIds,
+    p_collaborator_ids: collaboratorIds,
+  });
+  if (versionError) throw new Error(versionError.message);
 
   revalidateCatalog(breweryId, beerId);
   return { success: true, beerId };

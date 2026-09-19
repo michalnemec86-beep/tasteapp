@@ -3,6 +3,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 
 type Country = {
   id: number;
@@ -23,6 +24,15 @@ export default function BreweryCreateModalClient({
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [brandNames, setBrandNames] = useState("");
+  const [brandOptions, setBrandOptions] = useState<string[]>([]);
+
+  async function prepareOpen() {
+    setError("");
+    setOpen(true);
+    const { data } = await createClient().from("brands").select("name").order("name");
+    setBrandOptions((data ?? []).map((brand) => brand.name));
+  }
 
   useEffect(() => {
     if (!open) return;
@@ -46,6 +56,7 @@ export default function BreweryCreateModalClient({
     try {
       await createBreweryAction(new FormData(form));
       form.reset();
+      setBrandNames("");
       setOpen(false);
       router.refresh();
     } catch (caughtError) {
@@ -59,10 +70,7 @@ export default function BreweryCreateModalClient({
     <>
       <button
         type="button"
-        onClick={() => {
-          setError("");
-          setOpen(true);
-        }}
+        onClick={prepareOpen}
         className="taste-button-primary"
         style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "7px", fontSize: "12px", fontWeight: 700, whiteSpace: "nowrap" }}
       >
@@ -104,6 +112,10 @@ export default function BreweryCreateModalClient({
                 </Field>
                 <Field label="Adresa"><input name="address" style={inputStyle} /></Field>
                 <Field label="Web"><input name="website" placeholder="https://…" style={inputStyle} /></Field>
+                <Field label="Značky">
+                  <input name="brandNames" list="new-brewery-brands" value={brandNames} onChange={(event) => setBrandNames(event.target.value)} placeholder="Např. Kozel, Excelent" style={inputStyle} />
+                  <datalist id="new-brewery-brands">{brandOptions.map((name) => <option key={name} value={name} />)}</datalist>
+                </Field>
                 <Field label="Rok založení"><input name="foundedYear" type="number" min="1000" max="2100" inputMode="numeric" style={inputStyle} /></Field>
                 <Field label="Rok ukončení provozu"><input name="closedYear" type="number" min="1000" max="2100" inputMode="numeric" style={inputStyle} /></Field>
                 <Field label="Zeměpisná šířka"><input name="latitude" type="number" min="-90" max="90" step="any" inputMode="decimal" style={inputStyle} /></Field>

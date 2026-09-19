@@ -76,6 +76,7 @@ export default async function NewTastingPage({
         abv,
         ibu,
         is_non_alcoholic,
+        is_catalog,
         brands (
           id,
           name
@@ -96,6 +97,7 @@ export default async function NewTastingPage({
           )
         )
       `)
+      .order("is_catalog", { ascending: false })
       .order("name");
 
   if (beersError) {

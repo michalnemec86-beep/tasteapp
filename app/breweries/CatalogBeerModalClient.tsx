@@ -232,7 +232,7 @@ export default function CatalogBeerModalClient({
         onClick={prepareOpen}
         style={{ padding: mode === "edit" ? "5px 8px" : undefined, fontSize: mode === "edit" ? "10px" : "11px", fontWeight: 700, whiteSpace: "nowrap" }}
       >
-        {mode === "create" ? "+ Přidat pivo" : "Upravit"}
+        {mode === "create" ? "+ Přidat sortiment" : "Upravit"}
       </button>
 
       {open && createPortal(
@@ -252,7 +252,7 @@ export default function CatalogBeerModalClient({
             <div style={{ position: "relative", padding: "18px 20px 16px", borderBottom: "1px solid var(--taste-border)" }}>
               <div className="taste-label" style={{ marginBottom: "5px", fontSize: "9px" }}>Katalog piva</div>
               <h2 id={`catalog-beer-${id}`} style={{ margin: 0, paddingRight: "45px", fontSize: "23px" }}>
-                {mode === "create" ? "Přidat pivo" : "Upravit pivo"}
+                {mode === "create" ? "Přidat sortiment" : "Upravit verzi piva"}
               </h2>
               <div style={{ marginTop: "5px", color: "var(--taste-text-muted)", fontSize: "11px" }}>{breweryName}</div>
               <button type="button" aria-label="Zavřít" disabled={busy} onClick={() => setOpen(false)} style={{ position: "absolute", top: "15px", right: "16px", width: "34px", height: "34px", border: "1px solid var(--taste-border)", borderRadius: "9px", background: "transparent", color: "var(--taste-text-muted)", fontSize: "20px", cursor: "pointer" }}>×</button>
@@ -263,25 +263,25 @@ export default function CatalogBeerModalClient({
 
               <div style={gridStyle}>
                 <Field label="Název piva" required>
-                  <input name="name" required value={form.name} onChange={(e) => setField("name", e.target.value)} style={inputStyle} />
+                  <input name="name" required readOnly={mode === "edit"} aria-readonly={mode === "edit"} value={form.name} onChange={(e) => setField("name", e.target.value)} style={mode === "edit" ? lockedInputStyle : inputStyle} />
                 </Field>
 
                 <Field label="Značka" required>
-                  <input name="brandName" required list={`brands-${id}`} value={form.brandName} onChange={(e) => setField("brandName", e.target.value)} placeholder="Např. Kozel" style={inputStyle} />
+                  <input name="brandName" required readOnly={mode === "edit"} aria-readonly={mode === "edit"} list={mode === "create" ? `brands-${id}` : undefined} value={form.brandName} onChange={(e) => setField("brandName", e.target.value)} placeholder="Např. Kozel" style={mode === "edit" ? lockedInputStyle : inputStyle} />
                   <datalist id={`brands-${id}`}>{brandOptions.map((name) => <option key={name} value={name} />)}</datalist>
                 </Field>
 
-                <Field label="Pivní styl">
-                  <input name="styleName" list={`styles-${id}`} value={form.styleName} onChange={(e) => setField("styleName", e.target.value)} placeholder="Např. IPA" style={inputStyle} />
+                <Field label="Pivní styl" required>
+                  <input name="styleName" required list={`styles-${id}`} value={form.styleName} onChange={(e) => setField("styleName", e.target.value)} placeholder="Např. IPA" style={inputStyle} />
                   <datalist id={`styles-${id}`}>{styles.map((style) => <option key={style.id} value={style.name} />)}</datalist>
                 </Field>
 
-                <Field label="Stupňovitost °P">
-                  <input type="number" step="0.1" name="plato" value={form.plato} onChange={(e) => setField("plato", e.target.value)} style={inputStyle} />
+                <Field label="Stupňovitost °P" required>
+                  <input type="number" step="0.1" name="plato" required value={form.plato} onChange={(e) => setField("plato", e.target.value)} style={inputStyle} />
                 </Field>
 
-                <Field label="Alkohol %">
-                  <input type="number" step="0.01" name="abv" value={form.abv} onChange={(e) => setField("abv", e.target.value)} style={inputStyle} />
+                <Field label="Alkohol %" required>
+                  <input type="number" step="0.01" name="abv" required value={form.abv} onChange={(e) => setField("abv", e.target.value)} style={inputStyle} />
                 </Field>
 
                 <Field label="IBU">
@@ -355,5 +355,6 @@ function Field({ label, required = false, children }: { label: string; required?
 
 const gridStyle = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: "0 14px" } as const;
 const inputStyle = { width: "100%", height: "40px", boxSizing: "border-box", padding: "0 11px", border: "1px solid var(--taste-border)", borderRadius: "9px", background: "var(--taste-surface)", color: "var(--taste-text)", fontSize: "12px", outline: "none" } as const;
+const lockedInputStyle = { ...inputStyle, color: "var(--taste-text-muted)", background: "rgba(255,255,255,.025)", cursor: "not-allowed" } as const;
 const errorStyle = { marginBottom: "16px", padding: "10px 12px", border: "1px solid rgba(220,100,75,.35)", borderRadius: "9px", background: "rgba(220,100,75,.08)", color: "var(--taste-text)", fontSize: "12px" } as const;
 const deleteButtonStyle = { width: "100%", minHeight: "42px", padding: "10px 14px", border: "1px solid rgba(214,91,66,.55)", borderRadius: "9px", background: "rgba(214,91,66,.08)", color: "#e3765f", cursor: "pointer", fontWeight: 700, fontSize: "12px" } as const;

@@ -33,6 +33,7 @@ type ExistingBeer = {
   abv: number | null;
   ibu: number | null;
   is_non_alcoholic: boolean;
+  is_catalog?: boolean;
 
   brands?: {
     id: number;
@@ -149,6 +150,10 @@ export default function TastingForm({
 
       if (aMatchesBrewery !== bMatchesBrewery) {
         return aMatchesBrewery ? -1 : 1;
+      }
+
+      if (Boolean(a.is_catalog) !== Boolean(b.is_catalog)) {
+        return a.is_catalog ? -1 : 1;
       }
 
       return a.name.localeCompare(b.name, "cs", { sensitivity: "base" });
@@ -384,6 +389,7 @@ export default function TastingForm({
                         <span style={suggestionLabelStyle}>Značka</span>
                         <span style={{ fontSize: "12px", opacity: 0.82 }}>
                           {beer.brands.name}
+                          {beer.is_catalog ? " · katalogové" : ""}
                         </span>
                       </>
                     )}

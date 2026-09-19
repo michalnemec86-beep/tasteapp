@@ -31,6 +31,7 @@ type ExistingBeer = {
   abv: number | null;
   ibu: number | null;
   is_non_alcoholic: boolean;
+  is_catalog?: boolean;
   breweries: {
     id: number;
     name: string;

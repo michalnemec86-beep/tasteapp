@@ -31,6 +31,12 @@ type Hop = {
 type Beer = {
   id: number;
   name: string;
+  is_catalog?: boolean;
+
+  brands?: {
+    id: number;
+    name: string;
+  } | null;
 
   breweries: {
     id: number;
@@ -61,6 +67,11 @@ type Tasting = {
   beers: {
     id: number;
     name: string;
+
+    brands?: {
+      id: number;
+      name: string;
+    } | null;
 
     breweries: {
       id: number;
@@ -160,6 +171,8 @@ export default function EditTastingModalClient({
       tasting.beers?.breweries?.name ??
         ""
     );
+
+  const [brandName, setBrandName] = useState(tasting.beers?.brands?.name ?? "");
 
   const [
     breweryCountry,
@@ -410,6 +423,8 @@ export default function EditTastingModalClient({
       exactBeer.breweries?.name ??
         ""
     );
+
+    setBrandName(exactBeer.brands?.name ?? "");
 
     setBreweryCountry(
       exactBeer.breweries?.country ??
@@ -663,11 +678,13 @@ export default function EditTastingModalClient({
               <input
                 type="hidden"
                 name="brewery"
-                value={
-                  tasting.beers?.breweries?.name ??
-                  "catalog"
-                }
+                value={breweryName}
               />
+
+              <div style={fieldStyle}>
+                <label style={labelStyle}>Značka</label>
+                <input name="brandName" value={brandName} readOnly aria-readonly="true" style={{ ...inputStyle, color: "var(--taste-text-muted)", background: "rgba(255,255,255,.025)" }} />
+              </div>
 
               {/* PARAMETRY */}
 
