@@ -42,6 +42,9 @@ import ProfileHopsCard from "./ProfileHopsCard";
 import ProfileRecordsCard from "./ProfileRecordsCard";
 import ProfileAchievementJourneys from "./ProfileAchievementJourneys";
 import ProfileHeroIdentity from "./ProfileHeroIdentity";
+import ProfileTastingControls, {
+  type TastingSort,
+} from "./ProfileTastingControls";
 
 import {
   updateTastingInModal,
@@ -58,6 +61,8 @@ type ProfilePageProps = {
   }>;
   searchParams: Promise<{
     view?: string | string[];
+    sort?: string | string[];
+    country?: string | string[];
   }>;
 };
 
@@ -85,11 +90,23 @@ export default async function ProfilePage({
 }: ProfilePageProps) {
   const { id } =
     await params;
-  const requestedView = (await searchParams).view;
+  const resolvedSearchParams = await searchParams;
+  const requestedView = resolvedSearchParams.view;
   const view =
     requestedView === "beers" || requestedView === "medals"
       ? requestedView
       : "stats";
+  const requestedSort = resolvedSearchParams.sort;
+  const tastingSort: TastingSort =
+    requestedSort === "oldest" ||
+    requestedSort === "alpha" ||
+    requestedSort === "country"
+      ? requestedSort
+      : "newest";
+  const selectedCountry =
+    typeof resolvedSearchParams.country === "string"
+      ? resolvedSearchParams.country
+      : "";
 
   const supabase =
     await createClient();
@@ -471,6 +488,50 @@ export default async function ProfilePage({
           ),
       })
     );
+
+  const tastingCountries = Array.from(
+    new Set(
+      allTastings
+        .map(
+          (tasting) =>
+            (tasting.beer_versions?.breweries ?? tasting.beers?.breweries)
+              ?.country
+        )
+        .filter((country): country is string => Boolean(country))
+    )
+  ).sort((a, b) => a.localeCompare(b, "cs"));
+
+  const visibleTastings = allTastings
+    .filter((tasting) => {
+      if (!selectedCountry) return true;
+
+      return (
+        (tasting.beer_versions?.breweries ?? tasting.beers?.breweries)
+          ?.country === selectedCountry
+      );
+    })
+    .sort((a, b) => {
+      const beerA = a.beers?.name ?? "";
+      const beerB = b.beers?.name ?? "";
+      const countryA =
+        (a.beer_versions?.breweries ?? a.beers?.breweries)?.country ?? "";
+      const countryB =
+        (b.beer_versions?.breweries ?? b.beers?.breweries)?.country ?? "";
+      const dateA = Date.parse(a.tasted_at ?? a.tasted_on ?? "") || 0;
+      const dateB = Date.parse(b.tasted_at ?? b.tasted_on ?? "") || 0;
+
+      if (tastingSort === "alpha") {
+        return beerA.localeCompare(beerB, "cs", { sensitivity: "base" });
+      }
+
+      if (tastingSort === "oldest") return dateA - dateB;
+      if (tastingSort === "newest") return dateB - dateA;
+
+      return (
+        countryA.localeCompare(countryB, "cs", { sensitivity: "base" }) ||
+        beerA.localeCompare(beerB, "cs", { sensitivity: "base" })
+      );
+    });
 
   // ==================================================
   // STATISTIKY
@@ -1284,16 +1345,22 @@ export default async function ProfilePage({
             }}
           >
             {
-              allTastings.length
+              visibleTastings.length
             }{" "}
-            {allTastings.length ===
+            {visibleTastings.length ===
             1
               ? "záznam"
               : "záznamů"}
           </div>
         </div>
 
-        {allTastings.length ===
+        <ProfileTastingControls
+          sort={tastingSort}
+          country={selectedCountry}
+          countries={tastingCountries}
+        />
+
+        {visibleTastings.length ===
           0 && (
           <div
             className="taste-card"
@@ -1311,9 +1378,9 @@ export default async function ProfilePage({
                 "13px",
             }}
           >
-            Tento uživatel zatím
-            nemá žádnou
-            ochutnávku.
+            {selectedCountry
+              ? `Pro zemi ${selectedCountry} tu zatím není žádná ochutnávka.`
+              : "Tento uživatel zatím nemá žádnou ochutnávku."}
           </div>
         )}
 
@@ -1326,7 +1393,7 @@ export default async function ProfilePage({
               "13px",
           }}
         >
-          {allTastings.map(
+          {visibleTastings.map(
             (tasting) => {
               const packaging =
                 getPackagingMeta(
