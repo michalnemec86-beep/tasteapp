@@ -7,23 +7,22 @@
 main > .grid.grid-cols-1.gap-4.xl\:grid-cols-12 > section.order-1.xl\:order-2.xl\:col-span-6 {
   position: relative;
   padding: 18px;
-  border: 1px solid rgba(159, 184, 79, 0.24);
+  border: 1px solid rgba(231, 166, 47, 0.20);
   border-radius: var(--taste-radius-lg);
   background:
     radial-gradient(
       circle at 50% 0%,
-      rgba(159, 184, 79, 0.105),
+      rgba(231, 166, 47, 0.055),
       transparent 25rem
     ),
     linear-gradient(
       180deg,
-      rgba(118, 145, 58, 0.055),
-      rgba(118, 145, 58, 0.018)
+      rgba(92, 54, 24, 0.045),
+      rgba(35, 22, 12, 0.018)
     );
   box-shadow:
-    inset 0 1px 0 rgba(202, 218, 143, 0.025),
-    0 12px 34px rgba(0, 0, 0, 0.15),
-    0 0 32px rgba(126, 154, 62, 0.035);
+    inset 0 1px 0 rgba(255, 219, 164, 0.022),
+    0 12px 34px rgba(0, 0, 0, 0.15);
 }
 
 .taste-page-hero-mobile-compact .taste-page-hero-copy > .taste-label {
@@ -31,7 +30,7 @@ main > .grid.grid-cols-1.gap-4.xl\:grid-cols-12 > section.order-1.xl\:order-2.xl
 }
 
 main > .grid.grid-cols-1.gap-4.xl\:grid-cols-12 > section.order-1.xl\:order-2.xl\:col-span-6 > .taste-label {
-  color: #9fb84f !important;
+  color: var(--taste-amber-soft);
 }
 
 .taste-timeline-actions {
@@ -54,49 +53,8 @@ main > .grid.grid-cols-1.gap-4.xl\:grid-cols-12 > section.order-1.xl\:order-2.xl
   height: 100%;
 }
 
-/* Svislá osa mezi událostmi */
-main > .grid.grid-cols-1.gap-4.xl\:grid-cols-12 > section.order-1.xl\:order-2.xl\:col-span-6 > div:last-child > div > div:first-child {
-  background: linear-gradient(
-    180deg,
-    rgba(159, 184, 79, 0.07),
-    rgba(159, 184, 79, 0.46),
-    rgba(159, 184, 79, 0.07)
-  ) !important;
-}
-
-/* Body timeline karet, včetně achievementů */
-main > .grid.grid-cols-1.gap-4.xl\:grid-cols-12 > section.order-1.xl\:order-2.xl\:col-span-6 article {
-  border-color: rgba(159, 184, 79, 0.30) !important;
-  background:
-    radial-gradient(
-      circle at 88% 16%,
-      rgba(159, 184, 79, 0.105),
-      transparent 15rem
-    ),
-    linear-gradient(
-      145deg,
-      rgba(126, 154, 62, 0.07),
-      transparent 48%
-    ),
-    var(--taste-surface) !important;
-  box-shadow:
-    0 10px 28px rgba(0, 0, 0, 0.20),
-    0 0 24px rgba(126, 154, 62, 0.055) !important;
-}
-
-main > .grid.grid-cols-1.gap-4.xl\:grid-cols-12 > section.order-1.xl\:order-2.xl\:col-span-6 article > div:first-child {
-  background: #9fb84f !important;
-}
-
-main > .grid.grid-cols-1.gap-4.xl\:grid-cols-12 > section.order-1.xl\:order-2.xl\:col-span-6 article .taste-label {
-  color: #aabd59 !important;
-}
-
-/* Tečka na ose. Medaile si dál ponechají vlastní zlato/bronze uvnitř karty. */
-main > .grid.grid-cols-1.gap-4.xl\:grid-cols-12 > section.order-1.xl\:order-2.xl\:col-span-6 > div:last-child > div > div:nth-child(2) {
-  border-color: #9fb84f !important;
-  box-shadow: 0 0 14px rgba(159, 184, 79, 0.34) !important;
-}
+/* Barvy jednotlivých timeline událostí řídí přímo jejich komponenty.
+   Záměrně zde nejsou globální !important přepisy karet, osy ani markerů. */
 
 @media (max-width: 1279px) {
   main > .grid.grid-cols-1.gap-4.xl\:grid-cols-12 > section.order-1.xl\:order-2.xl\:col-span-6 {
