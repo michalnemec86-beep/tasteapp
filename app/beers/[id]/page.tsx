@@ -18,6 +18,11 @@ type StyleRef = {
   name: string;
 };
 
+type HopRef = {
+  id: number;
+  name: string;
+};
+
 type Version = {
   id: number;
   version_year: number | null;
@@ -29,6 +34,9 @@ type Version = {
   is_current: boolean;
   breweries: BreweryRef | null;
   beer_styles: StyleRef | null;
+  beer_version_hops: Array<{
+    hops: HopRef | null;
+  }>;
   beer_version_collaborators: Array<{
     display_order: number;
     breweries: BreweryRef | null;
@@ -108,10 +116,16 @@ export default async function BeerDetailPage({ params }: Props) {
       brands ( id, name ),
       breweries ( id, name, country ),
       beer_styles ( id, name ),
+      beer_hops (
+        hops ( id, name )
+      ),
       beer_versions (
         id, version_year, valid_from, valid_to, plato, abv, ibu, is_current,
         breweries ( id, name, country ),
         beer_styles ( id, name ),
+        beer_version_hops (
+          hops ( id, name )
+        ),
         beer_version_collaborators (
           display_order,
           breweries ( id, name, country )
@@ -134,6 +148,9 @@ export default async function BeerDetailPage({ params }: Props) {
     brands: Relation<{ id: number; name: string }>;
     breweries: Relation<BreweryRef>;
     beer_styles: Relation<StyleRef>;
+    beer_hops: Array<{
+      hops: Relation<HopRef>;
+    }> | null;
     beer_versions: Array<{
       id: number;
       version_year: number | null;
@@ -145,6 +162,9 @@ export default async function BeerDetailPage({ params }: Props) {
       is_current: boolean;
       breweries: Relation<BreweryRef>;
       beer_styles: Relation<StyleRef>;
+      beer_version_hops: Array<{
+        hops: Relation<HopRef>;
+      }> | null;
       beer_version_collaborators: Array<{
         display_order: number;
         breweries: Relation<BreweryRef>;
@@ -157,6 +177,8 @@ export default async function BeerDetailPage({ params }: Props) {
     ...version,
     breweries: one(version.breweries),
     beer_styles: one(version.beer_styles),
+    beer_version_hops: (version.beer_version_hops ?? [])
+      .map((item) => ({ hops: one(item.hops) })),
     beer_version_collaborators: (version.beer_version_collaborators ?? [])
       .map((item) => ({ ...item, breweries: one(item.breweries) }))
       .sort((a, b) => a.display_order - b.display_order),
@@ -168,6 +190,16 @@ export default async function BeerDetailPage({ params }: Props) {
   const currentPlato = current?.plato ?? beer.plato;
   const currentAbv = current?.abv ?? beer.abv;
   const currentIbu = current?.ibu ?? beer.ibu;
+  const fallbackHopNames = (beer.beer_hops ?? [])
+    .map((item) => one(item.hops)?.name)
+    .filter((name): name is string => Boolean(name));
+  const currentVersionHopNames = (current?.beer_version_hops ?? [])
+    .map((item) => item.hops?.name)
+    .filter((name): name is string => Boolean(name));
+  const currentHopNames =
+    currentVersionHopNames.length > 0
+      ? currentVersionHopNames
+      : fallbackHopNames;
   const currentCollaboratorNames = (current?.beer_version_collaborators ?? [])
     .map((item) => item.breweries?.name)
     .filter((name): name is string => Boolean(name));
@@ -286,6 +318,11 @@ export default async function BeerDetailPage({ params }: Props) {
           {currentPlato != null && <span>Stupňovitost: <strong>{currentPlato} °P</strong></span>}
           {currentAbv != null && <span>Alkohol: <strong>{currentAbv} %</strong></span>}
           {currentIbu != null && <span>Hořkost: <strong>IBU {currentIbu}</strong></span>}
+          {currentHopNames.length > 0 && (
+            <span>
+              Chmely: <strong>{currentHopNames.join(", ")}</strong>
+            </span>
+          )}
           {beer.is_non_alcoholic && <span style={{ padding: "3px 8px", borderRadius: "999px", background: "rgba(156,173,71,0.12)", color: "#9cad47", fontSize: "10px", fontWeight: 800 }}>NEALKO</span>}
         </div>
         {currentCollaboratorNames.length > 0 && (
