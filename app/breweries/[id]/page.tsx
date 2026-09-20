@@ -359,6 +359,21 @@ export default async function BreweryDetailPage({ params }: Props) {
                       {beer.abv != null && <Badge>{beer.abv} %</Badge>}
                       {beer.ibu != null && <Badge>IBU {beer.ibu}</Badge>}
                     </div>
+                    {beer.hopNames.length > 0 && (
+                      <div
+                        style={{
+                          marginTop: "6px",
+                          color: "var(--taste-text-muted)",
+                          fontSize: "10px",
+                          lineHeight: 1.35,
+                        }}
+                      >
+                        Chmely:{" "}
+                        <span style={{ color: "#9cad47", fontWeight: 700 }}>
+                          {beer.hopNames.join(", ")}
+                        </span>
+                      </div>
+                    )}
                     {beer.versionCount > 1 && (
                       <div
                         style={{
