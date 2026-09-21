@@ -31,12 +31,15 @@ const BreweryCzechMap = dynamic(
 
 export default function BreweryCzechMapClient({
   items,
+  variant = "overview",
 }: {
   items: BreweryMapItem[];
+  variant?: "overview" | "single";
 }) {
   return (
     <BreweryCzechMap
       items={items}
+      variant={variant}
     />
   );
 }
