@@ -302,6 +302,9 @@ export async function createBrewery(
       formData
     );
   const brandNames = readBrandNames(formData);
+  const isAdmin =
+    user.id ===
+    ADMIN_USER_ID;
 
   const canonicalCountry =
     await getCanonicalCountry(
@@ -359,9 +362,13 @@ export async function createBrewery(
       closed_year:
         values.closedYear,
       latitude:
-        values.isNomadic ? null : values.latitude,
+        values.isNomadic || !isAdmin
+          ? null
+          : values.latitude,
       longitude:
-        values.isNomadic ? null : values.longitude,
+        values.isNomadic || !isAdmin
+          ? null
+          : values.longitude,
     })
     .select("id")
     .single();
