@@ -53,6 +53,7 @@ type BreweryRow = {
   name: string;
   country: string | null;
   logo_url: string | null;
+  aliases?: string[];
 };
 
 type CountryRow = {
@@ -476,9 +477,15 @@ export default async function HomePage() {
   const breweriesPromise =
     supabase
       .from("breweries")
-      .select(
-        "id, name, country, logo_url"
-      )
+      .select(`
+        id,
+        name,
+        country,
+        logo_url,
+        brewery_name_history (
+          previous_name
+        )
+      `)
       .order("name");
 
   const countriesPromise =
@@ -668,8 +675,15 @@ export default async function HomePage() {
       CatalogBeerRow[];
 
   const allBreweries =
-    (breweries ??
-      []) as BreweryRow[];
+    (breweries ?? []).map((brewery) => ({
+      id: brewery.id,
+      name: brewery.name,
+      country: brewery.country,
+      logo_url: brewery.logo_url,
+      aliases: (brewery.brewery_name_history ?? [])
+        .map((item) => item.previous_name)
+        .filter(Boolean),
+    })) as BreweryRow[];
 
   const allStyles =
     (styles ??
