@@ -940,6 +940,7 @@ export default function BreweryTableClient({
                             longitude: brewery.longitude,
                           }}
                           updateBreweryAction={updateBreweryAction}
+                          isAdmin={currentUserId === "17be5dc3-a3f9-4fd2-ae90-dee7692034fc"}
                         />
                       </div>
                     </td>
