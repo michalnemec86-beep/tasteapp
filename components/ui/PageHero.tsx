@@ -445,6 +445,7 @@ function getCountryNameFromHeroTitle(title: ReactNode) {
 function BreweryLogoVisual({ src, alt }: { src: string; alt: string }) {
   return (
     <div
+      className="taste-page-hero-brewery-logo"
       style={{
         position: "absolute",
         zIndex: 3,
