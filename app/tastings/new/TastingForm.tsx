@@ -704,7 +704,7 @@ export default function TastingForm({
           <input
             type="number"
             name="plato"
-            step="0.1"
+            step="0.01"
             value={plato}
             onChange={(event) => setPlato(event.target.value)}
             placeholder="11.7"
