@@ -711,6 +711,133 @@ export async function saveBreweryLogoCandidate(
   };
 }
 
+export async function saveBreweryLogoFromUrl(
+  breweryId: number,
+  imageUrl: string
+) {
+  const { supabase, brewery } =
+    await loadBreweryForLogo(
+      breweryId
+    );
+
+  const trimmedUrl = imageUrl.trim();
+
+  if (!trimmedUrl) {
+    throw new Error(
+      "Vlož přímou URL obrázku s logem."
+    );
+  }
+
+  let parsedUrl: URL;
+
+  try {
+    parsedUrl = new URL(trimmedUrl);
+  } catch {
+    throw new Error(
+      "Vlož platnou přímou URL obrázku, například https://example.cz/logo.png."
+    );
+  }
+
+  const { response } =
+    await safeFetch(parsedUrl, {
+      headers: {
+        Accept:
+          "image/avif,image/webp,image/svg+xml,image/png,image/jpeg,image/gif,*/*;q=0.2",
+      },
+    });
+
+  if (!response.ok) {
+    throw new Error(
+      `Logo se nepodařilo stáhnout (HTTP ${response.status}).`
+    );
+  }
+
+  const contentType =
+    getImageContentType(response);
+
+  if (!ALLOWED_IMAGE_TYPES.has(contentType)) {
+    throw new Error(
+      "Odkaz nevede na podporovaný obrázek. Použij přímou URL PNG, JPG, WebP, SVG nebo GIF."
+    );
+  }
+
+  const contentLength = Number(
+    response.headers.get("content-length") ?? "0"
+  );
+
+  if (
+    Number.isFinite(contentLength) &&
+    contentLength > MAX_IMAGE_BYTES
+  ) {
+    throw new Error(
+      "Logo je větší než povolené 2 MB."
+    );
+  }
+
+  const bytes =
+    await response.arrayBuffer();
+
+  if (bytes.byteLength > MAX_IMAGE_BYTES) {
+    throw new Error(
+      "Logo je větší než povolené 2 MB."
+    );
+  }
+
+  const objectPath =
+    `${breweryId}/${LOGO_OBJECT_NAME}`;
+
+  const { error: uploadError } =
+    await supabase.storage
+      .from(LOGO_BUCKET)
+      .upload(
+        objectPath,
+        bytes,
+        {
+          contentType,
+          cacheControl: "86400",
+          upsert: true,
+        }
+      );
+
+  if (uploadError) {
+    throw new Error(
+      uploadError.message
+    );
+  }
+
+  const {
+    data: { publicUrl },
+  } = supabase.storage
+    .from(LOGO_BUCKET)
+    .getPublicUrl(objectPath);
+
+  const logoUrl =
+    `${publicUrl}?v=${Date.now()}`;
+
+  const { error: updateError } =
+    await supabase
+      .from("breweries")
+      .update({
+        logo_url: logoUrl,
+      })
+      .eq("id", breweryId);
+
+  if (updateError) {
+    throw new Error(
+      updateError.message
+    );
+  }
+
+  revalidateLogoSurfaces(
+    breweryId
+  );
+
+  return {
+    logoUrl,
+    breweryName: brewery.name,
+  };
+}
+
 export async function removeBreweryLogo(
   breweryId: number
 ) {
