@@ -939,7 +939,6 @@ export default function BreweryTableClient({
                             latitude: brewery.latitude,
                             longitude: brewery.longitude,
                           }}
-                          countries={countries}
                           updateBreweryAction={updateBreweryAction}
                         />
                       </div>
