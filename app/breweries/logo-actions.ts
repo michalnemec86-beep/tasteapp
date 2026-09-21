@@ -711,6 +711,116 @@ export async function saveBreweryLogoCandidate(
   };
 }
 
+export async function inspectBreweryLogoUrl(
+  breweryId: number,
+  inputUrl: string
+): Promise<BreweryLogoCandidate[]> {
+  await loadBreweryForLogo(
+    breweryId
+  );
+
+  const trimmedUrl = inputUrl.trim();
+
+  if (!trimmedUrl) {
+    throw new Error(
+      "Vlož URL obrázku nebo stránky, na které se logo nachází."
+    );
+  }
+
+  let parsedUrl: URL;
+
+  try {
+    parsedUrl = new URL(trimmedUrl);
+  } catch {
+    throw new Error(
+      "Vlož platnou URL začínající http:// nebo https://."
+    );
+  }
+
+  const { response, finalUrl } =
+    await safeFetch(parsedUrl, {
+      headers: {
+        Accept:
+          "image/avif,image/webp,image/svg+xml,image/png,image/jpeg,image/gif,text/html,application/xhtml+xml;q=0.9,*/*;q=0.2",
+      },
+    });
+
+  if (!response.ok) {
+    throw new Error(
+      `Odkaz se nepodařilo načíst (HTTP ${response.status}).`
+    );
+  }
+
+  const contentType =
+    getImageContentType(response);
+
+  if (ALLOWED_IMAGE_TYPES.has(contentType)) {
+    return [
+      {
+        url: finalUrl.href,
+        source: "logo",
+        label: "Obrázek z vloženého odkazu",
+        score: 100,
+      },
+    ];
+  }
+
+  if (
+    contentType.includes("text/html") ||
+    contentType.includes("application/xhtml+xml")
+  ) {
+    const contentLength = Number(
+      response.headers.get("content-length") ?? "0"
+    );
+
+    if (
+      Number.isFinite(contentLength) &&
+      contentLength > MAX_HTML_BYTES
+    ) {
+      throw new Error(
+        "Odkazovaná stránka je příliš velká pro hledání loga."
+      );
+    }
+
+    const html = await response.text();
+
+    if (
+      Buffer.byteLength(html, "utf8") >
+      MAX_HTML_BYTES
+    ) {
+      throw new Error(
+        "Odkazovaná stránka je příliš velká pro hledání loga."
+      );
+    }
+
+    const candidates =
+      discoverLogoCandidates(
+        html,
+        finalUrl
+      );
+
+    if (candidates.length === 0) {
+      throw new Error(
+        "Na vložené stránce se nepodařilo najít vhodný obrázek loga."
+      );
+    }
+
+    return candidates.map(
+      (candidate) => ({
+        ...candidate,
+        label:
+          candidate.source === "logo"
+            ? "Logo z vložené stránky"
+            : candidate.label,
+      })
+    );
+  }
+
+  throw new Error(
+    "Odkaz nevede na podporovaný obrázek ani na HTML stránku s logem."
+  );
+}
+
 export async function saveBreweryLogoFromUrl(
   breweryId: number,
   imageUrl: string
