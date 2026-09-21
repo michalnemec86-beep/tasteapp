@@ -318,7 +318,7 @@ export default function CatalogBeerModalClient({
                 </Field>
 
                 <Field label="Stupňovitost °P">
-                  <input type="number" step="0.1" name="plato" value={form.plato} onChange={(e) => setField("plato", e.target.value)} style={inputStyle} />
+                  <input type="number" step="0.01" name="plato" value={form.plato} onChange={(e) => setField("plato", e.target.value)} style={inputStyle} />
                 </Field>
 
                 <Field label="Alkohol %">
