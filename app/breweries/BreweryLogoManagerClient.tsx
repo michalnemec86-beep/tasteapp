@@ -7,8 +7,14 @@ import type { BreweryLogoCandidate } from "./logo-actions";
 import AdminBadge from "@/components/ui/AdminBadge";
 
 type SaveLogoResult = {
-  logoUrl: string;
-  breweryName: string;
+  logoUrl: string | null;
+  breweryName: string | null;
+  error: string | null;
+};
+
+type LogoFindResult = {
+  candidates: BreweryLogoCandidate[];
+  error: string | null;
 };
 
 type ManualInspectResult = {
@@ -29,7 +35,7 @@ type BreweryLogoManagerClientProps = {
   initialLogoUrl: string | null;
   findCandidatesAction: (
     breweryId: number
-  ) => Promise<BreweryLogoCandidate[]>;
+  ) => Promise<LogoFindResult>;
   saveCandidateAction: (
     breweryId: number,
     candidateUrl: string
@@ -97,10 +103,18 @@ export default function BreweryLogoManagerClient({
     setLoadingCandidates(true);
 
     try {
-      const found =
+      const result =
         await findCandidatesAction(
           breweryId
         );
+
+      if (result.error) {
+        setCandidates([]);
+        setError(result.error);
+        return;
+      }
+
+      const found = result.candidates;
       setCandidates(found);
       setMessage(
         `Nalezeno kandidátů: ${found.length}. Vyber logo, které odpovídá pivovaru.`
@@ -130,6 +144,19 @@ export default function BreweryLogoManagerClient({
           breweryId,
           candidateUrl
         );
+
+      if (
+        result.error ||
+        !result.logoUrl ||
+        !result.breweryName
+      ) {
+        setError(
+          result.error ??
+            "Logo se nepodařilo uložit."
+        );
+        return;
+      }
+
       setLogoUrl(result.logoUrl);
       setCandidates([]);
       setMessage(
