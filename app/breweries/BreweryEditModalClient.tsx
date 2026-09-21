@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import AdminBadge from "@/components/ui/AdminBadge";
 
 type BreweryEditData = {
   id: number;
@@ -26,12 +27,14 @@ type BreweryEditModalClientProps = {
     formData: FormData
   ) => Promise<void>;
   variant?: "subtle" | "primary";
+  isAdmin?: boolean;
 };
 
 export default function BreweryEditModalClient({
   brewery,
   updateBreweryAction,
   variant = "subtle",
+  isAdmin = false,
 }: BreweryEditModalClientProps) {
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -358,6 +361,70 @@ export default function BreweryEditModalClient({
                     </Field>
                   </div>
                 </section>
+
+                {isAdmin && (
+                  <section
+                    style={{
+                      ...sectionStyle,
+                      borderColor: "rgba(214,91,66,0.30)",
+                      background: "rgba(214,91,66,0.035)",
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        marginBottom: "10px",
+                      }}
+                    >
+                      <div className="taste-label">Souřadnice pro mapu</div>
+                      <AdminBadge />
+                    </div>
+
+                    <div style={gridStyle}>
+                      <Field label="Zeměpisná šířka">
+                        <input
+                          name="latitude"
+                          type="number"
+                          defaultValue={brewery.latitude ?? ""}
+                          min="-90"
+                          max="90"
+                          step="any"
+                          inputMode="decimal"
+                          placeholder="např. 49.8175"
+                          style={inputStyle}
+                        />
+                      </Field>
+
+                      <Field label="Zeměpisná délka">
+                        <input
+                          name="longitude"
+                          type="number"
+                          defaultValue={brewery.longitude ?? ""}
+                          min="-180"
+                          max="180"
+                          step="any"
+                          inputMode="decimal"
+                          placeholder="např. 14.4782"
+                          style={inputStyle}
+                        />
+                      </Field>
+                    </div>
+
+                    <div
+                      style={{
+                        marginTop: "9px",
+                        color: "var(--taste-text-muted)",
+                        fontSize: "10px",
+                        lineHeight: 1.45,
+                      }}
+                    >
+                      Tyto údaje slouží k umístění pivovaru na mapě ČR a jsou
+                      dostupné pouze v administrátorském režimu.
+                    </div>
+                  </section>
+                )}
 
                 <section style={sectionStyle}>
                   <div className="taste-label" style={{ marginBottom: "9px" }}>
