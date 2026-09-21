@@ -863,6 +863,14 @@
     letter-spacing: -0.035em !important;
     overflow-wrap: anywhere;
   }
+
+  .taste-page-hero-brewery-logo {
+    top: 16px !important;
+    right: 16px !important;
+    width: clamp(66px, 20vw, 82px) !important;
+    height: clamp(52px, 16vw, 64px) !important;
+    transform: none !important;
+  }
 }
 
 .taste-filter-toggle {
