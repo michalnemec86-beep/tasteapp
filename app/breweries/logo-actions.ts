@@ -550,19 +550,39 @@ async function discoverForBrewery(
   };
 }
 
+export type BreweryLogoFindResult = {
+  candidates: BreweryLogoCandidate[];
+  error: string | null;
+};
+
 export async function findBreweryLogoCandidates(
   breweryId: number
-): Promise<BreweryLogoCandidate[]> {
-  const { candidates } =
-    await discoverForBrewery(breweryId);
+): Promise<BreweryLogoFindResult> {
+  try {
+    const { candidates } =
+      await discoverForBrewery(breweryId);
 
-  if (candidates.length === 0) {
-    throw new Error(
-      "Na webu se nepodařilo najít rozumného kandidáta na logo."
-    );
+    if (candidates.length === 0) {
+      return {
+        candidates: [],
+        error:
+          "Na webu se nepodařilo najít rozumného kandidáta na logo.",
+      };
+    }
+
+    return {
+      candidates,
+      error: null,
+    };
+  } catch (caughtError) {
+    return {
+      candidates: [],
+      error:
+        caughtError instanceof Error
+          ? caughtError.message
+          : "Logo se nepodařilo na webu pivovaru vyhledat.",
+    };
   }
-
-  return candidates;
 }
 
 function getImageContentType(
@@ -580,136 +600,33 @@ function getImageContentType(
 export async function saveBreweryLogoCandidate(
   breweryId: number,
   candidateUrl: string
-) {
-  const {
-    supabase,
-    brewery,
-    candidates,
-  } = await (async () => {
-    const discovered =
-      await discoverForBrewery(breweryId);
-    const admin =
-      await requireAdmin();
-    return {
-      supabase: admin.supabase,
-      brewery: discovered.brewery,
-      candidates: discovered.candidates,
-    };
-  })();
-
-  const approvedCandidate =
-    candidates.find(
-      (candidate) =>
-        candidate.url === candidateUrl
-    );
-
-  if (!approvedCandidate) {
-    throw new Error(
-      "Vybraný obrázek už není mezi kandidáty nalezenými na webu."
-    );
-  }
-
-  const { response } =
-    await safeFetch(
-      approvedCandidate.url,
-      {
-        headers: {
-          Accept:
-            "image/avif,image/webp,image/svg+xml,image/png,image/jpeg,image/gif,*/*;q=0.2",
-        },
-      }
-    );
-
-  if (!response.ok) {
-    throw new Error(
-      `Logo se nepodařilo stáhnout (HTTP ${response.status}).`
-    );
-  }
-
-  const contentType =
-    getImageContentType(response);
-
-  if (!ALLOWED_IMAGE_TYPES.has(contentType)) {
-    throw new Error(
-      "Nalezený soubor není podporovaný obrázek."
-    );
-  }
-
-  const contentLength = Number(
-    response.headers.get("content-length") ?? "0"
-  );
-
-  if (
-    Number.isFinite(contentLength) &&
-    contentLength > MAX_IMAGE_BYTES
-  ) {
-    throw new Error(
-      "Logo je větší než povolené 2 MB."
-    );
-  }
-
-  const bytes =
-    await response.arrayBuffer();
-
-  if (bytes.byteLength > MAX_IMAGE_BYTES) {
-    throw new Error(
-      "Logo je větší než povolené 2 MB."
-    );
-  }
-
-  const objectPath =
-    `${breweryId}/${LOGO_OBJECT_NAME}`;
-
-  const { error: uploadError } =
-    await supabase.storage
-      .from(LOGO_BUCKET)
-      .upload(
-        objectPath,
-        bytes,
-        {
-          contentType,
-          cacheControl: "86400",
-          upsert: true,
-        }
+): Promise<{
+  logoUrl: string | null;
+  breweryName: string | null;
+  error: string | null;
+}> {
+  try {
+    const result =
+      await saveBreweryLogoFromUrlInternal(
+        breweryId,
+        candidateUrl
       );
 
-  if (uploadError) {
-    throw new Error(
-      uploadError.message
-    );
+    return {
+      logoUrl: result.logoUrl,
+      breweryName: result.breweryName,
+      error: null,
+    };
+  } catch (caughtError) {
+    return {
+      logoUrl: null,
+      breweryName: null,
+      error:
+        caughtError instanceof Error
+          ? caughtError.message
+          : "Logo se nepodařilo uložit.",
+    };
   }
-
-  const {
-    data: { publicUrl },
-  } = supabase.storage
-    .from(LOGO_BUCKET)
-    .getPublicUrl(objectPath);
-
-  const logoUrl =
-    `${publicUrl}?v=${Date.now()}`;
-
-  const { error: updateError } =
-    await supabase
-      .from("breweries")
-      .update({
-        logo_url: logoUrl,
-      })
-      .eq("id", breweryId);
-
-  if (updateError) {
-    throw new Error(
-      updateError.message
-    );
-  }
-
-  revalidateLogoSurfaces(
-    breweryId
-  );
-
-  return {
-    logoUrl,
-    breweryName: brewery.name,
-  };
 }
 
 export type BreweryLogoInspectResult = {
