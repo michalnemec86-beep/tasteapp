@@ -399,72 +399,286 @@ export async function updateBrewery(
     );
   }
 
-  const values =
-    readBreweryFormData(
-      formData
-    );
-  const brandNames = readBrandNames(formData);
-
-  const canonicalCountry =
-    await getCanonicalCountry(
-      values.country
-    );
-
   const {
-    data: breweries,
-    error: breweriesError,
+    data: currentBrewery,
+    error: currentError,
   } = await supabase
     .from("breweries")
-    .select("id, name");
+    .select(
+      "id, name, city, country, address, website, is_nomadic, founded_year, closed_year, latitude, longitude"
+    )
+    .eq("id", breweryId)
+    .maybeSingle();
 
-  if (breweriesError) {
+  if (
+    currentError ||
+    !currentBrewery
+  ) {
     throw new Error(
-      breweriesError.message
+      currentError?.message ||
+        "Pivovar nebyl nalezen."
     );
   }
 
-  const duplicate =
-    breweries?.find(
+  const newName = String(
+    formData.get("newName") ?? ""
+  ).trim();
+
+  const effectiveName =
+    newName ||
+    currentBrewery.name;
+
+  const address = String(
+    formData.get("address") ?? ""
+  ).trim();
+
+  const website = String(
+    formData.get("website") ?? ""
+  ).trim();
+
+  const foundedYear =
+    readOptionalInteger(
+      formData,
+      "foundedYear"
+    );
+
+  const closedYear =
+    readOptionalInteger(
+      formData,
+      "closedYear"
+    );
+
+  const renameChangedYear =
+    readOptionalInteger(
+      formData,
+      "renameChangedYear"
+    );
+
+  const historicalName =
+    String(
+      formData.get("historicalName") ?? ""
+    ).trim();
+
+  const historicalFromYear =
+    readOptionalInteger(
+      formData,
+      "historicalFromYear"
+    );
+
+  const historicalChangedYear =
+    readOptionalInteger(
+      formData,
+      "historicalChangedYear"
+    );
+
+  const brandNames =
+    readBrandNames(
+      formData
+    );
+
+  function validateYear(
+    value: number | null,
+    label: string
+  ) {
+    if (
+      value !== null &&
+      (
+        value < 1000 ||
+        value > 2100
+      )
+    ) {
+      throw new Error(
+        `${label} není platný.`
+      );
+    }
+  }
+
+  validateYear(
+    foundedYear,
+    "Rok založení"
+  );
+  validateYear(
+    closedYear,
+    "Rok uzavření"
+  );
+  validateYear(
+    renameChangedYear,
+    "Rok změny názvu"
+  );
+  validateYear(
+    historicalFromYear,
+    "Počáteční rok historického názvu"
+  );
+  validateYear(
+    historicalChangedYear,
+    "Koncový rok historického názvu"
+  );
+
+  if (
+    foundedYear !== null &&
+    closedYear !== null &&
+    closedYear < foundedYear
+  ) {
+    throw new Error(
+      "Rok uzavření nemůže být před rokem založení."
+    );
+  }
+
+  if (
+    historicalFromYear !== null &&
+    historicalChangedYear !== null &&
+    historicalChangedYear <
+      historicalFromYear
+  ) {
+    throw new Error(
+      "Koncový rok historického názvu nemůže být před počátečním rokem."
+    );
+  }
+
+  const [
+    breweriesResult,
+    historyResult,
+  ] =
+    await Promise.all([
+      supabase
+        .from("breweries")
+        .select("id, name"),
+      supabase
+        .from("brewery_name_history")
+        .select(
+          "id, brewery_id, previous_name, from_year, changed_year"
+        ),
+    ]);
+
+  if (breweriesResult.error) {
+    throw new Error(
+      breweriesResult.error.message
+    );
+  }
+
+  if (historyResult.error) {
+    throw new Error(
+      historyResult.error.message
+    );
+  }
+
+  const breweries =
+    breweriesResult.data ?? [];
+
+  const allHistory =
+    historyResult.data ?? [];
+
+  const normalizedEffectiveName =
+    normalizeText(
+      effectiveName
+    );
+
+  const duplicateCurrent =
+    breweries.find(
       (brewery) =>
         brewery.id !==
           breweryId &&
         normalizeText(
           brewery.name
         ) ===
-          normalizeText(
-            values.name
-          )
+          normalizedEffectiveName
     );
 
-  if (duplicate) {
+  const duplicateHistorical =
+    allHistory.find(
+      (item) =>
+        item.brewery_id !==
+          breweryId &&
+        normalizeText(
+          item.previous_name
+        ) ===
+          normalizedEffectiveName
+    );
+
+  if (
+    duplicateCurrent ||
+    duplicateHistorical
+  ) {
     throw new Error(
-      "Jiný pivovar s tímto názvem už v katalogu existuje."
+      "Tento název už používá jiný pivovar nebo je evidovaný jako jeho historický název."
     );
   }
+
+  if (
+    historicalName &&
+    normalizeText(
+      historicalName
+    ) ===
+      normalizedEffectiveName
+  ) {
+    throw new Error(
+      "Historický název nemůže být stejný jako současný název pivovaru."
+    );
+  }
+
+  if (historicalName) {
+    const normalizedHistoricalName =
+      normalizeText(
+        historicalName
+      );
+
+    const conflictingCurrent =
+      breweries.find(
+        (brewery) =>
+          brewery.id !==
+            breweryId &&
+          normalizeText(
+            brewery.name
+          ) ===
+            normalizedHistoricalName
+      );
+
+    const conflictingHistory =
+      allHistory.find(
+        (item) =>
+          item.brewery_id !==
+            breweryId &&
+          normalizeText(
+            item.previous_name
+          ) ===
+            normalizedHistoricalName
+      );
+
+    if (
+      conflictingCurrent ||
+      conflictingHistory
+    ) {
+      throw new Error(
+        "Historický název už patří jinému pivovaru."
+      );
+    }
+  }
+
+  const nameChanged =
+    normalizeText(
+      effectiveName
+    ) !==
+    normalizeText(
+      currentBrewery.name
+    );
 
   const {
     error: updateError,
   } = await supabase
     .from("breweries")
     .update({
-      name: values.name,
-      city:
-        values.city || null,
-      country:
-        canonicalCountry,
+      name:
+        effectiveName,
       address:
-        values.isNomadic ? null : values.address || null,
+        currentBrewery.is_nomadic
+          ? null
+          : address || null,
       website:
-        values.website || null,
-      is_nomadic: values.isNomadic,
+        website || null,
       founded_year:
-        values.foundedYear,
+        foundedYear,
       closed_year:
-        values.closedYear,
-      latitude:
-        values.isNomadic ? null : values.latitude,
-      longitude:
-        values.isNomadic ? null : values.longitude,
+        closedYear,
     })
     .eq(
       "id",
@@ -477,13 +691,142 @@ export async function updateBrewery(
     );
   }
 
-  await addBreweryBrands(supabase, user.id, breweryId, brandNames);
+  if (
+    nameChanged &&
+    renameChangedYear !== null
+  ) {
+    const oldNormalized =
+      normalizeText(
+        currentBrewery.name
+      );
 
+    const archived =
+      allHistory.find(
+        (item) =>
+          item.brewery_id ===
+            breweryId &&
+          normalizeText(
+            item.previous_name
+          ) ===
+            oldNormalized
+      );
+
+    if (archived) {
+      const {
+        error:
+          archiveUpdateError,
+      } = await supabase
+        .from(
+          "brewery_name_history"
+        )
+        .update({
+          changed_year:
+            renameChangedYear,
+        })
+        .eq(
+          "id",
+          archived.id
+        );
+
+      if (
+        archiveUpdateError
+      ) {
+        throw new Error(
+          archiveUpdateError.message
+        );
+      }
+    } else {
+      const {
+        error:
+          archiveInsertError,
+      } = await supabase
+        .from(
+          "brewery_name_history"
+        )
+        .insert({
+          brewery_id:
+            breweryId,
+          previous_name:
+            currentBrewery.name,
+          changed_year:
+            renameChangedYear,
+        });
+
+      if (
+        archiveInsertError
+      ) {
+        throw new Error(
+          archiveInsertError.message
+        );
+      }
+    }
+  }
+
+  if (historicalName) {
+    const existingSameHistory =
+      allHistory.find(
+        (item) =>
+          item.brewery_id ===
+            breweryId &&
+          normalizeText(
+            item.previous_name
+          ) ===
+            normalizeText(
+              historicalName
+            ) &&
+          item.from_year ===
+            historicalFromYear &&
+          item.changed_year ===
+            historicalChangedYear
+      );
+
+    if (!existingSameHistory) {
+      const {
+        error:
+          historicalInsertError,
+      } = await supabase
+        .from(
+          "brewery_name_history"
+        )
+        .insert({
+          brewery_id:
+            breweryId,
+          previous_name:
+            historicalName,
+          from_year:
+            historicalFromYear,
+          changed_year:
+            historicalChangedYear,
+        });
+
+      if (
+        historicalInsertError
+      ) {
+        throw new Error(
+          historicalInsertError.message
+        );
+      }
+    }
+  }
+
+  await addBreweryBrands(
+    supabase,
+    user.id,
+    breweryId,
+    brandNames
+  );
+
+  revalidatePath(
+    `/breweries/${breweryId}`
+  );
   revalidatePath(
     "/breweries"
   );
   revalidatePath(
     "/beers"
+  );
+  revalidatePath(
+    "/tastings/new"
   );
   revalidatePath(
     "/"
