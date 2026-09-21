@@ -5,11 +5,6 @@ import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
-type Country = {
-  id: number;
-  name: string;
-};
-
 type BreweryEditData = {
   id: number;
   name: string;
@@ -26,7 +21,6 @@ type BreweryEditData = {
 
 type BreweryEditModalClientProps = {
   brewery: BreweryEditData;
-  countries: Country[];
   updateBreweryAction: (
     breweryId: number,
     formData: FormData
@@ -36,14 +30,14 @@ type BreweryEditModalClientProps = {
 
 export default function BreweryEditModalClient({
   brewery,
-  countries,
   updateBreweryAction,
   variant = "subtle",
 }: BreweryEditModalClientProps) {
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const [brandNames, setBrandNames] = useState("");
+  const [newBrandNames, setNewBrandNames] = useState("");
+  const [linkedBrandNames, setLinkedBrandNames] = useState<string[]>([]);
   const [brandOptions, setBrandOptions] = useState<string[]>([]);
   const router = useRouter();
 
@@ -75,24 +69,43 @@ export default function BreweryEditModalClient({
 
   async function prepareOpen() {
     setError("");
+    setNewBrandNames("");
     setOpen(true);
+
     const supabase = createClient();
     const [brandsResult, linkedResult] = await Promise.all([
       supabase.from("brands").select("name").order("name"),
-      supabase.from("brewery_brands").select("brands ( name )").eq("brewery_id", brewery.id),
+      supabase
+        .from("brewery_brands")
+        .select("brands ( name )")
+        .eq("brewery_id", brewery.id),
     ]);
+
     if (brandsResult.error || linkedResult.error) {
-      setError(brandsResult.error?.message || linkedResult.error?.message || "Značky se nepodařilo načíst.");
+      setError(
+        brandsResult.error?.message ||
+          linkedResult.error?.message ||
+          "Značky se nepodařilo načíst."
+      );
       return;
     }
+
     setBrandOptions((brandsResult.data ?? []).map((brand) => brand.name));
+
     const linkedRows = (linkedResult.data ?? []) as unknown as Array<{
       brands: { name: string } | Array<{ name: string }> | null;
     }>;
-    setBrandNames(linkedRows
-      .map((row) => Array.isArray(row.brands) ? row.brands[0]?.name : row.brands?.name)
-      .filter((name): name is string => Boolean(name))
-      .join(", "));
+
+    setLinkedBrandNames(
+      linkedRows
+        .map((row) =>
+          Array.isArray(row.brands)
+            ? row.brands[0]?.name
+            : row.brands?.name
+        )
+        .filter((name): name is string => Boolean(name))
+        .sort((a, b) => a.localeCompare(b, "cs", { sensitivity: "base" }))
+    );
   }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -242,188 +255,231 @@ export default function BreweryEditModalClient({
               </div>
 
               <form onSubmit={handleSubmit} style={{ padding: "20px" }}>
-                <section
-                  style={{
-                    marginBottom: "18px",
-                    padding: "15px",
-                    border: "1px solid rgba(245,184,63,0.28)",
-                    borderRadius: "12px",
-                    background: "rgba(231,166,47,0.045)",
-                  }}
-                >
+                <section style={sectionStyle}>
                   <div
                     className="taste-label"
                     style={{ marginBottom: "10px", color: "var(--taste-amber-bright)" }}
                   >
-                    Změna názvu
+                    Identita pivovaru
                   </div>
 
-                  <div
-                    style={{
-                      display: "grid",
-                      gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-                      gap: "12px",
-                    }}
-                  >
-                    <Field label="Původní název">
+                  <div style={gridStyle}>
+                    <Field label="Současný název">
                       <input
                         value={brewery.name}
                         readOnly
                         aria-readonly="true"
-                        style={{
-                          ...inputStyle,
-                          color: "var(--taste-text-muted)",
-                          background: "rgba(255,255,255,0.02)",
-                        }}
+                        style={lockedInputStyle}
                       />
                     </Field>
 
-                    <Field label="Nový název" required>
+                    <Field label="Nový název">
                       <input
-                        name="name"
-                        required
-                        autoFocus
-                        defaultValue={brewery.name}
+                        name="newName"
+                        placeholder="Vyplň pouze při přejmenování"
+                        style={inputStyle}
+                      />
+                    </Field>
+
+                    <Field label="Rok změny názvu">
+                      <input
+                        name="renameChangedYear"
+                        type="number"
+                        min="1000"
+                        max="2100"
+                        inputMode="numeric"
+                        placeholder="Volitelné"
+                        style={inputStyle}
+                      />
+                    </Field>
+                  </div>
+
+                  <div
+                    style={{
+                      marginTop: "10px",
+                      color: "var(--taste-text-muted)",
+                      fontSize: "10px",
+                      lineHeight: 1.45,
+                    }}
+                  >
+                    Pokud zadáš nový název, původní se automaticky přesune do historie.
+                    Pivovar zůstane stejnou databázovou entitou, takže piva, ochutnávky
+                    a další vazby zůstanou zachované.
+                  </div>
+                </section>
+
+                <section style={{ marginBottom: "18px" }}>
+                  <div className="taste-label" style={{ marginBottom: "10px" }}>
+                    Základní údaje
+                  </div>
+
+                  <div style={gridStyle}>
+                    <Field label="Rok založení">
+                      <input
+                        name="foundedYear"
+                        type="number"
+                        defaultValue={brewery.foundedYear ?? ""}
+                        min="1000"
+                        max="2100"
+                        inputMode="numeric"
+                        style={inputStyle}
+                      />
+                    </Field>
+
+                    <Field label="Rok uzavření">
+                      <input
+                        name="closedYear"
+                        type="number"
+                        defaultValue={brewery.closedYear ?? ""}
+                        min="1000"
+                        max="2100"
+                        inputMode="numeric"
+                        style={inputStyle}
+                      />
+                    </Field>
+
+                    <Field label="Adresa">
+                      <input
+                        name="address"
+                        defaultValue={brewery.address ?? ""}
+                        disabled={brewery.isNomadic}
+                        placeholder={brewery.isNomadic ? "Letající pivovar" : undefined}
+                        style={brewery.isNomadic ? lockedInputStyle : inputStyle}
+                      />
+                    </Field>
+
+                    <Field label="Web">
+                      <input
+                        name="website"
+                        defaultValue={brewery.website ?? ""}
+                        placeholder="https://…"
                         style={inputStyle}
                       />
                     </Field>
                   </div>
                 </section>
 
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-                    gap: "14px",
-                  }}
-                >
-                  <Field label="Město">
-                    <input name="city" defaultValue={brewery.city ?? ""} style={inputStyle} />
-                  </Field>
+                <section style={sectionStyle}>
+                  <div className="taste-label" style={{ marginBottom: "9px" }}>
+                    Značky pivovaru
+                  </div>
 
-                  <Field label="Stát" required>
-                    <select
-                      name="country"
-                      required
-                      defaultValue={brewery.country ?? ""}
-                      style={inputStyle}
+                  {linkedBrandNames.length > 0 ? (
+                    <div
+                      style={{
+                        display: "flex",
+                        flexWrap: "wrap",
+                        gap: "6px",
+                        marginBottom: "11px",
+                      }}
                     >
-                      <option value="" disabled>
-                        Vyber stát
-                      </option>
-                      {countries.map((country) => (
-                        <option key={country.id} value={country.name}>
-                          {country.name}
-                        </option>
+                      {linkedBrandNames.map((name) => (
+                        <span
+                          key={name}
+                          style={{
+                            padding: "5px 8px",
+                            border: "1px solid var(--taste-border)",
+                            borderRadius: "999px",
+                            background: "rgba(231,166,47,0.045)",
+                            color: "var(--taste-text-soft)",
+                            fontSize: "10px",
+                            fontWeight: 700,
+                          }}
+                        >
+                          {name}
+                        </span>
                       ))}
-                    </select>
-                  </Field>
+                    </div>
+                  ) : (
+                    <div
+                      style={{
+                        marginBottom: "10px",
+                        color: "var(--taste-text-muted)",
+                        fontSize: "10px",
+                      }}
+                    >
+                      Zatím není přiřazena žádná značka.
+                    </div>
+                  )}
 
-                  <Field label="Adresa">
-                    <input name="address" defaultValue={brewery.address ?? ""} style={inputStyle} />
-                  </Field>
-
-                  <Field label="Web">
+                  <Field label="Přidat novou značku">
                     <input
-                      name="website"
-                      defaultValue={brewery.website ?? ""}
-                      placeholder="https://…"
+                      name="brandNames"
+                      list={`brewery-brands-${brewery.id}`}
+                      value={newBrandNames}
+                      onChange={(event) => setNewBrandNames(event.target.value)}
+                      placeholder="Existující nebo nový název značky"
                       style={inputStyle}
                     />
+                    <datalist id={`brewery-brands-${brewery.id}`}>
+                      {brandOptions
+                        .filter((name) => !linkedBrandNames.includes(name))
+                        .map((name) => (
+                          <option key={name} value={name} />
+                        ))}
+                    </datalist>
                   </Field>
+                </section>
 
-                  <Field label="Značky">
-                    <input name="brandNames" list={`brewery-brands-${brewery.id}`} value={brandNames} onChange={(event) => setBrandNames(event.target.value)} placeholder="Např. Kozel, Excelent" style={inputStyle} />
-                    <datalist id={`brewery-brands-${brewery.id}`}>{brandOptions.map((name) => <option key={name} value={name} />)}</datalist>
-                  </Field>
-
-                  <Field label="Rok založení">
-                    <input
-                      name="foundedYear"
-                      type="number"
-                      defaultValue={brewery.foundedYear ?? ""}
-                      min="1000"
-                      max="2100"
-                      inputMode="numeric"
-                      style={inputStyle}
-                    />
-                  </Field>
-
-                  <Field label="Rok ukončení provozu">
-                    <input
-                      name="closedYear"
-                      type="number"
-                      defaultValue={brewery.closedYear ?? ""}
-                      min="1000"
-                      max="2100"
-                      inputMode="numeric"
-                      style={inputStyle}
-                    />
-                  </Field>
-
-                  <Field label="Zeměpisná šířka">
-                    <input
-                      name="latitude"
-                      type="number"
-                      defaultValue={brewery.latitude ?? ""}
-                      min="-90"
-                      max="90"
-                      step="any"
-                      inputMode="decimal"
-                      style={inputStyle}
-                    />
-                  </Field>
-
-                  <Field label="Zeměpisná délka">
-                    <input
-                      name="longitude"
-                      type="number"
-                      defaultValue={brewery.longitude ?? ""}
-                      min="-180"
-                      max="180"
-                      step="any"
-                      inputMode="decimal"
-                      style={inputStyle}
-                    />
-                  </Field>
-                </div>
-
-                <label
+                <details
                   style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "9px",
-                    minHeight: "42px",
-                    marginTop: "14px",
-                    color: "var(--taste-text-soft)",
-                    fontSize: "12px",
-                    cursor: "pointer",
+                    marginBottom: "18px",
+                    border: "1px solid var(--taste-border)",
+                    borderRadius: "12px",
+                    background: "rgba(255,255,255,0.015)",
                   }}
                 >
-                  <input
-                    name="isNomadic"
-                    type="checkbox"
-                    defaultChecked={brewery.isNomadic}
-                  />
-                  <strong style={{ color: "var(--taste-text)" }}>
-                    Letající pivovar
-                  </strong>
-                </label>
-
-                {error && (
-                  <div
-                    role="alert"
+                  <summary
                     style={{
-                      marginTop: "15px",
-                      padding: "10px 12px",
-                      border: "1px solid rgba(220,100,75,0.35)",
-                      borderRadius: "9px",
-                      background: "rgba(220,100,75,0.08)",
-                      color: "var(--taste-text)",
-                      fontSize: "12px",
-                      lineHeight: 1.45,
+                      padding: "12px 14px",
+                      color: "var(--taste-text-soft)",
+                      fontSize: "11px",
+                      fontWeight: 750,
+                      cursor: "pointer",
                     }}
                   >
+                    + Zapsat další historický název
+                  </summary>
+
+                  <div
+                    style={{
+                      padding: "2px 14px 14px",
+                      display: "grid",
+                      gap: "12px",
+                    }}
+                  >
+                    <Field label="Historický název">
+                      <input name="historicalName" style={inputStyle} />
+                    </Field>
+
+                    <div style={gridStyle}>
+                      <Field label="Od roku">
+                        <input
+                          name="historicalFromYear"
+                          type="number"
+                          min="1000"
+                          max="2100"
+                          inputMode="numeric"
+                          style={inputStyle}
+                        />
+                      </Field>
+
+                      <Field label="Do roku">
+                        <input
+                          name="historicalChangedYear"
+                          type="number"
+                          min="1000"
+                          max="2100"
+                          inputMode="numeric"
+                          style={inputStyle}
+                        />
+                      </Field>
+                    </div>
+                  </div>
+                </details>
+
+                {error && (
+                  <div role="alert" style={errorStyle}>
                     {error}
                   </div>
                 )}
@@ -465,11 +521,9 @@ export default function BreweryEditModalClient({
 
 function Field({
   label,
-  required = false,
   children,
 }: {
   label: string;
-  required?: boolean;
   children: React.ReactNode;
 }) {
   return (
@@ -484,14 +538,25 @@ function Field({
         }}
       >
         {label}
-        {required && (
-          <span style={{ color: "var(--taste-amber-bright)" }}> *</span>
-        )}
       </span>
       {children}
     </label>
   );
 }
+
+const gridStyle = {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+  gap: "12px",
+} as const;
+
+const sectionStyle = {
+  marginBottom: "18px",
+  padding: "15px",
+  border: "1px solid rgba(245,184,63,0.24)",
+  borderRadius: "12px",
+  background: "rgba(231,166,47,0.035)",
+} as const;
 
 const inputStyle = {
   width: "100%",
@@ -506,6 +571,12 @@ const inputStyle = {
   outline: "none",
 } as const;
 
+const lockedInputStyle = {
+  ...inputStyle,
+  color: "var(--taste-text-muted)",
+  background: "rgba(255,255,255,0.02)",
+} as const;
+
 const closeButtonStyle = {
   width: "34px",
   height: "34px",
@@ -515,4 +586,15 @@ const closeButtonStyle = {
   color: "var(--taste-text-muted)",
   fontSize: "19px",
   cursor: "pointer",
+} as const;
+
+const errorStyle = {
+  marginTop: "15px",
+  padding: "10px 12px",
+  border: "1px solid rgba(220,100,75,0.35)",
+  borderRadius: "9px",
+  background: "rgba(220,100,75,0.08)",
+  color: "var(--taste-text)",
+  fontSize: "12px",
+  lineHeight: 1.45,
 } as const;
