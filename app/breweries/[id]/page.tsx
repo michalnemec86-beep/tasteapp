@@ -22,6 +22,7 @@ import {
 } from "../catalog-actions";
 import {
   findBreweryLogoCandidates,
+  inspectBreweryLogoUrl,
   removeBreweryLogo,
   saveBreweryLogoCandidate,
   saveBreweryLogoFromUrl,
@@ -306,6 +307,7 @@ export default async function BreweryDetailPage({ params }: Props) {
               initialLogoUrl={brewery.logo_url}
               findCandidatesAction={findBreweryLogoCandidates}
               saveCandidateAction={saveBreweryLogoCandidate}
+              inspectManualUrlAction={inspectBreweryLogoUrl}
               saveManualUrlAction={saveBreweryLogoFromUrl}
               removeLogoAction={removeBreweryLogo}
             />
