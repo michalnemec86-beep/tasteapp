@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 
 import { createClient } from "@/lib/supabase/server";
 
+const ADMIN_USER_ID = "17be5dc3-a3f9-4fd2-ae90-dee7692034fc";
+
 function normalizeText(text: string) {
   return text
     .normalize("NFD")
@@ -448,6 +450,26 @@ export async function updateBrewery(
       "closedYear"
     );
 
+  const isAdmin =
+    user.id ===
+    ADMIN_USER_ID;
+
+  const latitude =
+    isAdmin
+      ? readOptionalNumber(
+          formData,
+          "latitude"
+        )
+      : currentBrewery.latitude;
+
+  const longitude =
+    isAdmin
+      ? readOptionalNumber(
+          formData,
+          "longitude"
+        )
+      : currentBrewery.longitude;
+
   const renameChangedYear =
     readOptionalInteger(
       formData,
@@ -513,6 +535,30 @@ export async function updateBrewery(
     historicalChangedYear,
     "Koncový rok historického názvu"
   );
+
+  if (
+    latitude !== null &&
+    (
+      latitude < -90 ||
+      latitude > 90
+    )
+  ) {
+    throw new Error(
+      "Zeměpisná šířka musí být mezi -90 a 90."
+    );
+  }
+
+  if (
+    longitude !== null &&
+    (
+      longitude < -180 ||
+      longitude > 180
+    )
+  ) {
+    throw new Error(
+      "Zeměpisná délka musí být mezi -180 a 180."
+    );
+  }
 
   if (
     foundedYear !== null &&
@@ -679,6 +725,8 @@ export async function updateBrewery(
         foundedYear,
       closed_year:
         closedYear,
+      latitude,
+      longitude,
     })
     .eq(
       "id",
