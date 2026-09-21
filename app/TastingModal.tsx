@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 type Brewery = {
   id: number;
   name: string;
+  aliases?: string[];
 };
 
 type Country = {
