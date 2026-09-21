@@ -257,6 +257,19 @@ export default function PageHero({
           >
             {subtitle}
           </p>}
+
+          {isBreweryDetailHero && action && (
+            <div
+              style={{
+                display: "flex",
+                flexWrap: "wrap",
+                gap: "8px",
+                marginTop: "14px",
+              }}
+            >
+              {action}
+            </div>
+          )}
         </div>
 
         {hasRightContent && (
