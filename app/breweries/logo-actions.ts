@@ -17,6 +17,7 @@ const REQUEST_TIMEOUT_MS = 8_000;
 const MAX_REDIRECTS = 4;
 
 const ALLOWED_IMAGE_TYPES = new Set([
+  "image/avif",
   "image/png",
   "image/jpeg",
   "image/webp",
@@ -711,7 +712,18 @@ export async function saveBreweryLogoCandidate(
   };
 }
 
-export async function inspectBreweryLogoUrl(
+export type BreweryLogoInspectResult = {
+  candidates: BreweryLogoCandidate[];
+  error: string | null;
+};
+
+export type BreweryLogoManualSaveResult = {
+  logoUrl: string | null;
+  breweryName: string | null;
+  error: string | null;
+};
+
+async function inspectBreweryLogoUrlInternal(
   breweryId: number,
   inputUrl: string
 ): Promise<BreweryLogoCandidate[]> {
@@ -819,9 +831,34 @@ export async function inspectBreweryLogoUrl(
   throw new Error(
     "Odkaz nevede na podporovaný obrázek ani na HTML stránku s logem."
   );
+
 }
 
-export async function saveBreweryLogoFromUrl(
+export async function inspectBreweryLogoUrl(
+  breweryId: number,
+  inputUrl: string
+): Promise<BreweryLogoInspectResult> {
+  try {
+    return {
+      candidates:
+        await inspectBreweryLogoUrlInternal(
+          breweryId,
+          inputUrl
+        ),
+      error: null,
+    };
+  } catch (caughtError) {
+    return {
+      candidates: [],
+      error:
+        caughtError instanceof Error
+          ? caughtError.message
+          : "Odkaz se nepodařilo prověřit.",
+    };
+  }
+}
+
+async function saveBreweryLogoFromUrlInternal(
   breweryId: number,
   imageUrl: string
 ) {
@@ -946,6 +983,35 @@ export async function saveBreweryLogoFromUrl(
     logoUrl,
     breweryName: brewery.name,
   };
+
+}
+
+export async function saveBreweryLogoFromUrl(
+  breweryId: number,
+  imageUrl: string
+): Promise<BreweryLogoManualSaveResult> {
+  try {
+    const result =
+      await saveBreweryLogoFromUrlInternal(
+        breweryId,
+        imageUrl
+      );
+
+    return {
+      logoUrl: result.logoUrl,
+      breweryName: result.breweryName,
+      error: null,
+    };
+  } catch (caughtError) {
+    return {
+      logoUrl: null,
+      breweryName: null,
+      error:
+        caughtError instanceof Error
+          ? caughtError.message
+          : "Logo se nepodařilo uložit z vložené URL.",
+    };
+  }
 }
 
 export async function removeBreweryLogo(
