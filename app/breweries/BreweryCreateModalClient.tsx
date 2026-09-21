@@ -4,6 +4,9 @@ import { useEffect, useState, type FormEvent } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import AdminBadge from "@/components/ui/AdminBadge";
+
+const ADMIN_USER_ID = "17be5dc3-a3f9-4fd2-ae90-dee7692034fc";
 
 type Country = {
   id: number;
@@ -26,12 +29,19 @@ export default function BreweryCreateModalClient({
   const [error, setError] = useState("");
   const [brandNames, setBrandNames] = useState("");
   const [brandOptions, setBrandOptions] = useState<string[]>([]);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   async function prepareOpen() {
     setError("");
     setOpen(true);
-    const { data } = await createClient().from("brands").select("name").order("name");
-    setBrandOptions((data ?? []).map((brand) => brand.name));
+    const supabase = createClient();
+    const [brandsResult, userResult] = await Promise.all([
+      supabase.from("brands").select("name").order("name"),
+      supabase.auth.getUser(),
+    ]);
+
+    setBrandOptions((brandsResult.data ?? []).map((brand) => brand.name));
+    setIsAdmin(userResult.data.user?.id === ADMIN_USER_ID);
   }
 
   useEffect(() => {
@@ -118,9 +128,59 @@ export default function BreweryCreateModalClient({
                 </Field>
                 <Field label="Rok založení"><input name="foundedYear" type="number" min="1000" max="2100" inputMode="numeric" style={inputStyle} /></Field>
                 <Field label="Rok ukončení provozu"><input name="closedYear" type="number" min="1000" max="2100" inputMode="numeric" style={inputStyle} /></Field>
-                <Field label="Zeměpisná šířka"><input name="latitude" type="number" min="-90" max="90" step="any" inputMode="decimal" style={inputStyle} /></Field>
-                <Field label="Zeměpisná délka"><input name="longitude" type="number" min="-180" max="180" step="any" inputMode="decimal" style={inputStyle} /></Field>
+
               </div>
+
+              {isAdmin && (
+                <section
+                  style={{
+                    marginTop: "16px",
+                    padding: "14px",
+                    border: "1px solid rgba(214,91,66,0.30)",
+                    borderRadius: "12px",
+                    background: "rgba(214,91,66,0.035)",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                      marginBottom: "10px",
+                    }}
+                  >
+                    <div className="taste-label">Souřadnice pro mapu</div>
+                    <AdminBadge />
+                  </div>
+
+                  <div style={gridStyle}>
+                    <Field label="Zeměpisná šířka">
+                      <input
+                        name="latitude"
+                        type="number"
+                        min="-90"
+                        max="90"
+                        step="any"
+                        inputMode="decimal"
+                        placeholder="např. 49.8175"
+                        style={inputStyle}
+                      />
+                    </Field>
+                    <Field label="Zeměpisná délka">
+                      <input
+                        name="longitude"
+                        type="number"
+                        min="-180"
+                        max="180"
+                        step="any"
+                        inputMode="decimal"
+                        placeholder="např. 14.4782"
+                        style={inputStyle}
+                      />
+                    </Field>
+                  </div>
+                </section>
+              )}
 
               <label style={{ display: "flex", alignItems: "center", gap: "9px", minHeight: "42px", marginTop: "4px", color: "var(--taste-text-soft)", fontSize: "12px", cursor: "pointer" }}>
                 <input name="isNomadic" type="checkbox" />
