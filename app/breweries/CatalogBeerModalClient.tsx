@@ -4,6 +4,7 @@ import { useEffect, useId, useState, type FormEvent } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import AdminBadge from "@/components/ui/AdminBadge";
 
 const ADMIN_USER_ID = "17be5dc3-a3f9-4fd2-ae90-dee7692034fc";
 
@@ -368,9 +369,21 @@ export default function CatalogBeerModalClient({
               {mode === "edit" && beer && deleteAction && (
                 <div style={{ marginTop: "18px", paddingTop: "16px", borderTop: "1px solid var(--taste-border)" }}>
                   {canDelete ? (
-                    <button type="button" disabled={busy} onClick={handleDelete} style={deleteButtonStyle}>
-                      {deleting ? "Mažu…" : beer.tastingCount > 0 ? `Smazat pivo i s ${beer.tastingCount} ochutnávkami` : "Smazat pivo z katalogu"}
-                    </button>
+                    <div style={{ display: "grid", gap: "7px" }}>
+                      {beer.tastingCount > 0 && isAdmin && (
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent: "flex-end",
+                          }}
+                        >
+                          <AdminBadge title="Administrátor může smazat i pivo s navázanými ochutnávkami" />
+                        </div>
+                      )}
+                      <button type="button" disabled={busy} onClick={handleDelete} style={deleteButtonStyle}>
+                        {deleting ? "Mažu…" : beer.tastingCount > 0 ? `Smazat pivo i s ${beer.tastingCount} ochutnávkami` : "Smazat pivo z katalogu"}
+                      </button>
+                    </div>
                   ) : (
                     <div style={{ color: "var(--taste-text-muted)", fontSize: "11px", lineHeight: 1.45 }}>
                       Pivo má {beer.tastingCount} evidovaných ochutnávek. Takové pivo může smazat pouze administrátor.
