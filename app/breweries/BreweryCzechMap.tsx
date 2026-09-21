@@ -153,48 +153,50 @@ export default function BreweryCzechMap({
           <h2
             style={{
               margin: 0,
-              fontSize: "22px",
+              fontSize: isSingle ? "18px" : "22px",
               lineHeight: 1.1,
               fontWeight: 750,
               letterSpacing: "-0.025em",
             }}
           >
-            Mapa českých pivovarů
+            {isSingle ? "Poloha pivovaru" : "Mapa českých pivovarů"}
           </h2>
         </div>
 
-        <div
-          className="taste-czech-map-count"
-          style={{
-            textAlign: "right",
-          }}
-        >
+        {!isSingle && (
           <div
-            className="taste-czech-map-count-value"
+            className="taste-czech-map-count"
             style={{
-              color: "var(--taste-amber-bright)",
-              fontSize: "22px",
-              lineHeight: 1,
-              fontWeight: 800,
+              textAlign: "right",
             }}
           >
-            {items.length}
-          </div>
+            <div
+              className="taste-czech-map-count-value"
+              style={{
+                color: "var(--taste-amber-bright)",
+                fontSize: "22px",
+                lineHeight: 1,
+                fontWeight: 800,
+              }}
+            >
+              {items.length}
+            </div>
 
-          <div
-            className="taste-czech-map-count-label taste-czech-map-count-label-desktop"
-            style={{
-              marginTop: "4px",
-              color: "var(--taste-text-muted)",
-              fontSize: "10px",
-            }}
-          >
-            zakreslených pivovarů
+            <div
+              className="taste-czech-map-count-label taste-czech-map-count-label-desktop"
+              style={{
+                marginTop: "4px",
+                color: "var(--taste-text-muted)",
+                fontSize: "10px",
+              }}
+            >
+              zakreslených pivovarů
+            </div>
+            <div className="taste-czech-map-count-label taste-czech-map-count-label-mobile">
+              zapsaných pivovarů
+            </div>
           </div>
-          <div className="taste-czech-map-count-label taste-czech-map-count-label-mobile">
-            zapsaných pivovarů
-          </div>
-        </div>
+        )}
       </div>
 
       <div
