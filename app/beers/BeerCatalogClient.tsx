@@ -21,8 +21,16 @@ export type BeerCatalogItem = {
 };
 
 type FilterMode = "all" | "tasted" | "mine";
+type SortMode = "alpha" | "most" | "least" | "country";
 
 const PAGE_SIZE = 60;
+
+function initial(name: string) {
+  const first = name.trim().charAt(0).toLocaleUpperCase("cs");
+  const normalized = first.normalize("NFD").replace(/\p{M}/gu, "");
+
+  return /^[A-Z]$/.test(normalized) ? normalized : "#";
+}
 
 export default function BeerCatalogClient({
   beers,
@@ -34,37 +42,108 @@ export default function BeerCatalogClient({
   confirmAction: (beerId: number) => Promise<{ success: boolean }>;
 }) {
   const [filter, setFilter] = useState<FilterMode>("all");
+  const [sort, setSort] = useState<SortMode>("alpha");
   const [search, setSearch] = useState("");
+  const [country, setCountry] = useState("");
+  const [showCountries, setShowCountries] = useState(false);
+  const [letter, setLetter] = useState("");
+  const [showLetters, setShowLetters] = useState(false);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+
+  const letters = useMemo(
+    () =>
+      Array.from(new Set(beers.map((beer) => initial(beer.name)))).sort(
+        (a, b) => {
+          if (a === "#") return 1;
+          if (b === "#") return -1;
+          return a.localeCompare(b, "cs");
+        }
+      ),
+    [beers]
+  );
+
+  const countries = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          beers
+            .map((beer) => beer.brewery?.country)
+            .filter((item): item is string => Boolean(item))
+        )
+      ).sort((a, b) => a.localeCompare(b, "cs", { sensitivity: "base" })),
+    [beers]
+  );
 
   const filtered = useMemo(() => {
     const needle = search.trim().toLocaleLowerCase("cs");
 
-    return beers.filter((beer) => {
-      if (filter === "tasted" && beer.totalQuantity === 0) return false;
-      if (filter === "mine" && beer.myQuantity === 0) return false;
-      if (!needle) return true;
+    return beers
+      .filter((beer) => {
+        if (filter === "tasted" && beer.totalQuantity === 0) return false;
+        if (filter === "mine" && beer.myQuantity === 0) return false;
+        if (country && beer.brewery?.country !== country) return false;
+        if (letter && initial(beer.name) !== letter) return false;
 
-      return [
-        beer.name,
-        beer.brand?.name,
-        beer.brewery?.name,
-        beer.brewery?.country,
-        beer.style?.name,
-        ...beer.hops.map((hop) => hop.name),
-      ].some((value) => value?.toLocaleLowerCase("cs").includes(needle));
-    });
-  }, [beers, filter, search]);
+        if (!needle) return true;
+
+        return [
+          beer.name,
+          beer.brand?.name,
+          beer.brewery?.name,
+          beer.brewery?.country,
+          beer.style?.name,
+          ...beer.hops.map((hop) => hop.name),
+        ].some((value) => value?.toLocaleLowerCase("cs").includes(needle));
+      })
+      .sort((a, b) => {
+        const aCount = filter === "mine" ? a.myQuantity : a.totalQuantity;
+        const bCount = filter === "mine" ? b.myQuantity : b.totalQuantity;
+
+        if (sort === "most") {
+          return bCount - aCount || a.name.localeCompare(b.name, "cs", { sensitivity: "base" });
+        }
+
+        if (sort === "least") {
+          return aCount - bCount || a.name.localeCompare(b.name, "cs", { sensitivity: "base" });
+        }
+
+        if (sort === "country") {
+          return (
+            (a.brewery?.country ?? "").localeCompare(b.brewery?.country ?? "", "cs", {
+              sensitivity: "base",
+            }) ||
+            a.name.localeCompare(b.name, "cs", { sensitivity: "base" })
+          );
+        }
+
+        return a.name.localeCompare(b.name, "cs", { sensitivity: "base" });
+      });
+  }, [beers, country, filter, letter, search, sort]);
 
   function selectFilter(next: FilterMode) {
     setFilter(next);
     setVisibleCount(PAGE_SIZE);
   }
 
+  function selectSort(next: SortMode) {
+    setSort(next);
+    setVisibleCount(PAGE_SIZE);
+
+    if (next !== "country") {
+      setCountry("");
+      setShowCountries(false);
+    }
+
+    if (next !== "alpha") {
+      setLetter("");
+      setShowLetters(false);
+    }
+  }
+
   return (
     <section>
-      <div className="taste-beer-catalog-controls">
-        <div role="group" aria-label="Filtr piv" style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+      <div className="taste-tasting-sort" aria-label="Filtrování pivního lístku">
+        <div role="group" aria-label="Rozsah piv" style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
           {([[
             "all", "Všechna piva",
           ], [
@@ -92,16 +171,141 @@ export default function BeerCatalogClient({
           ))}
         </div>
 
-        <input
-          type="search"
-          value={search}
-          onChange={(event) => {
-            setSearch(event.target.value);
-            setVisibleCount(PAGE_SIZE);
-          }}
-          placeholder="Hledat pivo, značku nebo pivovar"
-          aria-label="Hledat v pivním lístku"
-        />
+        <div className="taste-tasting-search">
+          <input
+            type="search"
+            value={search}
+            onChange={(event) => {
+              setSearch(event.target.value);
+              setVisibleCount(PAGE_SIZE);
+            }}
+            placeholder="Hledat pivo, značku nebo pivovar"
+            aria-label="Hledat v pivním lístku"
+          />
+          {search && (
+            <button
+              type="button"
+              className="taste-button-secondary"
+              onClick={() => {
+                setSearch("");
+                setVisibleCount(PAGE_SIZE);
+              }}
+            >
+              Zrušit
+            </button>
+          )}
+        </div>
+
+        <div className="taste-tasting-sort-buttons">
+          <button
+            type="button"
+            className="taste-button-secondary"
+            aria-expanded={showLetters}
+            aria-pressed={sort === "alpha" || Boolean(letter)}
+            onClick={() => {
+              const nextVisible = !showLetters;
+              setShowLetters(nextVisible);
+              setVisibleCount(PAGE_SIZE);
+
+              if (nextVisible) {
+                setSort("alpha");
+                setCountry("");
+                setShowCountries(false);
+              }
+            }}
+          >
+            Abecedně
+          </button>
+
+          <button
+            type="button"
+            className="taste-button-secondary"
+            aria-pressed={sort === "most"}
+            onClick={() => selectSort("most")}
+          >
+            Nejvíce
+          </button>
+
+          <button
+            type="button"
+            className="taste-button-secondary"
+            aria-pressed={sort === "least"}
+            onClick={() => selectSort("least")}
+          >
+            Nejméně
+          </button>
+
+          <button
+            type="button"
+            className="taste-button-secondary"
+            aria-expanded={showCountries}
+            aria-pressed={sort === "country" || Boolean(country)}
+            onClick={() => {
+              const nextVisible = !showCountries;
+              setShowCountries(nextVisible);
+              setVisibleCount(PAGE_SIZE);
+
+              if (nextVisible) {
+                setSort("country");
+                setLetter("");
+                setShowLetters(false);
+              }
+            }}
+          >
+            Podle států
+          </button>
+        </div>
+
+        {showLetters && (
+          <div className="taste-tasting-letters" aria-label="Vybrat počáteční písmeno piva">
+            <button
+              type="button"
+              className="taste-button-secondary"
+              aria-pressed={!letter}
+              onClick={() => {
+                setLetter("");
+                setVisibleCount(PAGE_SIZE);
+              }}
+            >
+              Všechna
+            </button>
+
+            {letters.map((item) => (
+              <button
+                key={item}
+                type="button"
+                className="taste-button-secondary"
+                aria-pressed={letter === item}
+                onClick={() => {
+                  setLetter(item);
+                  setVisibleCount(PAGE_SIZE);
+                }}
+              >
+                {item}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {showCountries && (
+          <label className="taste-tasting-country-select">
+            <span>Stát</span>
+            <select
+              value={country}
+              onChange={(event) => {
+                setCountry(event.target.value);
+                setVisibleCount(PAGE_SIZE);
+              }}
+            >
+              <option value="">Všechny státy</option>
+              {countries.map((item) => (
+                <option key={item} value={item}>
+                  {item}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
       </div>
 
       <div style={{ marginBottom: "12px", color: "var(--taste-text-muted)", fontSize: "12px" }}>
