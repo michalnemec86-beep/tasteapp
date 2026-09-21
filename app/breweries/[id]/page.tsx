@@ -24,6 +24,7 @@ import {
   findBreweryLogoCandidates,
   removeBreweryLogo,
   saveBreweryLogoCandidate,
+  saveBreweryLogoFromUrl,
 } from "../logo-actions";
 
 function one<T>(value: T | T[] | null | undefined): T | null {
@@ -305,6 +306,7 @@ export default async function BreweryDetailPage({ params }: Props) {
               initialLogoUrl={brewery.logo_url}
               findCandidatesAction={findBreweryLogoCandidates}
               saveCandidateAction={saveBreweryLogoCandidate}
+              saveManualUrlAction={saveBreweryLogoFromUrl}
               removeLogoAction={removeBreweryLogo}
             />
           </div>
