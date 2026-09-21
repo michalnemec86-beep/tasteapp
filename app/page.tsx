@@ -201,7 +201,6 @@ type CatalogEventRow = {
   actor_user_id: string;
   event_type:
     | "beer_created"
-    | "beer_confirmed"
     | "beer_version_created"
     | "brand_created"
     | "brewery_created"
@@ -436,6 +435,7 @@ export default async function HomePage() {
       hops ( id, name )
     `)
     .eq("show_in_timeline", true)
+    .neq("event_type", "beer_confirmed")
     .order("created_at", { ascending: false })
     .limit(60);
 
@@ -2133,11 +2133,6 @@ const SYSTEM_EVENT_VISUALS = {
     icon: "beer",
     eyebrow: "Systém · nové pivo",
     action: "přidal nové pivo do sortimentu",
-  },
-  beer_confirmed: {
-    icon: "beer",
-    eyebrow: "Systém · katalog",
-    action: "potvrdil pivo jako katalogové",
   },
   beer_version_created: {
     icon: "beer",
