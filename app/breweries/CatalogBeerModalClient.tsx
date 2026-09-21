@@ -219,6 +219,12 @@ export default function CatalogBeerModalClient({
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    if (!form.plato.trim() && !form.abv.trim()) {
+      setError("Vyplň alespoň stupňovitost nebo obsah alkoholu.");
+      return;
+    }
+
     setSaving(true);
     setError("");
     try {
@@ -311,12 +317,12 @@ export default function CatalogBeerModalClient({
                   <datalist id={`styles-${id}`}>{styles.map((style) => <option key={style.id} value={style.name} />)}</datalist>
                 </Field>
 
-                <Field label="Stupňovitost °P" required>
-                  <input type="number" step="0.1" name="plato" required value={form.plato} onChange={(e) => setField("plato", e.target.value)} style={inputStyle} />
+                <Field label="Stupňovitost °P">
+                  <input type="number" step="0.1" name="plato" value={form.plato} onChange={(e) => setField("plato", e.target.value)} style={inputStyle} />
                 </Field>
 
-                <Field label="Alkohol %" required>
-                  <input type="number" step="0.01" name="abv" required value={form.abv} onChange={(e) => setField("abv", e.target.value)} style={inputStyle} />
+                <Field label="Alkohol %">
+                  <input type="number" step="0.01" name="abv" value={form.abv} onChange={(e) => setField("abv", e.target.value)} style={inputStyle} />
                 </Field>
 
                 <Field label="IBU">
@@ -351,6 +357,17 @@ export default function CatalogBeerModalClient({
                 <Field label="URL fotografie">
                   <input name="photoUrl" value={form.photoUrl} onChange={(e) => setField("photoUrl", e.target.value)} placeholder="https://…" style={inputStyle} />
                 </Field>
+              </div>
+
+              <div
+                style={{
+                  margin: "-3px 0 14px",
+                  color: "var(--taste-text-muted)",
+                  fontSize: "10px",
+                  lineHeight: 1.45,
+                }}
+              >
+                Pro katalog je povinný styl a alespoň jeden údaj: stupňovitost °P nebo alkohol %.
               </div>
 
               <Field label="Poznámka">
