@@ -695,70 +695,69 @@ export async function updateBrewery(
     nameChanged &&
     renameChangedYear !== null
   ) {
-    const oldNormalized =
-      normalizeText(
-        currentBrewery.name
+    const {
+      data: archivedRows,
+      error:
+        archivedRowsError,
+    } = await supabase
+      .from(
+        "brewery_name_history"
+      )
+      .select(
+        "id, previous_name"
+      )
+      .eq(
+        "brewery_id",
+        breweryId
       );
 
+    if (
+      archivedRowsError
+    ) {
+      throw new Error(
+        archivedRowsError.message
+      );
+    }
+
     const archived =
-      allHistory.find(
+      (archivedRows ?? []).find(
         (item) =>
-          item.brewery_id ===
-            breweryId &&
           normalizeText(
             item.previous_name
           ) ===
-            oldNormalized
+            normalizeText(
+              currentBrewery.name
+            )
       );
 
-    if (archived) {
-      const {
-        error:
-          archiveUpdateError,
-      } = await supabase
-        .from(
-          "brewery_name_history"
-        )
-        .update({
-          changed_year:
-            renameChangedYear,
-        })
-        .eq(
-          "id",
-          archived.id
-        );
+    if (!archived) {
+      throw new Error(
+        "Původní název se nepodařilo propsat do historie."
+      );
+    }
 
-      if (
-        archiveUpdateError
-      ) {
-        throw new Error(
-          archiveUpdateError.message
-        );
-      }
-    } else {
-      const {
-        error:
-          archiveInsertError,
-      } = await supabase
-        .from(
-          "brewery_name_history"
-        )
-        .insert({
-          brewery_id:
-            breweryId,
-          previous_name:
-            currentBrewery.name,
-          changed_year:
-            renameChangedYear,
-        });
+    const {
+      error:
+        archiveUpdateError,
+    } = await supabase
+      .from(
+        "brewery_name_history"
+      )
+      .update({
+        changed_year:
+          renameChangedYear,
+      })
+      .eq(
+        "id",
+        archived.id
+      );
 
-      if (
-        archiveInsertError
-      ) {
-        throw new Error(
-          archiveInsertError.message
-        );
-      }
+    if (
+      archiveUpdateError
+    ) {
+      throw new Error(
+        archiveUpdateError.message
+      );
     }
   }
 
