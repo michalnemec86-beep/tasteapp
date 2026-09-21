@@ -706,7 +706,7 @@ export default function EditTastingModalClient({
                   <input
                     type="number"
                     name="plato"
-                    step="0.1"
+                    step="0.01"
                     value={plato}
                     onChange={(event) =>
                       setPlato(
