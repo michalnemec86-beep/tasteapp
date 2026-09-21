@@ -21,7 +21,7 @@ export type BeerCatalogItem = {
 };
 
 type FilterMode = "all" | "tasted" | "mine";
-type SortMode = "alpha" | "most" | "least" | "country";
+type SortMode = "default" | "alpha" | "most" | "least" | "country";
 
 const PAGE_SIZE = 60;
 
@@ -42,7 +42,7 @@ export default function BeerCatalogClient({
   confirmAction: (beerId: number) => Promise<{ success: boolean }>;
 }) {
   const [filter, setFilter] = useState<FilterMode>("all");
-  const [sort, setSort] = useState<SortMode>("alpha");
+  const [sort, setSort] = useState<SortMode>("default");
   const [search, setSearch] = useState("");
   const [country, setCountry] = useState("");
   const [showCountries, setShowCountries] = useState(false);
@@ -116,7 +116,14 @@ export default function BeerCatalogClient({
           );
         }
 
-        return a.name.localeCompare(b.name, "cs", { sensitivity: "base" });
+        if (sort === "alpha") {
+          return a.name.localeCompare(b.name, "cs", { sensitivity: "base" });
+        }
+
+        return (
+          Number(b.isCatalog) - Number(a.isCatalog) ||
+          a.name.localeCompare(b.name, "cs", { sensitivity: "base" })
+        );
       });
   }, [beers, country, filter, letter, search, sort]);
 
