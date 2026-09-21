@@ -25,6 +25,7 @@ export type BreweryMapItem = {
 
 type BreweryCzechMapProps = {
   items: BreweryMapItem[];
+  variant?: "overview" | "single";
 };
 
 const CZECH_BOUNDS = L.latLngBounds(
@@ -113,7 +114,9 @@ function CzechMapViewport() {
 
 export default function BreweryCzechMap({
   items,
+  variant = "overview",
 }: BreweryCzechMapProps) {
+  const isSingle = variant === "single";
   return (
     <section
       className="taste-czech-brewery-map"
@@ -198,7 +201,7 @@ export default function BreweryCzechMap({
         className="taste-czech-map-stage"
         style={{
           width: "100%",
-          height: "480px",
+          height: isSingle ? "300px" : "480px",
         }}
       >
         <MapContainer
@@ -230,7 +233,23 @@ export default function BreweryCzechMap({
               ]}
               icon={L.divIcon({
                 className: "",
-                html: brewery.isPersonal
+                html: isSingle
+                  ? `
+                  <div title="${brewery.name}" style="
+                    width: 28px;
+                    height: 28px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    border-radius: 50%;
+                    background: #3a2513;
+                    border: 2px solid #ffd36f;
+                    box-shadow: 0 0 0 4px rgba(231,166,47,0.24), 0 5px 14px rgba(0,0,0,0.64);
+                    font-size: 14px;
+                    line-height: 1;
+                  ">🍺</div>
+                `
+                  : brewery.isPersonal
                   ? `
                   <div title="Máš ve své evidenci" style="
                     width: 25px;
@@ -260,8 +279,8 @@ export default function BreweryCzechMap({
                     "
                   ></div>
                 `,
-                iconSize: brewery.isPersonal ? [25, 25] : [14, 14],
-                iconAnchor: brewery.isPersonal ? [12, 12] : [7, 7],
+                iconSize: isSingle ? [28, 28] : brewery.isPersonal ? [25, 25] : [14, 14],
+                iconAnchor: isSingle ? [14, 14] : brewery.isPersonal ? [12, 12] : [7, 7],
                 popupAnchor: [0, -10],
               })}
             >
@@ -270,7 +289,7 @@ export default function BreweryCzechMap({
                 offset={[0, -8]}
                 opacity={1}
               >
-                {brewery.name}{brewery.isPersonal ? " · máš v evidenci" : ""}
+                {brewery.name}{!isSingle && brewery.isPersonal ? " · máš v evidenci" : ""}
               </Tooltip>
 
               <Popup>
