@@ -173,8 +173,11 @@ export default function BreweryLogoManagerClient({
     }
   }
 
-  async function handleSaveManualUrl() {
-    const candidateUrl = manualUrl.trim();
+  async function handleSaveManualUrl(
+    overrideUrl?: string
+  ) {
+    const candidateUrl =
+      (overrideUrl ?? manualUrl).trim();
 
     setError("");
     setMessage("");
@@ -581,10 +584,11 @@ export default function BreweryLogoManagerClient({
                     savingUrl !== null ||
                     removing
                   }
-                  onClick={() => {
-                    setManualUrl(candidate.url);
-                    void handleSaveManualUrl();
-                  }}
+                  onClick={() =>
+                    void handleSaveManualUrl(
+                      candidate.url
+                    )
+                  }
                   style={{
                     width: "100%",
                     fontSize: "10px",
