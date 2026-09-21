@@ -253,8 +253,10 @@ export async function createCatalogBeer(breweryId: number, formData: FormData) {
 
   const values = readBeerValues(formData);
 
-  if (!values.styleName || values.plato == null || values.abv == null) {
-    throw new Error("Pro pivo v sortimentu je povinný styl, stupňovitost a obsah alkoholu.");
+  if (!values.styleName || (values.plato == null && values.abv == null)) {
+    throw new Error(
+      "Pro pivo v sortimentu je povinný styl a alespoň stupňovitost nebo obsah alkoholu."
+    );
   }
 
   const { data: brewery, error: breweryError } = await supabase
@@ -358,6 +360,12 @@ export async function updateCatalogBeer(
   if (!Number.isInteger(beerId) || beerId < 1) throw new Error("Neplatné ID piva.");
 
   const values = readBeerValues(formData);
+
+  if (!values.styleName || (values.plato == null && values.abv == null)) {
+    throw new Error(
+      "Pro pivo v sortimentu je povinný styl a alespoň stupňovitost nebo obsah alkoholu."
+    );
+  }
 
   const { data: beer, error: beerError } = await supabase
     .from("beers")
