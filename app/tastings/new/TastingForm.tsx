@@ -7,6 +7,7 @@ type Brewery = {
   id: number;
   name: string;
   country?: string | null;
+  aliases?: string[];
 };
 
 type Country = {
@@ -224,7 +225,14 @@ export default function TastingForm({
 
   const brewerySuggestions = breweries.filter((brewery) => {
     if (breweryName.trim().length < 3) return false;
-    return normalizeText(brewery.name).includes(normalizeText(breweryName));
+    const query = normalizeText(breweryName);
+
+    return (
+      normalizeText(brewery.name).includes(query) ||
+      (brewery.aliases ?? []).some((alias) =>
+        normalizeText(alias).includes(query)
+      )
+    );
   });
 
   function selectBrewery(brewery: Brewery) {
@@ -243,7 +251,15 @@ export default function TastingForm({
     if (collaboratorQuery.trim().length < 3) return false;
     if (normalizeText(brewery.name) === normalizeText(breweryName)) return false;
     if (selectedCollaborators.some((item) => item.id === brewery.id)) return false;
-    return normalizeText(brewery.name).includes(normalizeText(collaboratorQuery));
+
+    const query = normalizeText(collaboratorQuery);
+
+    return (
+      normalizeText(brewery.name).includes(query) ||
+      (brewery.aliases ?? []).some((alias) =>
+        normalizeText(alias).includes(query)
+      )
+    );
   });
 
   function addCollaborator(brewery: Brewery) {
