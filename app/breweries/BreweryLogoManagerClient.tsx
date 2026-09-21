@@ -11,6 +11,17 @@ type SaveLogoResult = {
   breweryName: string;
 };
 
+type ManualInspectResult = {
+  candidates: BreweryLogoCandidate[];
+  error: string | null;
+};
+
+type ManualSaveResult = {
+  logoUrl: string | null;
+  breweryName: string | null;
+  error: string | null;
+};
+
 type BreweryLogoManagerClientProps = {
   breweryId: number;
   breweryName: string;
@@ -26,11 +37,11 @@ type BreweryLogoManagerClientProps = {
   inspectManualUrlAction: (
     breweryId: number,
     inputUrl: string
-  ) => Promise<BreweryLogoCandidate[]>;
+  ) => Promise<ManualInspectResult>;
   saveManualUrlAction: (
     breweryId: number,
     imageUrl: string
-  ) => Promise<SaveLogoResult>;
+  ) => Promise<ManualSaveResult>;
   removeLogoAction: (
     breweryId: number
   ) => Promise<{ success: boolean }>;
@@ -151,11 +162,18 @@ export default function BreweryLogoManagerClient({
     setInspectingManualUrl(true);
 
     try {
-      const found =
+      const result =
         await inspectManualUrlAction(
           breweryId,
           inputUrl
         );
+
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
+
+      const found = result.candidates;
       setManualCandidates(found);
       setMessage(
         found.length === 1
@@ -195,6 +213,19 @@ export default function BreweryLogoManagerClient({
           breweryId,
           candidateUrl
         );
+
+      if (
+        result.error ||
+        !result.logoUrl ||
+        !result.breweryName
+      ) {
+        setError(
+          result.error ??
+            "Logo se nepodařilo uložit z vložené URL."
+        );
+        return;
+      }
+
       setLogoUrl(result.logoUrl);
       setManualUrl("");
       setManualPreviewError(false);
