@@ -23,6 +23,10 @@ type BreweryLogoManagerClientProps = {
     breweryId: number,
     candidateUrl: string
   ) => Promise<SaveLogoResult>;
+  inspectManualUrlAction: (
+    breweryId: number,
+    inputUrl: string
+  ) => Promise<BreweryLogoCandidate[]>;
   saveManualUrlAction: (
     breweryId: number,
     imageUrl: string
@@ -39,6 +43,7 @@ export default function BreweryLogoManagerClient({
   initialLogoUrl,
   findCandidatesAction,
   saveCandidateAction,
+  inspectManualUrlAction,
   saveManualUrlAction,
   removeLogoAction,
 }: BreweryLogoManagerClientProps) {
@@ -54,6 +59,10 @@ export default function BreweryLogoManagerClient({
   const [manualUrl, setManualUrl] =
     useState("");
   const [manualPreviewError, setManualPreviewError] =
+    useState(false);
+  const [manualCandidates, setManualCandidates] =
+    useState<BreweryLogoCandidate[]>([]);
+  const [inspectingManualUrl, setInspectingManualUrl] =
     useState(false);
   const [removing, setRemoving] =
     useState(false);
@@ -127,6 +136,43 @@ export default function BreweryLogoManagerClient({
     }
   }
 
+  async function handleInspectManualUrl() {
+    const inputUrl = manualUrl.trim();
+
+    setError("");
+    setMessage("");
+    setManualCandidates([]);
+
+    if (!inputUrl) {
+      setError("Vlož URL obrázku nebo stránky s logem.");
+      return;
+    }
+
+    setInspectingManualUrl(true);
+
+    try {
+      const found =
+        await inspectManualUrlAction(
+          breweryId,
+          inputUrl
+        );
+      setManualCandidates(found);
+      setMessage(
+        found.length === 1
+          ? "Odkaz je v pořádku. Potvrď nalezené logo."
+          : `Na odkazu jsem našel ${found.length} kandidátů. Vyber správné logo.`
+      );
+    } catch (caughtError) {
+      setError(
+        caughtError instanceof Error
+          ? caughtError.message
+          : "Odkaz se nepodařilo prověřit."
+      );
+    } finally {
+      setInspectingManualUrl(false);
+    }
+  }
+
   async function handleSaveManualUrl() {
     const candidateUrl = manualUrl.trim();
 
@@ -149,6 +195,7 @@ export default function BreweryLogoManagerClient({
       setLogoUrl(result.logoUrl);
       setManualUrl("");
       setManualPreviewError(false);
+      setManualCandidates([]);
       setCandidates([]);
       setMessage(
         `Logo pro ${result.breweryName} je uložené v TasteAppu.`
@@ -391,6 +438,7 @@ export default function BreweryLogoManagerClient({
             onChange={(event) => {
               setManualUrl(event.target.value);
               setManualPreviewError(false);
+              setManualCandidates([]);
               setError("");
               setMessage("");
             }}
@@ -411,9 +459,10 @@ export default function BreweryLogoManagerClient({
           <button
             type="button"
             className="taste-button-primary"
-            onClick={handleSaveManualUrl}
+            onClick={handleInspectManualUrl}
             disabled={
               !manualUrl.trim() ||
+              inspectingManualUrl ||
               savingUrl !== null ||
               loadingCandidates ||
               removing
@@ -423,9 +472,9 @@ export default function BreweryLogoManagerClient({
               whiteSpace: "nowrap",
             }}
           >
-            {savingUrl === manualUrl.trim()
-              ? "Ukládám…"
-              : "Použít odkaz"}
+            {inspectingManualUrl
+              ? "Prověřuji…"
+              : "Prověřit odkaz"}
           </button>
         </div>
 
@@ -452,7 +501,7 @@ export default function BreweryLogoManagerClient({
                   lineHeight: 1.45,
                 }}
               >
-                Náhled se nepodařilo načíst. Odkaz může být neplatný nebo nemusí mířit přímo na obrázek.
+                Přímý náhled se nepodařilo načíst. Pokud jde o běžnou webovou stránku, použij „Prověřit odkaz“ a BeerApp z ní zkusí logo najít.
               </div>
             ) : (
               <img
@@ -468,6 +517,85 @@ export default function BreweryLogoManagerClient({
                 }}
               />
             )}
+          </div>
+        )}
+
+        {manualCandidates.length > 0 && (
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+              gap: "9px",
+            }}
+          >
+            {manualCandidates.map((candidate) => (
+              <div
+                key={candidate.url}
+                style={{
+                  display: "grid",
+                  gap: "8px",
+                  padding: "9px",
+                  border: "1px solid var(--taste-border)",
+                  borderRadius: "10px",
+                  background: "rgba(255,255,255,.018)",
+                }}
+              >
+                <div
+                  style={{
+                    height: "86px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    borderRadius: "8px",
+                    background: "rgba(255,255,255,.035)",
+                    overflow: "hidden",
+                  }}
+                >
+                  <img
+                    src={candidate.url}
+                    alt={candidate.label}
+                    referrerPolicy="no-referrer"
+                    style={{
+                      maxWidth: "100%",
+                      maxHeight: "100%",
+                      objectFit: "contain",
+                      padding: "5px",
+                    }}
+                  />
+                </div>
+
+                <div
+                  style={{
+                    color: "var(--taste-text)",
+                    fontSize: "10px",
+                    fontWeight: 750,
+                  }}
+                >
+                  {candidate.label}
+                </div>
+
+                <button
+                  type="button"
+                  className="taste-button-primary"
+                  disabled={
+                    savingUrl !== null ||
+                    removing
+                  }
+                  onClick={() => {
+                    setManualUrl(candidate.url);
+                    void handleSaveManualUrl();
+                  }}
+                  style={{
+                    width: "100%",
+                    fontSize: "10px",
+                  }}
+                >
+                  {savingUrl === candidate.url
+                    ? "Ukládám…"
+                    : "Použít"}
+                </button>
+              </div>
+            ))}
           </div>
         )}
       </div>
