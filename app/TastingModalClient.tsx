@@ -15,6 +15,7 @@ import TastingForm from "./tastings/new/TastingForm";
 type Brewery = {
   id: number;
   name: string;
+  aliases?: string[];
 };
 
 type Country = {
