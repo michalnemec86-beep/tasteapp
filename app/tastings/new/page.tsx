@@ -144,9 +144,14 @@ export default async function NewTastingPage({
   } =
     await supabase
       .from("breweries")
-      .select(
-        "id, name, country"
-      )
+      .select(`
+        id,
+        name,
+        country,
+        brewery_name_history (
+          previous_name
+        )
+      `)
       .order("name");
 
   if (breweriesError) {
@@ -243,7 +248,14 @@ export default async function NewTastingPage({
           normalizedBeers
         }
         breweries={
-          breweries ?? []
+          (breweries ?? []).map((brewery) => ({
+            id: brewery.id,
+            name: brewery.name,
+            country: brewery.country,
+            aliases: (brewery.brewery_name_history ?? [])
+              .map((item) => item.previous_name)
+              .filter(Boolean),
+          }))
         }
         countries={
           countries ?? []
