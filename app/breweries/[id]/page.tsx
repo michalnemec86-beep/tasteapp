@@ -3,6 +3,8 @@ import { notFound, redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
 import PageHero from "@/components/ui/PageHero";
+import AdminBadge from "@/components/ui/AdminBadge";
+import BreweryCzechMapClient from "../BreweryCzechMapClient";
 import BreweryEditModalClient from "../BreweryEditModalClient";
 import BreweryLogoManagerClient from "../BreweryLogoManagerClient";
 import BreweryNameHistoryItemClient from "../BreweryNameHistoryItemClient";
@@ -119,6 +121,25 @@ export default async function BreweryDetailPage({ params }: Props) {
   const countries = countriesResult.data ?? [];
   const styles = stylesResult.data ?? [];
   const hops = hopsResult.data ?? [];
+
+  const normalizedCountry = (brewery.country ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+
+  const isCzechBrewery = [
+    "cesko",
+    "ceska republika",
+    "czechia",
+    "czech republic",
+  ].includes(normalizedCountry);
+
+  const hasMapCoordinates =
+    typeof brewery.latitude === "number" &&
+    Number.isFinite(brewery.latitude) &&
+    typeof brewery.longitude === "number" &&
+    Number.isFinite(brewery.longitude);
 
   const history = [...(brewery.brewery_name_history ?? [])].sort(
     (a, b) => (a.from_year ?? a.changed_year ?? Number.MAX_SAFE_INTEGER) - (b.from_year ?? b.changed_year ?? Number.MAX_SAFE_INTEGER)
@@ -314,6 +335,57 @@ export default async function BreweryDetailPage({ params }: Props) {
           />
           <DetailItem label="Ukončení provozu" value={brewery.closed_year} />
         </div>
+
+        {isCzechBrewery && (
+          <div
+            style={{
+              marginTop: "24px",
+              paddingTop: "18px",
+              borderTop: "1px solid var(--taste-border)",
+            }}
+          >
+            <BreweryCzechMapClient
+              variant="single"
+              items={
+                hasMapCoordinates
+                  ? [
+                      {
+                        id: brewery.id,
+                        name: brewery.name,
+                        city: brewery.city,
+                        latitude: brewery.latitude as number,
+                        longitude: brewery.longitude as number,
+                        closedYear: brewery.closed_year,
+                        isPersonal: false,
+                      },
+                    ]
+                  : []
+              }
+            />
+
+            {!hasMapCoordinates && (
+              <div
+                style={{
+                  marginTop: "9px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  flexWrap: "wrap",
+                  color: "var(--taste-text-muted)",
+                  fontSize: "10px",
+                  lineHeight: 1.45,
+                }}
+              >
+                {isCatalogAdmin && <AdminBadge />}
+                <span>
+                  {isCatalogAdmin
+                    ? "Pivovar zatím nemá souřadnice. Doplň je přes „Upravit pivovar“ a bod se na mapě zobrazí."
+                    : "Poloha tohoto pivovaru zatím není na mapě zakreslená."}
+                </span>
+              </div>
+            )}
+          </div>
+        )}
 
         <div style={{ marginTop: "24px", paddingTop: "18px", borderTop: "1px solid var(--taste-border)" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "14px", marginBottom: "12px", flexWrap: "wrap" }}>
