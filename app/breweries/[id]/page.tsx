@@ -9,7 +9,6 @@ import BreweryNameHistoryItemClient from "../BreweryNameHistoryItemClient";
 import CatalogBeerCreateModalClient from "../CatalogBeerCreateModalClient";
 import CatalogBeerEditModalClient from "../CatalogBeerEditModalClient";
 import {
-  addBreweryNameHistory,
   deleteBreweryNameHistory,
   updateBrewery,
   updateBreweryNameHistory,
@@ -262,7 +261,6 @@ export default async function BreweryDetailPage({ params }: Props) {
                 latitude: brewery.latitude,
                 longitude: brewery.longitude,
               }}
-              countries={countries}
               updateBreweryAction={updateBrewery}
               variant="primary"
             />
@@ -492,27 +490,16 @@ export default async function BreweryDetailPage({ params }: Props) {
             <div style={{ marginBottom: "16px", color: "var(--taste-text-muted)", fontSize: "12px" }}>Zatím není evidována žádná změna názvu.</div>
           )}
 
-          <form action={addBreweryNameHistory.bind(null, brewery.id)} style={{ display: "flex", flexWrap: "wrap", gap: "8px", alignItems: "flex-end" }}>
-            <SmallField label="Historický název" flex="1 1 240px"><input name="previousName" required style={smallInputStyle} /></SmallField>
-            <SmallField label="Od roku" flex="0 1 125px"><input name="fromYear" type="number" min="1000" max="2100" style={smallInputStyle} /></SmallField>
-            <SmallField label="Do roku" flex="0 1 145px"><input name="changedYear" type="number" min="1000" max="2100" style={smallInputStyle} /></SmallField>
-            <button type="submit" className="taste-button-secondary" style={{ height: "38px", fontSize: "11px", whiteSpace: "nowrap" }}>+ Přidat historický název</button>
-          </form>
-
-          <form action={updateBrewery.bind(null, brewery.id)} style={{ display: "flex", flexWrap: "wrap", gap: "8px", alignItems: "flex-end", marginTop: "16px", paddingTop: "16px", borderTop: "1px solid rgba(231,166,47,.14)" }}>
-            <input type="hidden" name="city" value={brewery.city ?? ""} />
-            <input type="hidden" name="country" value={brewery.country ?? ""} />
-            <input type="hidden" name="address" value={brewery.address ?? ""} />
-            <input type="hidden" name="website" value={brewery.website ?? ""} />
-            <input type="hidden" name="foundedYear" value={brewery.founded_year ?? ""} />
-            <input type="hidden" name="closedYear" value={brewery.closed_year ?? ""} />
-            <input type="hidden" name="latitude" value={brewery.latitude ?? ""} />
-            <input type="hidden" name="longitude" value={brewery.longitude ?? ""} />
-            {brewery.is_nomadic && <input type="hidden" name="isNomadic" value="on" />}
-            <SmallField label="Současný název" flex="1 1 240px"><input value={brewery.name} readOnly style={{ ...smallInputStyle, color: "var(--taste-text-muted)", background: "rgba(255,255,255,.018)" }} /></SmallField>
-            <SmallField label="Nový název" flex="1 1 240px"><input name="name" required defaultValue={brewery.name} style={smallInputStyle} /></SmallField>
-            <button type="submit" className="taste-button-secondary" style={{ height: "38px", fontSize: "11px", whiteSpace: "nowrap" }}>Změnit název</button>
-          </form>
+          <div
+            style={{
+              marginTop: "12px",
+              color: "var(--taste-text-muted)",
+              fontSize: "10px",
+              lineHeight: 1.45,
+            }}
+          >
+            Nový název i další historické názvy se zapisují přes tlačítko „Upravit pivovar“.
+          </div>
         </div>
       </section>
     </main>
@@ -545,25 +532,3 @@ function DetailItem({ label, value }: { label: string; value: React.ReactNode })
 function Badge({ children }: { children: React.ReactNode }) {
   return <span style={{ padding: "2px 6px", borderRadius: "999px", border: "1px solid var(--taste-border)", color: "var(--taste-text-muted)", fontSize: "9px", fontWeight: 700 }}>{children}</span>;
 }
-
-function SmallField({ label, flex, children }: { label: string; flex: string; children: React.ReactNode }) {
-  return (
-    <label style={{ display: "grid", gap: "5px", flex }}>
-      <span style={{ color: "var(--taste-text-muted)", fontSize: "10px", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".055em" }}>{label}</span>
-      {children}
-    </label>
-  );
-}
-
-const smallInputStyle = {
-  width: "100%",
-  height: "38px",
-  boxSizing: "border-box" as const,
-  padding: "0 11px",
-  border: "1px solid var(--taste-border)",
-  borderRadius: "9px",
-  background: "var(--taste-surface)",
-  color: "var(--taste-text)",
-  fontSize: "12px",
-  outline: "none",
-};
