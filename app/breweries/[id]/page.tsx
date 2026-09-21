@@ -263,6 +263,7 @@ export default async function BreweryDetailPage({ params }: Props) {
               }}
               updateBreweryAction={updateBrewery}
               variant="primary"
+              isAdmin={isCatalogAdmin}
             />
           </div>
         }
