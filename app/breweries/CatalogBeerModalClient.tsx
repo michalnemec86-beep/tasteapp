@@ -79,7 +79,11 @@ export default function CatalogBeerModalClient({
   const [loadingDetails, setLoadingDetails] = useState(false);
   const [error, setError] = useState("");
   const [brandOptions, setBrandOptions] = useState<string[]>([]);
-  const [breweryOptions, setBreweryOptions] = useState<string[]>([]);
+  const [breweryOptions, setBreweryOptions] = useState<Array<{
+    value: string;
+    label: string;
+    currentName: string;
+  }>>([]);
   const [isAdmin, setIsAdmin] = useState(false);
   const [form, setForm] = useState<FormState>(() =>
     beer
@@ -119,12 +123,42 @@ export default function CatalogBeerModalClient({
       const supabase = createClient();
       const [brandsResult, breweriesResult, userResult] = await Promise.all([
         supabase.from("brands").select("name").order("name"),
-        supabase.from("breweries").select("name").order("name"),
+        supabase
+          .from("breweries")
+          .select(`
+            name,
+            brewery_name_history (
+              previous_name
+            )
+          `)
+          .order("name"),
         supabase.auth.getUser(),
       ]);
 
       setBrandOptions((brandsResult.data ?? []).map((item) => item.name));
-      setBreweryOptions((breweriesResult.data ?? []).map((item) => item.name));
+      setBreweryOptions(
+        (breweriesResult.data ?? []).flatMap((item) => {
+          const history = (item.brewery_name_history ?? []) as Array<{
+            previous_name: string;
+          }>;
+
+          return [
+            {
+              value: item.name,
+              label: item.name,
+              currentName: item.name,
+            },
+            ...history
+              .map((row) => row.previous_name?.trim())
+              .filter((name): name is string => Boolean(name))
+              .map((name) => ({
+                value: name,
+                label: `${name} → ${item.name}`,
+                currentName: item.name,
+              })),
+          ];
+        })
+      );
       setIsAdmin(userResult.data.user?.id === ADMIN_USER_ID);
 
       if (mode === "edit" && beer) {
@@ -299,7 +333,18 @@ export default function CatalogBeerModalClient({
 
                 <Field label="Spolupracující pivovary">
                   <input name="collaboratorNames" list={`breweries-${id}`} value={form.collaboratorNames} onChange={(e) => setField("collaboratorNames", e.target.value)} placeholder="Oddělit čárkou" style={inputStyle} />
-                  <datalist id={`breweries-${id}`}>{breweryOptions.filter((name) => name !== breweryName).map((name) => <option key={name} value={name} />)}</datalist>
+                  <datalist id={`breweries-${id}`}>
+                    {breweryOptions
+                      .filter((option) => option.currentName !== breweryName)
+                      .map((option) => (
+                        <option
+                          key={`${option.currentName}-${option.value}`}
+                          value={option.value}
+                        >
+                          {option.label}
+                        </option>
+                      ))}
+                  </datalist>
                 </Field>
 
                 <Field label="URL fotografie">
