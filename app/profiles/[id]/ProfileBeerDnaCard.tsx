@@ -1,12 +1,17 @@
+import Link from "next/link";
+
 import type {
   RankingItem,
 } from "@/lib/stats";
 
 type ProfileBeerDnaCardProps = {
   styles: RankingItem[];
+  comparisonItems?: RankingItem[];
+  profileId: string;
 };
 
 type DnaSegment = {
+  id: number | string;
   name: string;
   count: number;
   percentage: number;
@@ -81,6 +86,7 @@ function buildSegments(
 
   return items.map(
     (item, index) => ({
+      id: item.id,
       name: item.name,
       count: item.count,
       percentage:
@@ -104,6 +110,8 @@ function buildSegments(
 
 export default function ProfileBeerDnaCard({
   styles,
+  comparisonItems = [],
+  profileId,
 }: ProfileBeerDnaCardProps) {
   const segments =
     buildSegments(styles);
@@ -117,6 +125,10 @@ export default function ProfileBeerDnaCard({
 
   const dominant =
     segments[0] ?? null;
+
+  const comparisonCounts = new Map(
+    comparisonItems.map((item) => [String(item.id), item.count])
+  );
 
   let gradientOffset = 0;
 
@@ -451,26 +463,36 @@ export default function ProfileBeerDnaCard({
                         0,
                     }}
                   >
-                    <div
-                      style={{
-                        overflow:
-                          "hidden",
-                        color:
-                          "var(--taste-text)",
-                        fontSize:
-                          "12px",
-                        fontWeight:
-                          750,
-                        textOverflow:
-                          "ellipsis",
-                        whiteSpace:
-                          "nowrap",
-                      }}
-                    >
-                      {
-                        segment.name
-                      }
-                    </div>
+                    {segment.id === "other" ? (
+                      <div
+                        style={{
+                          overflow: "hidden",
+                          color: "var(--taste-text)",
+                          fontSize: "12px",
+                          fontWeight: 750,
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {segment.name}
+                      </div>
+                    ) : (
+                      <Link
+                        href={`/stats?user=${profileId}&locked=1&style=${segment.id}`}
+                        style={{
+                          display: "block",
+                          overflow: "hidden",
+                          color: "var(--taste-text)",
+                          fontSize: "12px",
+                          fontWeight: 750,
+                          textDecoration: "none",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {segment.name}
+                      </Link>
+                    )}
 
                     <div
                       style={{
@@ -482,10 +504,12 @@ export default function ProfileBeerDnaCard({
                           "9px",
                       }}
                     >
-                      {
-                        segment.count
-                      }{" "}
-                      z {total}
+                      {segment.count} z {total}
+                      {segment.id !== "other" && (
+                        <span style={{ marginLeft: "4px" }}>
+                          (celkem {comparisonCounts.get(String(segment.id)) ?? 0})
+                        </span>
+                      )}
                     </div>
                   </div>
 
