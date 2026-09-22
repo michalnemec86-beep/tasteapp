@@ -1,9 +1,13 @@
+import Link from "next/link";
+
 import type {
   RankingItem,
 } from "@/lib/stats";
 
 type ProfileHopsCardProps = {
   items: RankingItem[];
+  comparisonItems?: RankingItem[];
+  profileId: string;
 };
 
 const hopTones = [
@@ -56,6 +60,8 @@ const hopTones = [
 
 export default function ProfileHopsCard({
   items,
+  comparisonItems = [],
+  profileId,
 }: ProfileHopsCardProps) {
   const visibleItems =
     items.slice(0, 12);
@@ -72,6 +78,14 @@ export default function ProfileHopsCard({
         sum + item.count,
       0
     );
+
+  const comparisonMentions = comparisonItems.reduce(
+    (sum, item) => sum + item.count,
+    0
+  );
+  const comparisonCounts = new Map(
+    comparisonItems.map((item) => [String(item.id), item.count])
+  );
 
   return (
     <section
@@ -265,28 +279,21 @@ export default function ProfileHopsCard({
                         "center",
                     }}
                   >
-                    <div
+                    <Link
+                      href={`/stats?user=${profileId}&locked=1&hop=${item.id}`}
                       style={{
-                        maxWidth:
-                          "100%",
-                        color:
-                          "var(--taste-text)",
-                        fontSize:
-                          `${11 + ratio * 4}px`,
-                        lineHeight:
-                          1.08,
-                        fontWeight:
-                          isTop
-                            ? 900
-                            : 800,
-                        letterSpacing:
-                          "-0.025em",
-                        overflowWrap:
-                          "anywhere",
+                        maxWidth: "100%",
+                        color: "var(--taste-text)",
+                        fontSize: `${11 + ratio * 4}px`,
+                        lineHeight: 1.08,
+                        fontWeight: isTop ? 900 : 800,
+                        letterSpacing: "-0.025em",
+                        overflowWrap: "anywhere",
+                        textDecoration: "none",
                       }}
                     >
                       {item.name}
-                    </div>
+                    </Link>
 
                     <div
                       style={{
@@ -301,6 +308,17 @@ export default function ProfileHopsCard({
                       }}
                     >
                       {item.count}×
+                      <span
+                        style={{
+                          display: "block",
+                          marginTop: "2px",
+                          color: "var(--taste-text-muted)",
+                          fontSize: "8px",
+                          fontWeight: 600,
+                        }}
+                      >
+                        celkem {comparisonCounts.get(String(item.id)) ?? 0}×
+                      </span>
                     </div>
                   </div>
                 );
@@ -381,8 +399,14 @@ export default function ProfileHopsCard({
                   "-0.04em",
               }}
             >
-              {dominant?.name ??
-                "—"}
+              {dominant ? (
+                <Link
+                  href={`/stats?user=${profileId}&locked=1&hop=${dominant.id}`}
+                  style={{ color: "inherit", textDecoration: "none" }}
+                >
+                  {dominant.name}
+                </Link>
+              ) : "—"}
             </div>
 
             <div
@@ -396,7 +420,7 @@ export default function ProfileHopsCard({
               }}
             >
               {dominant
-                ? `${dominant.count}× v ochutnaných pivech`
+                ? `${dominant.count}× v ochutnaných pivech (celkem ${comparisonCounts.get(String(dominant.id)) ?? 0}×)`
                 : "Zatím bez dat"}
             </div>
           </div>
@@ -436,6 +460,9 @@ export default function ProfileHopsCard({
                 }}
               >
                 {items.length}
+                <span style={{ marginLeft: "4px", color: "var(--taste-text-muted)", fontSize: "9px", fontWeight: 650 }}>
+                  (celkem {comparisonItems.length})
+                </span>
               </div>
 
               <div
@@ -480,6 +507,9 @@ export default function ProfileHopsCard({
                 }}
               >
                 {totalMentions}
+                <span style={{ marginLeft: "4px", color: "var(--taste-text-muted)", fontSize: "9px", fontWeight: 650 }}>
+                  (celkem {comparisonMentions})
+                </span>
               </div>
 
               <div
