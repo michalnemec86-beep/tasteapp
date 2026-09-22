@@ -41,6 +41,8 @@ type BeerWorldMapProps = {
   title?: string;
   countLabel?: string;
   focusEurope?: boolean;
+  statsContextUserId?: string;
+  lockStatsContext?: boolean;
 };
 
 type MapShadeStep = {
@@ -184,6 +186,8 @@ export default function BeerWorldMap({
   title = "Mapa ochutnaných zemí",
   countLabel = "ochutnaných zemí",
   focusEurope = false,
+  statsContextUserId,
+  lockStatsContext = false,
 }: BeerWorldMapProps) {
   const router = useRouter();
   const mapStageRef = useRef<HTMLDivElement>(null);
@@ -441,6 +445,16 @@ export default function BeerWorldMap({
 
     const code = String(countryCode).toUpperCase();
     const czechName = nameByCode.get(code) ?? countryName;
+
+    if (statsContextUserId && lockStatsContext) {
+      const params = new URLSearchParams();
+      params.set("user", statsContextUserId);
+      params.set("locked", "1");
+      params.set("country", czechName);
+
+      router.push(`/stats?${params.toString()}`);
+      return;
+    }
 
     router.push(
       `/stats/country/${encodeURIComponent(czechName)}`
