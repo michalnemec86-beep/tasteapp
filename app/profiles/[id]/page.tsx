@@ -669,6 +669,9 @@ export default async function ProfilePage({
   const quickProfileItems = [
     {
       label: "Top styl",
+      href: tasteStats.styles[0]
+        ? `/stats?user=${profile.id}&locked=1&style=${tasteStats.styles[0].id}`
+        : `/stats?user=${profile.id}&locked=1&focus=styles`,
       value:
         tasteStats.styles[0]
           ?.name ?? "—",
@@ -686,6 +689,9 @@ export default async function ProfilePage({
     },
     {
       label: "Top značka",
+      href: tasteStats.brands[0]
+        ? `/stats?user=${profile.id}&locked=1&brand=${tasteStats.brands[0].id}`
+        : `/stats?user=${profile.id}&locked=1&focus=brands`,
       value:
         tasteStats.brands[0]
           ?.name ?? "—",
@@ -700,6 +706,9 @@ export default async function ProfilePage({
     },
     {
       label: "Top pivovar",
+      href: tasteStats.breweries[0]
+        ? `/stats?user=${profile.id}&locked=1&brewery=${tasteStats.breweries[0].id}`
+        : `/stats?user=${profile.id}&locked=1&focus=breweries`,
       value:
         tasteStats.breweries[0]
           ?.name ?? "—",
@@ -717,6 +726,9 @@ export default async function ProfilePage({
     },
     {
       label: "Top stát",
+      href: tasteStats.countries[0]
+        ? `/stats?user=${profile.id}&locked=1&country=${encodeURIComponent(tasteStats.countries[0].name)}`
+        : `/stats?user=${profile.id}&locked=1&focus=countries`,
       value:
         tasteStats.countries[0]
           ?.name ?? "—",
@@ -734,6 +746,9 @@ export default async function ProfilePage({
     },
     {
       label: "Nejčastější podání",
+      href: tasteStats.packaging[0]
+        ? `/stats?user=${profile.id}&locked=1&packaging=${tasteStats.packaging[0].id}`
+        : `/stats?user=${profile.id}&locked=1`,
       value:
         tasteStats.packaging[0]
           ?.name ?? "—",
@@ -751,6 +766,7 @@ export default async function ProfilePage({
     },
     {
       label: "Chmelový záběr",
+      href: `/stats?user=${profile.id}&locked=1&focus=hops`,
       value:
         profileStats.uniqueHops,
       detail:
@@ -1250,9 +1266,13 @@ export default async function ProfilePage({
         >
           {quickProfileItems.map(
             (item) => (
-              <article
+              <Link
                 key={item.label}
+                href={item.href}
                 style={{
+                  display: "block",
+                  color: "inherit",
+                  textDecoration: "none",
                   position:
                     "relative",
                   overflow:
@@ -1345,7 +1365,7 @@ export default async function ProfilePage({
                 >
                   {item.detail}
                 </div>
-              </article>
+              </Link>
             )
           )}
         </div>
