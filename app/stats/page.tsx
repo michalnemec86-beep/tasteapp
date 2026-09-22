@@ -14,6 +14,7 @@ import RankingCardClient from "./RankingCardClient";
 import PackagingSummaryCard from "./PackagingSummaryCard";
 import PageHero from "@/components/ui/PageHero";
 import AppIcon from "@/components/ui/AppIcon";
+import ContextStatValue from "@/components/stats/ContextStatValue";
 
 type SortMode =
   | "count-desc"
@@ -45,6 +46,7 @@ type StatsPageProps = {
     country?: string | string[];
     hop?: string | string[];
     letter?: string | string[];
+    locked?: string | string[];
   }>;
 };
 
@@ -80,6 +82,7 @@ export default async function StatsPage({
   const requestedStyle = getStringParam(params.style);
   const requestedCountry = getStringParam(params.country);
   const requestedHop = getStringParam(params.hop);
+  const requestedLocked = getStringParam(params.locked);
   const selectedLetter = getStringParam(params.letter)
     ?.toLocaleUpperCase("cs") ?? "";
 
@@ -233,6 +236,9 @@ export default async function StatsPage({
     : null;
 
   const selectedUserId = selectedProfile?.id;
+  const isLockedContext =
+    requestedLocked === "1" && Boolean(selectedProfile);
+  const comparisonLabel = selectedUserId ? "celkem" : "moje";
 
   const selectedFocus =
     selectedProfile && isStatsFocus(requestedFocus)
@@ -289,19 +295,12 @@ export default async function StatsPage({
     }
   );
 
-  const userTastings = selectedUserId
-    ? periodTastings.filter(
-        (tasting) =>
-          tasting.user_id === selectedUserId
-      )
-    : periodTastings;
-
   const packagingTastings = selectedPackaging
-    ? userTastings.filter(
+    ? periodTastings.filter(
         (tasting) =>
           tasting.packaging === selectedPackaging
       )
-    : userTastings;
+    : periodTastings;
 
   const requestedBeerId = parsePositiveInteger(requestedBeer);
   const requestedBrandId = parsePositiveInteger(requestedBrand);
@@ -312,8 +311,7 @@ export default async function StatsPage({
     ? normalizeCountry(requestedCountry)
     : undefined;
 
-  // PREIMPORT_FOLLOWUP_APPLIED
-  const filteredTastings = packagingTastings.filter((tasting) => {
+  const contextFilteredTastings = packagingTastings.filter((tasting) => {
     if (requestedBeerId && tasting.beers?.id !== requestedBeerId) {
       return false;
     }
@@ -350,9 +348,26 @@ export default async function StatsPage({
     return true;
   });
 
+  const filteredTastings = selectedUserId
+    ? contextFilteredTastings.filter(
+        (tasting) => tasting.user_id === selectedUserId
+      )
+    : contextFilteredTastings;
+
+  const comparisonTastings = selectedUserId
+    ? contextFilteredTastings
+    : contextFilteredTastings.filter(
+        (tasting) => tasting.user_id === user.id
+      );
+
   const rawStats = buildTasteStats(filteredTastings);
-  const personalStats = buildTasteStats(allTastings, user.id);
-  const contextSourceStats = buildTasteStats(userTastings);
+  const comparisonStats = buildTasteStats(comparisonTastings);
+  const personalStats = buildTasteStats(contextFilteredTastings, user.id);
+  const contextSourceStats = buildTasteStats(
+    selectedUserId
+      ? periodTastings.filter((tasting) => tasting.user_id === selectedUserId)
+      : periodTastings
+  );
 
   const contextFilters = [
     requestedBeerId
@@ -507,6 +522,53 @@ export default async function StatsPage({
       .filter(Boolean)
   ).size;
 
+  const comparisonTotalTastings = comparisonTastings.reduce(
+    (sum, tasting) => sum + (tasting.quantity ?? 1),
+    0
+  );
+  const comparisonTotalBeers = new Set(
+    comparisonTastings
+      .map((tasting) => tasting.beers?.id)
+      .filter((id) => id != null)
+  ).size;
+  const comparisonTotalBrands = new Set(
+    comparisonTastings
+      .map((tasting) => tasting.beers?.brands?.id)
+      .filter((id) => id != null)
+  ).size;
+  const comparisonTotalBreweries = new Set(
+    comparisonTastings
+      .map(
+        (tasting) =>
+          tasting.beer_versions?.breweries?.id ??
+          tasting.beers?.breweries?.id
+      )
+      .filter((id) => id != null)
+  ).size;
+  const comparisonTotalStyles = new Set(
+    comparisonTastings
+      .map(
+        (tasting) =>
+          (
+            tasting.beer_versions?.beer_styles ??
+            tasting.beers?.beer_styles
+          )?.id
+      )
+      .filter((id) => id != null)
+  ).size;
+  const comparisonTotalCountries = new Set(
+    comparisonTastings
+      .map((tasting) =>
+        (tasting.beer_versions?.breweries ?? tasting.beers?.breweries)
+          ?.country
+          ?.normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .toLowerCase()
+          .trim()
+      )
+      .filter(Boolean)
+  ).size;
+
   const focusedView = selectedFocus
     ? {
         beers: {
@@ -520,6 +582,10 @@ export default async function StatsPage({
             requestedMetric === "quantity"
               ? totalTastings
               : totalBeers,
+          comparisonValue:
+            requestedMetric === "quantity"
+              ? comparisonTotalTastings
+              : comparisonTotalBeers,
           icon: <AppIcon name="label" size={18} />,
           accent: "#e88835",
         },
@@ -527,7 +593,14 @@ export default async function StatsPage({
           title: "Značky",
           subtitle: "Produktové značky v ochutnávkách",
           label: "Značek",
-          value: totalBrands,
+          value: (
+                    <ContextStatValue
+                      primary={totalBrands}
+                      secondary={comparisonTotalBrands}
+                      secondaryLabel={comparisonLabel}
+                    />
+                  ),
+          comparisonValue: comparisonTotalBrands,
           icon: <AppIcon name="label" size={18} />,
           accent: "#d98a43",
         },
@@ -535,7 +608,14 @@ export default async function StatsPage({
           title: "Pivovary",
           subtitle: "Pivovary v ochutnávkách",
           label: "Pivovarů",
-          value: totalBreweries,
+          value: (
+                    <ContextStatValue
+                      primary={totalBreweries}
+                      secondary={comparisonTotalBreweries}
+                      secondaryLabel={comparisonLabel}
+                    />
+                  ),
+          comparisonValue: comparisonTotalBreweries,
           icon: <AppIcon name="brewery" size={18} />,
           accent: "#d65b42",
         },
@@ -543,7 +623,14 @@ export default async function StatsPage({
           title: "Pivní styly",
           subtitle: "Styly v ochutnávkách",
           label: "Stylů",
-          value: totalStyles,
+          value: (
+                    <ContextStatValue
+                      primary={totalStyles}
+                      secondary={comparisonTotalStyles}
+                      secondaryLabel={comparisonLabel}
+                    />
+                  ),
+          comparisonValue: comparisonTotalStyles,
           icon: <AppIcon name="hop" size={18} />,
           accent: "#9cad47",
         },
@@ -551,7 +638,14 @@ export default async function StatsPage({
           title: "Státy",
           subtitle: "Země původu pivovarů v ochutnávkách",
           label: "Států",
-          value: totalCountries,
+          value: (
+                    <ContextStatValue
+                      primary={totalCountries}
+                      secondary={comparisonTotalCountries}
+                      secondaryLabel={comparisonLabel}
+                    />
+                  ),
+          comparisonValue: comparisonTotalCountries,
           icon: <AppIcon name="globe" size={18} />,
           accent: "#b77a36",
         },
@@ -560,6 +654,7 @@ export default async function StatsPage({
           subtitle: "Chmely použitých piv",
           label: "Chmelů",
           value: stats.hops.length,
+          comparisonValue: comparisonStats.hops.length,
           icon: <AppIcon name="hop" size={18} />,
           accent: "#879a43",
         },
@@ -575,21 +670,25 @@ export default async function StatsPage({
       }}
     >
       <PageHero
-        eyebrow={focusedView ? "Osobní statistiky" : "Pivní data"}
+        eyebrow={selectedProfile ? "Osobní statistiky" : "Pivní data"}
         imageUrl="/images/heroes/stats.jpg"
         visualVariant="stats"
         title={
           focusedView && selectedProfile
             ? `${focusedView.title} · ${selectedProfile.display_name}`
-            : "Co a jak pijeme"
+            : selectedProfile
+              ? `Statistiky · ${selectedProfile.display_name}`
+              : "Co a jak pijeme"
         }
         subtitle={
           focusedView && selectedProfile
             ? `Pouze ${focusedView.title.toLowerCase()} z ochutnávek uživatele ${selectedProfile.display_name}.`
-            : "Společné statistiky všech lidí v hospodě."
+            : selectedProfile
+              ? `Statistiky jsou omezené na uživatele ${selectedProfile.display_name}; srovnání v závorkách ukazuje celková data hospody.`
+              : "Společné statistiky všech lidí v hospodě; v závorkách je stejný výběr z tvé evidence."
         }
         action={
-          focusedView && selectedProfile ? (
+          selectedProfile && (focusedView || isLockedContext) ? (
             <Link
               href={`/profiles/${selectedProfile.id}`}
               className="taste-button-secondary taste-focused-stats-profile-link"
@@ -605,7 +704,13 @@ export default async function StatsPage({
                 {
                   icon: focusedView.icon,
                   accent: focusedView.accent,
-                  value: focusedView.value,
+                  value: (
+                    <ContextStatValue
+                      primary={focusedView.value}
+                      secondary={focusedView.comparisonValue}
+                      secondaryLabel={comparisonLabel}
+                    />
+                  ),
                   label: focusedView.label,
                 },
               ]
@@ -613,13 +718,25 @@ export default async function StatsPage({
                 {
                   icon: <AppIcon name="beer" size={18} />,
                   accent: "#f2b63f",
-                  value: totalTastings,
+                  value: (
+                    <ContextStatValue
+                      primary={totalTastings}
+                      secondary={comparisonTotalTastings}
+                      secondaryLabel={comparisonLabel}
+                    />
+                  ),
                   label: "Vypitých piv",
                 },
                 {
                   icon: <AppIcon name="label" size={18} />,
                   accent: "#e88835",
-                  value: totalBeers,
+                  value: (
+                    <ContextStatValue
+                      primary={totalBeers}
+                      secondary={comparisonTotalBeers}
+                      secondaryLabel={comparisonLabel}
+                    />
+                  ),
                   label: "Různých piv",
                 },
                 {
@@ -662,6 +779,7 @@ export default async function StatsPage({
           letters={availableLetters}
           firstYear={FIRST_YEAR}
           contextFilters={contextFilters}
+          hideProfileSelector={isLockedContext}
         />
       )}
 
@@ -718,7 +836,10 @@ export default async function StatsPage({
               subtitle="Konkrétní ochutnaná piva"
               icon={<AppIcon name="label" size={20} />}
               items={stats.beers}
-              disableItemLinks={Boolean(selectedFocus)}
+              comparisonItems={comparisonStats.beers}
+              comparisonLabel={comparisonLabel}
+              lockedContext={isLockedContext}
+              disableItemLinks={Boolean(selectedFocus) && !isLockedContext}
               personalItemIds={personalStats.beers.map((item) => item.id)}
             />
           )}
@@ -731,8 +852,11 @@ export default async function StatsPage({
               subtitle="Produktové značky napříč pivovary a historií"
               icon={<AppIcon name="label" size={20} />}
               items={stats.brands}
+              comparisonItems={comparisonStats.brands}
+              comparisonLabel={comparisonLabel}
+              lockedContext={isLockedContext}
               itemHrefPrefix="/brands"
-              disableItemLinks={Boolean(selectedFocus)}
+              disableItemLinks={Boolean(selectedFocus) && !isLockedContext}
               personalItemIds={personalStats.brands.map((item) => item.id)}
             />
           )}
@@ -745,8 +869,11 @@ export default async function StatsPage({
               subtitle="Podle počtu vypitých piv"
               icon={<AppIcon name="brewery" size={20} />}
               items={stats.breweries}
+              comparisonItems={comparisonStats.breweries}
+              comparisonLabel={comparisonLabel}
+              lockedContext={isLockedContext}
               itemHrefPrefix="/breweries"
-              disableItemLinks={Boolean(selectedFocus)}
+              disableItemLinks={Boolean(selectedFocus) && !isLockedContext}
               personalItemIds={personalStats.breweries.map((item) => item.id)}
             />
           )}
@@ -759,7 +886,10 @@ export default async function StatsPage({
               subtitle="Nejčastěji zastoupené styly"
               icon={<AppIcon name="hop" size={20} />}
               items={stats.styles}
-              disableItemLinks={Boolean(selectedFocus)}
+              comparisonItems={comparisonStats.styles}
+              comparisonLabel={comparisonLabel}
+              lockedContext={isLockedContext}
+              disableItemLinks={Boolean(selectedFocus) && !isLockedContext}
               personalItemIds={personalStats.styles.map((item) => item.id)}
             />
           )}
@@ -772,7 +902,10 @@ export default async function StatsPage({
               subtitle="Země původu pivovarů"
               icon={<AppIcon name="globe" size={20} />}
               items={stats.countries}
-              disableItemLinks={Boolean(selectedFocus)}
+              comparisonItems={comparisonStats.countries}
+              comparisonLabel={comparisonLabel}
+              lockedContext={isLockedContext}
+              disableItemLinks={Boolean(selectedFocus) && !isLockedContext}
               personalItemIds={personalStats.countries.map((item) => item.id)}
             />
           )}
@@ -785,7 +918,10 @@ export default async function StatsPage({
               subtitle="Chmely použitých piv"
               icon={<AppIcon name="hop" size={20} />}
               items={stats.hops}
-              disableItemLinks={Boolean(selectedFocus)}
+              comparisonItems={comparisonStats.hops}
+              comparisonLabel={comparisonLabel}
+              lockedContext={isLockedContext}
+              disableItemLinks={Boolean(selectedFocus) && !isLockedContext}
               personalItemIds={personalStats.hops.map((item) => item.id)}
             />
           )}
@@ -795,8 +931,11 @@ export default async function StatsPage({
       {!selectedFocus && (
         <PackagingSummaryCard
           items={stats.packaging}
+          comparisonItems={comparisonStats.packaging}
+          comparisonLabel={comparisonLabel}
           contextParams={{
             user: selectedUserId,
+            locked: isLockedContext ? "1" : undefined,
             year: selectedYear ? String(selectedYear) : undefined,
             month: selectedMonth ? String(selectedMonth) : undefined,
             sort: sortMode !== "count-desc" ? sortMode : undefined,
