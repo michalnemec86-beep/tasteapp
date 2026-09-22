@@ -6,6 +6,8 @@ import type { RankingItem } from "@/lib/stats";
 type PackagingSummaryCardProps = {
   items: RankingItem[];
   contextParams?: Record<string, string | undefined>;
+  comparisonItems?: RankingItem[];
+  comparisonLabel?: string;
 };
 
 type PackagingTone = {
@@ -53,10 +55,15 @@ const FALLBACK_TONE: PackagingTone = PACKAGING_TONES.other;
 export default function PackagingSummaryCard({
   items,
   contextParams = {},
+  comparisonItems = [],
+  comparisonLabel = "moje",
 }: PackagingSummaryCardProps) {
   const total = items.reduce(
     (sum, item) => sum + item.count,
     0
+  );
+  const comparisonCounts = new Map(
+    comparisonItems.map((item) => [String(item.id), item.count])
   );
 
   return (
@@ -105,6 +112,8 @@ export default function PackagingSummaryCard({
             }}
           >
             {items.map((item) => {
+              const comparisonCount =
+                comparisonCounts.get(String(item.id)) ?? 0;
               const tone =
                 PACKAGING_TONES[String(item.id)] ?? FALLBACK_TONE;
               const percentage =
@@ -194,16 +203,34 @@ export default function PackagingSummaryCard({
                       </div>
                     </div>
 
-                    <strong
+                    <div
                       style={{
-                        color: tone.accent,
-                        fontSize: "20px",
-                        lineHeight: 1,
-                        letterSpacing: "-0.03em",
+                        display: "flex",
+                        alignItems: "baseline",
+                        gap: "5px",
+                        whiteSpace: "nowrap",
                       }}
                     >
-                      {item.count}
-                    </strong>
+                      <strong
+                        style={{
+                          color: tone.accent,
+                          fontSize: "20px",
+                          lineHeight: 1,
+                          letterSpacing: "-0.03em",
+                        }}
+                      >
+                        {item.count}
+                      </strong>
+                      <span
+                        style={{
+                          color: "var(--taste-text-muted)",
+                          fontSize: "9px",
+                          fontWeight: 650,
+                        }}
+                      >
+                        ({comparisonLabel} {comparisonCount})
+                      </span>
+                    </div>
                   </div>
 
                   <div
