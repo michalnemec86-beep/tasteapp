@@ -909,7 +909,8 @@ export default function BreweryTableClient({
                         style={{
                           display: "flex",
                           alignItems: "center",
-                          gap: "9px",
+                          gap: "7px",
+                          minWidth: 0,
                         }}
                       >
                         <Link
@@ -940,41 +941,24 @@ export default function BreweryTableClient({
                         {isReferenceAdmin && brewery.referenceReady && (
                           <span
                             title="Kompletní referenční karta pivovaru"
+                            aria-label="Referenční pivovar"
                             style={{
+                              width: "18px",
+                              height: "18px",
+                              flex: "0 0 18px",
                               display: "inline-flex",
                               alignItems: "center",
-                              padding: "4px 7px",
+                              justifyContent: "center",
                               border: "1px solid rgba(54,235,118,0.72)",
                               borderRadius: "999px",
                               background: "rgba(38,215,101,0.20)",
                               color: "#62f39a",
-                              fontSize: "8px",
+                              fontSize: "10px",
                               fontWeight: 900,
-                              letterSpacing: "0.045em",
-                              whiteSpace: "nowrap",
+                              lineHeight: 1,
                             }}
                           >
-                            ✓ REFERENČNÍ
-                          </span>
-                        )}
-
-                        {isReferenceAdmin && !brewery.referenceReady && (
-                          <span
-                            title={`Chybí: ${brewery.referenceMissing.join(", ")}`}
-                            style={{
-                              display: "inline-flex",
-                              alignItems: "center",
-                              padding: "3px 6px",
-                              border: "1px solid rgba(231,166,47,0.24)",
-                              borderRadius: "999px",
-                              background: "rgba(231,166,47,0.06)",
-                              color: "var(--taste-text-muted)",
-                              fontSize: "8px",
-                              fontWeight: 750,
-                              whiteSpace: "nowrap",
-                            }}
-                          >
-                            CHYBÍ {brewery.referenceMissing.length}
+                            ✓
                           </span>
                         )}
 
