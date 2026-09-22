@@ -955,6 +955,8 @@ export default async function StatsPage({
               items={rawStats.countries}
               statsContextUserId={selectedUserId}
               lockStatsContext={isLockedContext}
+              comparisonCount={comparisonStats.countries.length}
+              comparisonLabel={comparisonLabel}
             />
           </div>
         )}
