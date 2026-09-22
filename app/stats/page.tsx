@@ -953,7 +953,11 @@ export default async function StatsPage({
       {filteredTastings.length > 0 &&
         (!selectedFocus || selectedFocus === "countries") && (
           <div style={{ marginBottom: "30px" }}>
-            <BeerWorldMap items={rawStats.countries} />
+            <BeerWorldMap
+              items={rawStats.countries}
+              statsContextUserId={selectedUserId}
+              lockStatsContext={isLockedContext}
+            />
           </div>
         )}
     </main>
