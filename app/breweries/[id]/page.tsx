@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
+import { getBeerReferenceStatus, getBreweryReferenceStatus } from "@/lib/referenceStatus";
 import PageHero from "@/components/ui/PageHero";
 import AdminBadge from "@/components/ui/AdminBadge";
 import BreweryCzechMapClient from "../BreweryCzechMapClient";
@@ -70,13 +71,13 @@ export default async function BreweryDetailPage({ params }: Props) {
           brands ( id, name )
         ),
         beers (
-          id, name, plato, abv, ibu, is_non_alcoholic,
+          id, name, plato, abv, ibu, is_non_alcoholic, is_catalog,
           brands ( id, name ),
-          beer_styles ( name ),
+          beer_styles ( id, name ),
           beer_hops ( hops ( name ) ),
           beer_versions (
             id, version_year, is_current, plato, abv, ibu,
-            beer_styles ( name ),
+            beer_styles ( id, name ),
             beer_version_hops ( hops ( name ) )
           ),
           tastings ( id, user_id, tasted_on, quantity )
@@ -143,6 +144,19 @@ export default async function BreweryDetailPage({ params }: Props) {
     typeof brewery.longitude === "number" &&
     Number.isFinite(brewery.longitude);
 
+  const breweryReferenceStatus = getBreweryReferenceStatus({
+    name: brewery.name,
+    city: brewery.city,
+    country: brewery.country,
+    address: brewery.address,
+    website: brewery.website,
+    logoUrl: brewery.logo_url,
+    isNomadic: brewery.is_nomadic,
+    foundedYear: brewery.founded_year,
+    latitude: brewery.latitude,
+    longitude: brewery.longitude,
+  });
+
   const history = [...(brewery.brewery_name_history ?? [])].sort(
     (a, b) => (a.from_year ?? a.changed_year ?? Number.MAX_SAFE_INTEGER) - (b.from_year ?? b.changed_year ?? Number.MAX_SAFE_INTEGER)
   );
@@ -180,12 +194,22 @@ export default async function BreweryDetailPage({ params }: Props) {
         abv: currentVersion?.abv ?? beer.abv,
         ibu: currentVersion?.ibu ?? beer.ibu,
         styleName: currentStyle?.name ?? fallbackStyle?.name ?? "",
+        styleId: currentStyle?.id ?? fallbackStyle?.id ?? null,
         hopNames:
           currentHopNames.length > 0
             ? currentHopNames
             : fallbackHopNames,
         currentVersionId: currentVersion?.id ?? null,
         versionCount: versions.length,
+        referenceStatus: getBeerReferenceStatus({
+          name: beer.name,
+          brandId: brand?.id ?? null,
+          breweryId: brewery.id,
+          styleId: currentStyle?.id ?? fallbackStyle?.id ?? null,
+          plato: currentVersion?.plato ?? beer.plato,
+          abv: currentVersion?.abv ?? beer.abv,
+          isCatalog: beer.is_catalog,
+        }),
         canEdit: isCatalogAdmin || (beer.tastings ?? []).some(
           (tasting: any) => tasting.user_id === user.id && tasting.tasted_on >= "2026-09-01"
         ),
@@ -269,6 +293,22 @@ export default async function BreweryDetailPage({ params }: Props) {
         subtitle={[brewery.city, brewery.country].filter(Boolean).join(" · ")}
         action={
           <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+            {isCatalogAdmin && breweryReferenceStatus.ready && (
+              <span
+                title="Kompletní referenční karta pivovaru"
+                style={{ padding: "7px 10px", border: "1px solid rgba(54,235,118,.72)", borderRadius: "999px", background: "rgba(38,215,101,.22)", color: "#62f39a", fontSize: "9px", fontWeight: 900, letterSpacing: ".045em" }}
+              >
+                ✓ REFERENČNÍ
+              </span>
+            )}
+            {isCatalogAdmin && !breweryReferenceStatus.ready && (
+              <span
+                title={`Chybí: ${breweryReferenceStatus.missing.join(", ")}`}
+                style={{ padding: "7px 10px", border: "1px solid rgba(231,166,47,.28)", borderRadius: "999px", background: "rgba(231,166,47,.07)", color: "var(--taste-text-muted)", fontSize: "9px", fontWeight: 750 }}
+              >
+                Chybí {breweryReferenceStatus.missing.length}
+              </span>
+            )}
             <Link href="/breweries" className="taste-button-secondary" style={{ fontSize: "12px", fontWeight: 650 }}>← Katalog pivovarů</Link>
             <BreweryEditModalClient
               brewery={{
@@ -297,7 +337,21 @@ export default async function BreweryDetailPage({ params }: Props) {
         ]}
       />
 
-      <section className="taste-card" style={{ padding: "22px" }}>
+      <section
+        className="taste-card"
+        style={{
+          padding: "22px",
+          border: isCatalogAdmin && breweryReferenceStatus.ready
+            ? "1px solid rgba(54,235,118,.70)"
+            : undefined,
+          background: isCatalogAdmin && breweryReferenceStatus.ready
+            ? "linear-gradient(145deg, rgba(36,220,99,.16), rgba(36,220,99,.035) 45%, transparent), var(--taste-surface)"
+            : undefined,
+          boxShadow: isCatalogAdmin && breweryReferenceStatus.ready
+            ? "inset 4px 0 0 rgba(44,235,111,.92), var(--taste-shadow-soft)"
+            : undefined,
+        }}
+      >
         {isCatalogAdmin && (
           <div style={{ marginBottom: "20px", paddingBottom: "18px", borderBottom: "1px solid var(--taste-border)" }}>
             <BreweryLogoManagerClient
@@ -412,13 +466,31 @@ export default async function BreweryDetailPage({ params }: Props) {
               {breweryBeers.map((beer: any, index: number) => (
                 <div
                   key={beer.id}
-                  style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) auto", alignItems: "center", gap: "14px", padding: "10px 0", borderBottom: index < breweryBeers.length - 1 ? "1px solid rgba(255,255,255,.055)" : "none" }}
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "minmax(0,1fr) auto",
+                    alignItems: "center",
+                    gap: "14px",
+                    padding: "10px 10px",
+                    borderBottom: index < breweryBeers.length - 1 ? "1px solid rgba(255,255,255,.055)" : "none",
+                    borderRadius: isCatalogAdmin && beer.referenceStatus.ready ? "10px" : undefined,
+                    background: isCatalogAdmin && beer.referenceStatus.ready ? "rgba(36,220,99,.09)" : undefined,
+                    boxShadow: isCatalogAdmin && beer.referenceStatus.ready ? "inset 3px 0 0 rgba(44,235,111,.84)" : undefined,
+                  }}
                 >
                   <div style={{ minWidth: 0 }}>
                     <div className="taste-label" style={{ marginBottom: "4px", fontSize: "8px" }}>Pivo</div>
                     <Link href={`/beers/${beer.id}`} className="taste-entity-link" style={{ color: "var(--taste-text)", fontSize: "13px", fontWeight: 700, lineHeight: 1.3 }}>
                       {beer.name}
                     </Link>
+                    {isCatalogAdmin && beer.referenceStatus.ready && (
+                      <span style={{ marginLeft: "7px", color: "#62f39a", fontSize: "8px", fontWeight: 900 }}>✓ REFERENČNÍ</span>
+                    )}
+                    {isCatalogAdmin && !beer.referenceStatus.ready && (
+                      <span title={`Chybí: ${beer.referenceStatus.missing.join(", ")}`} style={{ marginLeft: "7px", color: "var(--taste-text-muted)", fontSize: "8px", fontWeight: 650 }}>
+                        chybí {beer.referenceStatus.missing.length}
+                      </span>
+                    )}
                     {beer.brand && (
                       <div style={{ marginTop: "5px", color: "var(--taste-text-muted)", fontSize: "10px" }}>
                         <span style={{ marginRight: "5px" }}>Značka:</span>
