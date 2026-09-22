@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
+import { getBreweryReferenceStatus } from "@/lib/referenceStatus";
 import PageHero from "@/components/ui/PageHero";
 import AppIcon from "@/components/ui/AppIcon";
 import BeerWorldMap from "../stats/BeerWorldMap";
@@ -71,6 +72,7 @@ export default async function BreweriesPage({
         country,
         website,
         address,
+        logo_url,
         is_nomadic,
         founded_year,
         closed_year,
@@ -323,6 +325,19 @@ export default async function BreweriesPage({
         }
       }
 
+      const referenceStatus = getBreweryReferenceStatus({
+        name: brewery.name,
+        city: brewery.city,
+        country: brewery.country,
+        address: brewery.address,
+        website: brewery.website,
+        logoUrl: brewery.logo_url,
+        isNomadic: brewery.is_nomadic,
+        foundedYear: brewery.founded_year,
+        latitude: brewery.latitude,
+        longitude: brewery.longitude,
+      });
+
       return {
         id: brewery.id,
         name: brewery.name,
@@ -330,6 +345,7 @@ export default async function BreweriesPage({
         country: brewery.country,
         address: brewery.address,
         website: brewery.website,
+        logoUrl: brewery.logo_url,
         isNomadic: brewery.is_nomadic,
         latitude: brewery.latitude,
         longitude: brewery.longitude,
@@ -352,6 +368,8 @@ export default async function BreweriesPage({
         historySortYear: historyFromYear,
         beers: beerItems,
         userStats,
+        referenceReady: referenceStatus.ready,
+        referenceMissing: referenceStatus.missing,
       };
     }
   );
