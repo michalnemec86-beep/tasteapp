@@ -146,6 +146,8 @@ export default function ProfileWorldCard({
             eyebrow="Osobní mapa"
             title="Mapa pivního původu"
             countLabel="zemí v profilu"
+            statsContextUserId={profileId}
+            lockStatsContext
           />
         </div>
 
