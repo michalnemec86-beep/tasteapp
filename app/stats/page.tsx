@@ -593,13 +593,7 @@ export default async function StatsPage({
           title: "Značky",
           subtitle: "Produktové značky v ochutnávkách",
           label: "Značek",
-          value: (
-                    <ContextStatValue
-                      primary={totalBrands}
-                      secondary={comparisonTotalBrands}
-                      secondaryLabel={comparisonLabel}
-                    />
-                  ),
+          value: totalBrands,
           comparisonValue: comparisonTotalBrands,
           icon: <AppIcon name="label" size={18} />,
           accent: "#d98a43",
@@ -608,13 +602,7 @@ export default async function StatsPage({
           title: "Pivovary",
           subtitle: "Pivovary v ochutnávkách",
           label: "Pivovarů",
-          value: (
-                    <ContextStatValue
-                      primary={totalBreweries}
-                      secondary={comparisonTotalBreweries}
-                      secondaryLabel={comparisonLabel}
-                    />
-                  ),
+          value: totalBreweries,
           comparisonValue: comparisonTotalBreweries,
           icon: <AppIcon name="brewery" size={18} />,
           accent: "#d65b42",
@@ -623,13 +611,7 @@ export default async function StatsPage({
           title: "Pivní styly",
           subtitle: "Styly v ochutnávkách",
           label: "Stylů",
-          value: (
-                    <ContextStatValue
-                      primary={totalStyles}
-                      secondary={comparisonTotalStyles}
-                      secondaryLabel={comparisonLabel}
-                    />
-                  ),
+          value: totalStyles,
           comparisonValue: comparisonTotalStyles,
           icon: <AppIcon name="hop" size={18} />,
           accent: "#9cad47",
@@ -638,13 +620,7 @@ export default async function StatsPage({
           title: "Státy",
           subtitle: "Země původu pivovarů v ochutnávkách",
           label: "Států",
-          value: (
-                    <ContextStatValue
-                      primary={totalCountries}
-                      secondary={comparisonTotalCountries}
-                      secondaryLabel={comparisonLabel}
-                    />
-                  ),
+          value: totalCountries,
           comparisonValue: comparisonTotalCountries,
           icon: <AppIcon name="globe" size={18} />,
           accent: "#b77a36",
@@ -742,25 +718,49 @@ export default async function StatsPage({
                 {
                   icon: <AppIcon name="label" size={18} />,
                   accent: "#d98a43",
-                  value: totalBrands,
+                  value: (
+                    <ContextStatValue
+                      primary={totalBrands}
+                      secondary={comparisonTotalBrands}
+                      secondaryLabel={comparisonLabel}
+                    />
+                  ),
                   label: "Značek",
                 },
                 {
                   icon: <AppIcon name="brewery" size={18} />,
                   accent: "#d65b42",
-                  value: totalBreweries,
+                  value: (
+                    <ContextStatValue
+                      primary={totalBreweries}
+                      secondary={comparisonTotalBreweries}
+                      secondaryLabel={comparisonLabel}
+                    />
+                  ),
                   label: "Pivovarů",
                 },
                 {
                   icon: "◐",
                   accent: "#9cad47",
-                  value: totalStyles,
+                  value: (
+                    <ContextStatValue
+                      primary={totalStyles}
+                      secondary={comparisonTotalStyles}
+                      secondaryLabel={comparisonLabel}
+                    />
+                  ),
                   label: "Stylů",
                 },
                 {
                   icon: <AppIcon name="globe" size={18} />,
                   accent: "#b77a36",
-                  value: totalCountries,
+                  value: (
+                    <ContextStatValue
+                      primary={totalCountries}
+                      secondary={comparisonTotalCountries}
+                      secondaryLabel={comparisonLabel}
+                    />
+                  ),
                   label: "Států",
                 },
               ]
