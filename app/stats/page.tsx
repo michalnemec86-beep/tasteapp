@@ -767,21 +767,19 @@ export default async function StatsPage({
         }
       />
 
-      {!selectedFocus && (
-        <StatsFilterBarClient
-          profiles={allProfiles}
-          selectedUserId={selectedUserId}
-          selectedYear={selectedYear}
-          selectedMonth={selectedMonth}
-          selectedPackaging={selectedPackaging}
-          sortMode={sortMode}
-          selectedLetter={selectedLetter}
-          letters={availableLetters}
-          firstYear={FIRST_YEAR}
-          contextFilters={contextFilters}
-          hideProfileSelector={isLockedContext}
-        />
-      )}
+      <StatsFilterBarClient
+        profiles={allProfiles}
+        selectedUserId={selectedUserId}
+        selectedYear={selectedYear}
+        selectedMonth={selectedMonth}
+        selectedPackaging={selectedPackaging}
+        sortMode={sortMode}
+        selectedLetter={selectedLetter}
+        letters={availableLetters}
+        firstYear={FIRST_YEAR}
+        contextFilters={contextFilters}
+        hideProfileSelector={isLockedContext}
+      />
 
       {filteredTastings.length === 0 && (
         <div
