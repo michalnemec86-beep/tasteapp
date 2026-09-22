@@ -1,9 +1,13 @@
+import Link from "next/link";
+
 import type {
   RankingItem,
 } from "@/lib/stats";
 
 type ProfilePackagingCardProps = {
   items: RankingItem[];
+  comparisonItems?: RankingItem[];
+  profileId: string;
 };
 
 const palette = [
@@ -41,6 +45,8 @@ const palette = [
 
 export default function ProfilePackagingCard({
   items,
+  comparisonItems = [],
+  profileId,
 }: ProfilePackagingCardProps) {
   const total =
     items.reduce(
@@ -48,6 +54,14 @@ export default function ProfilePackagingCard({
         sum + item.count,
       0
     );
+
+  const comparisonTotal = comparisonItems.reduce(
+    (sum, item) => sum + item.count,
+    0
+  );
+  const comparisonCounts = new Map(
+    comparisonItems.map((item) => [String(item.id), item.count])
+  );
 
   let offset = 0;
 
@@ -293,6 +307,17 @@ export default function ProfilePackagingCard({
                   }}
                 >
                   {total}
+                  <span
+                    style={{
+                      marginLeft: "5px",
+                      color: "var(--taste-text-muted)",
+                      fontSize: "10px",
+                      fontWeight: 650,
+                      letterSpacing: 0,
+                    }}
+                  >
+                    (celkem {comparisonTotal})
+                  </span>
                 </div>
 
                 <div
@@ -466,26 +491,21 @@ export default function ProfilePackagingCard({
                         0,
                     }}
                   >
-                    <div
+                    <Link
+                      href={`/stats?user=${profileId}&locked=1&packaging=${segment.id}`}
                       style={{
-                        overflow:
-                          "hidden",
-                        color:
-                          "var(--taste-text)",
-                        fontSize:
-                          "12px",
-                        fontWeight:
-                          750,
-                        textOverflow:
-                          "ellipsis",
-                        whiteSpace:
-                          "nowrap",
+                        display: "block",
+                        overflow: "hidden",
+                        color: "var(--taste-text)",
+                        fontSize: "12px",
+                        fontWeight: 750,
+                        textDecoration: "none",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
                       }}
                     >
-                      {
-                        segment.name
-                      }
-                    </div>
+                      {segment.name}
+                    </Link>
 
                     <div
                       style={{
@@ -497,10 +517,10 @@ export default function ProfilePackagingCard({
                           "9px",
                       }}
                     >
-                      {
-                        segment.count
-                      }{" "}
-                      piv
+                      {segment.count} piv
+                      <span style={{ marginLeft: "4px" }}>
+                        (celkem {comparisonCounts.get(String(segment.id)) ?? 0})
+                      </span>
                     </div>
                   </div>
 
