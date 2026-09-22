@@ -43,6 +43,8 @@ type BeerWorldMapProps = {
   focusEurope?: boolean;
   statsContextUserId?: string;
   lockStatsContext?: boolean;
+  comparisonCount?: number;
+  comparisonLabel?: string;
 };
 
 type MapShadeStep = {
@@ -188,6 +190,8 @@ export default function BeerWorldMap({
   focusEurope = false,
   statsContextUserId,
   lockStatsContext = false,
+  comparisonCount,
+  comparisonLabel = "moje",
 }: BeerWorldMapProps) {
   const router = useRouter();
   const mapStageRef = useRef<HTMLDivElement>(null);
@@ -532,6 +536,19 @@ export default function BeerWorldMap({
             }}
           >
             {mappedCountries.length}
+            {comparisonCount != null && (
+              <span
+                style={{
+                  marginLeft: "5px",
+                  color: "var(--taste-text-muted)",
+                  fontSize: "9px",
+                  fontWeight: 650,
+                  letterSpacing: 0,
+                }}
+              >
+                ({comparisonLabel} {comparisonCount})
+              </span>
+            )}
           </div>
           <div
             className="taste-world-map-count-label"
