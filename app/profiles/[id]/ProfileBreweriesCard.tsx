@@ -6,7 +6,6 @@ import type {
 
 type ProfileBreweriesCardProps = {
   items: RankingItem[];
-  comparisonItems?: RankingItem[];
   profileId: string;
   limit?: number;
 };
@@ -44,7 +43,6 @@ const tones = [
 
 export default function ProfileBreweriesCard({
   items,
-  comparisonItems = [],
   profileId,
   limit = 8,
 }: ProfileBreweriesCardProps) {
@@ -63,10 +61,6 @@ export default function ProfileBreweriesCard({
         sum + item.count,
       0
     );
-
-  const comparisonCounts = new Map(
-    comparisonItems.map((item) => [String(item.id), item.count])
-  );
 
   return (
     <section
@@ -281,17 +275,6 @@ export default function ProfileBreweriesCard({
                 }}
               >
                 {winner.count}
-                <span
-                  style={{
-                    marginLeft: "6px",
-                    color: "var(--taste-text-muted)",
-                    fontSize: "11px",
-                    fontWeight: 650,
-                    letterSpacing: 0,
-                  }}
-                >
-                  (celkem {comparisonCounts.get(String(winner.id)) ?? 0})
-                </span>
               </div>
 
               <div
@@ -435,16 +418,6 @@ export default function ProfileBreweriesCard({
                         }}
                       >
                         {item.count}×
-                        <span
-                          style={{
-                            marginLeft: "4px",
-                            color: "var(--taste-text-muted)",
-                            fontSize: "9px",
-                            fontWeight: 600,
-                          }}
-                        >
-                          (celkem {comparisonCounts.get(String(item.id)) ?? 0}×)
-                        </span>
                       </div>
                     </div>
 

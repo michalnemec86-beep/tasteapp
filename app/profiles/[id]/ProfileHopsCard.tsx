@@ -6,7 +6,6 @@ import type {
 
 type ProfileHopsCardProps = {
   items: RankingItem[];
-  comparisonItems?: RankingItem[];
   profileId: string;
 };
 
@@ -60,7 +59,6 @@ const hopTones = [
 
 export default function ProfileHopsCard({
   items,
-  comparisonItems = [],
   profileId,
 }: ProfileHopsCardProps) {
   const visibleItems =
@@ -78,14 +76,6 @@ export default function ProfileHopsCard({
         sum + item.count,
       0
     );
-
-  const comparisonMentions = comparisonItems.reduce(
-    (sum, item) => sum + item.count,
-    0
-  );
-  const comparisonCounts = new Map(
-    comparisonItems.map((item) => [String(item.id), item.count])
-  );
 
   return (
     <section
@@ -308,17 +298,6 @@ export default function ProfileHopsCard({
                       }}
                     >
                       {item.count}×
-                      <span
-                        style={{
-                          display: "block",
-                          marginTop: "2px",
-                          color: "var(--taste-text-muted)",
-                          fontSize: "8px",
-                          fontWeight: 600,
-                        }}
-                      >
-                        celkem {comparisonCounts.get(String(item.id)) ?? 0}×
-                      </span>
                     </div>
                   </div>
                 );
@@ -420,7 +399,7 @@ export default function ProfileHopsCard({
               }}
             >
               {dominant
-                ? `${dominant.count}× v ochutnaných pivech (celkem ${comparisonCounts.get(String(dominant.id)) ?? 0}×)`
+                ? `${dominant.count}× v ochutnaných pivech`
                 : "Zatím bez dat"}
             </div>
           </div>
@@ -460,9 +439,6 @@ export default function ProfileHopsCard({
                 }}
               >
                 {items.length}
-                <span style={{ marginLeft: "4px", color: "var(--taste-text-muted)", fontSize: "9px", fontWeight: 650 }}>
-                  (celkem {comparisonItems.length})
-                </span>
               </div>
 
               <div
@@ -507,9 +483,6 @@ export default function ProfileHopsCard({
                 }}
               >
                 {totalMentions}
-                <span style={{ marginLeft: "4px", color: "var(--taste-text-muted)", fontSize: "9px", fontWeight: 650 }}>
-                  (celkem {comparisonMentions})
-                </span>
               </div>
 
               <div

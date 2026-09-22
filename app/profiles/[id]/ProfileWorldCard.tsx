@@ -7,7 +7,6 @@ import type {
 
 type ProfileWorldCardProps = {
   items: RankingItem[];
-  comparisonItems?: RankingItem[];
   profileId: string;
 };
 
@@ -51,7 +50,6 @@ const countryTones = [
 
 export default function ProfileWorldCard({
   items,
-  comparisonItems = [],
   profileId,
 }: ProfileWorldCardProps) {
   const topCountries =
@@ -67,10 +65,6 @@ export default function ProfileWorldCard({
   const maxCount =
     topCountries[0]
       ?.count ?? 1;
-
-  const comparisonCounts = new Map(
-    comparisonItems.map((item) => [String(item.id), item.count])
-  );
 
   return (
     <section
@@ -148,8 +142,6 @@ export default function ProfileWorldCard({
             countLabel="zemí v profilu"
             statsContextUserId={profileId}
             lockStatsContext
-            comparisonCount={comparisonItems.length}
-            comparisonLabel="celkem"
           />
         </div>
 
@@ -247,16 +239,6 @@ export default function ProfileWorldCard({
                 }}
               >
                 {items.length}
-                <span
-                  style={{
-                    marginLeft: "5px",
-                    color: "var(--taste-text-muted)",
-                    fontSize: "9px",
-                    fontWeight: 650,
-                  }}
-                >
-                  (celkem {comparisonItems.length})
-                </span>
               </div>
 
               <div
@@ -455,9 +437,6 @@ export default function ProfileWorldCard({
                         }}
                       >
                         {item.count} piv
-                        <span style={{ marginLeft: "4px" }}>
-                          (celkem {comparisonCounts.get(String(item.id)) ?? 0})
-                        </span>
                       </div>
                     </div>
                   );

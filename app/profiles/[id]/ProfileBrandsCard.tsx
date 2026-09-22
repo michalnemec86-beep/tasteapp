@@ -4,7 +4,6 @@ import type { RankingItem } from "@/lib/stats";
 
 type Props = {
   items: RankingItem[];
-  comparisonItems?: RankingItem[];
   profileId: string;
 };
 
@@ -17,15 +16,10 @@ const tones = [
 
 export default function ProfileBrandsCard({
   items,
-  comparisonItems = [],
   profileId,
 }: Props) {
   const visible = items.slice(0, 8);
   const max = visible[0]?.count ?? 1;
-  const comparisonCounts = new Map(
-    comparisonItems.map((item) => [String(item.id), item.count])
-  );
-
   return (
     <section style={{ marginBottom: "38px" }}>
       <div style={{ marginBottom: "14px" }}>
@@ -63,9 +57,6 @@ export default function ProfileBrandsCard({
                     </Link>
                     <span style={{ color: accent, fontSize: "11px", fontWeight: 850, whiteSpace: "nowrap" }}>
                       {item.count}×
-                      <span style={{ marginLeft: "4px", color: "var(--taste-text-muted)", fontSize: "9px", fontWeight: 600 }}>
-                        (celkem {comparisonCounts.get(String(item.id)) ?? 0}×)
-                      </span>
                     </span>
                   </div>
                   <div style={{ height: "4px", margin: "7px 0 0 34px", overflow: "hidden", borderRadius: "999px", background: "rgba(255,255,255,0.045)" }}>

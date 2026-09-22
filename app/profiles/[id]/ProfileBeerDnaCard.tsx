@@ -6,7 +6,6 @@ import type {
 
 type ProfileBeerDnaCardProps = {
   styles: RankingItem[];
-  comparisonItems?: RankingItem[];
   profileId: string;
 };
 
@@ -110,7 +109,6 @@ function buildSegments(
 
 export default function ProfileBeerDnaCard({
   styles,
-  comparisonItems = [],
   profileId,
 }: ProfileBeerDnaCardProps) {
   const segments =
@@ -125,10 +123,6 @@ export default function ProfileBeerDnaCard({
 
   const dominant =
     segments[0] ?? null;
-
-  const comparisonCounts = new Map(
-    comparisonItems.map((item) => [String(item.id), item.count])
-  );
 
   let gradientOffset = 0;
 
@@ -505,11 +499,6 @@ export default function ProfileBeerDnaCard({
                       }}
                     >
                       {segment.count} z {total}
-                      {segment.id !== "other" && (
-                        <span style={{ marginLeft: "4px" }}>
-                          (celkem {comparisonCounts.get(String(segment.id)) ?? 0})
-                        </span>
-                      )}
                     </div>
                   </div>
 
