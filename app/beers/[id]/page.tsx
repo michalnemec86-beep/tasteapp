@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 
 import PageHero from "@/components/ui/PageHero";
 import { createClient } from "@/lib/supabase/server";
+import { getBeerReferenceStatus } from "@/lib/referenceStatus";
 
 type Props = { params: Promise<{ id: string }> };
 type Relation<T> = T | T[] | null;
@@ -108,11 +109,12 @@ export default async function BeerDetailPage({ params }: Props) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/auth/login");
+  const isCatalogAdmin = user.id === "17be5dc3-a3f9-4fd2-ae90-dee7692034fc";
 
   const { data: rawBeer, error } = await supabase
     .from("beers")
     .select(`
-      id, name, plato, abv, ibu, is_non_alcoholic,
+      id, name, plato, abv, ibu, is_non_alcoholic, is_catalog,
       brands ( id, name ),
       breweries ( id, name, country ),
       beer_styles ( id, name ),
@@ -145,6 +147,7 @@ export default async function BeerDetailPage({ params }: Props) {
     abv: number | null;
     ibu: number | null;
     is_non_alcoholic: boolean;
+    is_catalog: boolean | null;
     brands: Relation<{ id: number; name: string }>;
     breweries: Relation<BreweryRef>;
     beer_styles: Relation<StyleRef>;
@@ -200,6 +203,16 @@ export default async function BeerDetailPage({ params }: Props) {
     currentVersionHopNames.length > 0
       ? currentVersionHopNames
       : fallbackHopNames;
+  const referenceStatus = getBeerReferenceStatus({
+    name: beer.name,
+    brandId: brand?.id ?? null,
+    breweryId: brewery?.id ?? null,
+    styleId: style?.id ?? null,
+    plato: currentPlato,
+    abv: currentAbv,
+    isCatalog: beer.is_catalog,
+  });
+
   const currentCollaboratorNames = (current?.beer_version_collaborators ?? [])
     .map((item) => item.breweries?.name)
     .filter((name): name is string => Boolean(name));
@@ -300,7 +313,27 @@ export default async function BeerDetailPage({ params }: Props) {
         imageUrl="/images/heroes/catalog.jpg"
         title={beer.name}
         subtitle=""
-        action={<Link href="/beers" className="taste-button-secondary">← Pivní lístek</Link>}
+        action={
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+            {isCatalogAdmin && referenceStatus.ready && (
+              <span
+                title="Potvrzené katalogové pivo se všemi povinnými referenčními údaji"
+                style={{ padding: "7px 10px", border: "1px solid rgba(54,235,118,.72)", borderRadius: "999px", background: "rgba(38,215,101,.22)", color: "#62f39a", fontSize: "9px", fontWeight: 900, letterSpacing: ".045em" }}
+              >
+                ✓ REFERENČNÍ
+              </span>
+            )}
+            {isCatalogAdmin && !referenceStatus.ready && (
+              <span
+                title={`Chybí: ${referenceStatus.missing.join(", ")}`}
+                style={{ padding: "7px 10px", border: "1px solid rgba(231,166,47,.28)", borderRadius: "999px", background: "rgba(231,166,47,.07)", color: "var(--taste-text-muted)", fontSize: "9px", fontWeight: 750 }}
+              >
+                Chybí {referenceStatus.missing.length}
+              </span>
+            )}
+            <Link href="/beers" className="taste-button-secondary">← Pivní lístek</Link>
+          </div>
+        }
         stats={[
           { icon: "◆", accent: "#d98945", value: brand?.name ?? "—", label: "Značka" },
           { icon: "●", accent: "#e88835", value: brewery?.name ?? "—", label: "Aktuální pivovar" },
@@ -309,7 +342,22 @@ export default async function BeerDetailPage({ params }: Props) {
         ]}
       />
 
-      <section className="taste-card taste-glow-honey" style={{ padding: "20px", marginBottom: "18px" }}>
+      <section
+        className="taste-card taste-glow-honey"
+        style={{
+          padding: "20px",
+          marginBottom: "18px",
+          border: isCatalogAdmin && referenceStatus.ready
+            ? "1px solid rgba(54,235,118,.70)"
+            : undefined,
+          background: isCatalogAdmin && referenceStatus.ready
+            ? "linear-gradient(145deg, rgba(36,220,99,.16), rgba(36,220,99,.035) 45%, transparent), var(--taste-surface)"
+            : undefined,
+          boxShadow: isCatalogAdmin && referenceStatus.ready
+            ? "inset 4px 0 0 rgba(44,235,111,.92), var(--taste-shadow-soft)"
+            : undefined,
+        }}
+      >
         <div className="taste-label">Aktuální parametry</div>
         <div style={{ display: "flex", flexWrap: "wrap", gap: "10px 18px", marginTop: "12px", fontSize: "13px" }}>
           {brand && <Link className="taste-entity-link" href={`/brands/${brand.id}`}>Značka: <strong>{brand.name}</strong></Link>}
