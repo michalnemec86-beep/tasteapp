@@ -7,6 +7,8 @@ import type {
 
 type ProfileWorldCardProps = {
   items: RankingItem[];
+  comparisonItems?: RankingItem[];
+  profileId: string;
 };
 
 const countryTones = [
@@ -49,6 +51,8 @@ const countryTones = [
 
 export default function ProfileWorldCard({
   items,
+  comparisonItems = [],
+  profileId,
 }: ProfileWorldCardProps) {
   const topCountries =
     items.slice(0, 5);
@@ -63,6 +67,10 @@ export default function ProfileWorldCard({
   const maxCount =
     topCountries[0]
       ?.count ?? 1;
+
+  const comparisonCounts = new Map(
+    comparisonItems.map((item) => [String(item.id), item.count])
+  );
 
   return (
     <section
@@ -235,6 +243,16 @@ export default function ProfileWorldCard({
                 }}
               >
                 {items.length}
+                <span
+                  style={{
+                    marginLeft: "5px",
+                    color: "var(--taste-text-muted)",
+                    fontSize: "9px",
+                    fontWeight: 650,
+                  }}
+                >
+                  (celkem {comparisonItems.length})
+                </span>
               </div>
 
               <div
@@ -344,7 +362,7 @@ export default function ProfileWorldCard({
                         </div>
 
                         <Link
-                          href={`/breweries?focus=1&country=${encodeURIComponent(item.name)}`}
+                          href={`/stats?user=${profileId}&locked=1&country=${encodeURIComponent(item.name)}`}
                           className="taste-entity-link"
                           style={{
                             overflow:
@@ -432,10 +450,10 @@ export default function ProfileWorldCard({
                             "right",
                         }}
                       >
-                        {
-                          item.count
-                        }{" "}
-                        piv
+                        {item.count} piv
+                        <span style={{ marginLeft: "4px" }}>
+                          (celkem {comparisonCounts.get(String(item.id)) ?? 0})
+                        </span>
                       </div>
                     </div>
                   );
