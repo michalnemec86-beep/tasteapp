@@ -4,6 +4,8 @@ import type { RankingItem } from "@/lib/stats";
 
 type Props = {
   items: RankingItem[];
+  comparisonItems?: RankingItem[];
+  profileId: string;
 };
 
 const tones = [
@@ -13,9 +15,16 @@ const tones = [
   ["#9b7438", "rgba(155,116,56,0.40)", "rgba(155,116,56,0.11)"],
 ] as const;
 
-export default function ProfileBrandsCard({ items }: Props) {
+export default function ProfileBrandsCard({
+  items,
+  comparisonItems = [],
+  profileId,
+}: Props) {
   const visible = items.slice(0, 8);
   const max = visible[0]?.count ?? 1;
+  const comparisonCounts = new Map(
+    comparisonItems.map((item) => [String(item.id), item.count])
+  );
 
   return (
     <section style={{ marginBottom: "38px" }}>
@@ -49,10 +58,15 @@ export default function ProfileBrandsCard({ items }: Props) {
                     <span style={{ color: accent, fontSize: "10px", fontWeight: 850 }}>
                       {String(index + 1).padStart(2, "0")}
                     </span>
-                    <Link href={`/brands/${item.id}`} className="taste-entity-link" style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "var(--taste-text)", fontSize: "12px", fontWeight: 750 }}>
+                    <Link href={`/stats?user=${profileId}&locked=1&brand=${item.id}`} className="taste-entity-link" style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "var(--taste-text)", fontSize: "12px", fontWeight: 750 }}>
                       {item.name}
                     </Link>
-                    <span style={{ color: accent, fontSize: "11px", fontWeight: 850 }}>{item.count}×</span>
+                    <span style={{ color: accent, fontSize: "11px", fontWeight: 850, whiteSpace: "nowrap" }}>
+                      {item.count}×
+                      <span style={{ marginLeft: "4px", color: "var(--taste-text-muted)", fontSize: "9px", fontWeight: 600 }}>
+                        (celkem {comparisonCounts.get(String(item.id)) ?? 0}×)
+                      </span>
+                    </span>
                   </div>
                   <div style={{ height: "4px", margin: "7px 0 0 34px", overflow: "hidden", borderRadius: "999px", background: "rgba(255,255,255,0.045)" }}>
                     <div style={{ width: `${width}%`, height: "100%", borderRadius: "999px", background: accent, boxShadow: `0 0 12px ${accent}44` }} />
