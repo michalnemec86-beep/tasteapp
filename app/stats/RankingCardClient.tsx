@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import {
   type ReactNode,
   useEffect,
@@ -44,6 +45,9 @@ type RankingCardClientProps = {
   anchorId?: string;
   disableItemLinks?: boolean;
   personalItemIds?: Array<string | number>;
+  comparisonItems?: RankingItem[];
+  comparisonLabel?: string;
+  lockedContext?: boolean;
 };
 
 const PREVIEW_LIMIT = 10;
@@ -108,8 +112,39 @@ const TONE_STYLES: Record<RankingTone, RankingToneStyle> = {
 function getItemHref(
   title: string,
   item: RankingItem,
-  itemHrefPrefix?: string
+  itemHrefPrefix?: string,
+  lockedContext = false,
+  currentQuery = ""
 ) {
+  if (lockedContext) {
+    const params = new URLSearchParams(currentQuery);
+    params.set("locked", "1");
+    params.delete("focus");
+    params.delete("metric");
+
+    const paramByTitle: Record<string, string> = {
+      Piva: "beer",
+      Značky: "brand",
+      Pivovary: "brewery",
+      "Pivní styly": "style",
+      Státy: "country",
+      Chmely: "hop",
+    };
+
+    const param = paramByTitle[title];
+
+    if (!param) {
+      return null;
+    }
+
+    params.set(
+      param,
+      title === "Státy" ? item.name : String(item.id)
+    );
+
+    return `/stats?${params.toString()}`;
+  }
+
   if (itemHrefPrefix) {
     return `${itemHrefPrefix}/${item.id}`;
   }
@@ -140,7 +175,12 @@ export default function RankingCardClient({
   anchorId,
   disableItemLinks = false,
   personalItemIds = [],
+  comparisonItems = [],
+  comparisonLabel = "moje",
+  lockedContext = false,
 }: RankingCardClientProps) {
+  const searchParams = useSearchParams();
+  const currentQuery = searchParams.toString();
   const [isOpen, setIsOpen] = useState(false);
 
   const maximum =
@@ -214,6 +254,10 @@ export default function RankingCardClient({
             tone={cardTone}
             disableItemLinks={disableItemLinks}
             personalItemIds={personalItemIds}
+            comparisonItems={comparisonItems}
+            comparisonLabel={comparisonLabel}
+            lockedContext={lockedContext}
+            currentQuery={currentQuery}
           />
         )}
 
@@ -336,6 +380,10 @@ export default function RankingCardClient({
                   tone={cardTone}
                   disableItemLinks={disableItemLinks}
                   personalItemIds={personalItemIds}
+                  comparisonItems={comparisonItems}
+                  comparisonLabel={comparisonLabel}
+                  lockedContext={lockedContext}
+                  currentQuery={currentQuery}
                 />
               </div>
             </section>
@@ -476,6 +524,10 @@ function RankingList({
   tone,
   disableItemLinks = false,
   personalItemIds,
+  comparisonItems,
+  comparisonLabel,
+  lockedContext,
+  currentQuery,
 }: {
   title: string;
   items: RankingItem[];
@@ -484,8 +536,15 @@ function RankingList({
   tone: RankingToneStyle;
   disableItemLinks?: boolean;
   personalItemIds: Array<string | number>;
+  comparisonItems: RankingItem[];
+  comparisonLabel: string;
+  lockedContext: boolean;
+  currentQuery: string;
 }) {
   const personalIds = new Set(personalItemIds.map(String));
+  const comparisonCounts = new Map(
+    comparisonItems.map((item) => [String(item.id), item.count])
+  );
 
   return (
     <div
@@ -509,8 +568,12 @@ function RankingList({
           : getItemHref(
               title,
               item,
-              itemHrefPrefix
+              itemHrefPrefix,
+              lockedContext,
+              currentQuery
             );
+        const comparisonCount =
+          comparisonCounts.get(String(item.id)) ?? 0;
 
         const nameStyle = {
           minWidth: 0,
@@ -533,7 +596,7 @@ function RankingList({
               style={{
                 display: "grid",
                 gridTemplateColumns:
-                  "25px minmax(0,1fr) 20px auto",
+                  "25px minmax(0,1fr) 20px minmax(max-content,auto)",
                 alignItems: "center",
                 gap: "8px",
                 marginBottom: "6px",
@@ -588,12 +651,26 @@ function RankingList({
 
               <div
                 style={{
+                  display: "inline-flex",
+                  alignItems: "baseline",
+                  justifyContent: "flex-end",
+                  gap: "4px",
+                  whiteSpace: "nowrap",
                   color: tone.accent,
                   fontSize: "11px",
                   fontWeight: 750,
                 }}
               >
-                {item.count}×
+                <span>{item.count}×</span>
+                <span
+                  style={{
+                    color: "var(--taste-text-muted)",
+                    fontSize: "9px",
+                    fontWeight: 600,
+                  }}
+                >
+                  ({comparisonLabel} {comparisonCount}×)
+                </span>
               </div>
             </div>
 
