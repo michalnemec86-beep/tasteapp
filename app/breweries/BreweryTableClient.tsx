@@ -40,6 +40,7 @@ export type BreweryTableRow = {
   country: string | null;
   address: string | null;
   website: string | null;
+  logoUrl: string | null;
   isNomadic: boolean;
   latitude: number | null;
   longitude: number | null;
@@ -53,6 +54,8 @@ export type BreweryTableRow = {
   historySortYear: number | null;
   beers: BreweryBeerItem[];
   userStats: Record<string, UserBreweryStats>;
+  referenceReady: boolean;
+  referenceMissing: string[];
 };
 
 type ProfileOption = {
@@ -195,6 +198,7 @@ export default function BreweryTableClient({
   updateBreweryAction,
 }: BreweryTableClientProps) {
   const router = useRouter();
+  const isReferenceAdmin = currentUserId === "17be5dc3-a3f9-4fd2-ae90-dee7692034fc";
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
@@ -879,6 +883,14 @@ export default function BreweryTableClient({
                     style={{
                       borderBottom:
                         "1px solid var(--taste-border)",
+                      background:
+                        isReferenceAdmin && brewery.referenceReady
+                          ? "linear-gradient(90deg, rgba(36,220,99,0.18), rgba(36,220,99,0.055) 58%, transparent)"
+                          : undefined,
+                      boxShadow:
+                        isReferenceAdmin && brewery.referenceReady
+                          ? "inset 4px 0 0 rgba(44,235,111,0.92)"
+                          : undefined,
                     }}
                   >
                     <td
@@ -922,6 +934,47 @@ export default function BreweryTableClient({
                             style={{ fontSize: "13px", lineHeight: 1 }}
                           >
                             🍺
+                          </span>
+                        )}
+
+                        {isReferenceAdmin && brewery.referenceReady && (
+                          <span
+                            title="Kompletní referenční karta pivovaru"
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              padding: "4px 7px",
+                              border: "1px solid rgba(54,235,118,0.72)",
+                              borderRadius: "999px",
+                              background: "rgba(38,215,101,0.20)",
+                              color: "#62f39a",
+                              fontSize: "8px",
+                              fontWeight: 900,
+                              letterSpacing: "0.045em",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            ✓ REFERENČNÍ
+                          </span>
+                        )}
+
+                        {isReferenceAdmin && !brewery.referenceReady && (
+                          <span
+                            title={`Chybí: ${brewery.referenceMissing.join(", ")}`}
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              padding: "3px 6px",
+                              border: "1px solid rgba(231,166,47,0.24)",
+                              borderRadius: "999px",
+                              background: "rgba(231,166,47,0.06)",
+                              color: "var(--taste-text-muted)",
+                              fontSize: "8px",
+                              fontWeight: 750,
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            CHYBÍ {brewery.referenceMissing.length}
                           </span>
                         )}
 
