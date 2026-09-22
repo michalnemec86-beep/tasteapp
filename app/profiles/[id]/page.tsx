@@ -19,6 +19,7 @@ import {
 
 import {
   buildTasteStats,
+  type RankingItem,
 } from "@/lib/stats";
 
 import {
@@ -30,6 +31,7 @@ import {
 
 import PageHero from "@/components/ui/PageHero";
 import AppIcon from "@/components/ui/AppIcon";
+import ContextStatValue from "@/components/stats/ContextStatValue";
 import EditTastingModalClient from "@/app/EditTastingModalClient";
 import ProfileActivityCard from "./ProfileActivityCard";
 import ProfileBeerDnaCard from "./ProfileBeerDnaCard";
@@ -243,10 +245,6 @@ export default async function ProfilePage({
           )
         )
       `)
-      .eq(
-        "user_id",
-        id
-      )
       .order(
         "tasted_on",
         {
@@ -402,7 +400,7 @@ export default async function ProfilePage({
     );
   }
 
-  const allTastings =
+  const globalTastings =
     (tastings ?? []).map(
       (tasting) => {
         const beer =
@@ -489,6 +487,12 @@ export default async function ProfilePage({
             : null,
         };
       }
+    );
+
+  const allTastings =
+    globalTastings.filter(
+      (tasting) =>
+        tasting.user_id === id
     );
 
   const normalizedBeers =
@@ -617,6 +621,43 @@ export default async function ProfilePage({
       allTastings
     );
 
+  const globalTasteStats =
+    buildTasteStats(
+      globalTastings
+    );
+
+  const globalTotalQuantity =
+    globalTastings.reduce(
+      (sum, tasting) =>
+        sum +
+        (
+          tasting.quantity ??
+          1
+        ),
+      0
+    );
+
+  function globalCountFor(
+    items: RankingItem[],
+    id:
+      | number
+      | string
+      | undefined
+  ) {
+    if (id == null) {
+      return 0;
+    }
+
+    return (
+      items.find(
+        (item) =>
+          String(item.id) ===
+          String(id)
+      )?.count ??
+      0
+    );
+  }
+
   const breweryCountriesById = new Map(
     (breweries ?? []).map((brewery) => [String(brewery.id), brewery.country])
   );
@@ -633,7 +674,7 @@ export default async function ProfilePage({
           ?.name ?? "—",
       detail:
         tasteStats.styles[0]
-          ? `${tasteStats.styles[0].count}× v ochutnávkách`
+          ? `${tasteStats.styles[0].count}× v ochutnávkách (celkem ${globalCountFor(globalTasteStats.styles, tasteStats.styles[0].id)}×)`
           : "Zatím bez dat",
       accent: "#f2b544",
       border:
@@ -650,7 +691,7 @@ export default async function ProfilePage({
           ?.name ?? "—",
       detail:
         tasteStats.brands[0]
-          ? `${tasteStats.brands[0].count}× v ochutnávkách`
+          ? `${tasteStats.brands[0].count}× v ochutnávkách (celkem ${globalCountFor(globalTasteStats.brands, tasteStats.brands[0].id)}×)`
           : "Zatím bez dat",
       accent: "#d98a43",
       border: "rgba(217,138,67,0.38)",
@@ -664,7 +705,7 @@ export default async function ProfilePage({
           ?.name ?? "—",
       detail:
         tasteStats.breweries[0]
-          ? `${tasteStats.breweries[0].count}× v ochutnávkách`
+          ? `${tasteStats.breweries[0].count}× v ochutnávkách (celkem ${globalCountFor(globalTasteStats.breweries, tasteStats.breweries[0].id)}×)`
           : "Zatím bez dat",
       accent: "#df7f32",
       border:
@@ -681,7 +722,7 @@ export default async function ProfilePage({
           ?.name ?? "—",
       detail:
         tasteStats.countries[0]
-          ? `${tasteStats.countries[0].count}× v ochutnávkách`
+          ? `${tasteStats.countries[0].count}× v ochutnávkách (celkem ${globalCountFor(globalTasteStats.countries, tasteStats.countries[0].id)}×)`
           : "Zatím bez dat",
       accent: "#c2553f",
       border:
@@ -698,7 +739,7 @@ export default async function ProfilePage({
           ?.name ?? "—",
       detail:
         tasteStats.packaging[0]
-          ? `${tasteStats.packaging[0].count}× v ochutnávkách`
+          ? `${tasteStats.packaging[0].count}× v ochutnávkách (celkem ${globalCountFor(globalTasteStats.packaging, tasteStats.packaging[0].id)}×)`
           : "Zatím bez dat",
       accent: "#a96f32",
       border:
@@ -713,7 +754,7 @@ export default async function ProfilePage({
       value:
         profileStats.uniqueHops,
       detail:
-        "různých odrůd",
+        `různých odrůd (celkem ${globalTasteStats.hops.length})`,
       accent: "#879a43",
       border:
         "rgba(135,154,67,0.40)",
@@ -1035,9 +1076,15 @@ export default async function ProfilePage({
               />
             ),
             accent: "#f3b43f",
-            value: profileStats.totalQuantity,
+            value: (
+              <ContextStatValue
+                primary={profileStats.totalQuantity}
+                secondary={globalTotalQuantity}
+                secondaryLabel="celkem"
+              />
+            ),
             label: "Vypitých piv",
-            href: `/stats?user=${profile.id}&focus=beers&metric=quantity`,
+            href: `/stats?user=${profile.id}&locked=1&focus=beers&metric=quantity`,
           },
           {
             icon: (
@@ -1047,9 +1094,15 @@ export default async function ProfilePage({
               />
             ),
             accent: "#d98945",
-            value: profileStats.uniqueBeers,
+            value: (
+              <ContextStatValue
+                primary={profileStats.uniqueBeers}
+                secondary={globalTasteStats.beers.length}
+                secondaryLabel="celkem"
+              />
+            ),
             label: "Různých piv",
-            href: `/stats?user=${profile.id}&focus=beers`,
+            href: `/stats?user=${profile.id}&locked=1&focus=beers`,
           },
           {
             icon: (
@@ -1059,9 +1112,15 @@ export default async function ProfilePage({
               />
             ),
             accent: "#d98945",
-            value: profileStats.uniqueBrands,
+            value: (
+              <ContextStatValue
+                primary={profileStats.uniqueBrands}
+                secondary={globalTasteStats.brands.length}
+                secondaryLabel="celkem"
+              />
+            ),
             label: "Značek",
-            href: `/stats?user=${profile.id}&focus=brands`,
+            href: `/stats?user=${profile.id}&locked=1&focus=brands`,
           },
           {
             icon: (
@@ -1071,16 +1130,28 @@ export default async function ProfilePage({
               />
             ),
             accent: "#d5a13c",
-            value: profileStats.uniqueBreweries,
+            value: (
+              <ContextStatValue
+                primary={profileStats.uniqueBreweries}
+                secondary={globalTasteStats.breweries.length}
+                secondaryLabel="celkem"
+              />
+            ),
             label: "Pivovarů",
-            href: `/stats?user=${profile.id}&focus=breweries`,
+            href: `/stats?user=${profile.id}&locked=1&focus=breweries`,
           },
           {
             icon: "◐",
             accent: "#8ea348",
-            value: profileStats.uniqueStyles,
+            value: (
+              <ContextStatValue
+                primary={profileStats.uniqueStyles}
+                secondary={globalTasteStats.styles.length}
+                secondaryLabel="celkem"
+              />
+            ),
             label: "Pivních stylů",
-            href: `/stats?user=${profile.id}&focus=styles`,
+            href: `/stats?user=${profile.id}&locked=1&focus=styles`,
           },
           {
             icon: (
@@ -1090,9 +1161,15 @@ export default async function ProfilePage({
               />
             ),
             accent: "#d37f43",
-            value: profileStats.uniqueCountries,
+            value: (
+              <ContextStatValue
+                primary={profileStats.uniqueCountries}
+                secondary={globalTasteStats.countries.length}
+                secondaryLabel="celkem"
+              />
+            ),
             label: "Států",
-            href: `/stats?user=${profile.id}&focus=countries`,
+            href: `/stats?user=${profile.id}&locked=1&focus=countries`,
           },
           {
             icon: (
@@ -1102,9 +1179,15 @@ export default async function ProfilePage({
               />
             ),
             accent: "#879a43",
-            value: profileStats.uniqueHops,
+            value: (
+              <ContextStatValue
+                primary={profileStats.uniqueHops}
+                secondary={globalTasteStats.hops.length}
+                secondaryLabel="celkem"
+              />
+            ),
             label: "Chmelů",
-            href: `/stats?user=${profile.id}&focus=hops`,
+            href: `/stats?user=${profile.id}&locked=1&focus=hops`,
           },
         ]}
       />
@@ -1287,6 +1370,12 @@ export default async function ProfilePage({
         styles={
           tasteStats.styles
         }
+        comparisonItems={
+          globalTasteStats.styles
+        }
+        profileId={
+          profile.id
+        }
       />
 
       <ProfileTechnicalCard
@@ -1305,15 +1394,33 @@ export default async function ProfilePage({
         items={
           tasteStats.packaging
         }
+        comparisonItems={
+          globalTasteStats.packaging
+        }
+        profileId={
+          profile.id
+        }
       />
 
       <ProfileBrandsCard
         items={tasteStats.brands}
+        comparisonItems={
+          globalTasteStats.brands
+        }
+        profileId={
+          profile.id
+        }
       />
 
       <ProfileBreweriesCard
         items={
           tasteStats.breweries
+        }
+        comparisonItems={
+          globalTasteStats.breweries
+        }
+        profileId={
+          profile.id
         }
       />
 
@@ -1321,11 +1428,23 @@ export default async function ProfilePage({
         items={
           tasteStats.countries
         }
+        comparisonItems={
+          globalTasteStats.countries
+        }
+        profileId={
+          profile.id
+        }
       />
 
       <ProfileHopsCard
         items={
           tasteStats.hops
+        }
+        comparisonItems={
+          globalTasteStats.hops
+        }
+        profileId={
+          profile.id
         }
       />
 
