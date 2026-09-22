@@ -148,6 +148,8 @@ export default function ProfileWorldCard({
             countLabel="zemí v profilu"
             statsContextUserId={profileId}
             lockStatsContext
+            comparisonCount={comparisonItems.length}
+            comparisonLabel="celkem"
           />
         </div>
 
