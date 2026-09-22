@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import PageHero from "@/components/ui/PageHero";
 import AppIcon from "@/components/ui/AppIcon";
 import { createClient } from "@/lib/supabase/server";
+import { getBeerReferenceStatus } from "@/lib/referenceStatus";
 
 import BeerCatalogClient, { type BeerCatalogItem } from "./BeerCatalogClient";
 import { confirmCatalogBeer } from "./actions";
@@ -93,10 +94,21 @@ export default async function BeerCatalogPage() {
       .filter((hop): hop is { id: number; name: string } => Boolean(hop));
     const tastings = beer.tastings ?? [];
 
+    const brand = one(beer.brands);
+    const referenceStatus = getBeerReferenceStatus({
+      name: beer.name,
+      brandId: brand?.id ?? null,
+      breweryId: brewery?.id ?? null,
+      styleId: style?.id ?? null,
+      plato: current?.plato ?? beer.plato,
+      abv: current?.abv ?? beer.abv,
+      isCatalog: beer.is_catalog,
+    });
+
     return {
       id: beer.id,
       name: beer.name,
-      brand: one(beer.brands),
+      brand,
       brewery,
       style,
       plato: current?.plato ?? beer.plato,
@@ -109,6 +121,8 @@ export default async function BeerCatalogPage() {
       myQuantity: tastings
         .filter((tasting) => tasting.user_id === user.id)
         .reduce((sum, tasting) => sum + (tasting.quantity ?? 1), 0),
+      referenceReady: referenceStatus.ready,
+      referenceMissing: referenceStatus.missing,
     };
   }).sort((a, b) => Number(b.isCatalog) - Number(a.isCatalog) || a.name.localeCompare(b.name, "cs", { sensitivity: "base" }));
 
