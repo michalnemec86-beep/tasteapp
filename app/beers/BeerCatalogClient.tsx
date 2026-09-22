@@ -18,6 +18,8 @@ export type BeerCatalogItem = {
   hops: Array<{ id: number; name: string }>;
   totalQuantity: number;
   myQuantity: number;
+  referenceReady: boolean;
+  referenceMissing: string[];
 };
 
 type FilterMode = "all" | "tasted" | "mine";
@@ -331,12 +333,19 @@ export default function BeerCatalogClient({
               className="taste-card taste-beer-catalog-card"
               style={{
                 padding: "17px",
-                border: beer.myQuantity > 0
-                  ? "1px solid rgba(156,173,71,0.42)"
-                  : "1px solid var(--taste-border)",
-                background: beer.myQuantity > 0
-                  ? "linear-gradient(145deg, rgba(156,173,71,0.08), transparent 62%), var(--taste-surface)"
-                  : "var(--taste-surface)",
+                border: isCatalogAdmin && beer.referenceReady
+                  ? "1px solid rgba(54,235,118,0.72)"
+                  : beer.myQuantity > 0
+                    ? "1px solid rgba(156,173,71,0.42)"
+                    : "1px solid var(--taste-border)",
+                background: isCatalogAdmin && beer.referenceReady
+                  ? "linear-gradient(145deg, rgba(36,220,99,0.20), rgba(36,220,99,0.06) 58%, transparent), var(--taste-surface)"
+                  : beer.myQuantity > 0
+                    ? "linear-gradient(145deg, rgba(156,173,71,0.08), transparent 62%), var(--taste-surface)"
+                    : "var(--taste-surface)",
+                boxShadow: isCatalogAdmin && beer.referenceReady
+                  ? "inset 4px 0 0 rgba(44,235,111,0.92), 0 0 0 1px rgba(44,235,111,0.08)"
+                  : undefined,
               }}
             >
               <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "flex-start" }}>
@@ -347,6 +356,35 @@ export default function BeerCatalogClient({
                   {beer.brand && (
                     <div style={{ marginTop: "5px", fontSize: "11px" }}>
                       <Link href={`/brands/${beer.brand.id}`} className="taste-entity-link">{beer.brand.name}</Link>
+                    </div>
+                  )}
+                  {isCatalogAdmin && beer.referenceReady && (
+                    <div style={{ marginTop: "7px" }}>
+                      <span
+                        title="Potvrzené katalogové pivo se všemi povinnými referenčními údaji"
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          padding: "4px 7px",
+                          border: "1px solid rgba(54,235,118,0.72)",
+                          borderRadius: "999px",
+                          background: "rgba(38,215,101,0.22)",
+                          color: "#62f39a",
+                          fontSize: "8px",
+                          fontWeight: 900,
+                          letterSpacing: "0.045em",
+                        }}
+                      >
+                        ✓ REFERENČNÍ
+                      </span>
+                    </div>
+                  )}
+                  {isCatalogAdmin && !beer.referenceReady && (
+                    <div
+                      title={`Chybí: ${beer.referenceMissing.join(", ")}`}
+                      style={{ marginTop: "7px", color: "var(--taste-text-muted)", fontSize: "9px", fontWeight: 650 }}
+                    >
+                      Chybí: {beer.referenceMissing.join(", ")}
                     </div>
                   )}
                 </div>
