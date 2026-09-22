@@ -194,6 +194,7 @@ export default async function ProfilePage({
         beer_versions (
           id,
           version_year,
+          brewery_id,
           breweries (
             id,
             name,
@@ -220,6 +221,7 @@ export default async function ProfilePage({
         ),
         beers (
           id,
+          brewery_id,
           name,
           is_non_alcoholic,
           brands (
@@ -398,6 +400,10 @@ export default async function ProfilePage({
     );
   }
 
+  const breweriesById = new Map(
+    (breweries ?? []).map((brewery) => [String(brewery.id), brewery])
+  );
+
   const globalTastings =
     (tastings ?? []).map(
       (tasting) => {
@@ -421,6 +427,11 @@ export default async function ProfilePage({
                   breweries:
                     singleRelation(
                       beerVersion.breweries
+                    ) ??
+                    (
+                      beerVersion.brewery_id != null
+                        ? breweriesById.get(String(beerVersion.brewery_id)) ?? null
+                        : null
                     ),
                   beer_styles:
                     singleRelation(
@@ -460,6 +471,11 @@ export default async function ProfilePage({
                 breweries:
                   singleRelation(
                     beer.breweries
+                  ) ??
+                  (
+                    beer.brewery_id != null
+                      ? breweriesById.get(String(beer.brewery_id)) ?? null
+                      : null
                   ),
 
                 beer_styles:
