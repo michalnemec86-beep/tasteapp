@@ -173,7 +173,15 @@ async function resolveBrewery(
     }
 
     brewery = created;
-  } else if (canonicalCountry && brewery.country !== canonicalCountry) {
+  } else if (
+    canonicalCountry &&
+    brewery.country &&
+    normalizeText(brewery.country) !== normalizeText(canonicalCountry)
+  ) {
+    throw new Error(
+      `Zadaná země neodpovídá katalogu pivovaru ${brewery.name}. Použijte uloženou zemi ${brewery.country}.`
+    );
+  } else if (canonicalCountry && !brewery.country) {
     const { data: updated, error } = await supabase
       .from("breweries")
       .update({ country: canonicalCountry })
@@ -520,6 +528,56 @@ async function resolveCatalogData(
   values: TastingFormValues,
   userId: string
 ) {
+  if (values.existingBeerId) {
+    const beerId = Number(values.existingBeerId);
+    if (!Number.isInteger(beerId) || beerId < 1) {
+      throw new Error("Neplatné ID piva.");
+    }
+
+    const { data: beer, error: beerError } = await supabase
+      .from("beers")
+      .select("id, name, brewery_id, brand_id")
+      .eq("id", beerId)
+      .maybeSingle();
+
+    if (beerError) throw new Error(beerError.message);
+    if (!beer) throw new Error("Vybrané pivo už v katalogu neexistuje.");
+    if (!beer.brewery_id || !beer.brand_id) {
+      throw new Error("Vybrané pivo nemá kompletní katalogovou identitu.");
+    }
+
+    const [breweryResult, brandResult] = await Promise.all([
+      supabase
+        .from("breweries")
+        .select("id, name")
+        .eq("id", beer.brewery_id)
+        .maybeSingle(),
+      supabase
+        .from("brands")
+        .select("id, name")
+        .eq("id", beer.brand_id)
+        .maybeSingle(),
+    ]);
+
+    if (breweryResult.error) throw new Error(breweryResult.error.message);
+    if (brandResult.error) throw new Error(brandResult.error.message);
+    if (!breweryResult.data || !brandResult.data) {
+      throw new Error("Vybrané pivo má neplatnou vazbu na pivovar nebo značku.");
+    }
+
+    if (
+      normalizeText(values.beerName) !== normalizeText(beer.name) ||
+      normalizeText(values.breweryName) !== normalizeText(breweryResult.data.name) ||
+      normalizeText(values.brandName) !== normalizeText(brandResult.data.name)
+    ) {
+      throw new Error(
+        "Vybrané katalogové pivo musí zachovat svůj pivovar, značku a název."
+      );
+    }
+
+    return { beerId: beer.id, breweryId: breweryResult.data.id };
+  }
+
   const brewery = await resolveBrewery(supabase, values);
   const styleId = await resolveStyle(supabase, values.styleName);
   const { beerId, isNewBeer } = await resolveBeer(
@@ -554,11 +612,13 @@ async function saveTastingCore(formData: FormData) {
   const values = readTastingFormData(formData);
   const { beerId, breweryId } = await resolveCatalogData(supabase, values, user.id);
 
-  const collaboratorBreweryIds = await validateCollaboratorBreweryIds(
-    supabase,
-    values.collaboratorBreweryIds,
-    breweryId
-  );
+  const collaboratorBreweryIds = values.existingBeerId
+    ? []
+    : await validateCollaboratorBreweryIds(
+        supabase,
+        values.collaboratorBreweryIds,
+        breweryId
+      );
 
   const { data: insertedTasting, error: tastingError } = await supabase
     .from("tastings")
