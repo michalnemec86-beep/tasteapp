@@ -1,5 +1,9 @@
 # Historical CSV import
 
+This is an archive of the rules used for the completed historical import. The
+project no longer includes a CSV import command or template. Keep the private
+import provenance in the database for audits and corrections to existing data.
+
 All historical imports must follow [`docs/beer-data-protocol.md`](./beer-data-protocol.md). That document is the canonical source of truth for brewery, brand, beer, beer-version and tasting identity.
 
 ## Required resolution order
