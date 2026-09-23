@@ -151,6 +151,22 @@ export default function TastingForm({
     return [...options.values()].sort((a, b) => a.name.localeCompare(b.name, "cs"));
   }, [activeBreweryId, brandsByBrewery, beers]);
 
+  const globalBrandOptions = useMemo(() => {
+    const breweriesById = new Map(breweries.map((brewery) => [brewery.id, brewery]));
+    const options = new Map<string, { brewery: Brewery; brand: BreweryBrand["brand"] }>();
+    for (const link of brandsByBrewery) {
+      const brewery = breweriesById.get(link.breweryId);
+      if (brewery) options.set(`${brewery.id}:${link.brand.id}`, { brewery, brand: link.brand });
+    }
+    for (const beer of beers) {
+      const brewery = breweriesById.get(beer.breweries?.id ?? -1);
+      if (brewery && beer.brands) {
+        options.set(`${brewery.id}:${beer.brands.id}`, { brewery, brand: beer.brands });
+      }
+    }
+    return [...options.values()];
+  }, [brandsByBrewery, breweries, beers]);
+
   const matchingBrands = brandOptions.filter(
     (brand) => normalizeText(brand.name) === normalizeText(brandName)
   );
@@ -158,22 +174,37 @@ export default function TastingForm({
     matchingBrands.find((brand) => brand.id === selectedBrandId) ??
     (matchingBrands.length === 1 ? matchingBrands[0] : null);
 
-  const brandSuggestions = brandOptions.filter((brand) =>
-    normalizeText(brand.name).includes(normalizeText(brandName))
-  );
+  const brandQuery = normalizeText(brandName);
+  const brandSuggestions = (activeBrewery
+    ? brandOptions.map((brand) => ({ brewery: activeBrewery, brand }))
+    : brandQuery.length >= 3 ? globalBrandOptions : []
+  )
+    .filter(({ brand }) => normalizeText(brand.name).includes(brandQuery))
+    .sort((a, b) => {
+      const aStarts = normalizeText(a.brand.name).startsWith(brandQuery);
+      const bStarts = normalizeText(b.brand.name).startsWith(brandQuery);
+      if (aStarts !== bStarts) return aStarts ? -1 : 1;
+      return a.brand.name.localeCompare(b.brand.name, "cs") ||
+        a.brewery.name.localeCompare(b.brewery.name, "cs");
+    });
 
   // ==================================================
   // PIVO
   // ==================================================
 
-  const beerSuggestions = activeBrewery && (!brandName.trim() || activeBrand) ? beers
+  const beerQuery = normalizeText(beerName);
+  const beerSuggestions = (activeBrewery && (!brandName.trim() || activeBrand) ||
+    !activeBrewery && beerQuery.length >= 3) ? beers
     .filter((beer) => {
-      if (beer.breweries?.id !== activeBrewery.id) return false;
+      if (activeBrewery && beer.breweries?.id !== activeBrewery.id) return false;
       if (activeBrand && beer.brands?.id !== activeBrand.id) return false;
-      const query = normalizeText(beerName);
-      return normalizeText(beer.name).includes(query);
+      return normalizeText(beer.name).includes(beerQuery) ||
+        (!activeBrewery && normalizeText(beer.brands?.name ?? "").includes(beerQuery));
     })
     .sort((a, b) => {
+      const aDirect = normalizeText(a.name).includes(beerQuery);
+      const bDirect = normalizeText(b.name).includes(beerQuery);
+      if (aDirect !== bDirect) return aDirect ? -1 : 1;
       if (Boolean(a.is_catalog) !== Boolean(b.is_catalog)) {
         return a.is_catalog ? -1 : 1;
       }
@@ -275,11 +306,15 @@ export default function TastingForm({
     setBreweryOpen(true);
   }
 
-  function selectBrand(brand: BreweryBrand["brand"]) {
-    if (activeBrand?.id !== brand.id) clearBeerDetails();
+  function selectBrand(brewery: Brewery, brand: BreweryBrand["brand"]) {
+    if (activeBreweryId !== brewery.id || activeBrand?.id !== brand.id) clearBeerDetails();
+    setBreweryName(brewery.name);
+    setSelectedBreweryId(brewery.id);
+    setBreweryCountry(brewery.country ?? "");
     setSelectedBrandId(brand.id);
     setBrandName(brand.name);
     setBrandOpen(false);
+    setBreweryOpen(false);
   }
 
   function changeBrandName(value: string) {
@@ -552,29 +587,36 @@ export default function TastingForm({
             onChange={(event) => changeBrandName(event.target.value)}
             onFocus={() => setBrandOpen(true)}
             onBlur={() => setTimeout(() => setBrandOpen(false), 150)}
-            placeholder={activeBrewery ? "Vyber značku pivovaru nebo napiš novou" : "Nejdřív vyber pivovar"}
+            placeholder={activeBrewery ? "Vyber značku pivovaru nebo napiš novou" : "Napiš alespoň 3 písmena značky"}
             autoComplete="off"
             required
             style={inputStyle}
           />
-          {brandOpen && activeBrewery && brandSuggestions.length > 0 && (
+          {brandOpen && brandSuggestions.length > 0 && (
             <div style={dropdownStyle}>
-              {brandSuggestions.map((brand) => (
+              {brandSuggestions.slice(0, 40).map(({ brewery, brand }) => (
                 <button
-                  key={brand.id}
+                  key={`${brewery.id}-${brand.id}`}
                   type="button"
                   onMouseDown={(event) => event.preventDefault()}
-                  onClick={() => selectBrand(brand)}
+                  onClick={() => selectBrand(brewery, brand)}
                   style={suggestionButtonStyle}
                 >
                   {brand.name}
+                  {!activeBrewery && (
+                    <div style={{ fontSize: "12px", opacity: 0.7, marginTop: "2px" }}>
+                      {brewery.name}
+                    </div>
+                  )}
                 </button>
               ))}
             </div>
           )}
         </div>
         <div style={{ marginTop: "5px", color: "var(--taste-text-muted)", fontSize: "10px", lineHeight: 1.4 }}>
-          Značky v nabídce patří vybranému pivovaru. Novou značku můžeš napsat ručně.
+          {activeBrewery
+            ? "Značky v nabídce patří vybranému pivovaru. Novou značku můžeš napsat ručně."
+            : "Po třech písmenech nabídneme značky z katalogu. Výběr doplní i pivovar."}
         </div>
       </div>
 
@@ -594,7 +636,7 @@ export default function TastingForm({
                 else setBeerOpen(false);
               }, 150)
             }
-            placeholder={activeBrewery ? "Vyber pivo pivovaru nebo napiš nové" : "Nejdřív vyber pivovar"}
+            placeholder={activeBrewery ? "Vyber pivo pivovaru nebo napiš nové" : "Napiš alespoň 3 písmena názvu piva"}
             autoComplete="off"
             required
             style={inputStyle}
@@ -618,6 +660,14 @@ export default function TastingForm({
                         <span style={suggestionLabelStyle}>Značka</span>
                         <span style={{ fontSize: "12px", opacity: 0.82 }}>
                           {beer.brands.name}{beer.is_catalog ? " · katalogové" : ""}
+                        </span>
+                      </>
+                    )}
+                    {!activeBrewery && beer.breweries?.name && (
+                      <>
+                        <span style={suggestionLabelStyle}>Pivovar</span>
+                        <span style={{ fontSize: "12px", opacity: 0.72 }}>
+                          {beer.breweries.name}
                         </span>
                       </>
                     )}
@@ -997,7 +1047,8 @@ const dropdownStyle = {
   color: "#111",
   border: "1px solid #ccc",
   borderRadius: "8px",
-  overflow: "hidden",
+  maxHeight: "280px",
+  overflowY: "auto" as const,
   boxShadow: "0 6px 20px rgba(0,0,0,0.15)",
 };
 
