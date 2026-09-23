@@ -248,7 +248,7 @@ function readBeerValues(formData: FormData) {
 }
 
 export async function createCatalogBeer(breweryId: number, formData: FormData) {
-  const { supabase } = await requireUser();
+  const { supabase, user } = await requireUser();
   if (!Number.isInteger(breweryId) || breweryId < 1) throw new Error("Neplatné ID pivovaru.");
 
   const values = readBeerValues(formData);
@@ -409,7 +409,7 @@ export async function updateCatalogBeer(
 }
 
 export async function deleteCatalogBeer(breweryId: number, beerId: number) {
-  const { supabase, user } = await requireUser();
+  const { supabase } = await requireUser();
   if (!Number.isInteger(breweryId) || breweryId < 1) throw new Error("Neplatné ID pivovaru.");
   if (!Number.isInteger(beerId) || beerId < 1) throw new Error("Neplatné ID piva.");
 
