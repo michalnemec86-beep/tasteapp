@@ -514,9 +514,6 @@ export default function EditTastingModalClient({
       {open && (
         <div
           style={overlayStyle}
-          onMouseDown={() =>
-            setOpen(false)
-          }
         >
           <div
             style={modalStyle}
