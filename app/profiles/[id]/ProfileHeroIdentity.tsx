@@ -204,6 +204,7 @@ export default function ProfileHeroIdentity({
 
       {isMe && (
         <details
+          open
           style={{
             padding: "10px 12px",
             border:
@@ -222,8 +223,20 @@ export default function ProfileHeroIdentity({
               fontWeight: 800,
             }}
           >
-            Upravit osobní jméno
+            Osobní údaje
           </summary>
+
+          <div
+            style={{
+              marginTop: "9px",
+              color: "var(--taste-text-muted)",
+              fontSize: "9px",
+              lineHeight: 1.45,
+            }}
+          >
+            Nick <strong style={{ color: "var(--taste-text)" }}>{displayName}</strong> je trvalý
+            a nelze ho měnit. Níže můžeš doplnit vlastní jméno, které se zobrazí pod nickem.
+          </div>
 
           <form
             action={
@@ -266,7 +279,7 @@ export default function ProfileHeroIdentity({
                 fontSize: "10px",
               }}
             >
-              Uložit jméno
+              Uložit vlastní jméno
             </button>
 
             <div
