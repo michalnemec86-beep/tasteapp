@@ -143,14 +143,22 @@ async function addBreweryBrands(
 ) {
   if (brandNames.length === 0) return;
 
-  const { data: existing, error } = await supabase.from("brands").select("id, name");
-  if (error) throw new Error(error.message);
+  const { data: existingLinks, error: linksError } = await supabase
+    .from("brewery_brands")
+    .select("brand_id, brands ( id, name )")
+    .eq("brewery_id", breweryId);
+  if (linksError) throw new Error(linksError.message);
 
   const brandIds: number[] = [];
   for (const brandName of brandNames) {
-    const found = existing?.find((brand) => normalizeText(brand.name) === normalizeText(brandName));
+    const query = normalizeText(brandName);
+    const found = existingLinks?.find((link) => {
+      const brand = Array.isArray(link.brands) ? link.brands[0] : link.brands;
+      return brand && normalizeText(brand.name) === query;
+    });
+
     if (found) {
-      brandIds.push(found.id);
+      brandIds.push(found.brand_id);
       continue;
     }
 
@@ -159,15 +167,21 @@ async function addBreweryBrands(
       .insert({ name: brandName })
       .select("id")
       .single();
-    if (createError || !created) throw new Error(createError?.message || `Značku „${brandName}“ se nepodařilo vytvořit.`);
+    if (createError || !created) {
+      throw new Error(createError?.message || `Značku „${brandName}“ se nepodařilo vytvořit.`);
+    }
+
+    const { error: linkError } = await supabase
+      .from("brewery_brands")
+      .insert({
+        brewery_id: breweryId,
+        brand_id: created.id,
+        created_by: userId,
+      });
+    if (linkError) throw new Error(linkError.message);
 
     brandIds.push(created.id);
   }
-
-  const { error: linkError } = await supabase.from("brewery_brands").upsert(
-    brandIds.map((brandId) => ({ brewery_id: breweryId, brand_id: brandId, created_by: userId }))
-  );
-  if (linkError) throw new Error(linkError.message);
 }
 
 function readBreweryFormData(
