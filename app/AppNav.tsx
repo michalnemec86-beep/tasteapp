@@ -6,7 +6,11 @@ import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { HopMark } from "@/components/brand/PivnikMark";
 
-export default function AppNav() {
+export default function AppNav({
+  currentUserId,
+}: {
+  currentUserId: string | null;
+}) {
   const pathname = usePathname();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -34,8 +38,18 @@ export default function AppNav() {
     return null;
   }
 
+  const isOwnProfilePath = Boolean(
+    currentUserId && pathname === `/profiles/${currentUserId}`
+  );
+
   function isActive(href: string) {
-    return href === "/" ? pathname === "/" : pathname.startsWith(href);
+    if (href === "/") return pathname === "/";
+    if (href === "/me") return pathname === "/me" || isOwnProfilePath;
+    if (href === "/profiles") {
+      return pathname.startsWith("/profiles") && !isOwnProfilePath;
+    }
+
+    return pathname.startsWith(href);
   }
 
   return (
@@ -110,16 +124,16 @@ export default function AppNav() {
             flexShrink: 0,
             padding: "9px 13px",
             border:
-              pathname === "/me"
+              isActive("/me")
                 ? "1px solid rgba(245,184,63,0.52)"
                 : "1px solid rgba(231,166,47,0.28)",
             borderRadius: "10px",
             background:
-              pathname === "/me"
+              isActive("/me")
                 ? "linear-gradient(180deg, rgba(231,166,47,0.18), rgba(168,98,33,0.08))"
                 : "rgba(231,166,47,0.035)",
             color:
-              pathname === "/me"
+              isActive("/me")
                 ? "var(--taste-amber-bright)"
                 : "var(--taste-text-soft)",
             textDecoration: "none",
