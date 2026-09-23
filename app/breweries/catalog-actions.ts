@@ -248,7 +248,7 @@ function readBeerValues(formData: FormData) {
 }
 
 export async function createCatalogBeer(breweryId: number, formData: FormData) {
-  const { supabase, user } = await requireUser();
+  const { supabase } = await requireUser();
   if (!Number.isInteger(breweryId) || breweryId < 1) throw new Error("Neplatné ID pivovaru.");
 
   const values = readBeerValues(formData);
@@ -428,8 +428,10 @@ export async function deleteCatalogBeer(breweryId: number, beerId: number) {
   if (tastingError) throw new Error(tastingError.message);
 
   const tastingCount = count ?? 0;
-  if (tastingCount > 0 && user.id !== CATALOG_ADMIN_USER_ID) {
-    throw new Error("Ochutnané pivo může z katalogu smazat pouze administrátor.");
+  if (tastingCount > 0) {
+    throw new Error(
+      "Pivo nelze smazat, protože má evidované ochutnávky. Historii je nutné zachovat; pivo lze případně sloučit nebo ponechat jako neaktivní."
+    );
   }
 
   const { error: deleteError } = await supabase
