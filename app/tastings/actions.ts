@@ -199,7 +199,9 @@ async function resolveBrewery(
 
 async function resolveBrandId(
   supabase: SupabaseClient,
-  brandName: string
+  brandName: string,
+  breweryId: number,
+  userId: string
 ) {
   const cleanName = brandName.trim();
   if (!cleanName) {
@@ -208,16 +210,18 @@ async function resolveBrandId(
     );
   }
 
-  const { data: brands, error } = await supabase
-    .from("brands")
-    .select("id, name");
-  if (error) throw new Error(error.message);
+  const { data: links, error: linksError } = await supabase
+    .from("brewery_brands")
+    .select("brand_id, brands ( id, name )")
+    .eq("brewery_id", breweryId);
+  if (linksError) throw new Error(linksError.message);
 
   const query = normalizeText(cleanName);
-  const existing = brands?.find(
-    (brand) => normalizeText(brand.name) === query
-  );
-  if (existing) return existing.id;
+  const existing = links?.find((link) => {
+    const brand = Array.isArray(link.brands) ? link.brands[0] : link.brands;
+    return brand && normalizeText(brand.name) === query;
+  });
+  if (existing) return existing.brand_id;
 
   const { data: created, error: createError } = await supabase
     .from("brands")
@@ -227,6 +231,18 @@ async function resolveBrandId(
 
   if (createError || !created) {
     throw new Error(createError?.message || "Značku se nepodařilo vytvořit.");
+  }
+
+  const { error: linkError } = await supabase
+    .from("brewery_brands")
+    .insert({
+      brewery_id: breweryId,
+      brand_id: created.id,
+      created_by: userId,
+    });
+
+  if (linkError) {
+    throw new Error(linkError.message);
   }
 
   return created.id;
@@ -260,7 +276,8 @@ async function ensureTastingVersionBrewery(
   versionId: number,
   beerId: number,
   breweryId: number,
-  tastedOn: string
+  tastedOn: string,
+  userId: string
 ) {
   const { data: assigned, error } = await supabase
     .from("beer_versions")
@@ -304,6 +321,7 @@ async function ensureTastingVersionBrewery(
         ibu: assigned.ibu,
         style_id: assigned.style_id,
         is_current: false,
+        created_by: userId,
         notes: "Verze vytvořená z konkrétní ochutnávky s odlišným výrobním pivovarem",
       })
       .select("id")
@@ -417,7 +435,12 @@ async function resolveBeer(
     return { beerId: selectedBeer.id, isNewBeer: false };
   }
 
-  const brandId = await resolveBrandId(supabase, values.brandName);
+  const brandId = await resolveBrandId(
+    supabase,
+    values.brandName,
+    breweryId,
+    userId
+  );
 
   const { data: breweryBeers, error: breweryBeersError } = await supabase
     .from("beers")
@@ -648,7 +671,8 @@ async function saveTastingCore(formData: FormData) {
       insertedTasting.beer_version_id,
       beerId,
       breweryId,
-      values.tastedOn
+      values.tastedOn,
+      user.id
     );
 
     await addVersionCollaborators(
