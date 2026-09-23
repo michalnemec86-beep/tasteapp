@@ -1408,7 +1408,7 @@ export default async function ProfilePage({
       </>}
 
       {view === "breweries" && (
-        <ProfileBreweriesView items={profileBreweryItems} />
+        <ProfileBreweriesView items={profileBreweryItems} profileId={profile.id} />
       )}
 
       {/* ==================================================

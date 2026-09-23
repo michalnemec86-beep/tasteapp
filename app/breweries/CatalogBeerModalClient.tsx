@@ -4,9 +4,6 @@ import { useEffect, useId, useState, type FormEvent } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import AdminBadge from "@/components/ui/AdminBadge";
-
-const ADMIN_USER_ID = "17be5dc3-a3f9-4fd2-ae90-dee7692034fc";
 
 type BeerStyle = { id: number; name: string; aliases: string[] | null };
 type Hop = { id: number; name: string; aliases: string[] | null };
@@ -85,7 +82,6 @@ export default function CatalogBeerModalClient({
     label: string;
     currentName: string;
   }>>([]);
-  const [isAdmin, setIsAdmin] = useState(false);
   const [form, setForm] = useState<FormState>(() =>
     beer
       ? {
@@ -122,7 +118,7 @@ export default function CatalogBeerModalClient({
 
     try {
       const supabase = createClient();
-      const [brandsResult, breweriesResult, userResult] = await Promise.all([
+      const [brandsResult, breweriesResult] = await Promise.all([
         supabase.from("brands").select("name").order("name"),
         supabase
           .from("breweries")
@@ -133,7 +129,6 @@ export default function CatalogBeerModalClient({
             )
           `)
           .order("name"),
-        supabase.auth.getUser(),
       ]);
 
       setBrandOptions((brandsResult.data ?? []).map((item) => item.name));
@@ -160,8 +155,6 @@ export default function CatalogBeerModalClient({
           ];
         })
       );
-      setIsAdmin(userResult.data.user?.id === ADMIN_USER_ID);
-
       if (mode === "edit" && beer) {
         const detailResult = await supabase
           .from("beers")
@@ -242,11 +235,9 @@ export default function CatalogBeerModalClient({
   async function handleDelete() {
     if (!beer || !deleteAction) return;
     const hasTastings = beer.tastingCount > 0;
-    if (hasTastings && !isAdmin) return;
+    if (hasTastings) return;
 
-    const warning = hasTastings
-      ? `Pivo „${beer.name}“ má ${beer.tastingCount} ochutnávek. Smazáním piva se odstraní i navázané ochutnávky. Opravdu pokračovat?`
-      : `Opravdu smazat pivo „${beer.name}“ z katalogu?`;
+    const warning = `Opravdu smazat pivo „${beer.name}“ z katalogu?`;
     if (!window.confirm(warning)) return;
 
     setDeleting(true);
@@ -263,7 +254,7 @@ export default function CatalogBeerModalClient({
   }
 
   const busy = saving || deleting || loadingDetails;
-  const canDelete = Boolean(beer && deleteAction && (beer.tastingCount === 0 || isAdmin));
+  const canDelete = Boolean(beer && deleteAction && beer.tastingCount === 0);
 
   return (
     <>
@@ -387,23 +378,13 @@ export default function CatalogBeerModalClient({
                 <div style={{ marginTop: "18px", paddingTop: "16px", borderTop: "1px solid var(--taste-border)" }}>
                   {canDelete ? (
                     <div style={{ display: "grid", gap: "7px" }}>
-                      {beer.tastingCount > 0 && isAdmin && (
-                        <div
-                          style={{
-                            display: "flex",
-                            justifyContent: "flex-end",
-                          }}
-                        >
-                          <AdminBadge title="Administrátor může smazat i pivo s navázanými ochutnávkami" />
-                        </div>
-                      )}
                       <button type="button" disabled={busy} onClick={handleDelete} style={deleteButtonStyle}>
-                        {deleting ? "Mažu…" : beer.tastingCount > 0 ? `Smazat pivo i s ${beer.tastingCount} ochutnávkami` : "Smazat pivo z katalogu"}
+                        {deleting ? "Mažu…" : "Smazat pivo z katalogu"}
                       </button>
                     </div>
                   ) : (
                     <div style={{ color: "var(--taste-text-muted)", fontSize: "11px", lineHeight: 1.45 }}>
-                      Pivo má {beer.tastingCount} evidovaných ochutnávek. Takové pivo může smazat pouze administrátor.
+                      Pivo má {beer.tastingCount} evidovaných ochutnávek, proto ho nelze fyzicky smazat ani administrátorem. Historie musí zůstat zachovaná.
                     </div>
                   )}
                 </div>

@@ -14,8 +14,10 @@ type BrewerySort = "alpha" | "most" | "least" | "country";
 
 export default function ProfileBreweriesView({
   items,
+  profileId,
 }: {
   items: ProfileBreweryItem[];
+  profileId: string;
 }) {
   const [sort, setSort] = useState<BrewerySort>("most");
   const [query, setQuery] = useState("");
@@ -234,7 +236,7 @@ export default function ProfileBreweriesView({
             <article key={item.id} className="taste-card taste-profile-brewery-item">
               <div style={{ minWidth: 0 }}>
                 <Link
-                  href={`/breweries/${item.id}`}
+                  href={`/stats?user=${encodeURIComponent(profileId)}&locked=1&brewery=${encodeURIComponent(String(item.id))}`}
                   className="taste-entity-link"
                   style={{ color: "var(--taste-text)", fontSize: "16px", fontWeight: 850 }}
                 >

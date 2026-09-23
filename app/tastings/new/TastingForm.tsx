@@ -176,6 +176,9 @@ export default function TastingForm({
         .map((row) => row.hops?.name)
         .filter((name): name is string => Boolean(name))
     );
+    setSelectedCollaborators([]);
+    setCollaboratorQuery("");
+    setShowCollaborationField(false);
     setBeerOpen(false);
   }
 
@@ -474,12 +477,18 @@ export default function TastingForm({
               setBreweryName(event.target.value);
               setBreweryOpen(true);
             }}
-            onFocus={() => setBreweryOpen(true)}
+            onFocus={() => {
+              if (!existingBeerId) setBreweryOpen(true);
+            }}
             onBlur={() => setTimeout(() => setBreweryOpen(false), 150)}
             placeholder="Např. Velkopopovický pivovar"
             autoComplete="off"
             required
-            style={inputStyle}
+            readOnly={Boolean(existingBeerId)}
+            style={{
+              ...inputStyle,
+              opacity: existingBeerId ? 0.72 : 1,
+            }}
           />
 
           {breweryOpen && breweryName.trim().length >= 3 && brewerySuggestions.length > 0 && (
@@ -543,7 +552,7 @@ export default function TastingForm({
           </div>
         )}
 
-        {!showCollaborationField ? (
+        {!existingBeerId && !showCollaborationField ? (
           <button
             type="button"
             onClick={() => setShowCollaborationField(true)}
@@ -560,7 +569,7 @@ export default function TastingForm({
           >
             ＋ Přidat kolaboraci
           </button>
-        ) : (
+        ) : !existingBeerId ? (
           <div style={{ position: "relative", marginTop: "8px" }}>
             <input
               value={collaboratorQuery}
@@ -604,7 +613,7 @@ export default function TastingForm({
               </div>
             )}
           </div>
-        )}
+        ) : null}
       </div>
 
       {/* ZEMĚ */}
@@ -618,11 +627,17 @@ export default function TastingForm({
               setBreweryCountry(event.target.value);
               setCountryOpen(true);
             }}
-            onFocus={() => setCountryOpen(true)}
+            onFocus={() => {
+              if (!existingBeerId) setCountryOpen(true);
+            }}
             onBlur={() => setTimeout(() => setCountryOpen(false), 150)}
             placeholder="Např. Česko"
             autoComplete="off"
-            style={inputStyle}
+            readOnly={Boolean(existingBeerId)}
+            style={{
+              ...inputStyle,
+              opacity: existingBeerId ? 0.72 : 1,
+            }}
           />
 
           {countryOpen && breweryCountry.trim().length >= 3 && countrySuggestions.length > 0 && (
@@ -657,11 +672,17 @@ export default function TastingForm({
               setStyleName(event.target.value);
               setStyleOpen(true);
             }}
-            onFocus={() => setStyleOpen(true)}
+            onFocus={() => {
+              if (!existingBeerId) setStyleOpen(true);
+            }}
             onBlur={() => setTimeout(() => setStyleOpen(false), 150)}
             placeholder="Např. Ležák"
             autoComplete="off"
-            style={inputStyle}
+            readOnly={Boolean(existingBeerId)}
+            style={{
+              ...inputStyle,
+              opacity: existingBeerId ? 0.72 : 1,
+            }}
           />
 
           {styleOpen && styleName.trim().length >= 3 && styleSuggestions.length > 0 && (
@@ -778,20 +799,22 @@ export default function TastingForm({
                 }}
               >
                 {hop}
-                <button
-                  type="button"
-                  onClick={() => removeHop(hop)}
-                  style={{
-                    border: 0,
-                    background: "transparent",
-                    cursor: "pointer",
-                    color: "inherit",
-                    padding: 0,
-                    fontSize: "16px",
-                  }}
-                >
-                  ×
-                </button>
+                {!existingBeerId && (
+                  <button
+                    type="button"
+                    onClick={() => removeHop(hop)}
+                    style={{
+                      border: 0,
+                      background: "transparent",
+                      cursor: "pointer",
+                      color: "inherit",
+                      padding: 0,
+                      fontSize: "16px",
+                    }}
+                  >
+                    ×
+                  </button>
+                )}
                 <input type="hidden" name="hops" value={hop} />
               </div>
             ))}
@@ -805,7 +828,9 @@ export default function TastingForm({
               setHopValue(event.target.value);
               setHopOpen(true);
             }}
-            onFocus={() => setHopOpen(true)}
+            onFocus={() => {
+              if (!existingBeerId) setHopOpen(true);
+            }}
             onBlur={() => setTimeout(() => setHopOpen(false), 150)}
             onKeyDown={(event) => {
               if (event.key === "Enter" && hopValue.trim()) {
@@ -813,9 +838,13 @@ export default function TastingForm({
                 if (hopSuggestions.length > 0) addHop(hopSuggestions[0].name);
               }
             }}
-            placeholder="Např. Citra"
+            placeholder={existingBeerId ? "Chmely jsou převzaté z katalogu" : "Např. Citra"}
             autoComplete="off"
-            style={inputStyle}
+            disabled={Boolean(existingBeerId)}
+            style={{
+              ...inputStyle,
+              opacity: existingBeerId ? 0.72 : 1,
+            }}
           />
 
           {hopOpen && hopValue.trim().length >= 3 && hopSuggestions.length > 0 && (
