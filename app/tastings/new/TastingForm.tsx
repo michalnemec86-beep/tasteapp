@@ -830,7 +830,7 @@ export default function TastingForm({
             }}
             onFocus={() => {
               if (!existingBeerId) setHopOpen(true);
-            }}}
+            }}
             onBlur={() => setTimeout(() => setHopOpen(false), 150)}
             onKeyDown={(event) => {
               if (event.key === "Enter" && hopValue.trim()) {
