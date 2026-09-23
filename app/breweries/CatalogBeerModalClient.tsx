@@ -101,15 +101,10 @@ export default function CatalogBeerModalClient({
     if (!open) return;
     const previous = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && !saving && !deleting) setOpen(false);
-    };
-    window.addEventListener("keydown", onKey);
     return () => {
       document.body.style.overflow = previous;
-      window.removeEventListener("keydown", onKey);
     };
-  }, [open, saving, deleting]);
+  }, [open]);
 
   async function prepareOpen() {
     setError("");
@@ -272,9 +267,6 @@ export default function CatalogBeerModalClient({
           role="dialog"
           aria-modal="true"
           aria-labelledby={`catalog-beer-${id}`}
-          onClick={(event) => {
-            if (event.target === event.currentTarget && !busy) setOpen(false);
-          }}
           style={{ position: "fixed", inset: 0, zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "18px", background: "rgba(5,4,3,.82)", backdropFilter: "blur(18px)" }}
         >
           <div
