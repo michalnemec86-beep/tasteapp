@@ -4,9 +4,6 @@ import { useEffect, useId, useState, type FormEvent } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import AdminBadge from "@/components/ui/AdminBadge";
-
-const ADMIN_USER_ID = "17be5dc3-a3f9-4fd2-ae90-dee7692034fc";
 
 type BeerStyle = { id: number; name: string; aliases: string[] | null };
 type Hop = { id: number; name: string; aliases: string[] | null };
@@ -85,7 +82,6 @@ export default function CatalogBeerModalClient({
     label: string;
     currentName: string;
   }>>([]);
-  const [isAdmin, setIsAdmin] = useState(false);
   const [form, setForm] = useState<FormState>(() =>
     beer
       ? {
@@ -122,7 +118,7 @@ export default function CatalogBeerModalClient({
 
     try {
       const supabase = createClient();
-      const [brandsResult, breweriesResult, userResult] = await Promise.all([
+      const [brandsResult, breweriesResult] = await Promise.all([
         supabase.from("brands").select("name").order("name"),
         supabase
           .from("breweries")
@@ -133,7 +129,6 @@ export default function CatalogBeerModalClient({
             )
           `)
           .order("name"),
-        supabase.auth.getUser(),
       ]);
 
       setBrandOptions((brandsResult.data ?? []).map((item) => item.name));
@@ -160,8 +155,6 @@ export default function CatalogBeerModalClient({
           ];
         })
       );
-      setIsAdmin(userResult.data.user?.id === ADMIN_USER_ID);
-
       if (mode === "edit" && beer) {
         const detailResult = await supabase
           .from("beers")
