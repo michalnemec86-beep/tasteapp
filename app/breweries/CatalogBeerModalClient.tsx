@@ -242,11 +242,9 @@ export default function CatalogBeerModalClient({
   async function handleDelete() {
     if (!beer || !deleteAction) return;
     const hasTastings = beer.tastingCount > 0;
-    if (hasTastings && !isAdmin) return;
+    if (hasTastings) return;
 
-    const warning = hasTastings
-      ? `Pivo „${beer.name}“ má ${beer.tastingCount} ochutnávek. Smazáním piva se odstraní i navázané ochutnávky. Opravdu pokračovat?`
-      : `Opravdu smazat pivo „${beer.name}“ z katalogu?`;
+    const warning = `Opravdu smazat pivo „${beer.name}“ z katalogu?`;
     if (!window.confirm(warning)) return;
 
     setDeleting(true);
@@ -263,7 +261,7 @@ export default function CatalogBeerModalClient({
   }
 
   const busy = saving || deleting || loadingDetails;
-  const canDelete = Boolean(beer && deleteAction && (beer.tastingCount === 0 || isAdmin));
+  const canDelete = Boolean(beer && deleteAction && beer.tastingCount === 0);
 
   return (
     <>
@@ -387,23 +385,13 @@ export default function CatalogBeerModalClient({
                 <div style={{ marginTop: "18px", paddingTop: "16px", borderTop: "1px solid var(--taste-border)" }}>
                   {canDelete ? (
                     <div style={{ display: "grid", gap: "7px" }}>
-                      {beer.tastingCount > 0 && isAdmin && (
-                        <div
-                          style={{
-                            display: "flex",
-                            justifyContent: "flex-end",
-                          }}
-                        >
-                          <AdminBadge title="Administrátor může smazat i pivo s navázanými ochutnávkami" />
-                        </div>
-                      )}
                       <button type="button" disabled={busy} onClick={handleDelete} style={deleteButtonStyle}>
-                        {deleting ? "Mažu…" : beer.tastingCount > 0 ? `Smazat pivo i s ${beer.tastingCount} ochutnávkami` : "Smazat pivo z katalogu"}
+                        {deleting ? "Mažu…" : "Smazat pivo z katalogu"}
                       </button>
                     </div>
                   ) : (
                     <div style={{ color: "var(--taste-text-muted)", fontSize: "11px", lineHeight: 1.45 }}>
-                      Pivo má {beer.tastingCount} evidovaných ochutnávek. Takové pivo může smazat pouze administrátor.
+                      Pivo má {beer.tastingCount} evidovaných ochutnávek, proto ho nelze fyzicky smazat ani administrátorem. Historie musí zůstat zachovaná.
                     </div>
                   )}
                 </div>
