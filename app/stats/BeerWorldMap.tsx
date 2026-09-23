@@ -8,7 +8,7 @@ import {
   type PointerEvent as ReactPointerEvent,
 } from "react";
 import dynamic from "next/dynamic";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import type {
   CountryContext,
@@ -451,10 +451,12 @@ export default function BeerWorldMap({
     const czechName = nameByCode.get(code) ?? countryName;
 
     if (statsContextUserId && lockStatsContext) {
-      const params = new URLSearchParams();
+      const params = new URLSearchParams(searchParams.toString());
       params.set("user", statsContextUserId);
       params.set("locked", "1");
       params.set("country", czechName);
+      params.delete("focus");
+      params.delete("metric");
 
       router.push(`/stats?${params.toString()}`);
       return;
