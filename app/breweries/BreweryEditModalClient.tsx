@@ -50,19 +50,10 @@ export default function BreweryEditModalClient({
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
 
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape" && !saving) {
-        setOpen(false);
-      }
-    }
-
-    window.addEventListener("keydown", handleKeyDown);
-
     return () => {
       document.body.style.overflow = previousOverflow;
-      window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [open, saving]);
+  }, [open]);
 
   function closeModal() {
     if (saving) return;
@@ -179,9 +170,6 @@ export default function BreweryEditModalClient({
             role="dialog"
             aria-modal="true"
             aria-labelledby="edit-brewery-title"
-            onClick={(event) => {
-              if (event.target === event.currentTarget) closeModal();
-            }}
             style={{
               position: "fixed",
               inset: 0,
