@@ -38,7 +38,7 @@ export function ForgotPasswordForm({
       if (error) throw error;
       setSuccess(true);
     } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "An error occurred");
+      setError(error instanceof Error ? error.message : "Odeslání odkazu se nepodařilo.");
     } finally {
       setIsLoading(false);
     }
@@ -49,23 +49,22 @@ export function ForgotPasswordForm({
       {success ? (
         <Card>
           <CardHeader>
-            <CardTitle className="text-2xl">Check Your Email</CardTitle>
-            <CardDescription>Password reset instructions sent</CardDescription>
+            <CardTitle className="text-2xl">Zkontroluj e-mail</CardTitle>
+            <CardDescription>Odkaz pro změnu hesla byl odeslán.</CardDescription>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">
-              If you registered using your email and password, you will receive
-              a password reset email.
+              Pokud k tomuto e-mailu existuje účet přihlášený heslem, dorazí na něj
+              odkaz pro nastavení nového hesla.
             </p>
           </CardContent>
         </Card>
       ) : (
         <Card>
           <CardHeader>
-            <CardTitle className="text-2xl">Reset Your Password</CardTitle>
+            <CardTitle className="text-2xl">Zapomenuté heslo</CardTitle>
             <CardDescription>
-              Type in your email and we&apos;ll send you a link to reset your
-              password
+              Zadej e-mail účtu a pošleme ti odkaz pro nastavení nového hesla.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -84,16 +83,16 @@ export function ForgotPasswordForm({
                 </div>
                 {error && <p className="text-sm text-red-500">{error}</p>}
                 <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? "Sending..." : "Send reset email"}
+                  {isLoading ? "Odesílám…" : "Poslat odkaz pro změnu hesla"}
                 </Button>
               </div>
               <div className="mt-4 text-center text-sm">
-                Already have an account?{" "}
+                Zpět na{" "}
                 <Link
                   href="/auth/login"
                   className="underline underline-offset-4"
                 >
-                  Login
+                  přihlášení
                 </Link>
               </div>
             </form>
