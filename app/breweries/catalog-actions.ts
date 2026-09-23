@@ -90,21 +90,27 @@ async function resolveHopIds(
 
 async function resolveBrandId(
   supabase: Awaited<ReturnType<typeof createClient>>,
-  brandName: string
+  brandName: string,
+  breweryId: number,
+  userId: string
 ) {
   const cleanBrandName = brandName.trim();
   if (!cleanBrandName) {
     throw new Error("Značka piva je povinná.");
   }
 
-  const { data: brands, error } = await supabase
-    .from("brands")
-    .select("id, name");
-  if (error) throw new Error(error.message);
+  const { data: links, error: linksError } = await supabase
+    .from("brewery_brands")
+    .select("brand_id, brands ( id, name )")
+    .eq("brewery_id", breweryId);
+  if (linksError) throw new Error(linksError.message);
 
   const query = normalizeText(cleanBrandName);
-  const existing = brands?.find((brand) => normalizeText(brand.name) === query);
-  if (existing) return existing.id;
+  const existing = links?.find((link) => {
+    const brand = Array.isArray(link.brands) ? link.brands[0] : link.brands;
+    return brand && normalizeText(brand.name) === query;
+  });
+  if (existing) return existing.brand_id;
 
   const { data: created, error: createError } = await supabase
     .from("brands")
@@ -114,6 +120,15 @@ async function resolveBrandId(
   if (createError || !created) {
     throw new Error(createError?.message || "Značku se nepodařilo vytvořit.");
   }
+
+  const { error: linkError } = await supabase
+    .from("brewery_brands")
+    .insert({
+      brewery_id: breweryId,
+      brand_id: created.id,
+      created_by: userId,
+    });
+  if (linkError) throw new Error(linkError.message);
 
   return created.id;
 }
@@ -269,7 +284,7 @@ export async function createCatalogBeer(breweryId: number, formData: FormData) {
   const [styleId, hopIds, brandId, collaboratorIds] = await Promise.all([
     resolveStyleId(supabase, values.styleName),
     resolveHopIds(supabase, values.hopNames),
-    resolveBrandId(supabase, values.brandName),
+    resolveBrandId(supabase, values.brandName, breweryId, user.id),
     resolveCollaboratorIds(supabase, breweryId, values.collaboratorNames),
   ]);
 
