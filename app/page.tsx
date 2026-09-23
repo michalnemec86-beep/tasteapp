@@ -515,6 +515,9 @@ export default async function HomePage({
         logo_url,
         brewery_name_history (
           previous_name
+        ),
+        brewery_brands (
+          brands (id, name)
         )
       `)
       .order("name");
@@ -681,6 +684,13 @@ export default async function HomePage({
         .map((item) => item.previous_name)
         .filter(Boolean),
     })) as BreweryRow[];
+
+  const brandsByBrewery = (breweries ?? []).flatMap((brewery) =>
+    (brewery.brewery_brands ?? []).flatMap((link) => {
+      const brand = singleRelation(link.brands);
+      return brand ? [{ breweryId: brewery.id, brand }] : [];
+    })
+  );
 
   const allStyles =
     (styles ??
@@ -1160,6 +1170,7 @@ export default async function HomePage({
             <TastingModal
               beers={allBeers}
               breweries={allBreweries}
+              brandsByBrewery={brandsByBrewery}
               countries={countries ?? []}
               styles={allStyles}
               hops={allHops}

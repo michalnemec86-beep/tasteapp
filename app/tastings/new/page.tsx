@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import TastingForm from "./TastingForm";
 
 import { saveTastingAndRedirect } from "../actions";
+import { fetchAllRows } from "@/lib/fetch-all-rows";
 
 // ==================================================
 // JEDNA RELACE ZE SUPABASE
@@ -63,11 +64,8 @@ export default async function NewTastingPage({
   // PIVA
   // ==================================================
 
-  const {
-    data: beers,
-    error: beersError,
-  } =
-    await supabase
+  const beers = await fetchAllRows((from, to) =>
+    supabase
       .from("beers")
       .select(`
         id,
@@ -98,13 +96,9 @@ export default async function NewTastingPage({
         )
       `)
       .order("is_catalog", { ascending: false })
-      .order("name");
-
-  if (beersError) {
-    throw new Error(
-      beersError.message
-    );
-  }
+      .order("name")
+      .order("id")
+      .range(from, to));
 
   const normalizedBeers =
     (beers ?? []).map(
@@ -150,6 +144,9 @@ export default async function NewTastingPage({
         country,
         brewery_name_history (
           previous_name
+        ),
+        brewery_brands (
+          brands (id, name)
         )
       `)
       .order("name");
@@ -257,6 +254,12 @@ export default async function NewTastingPage({
               .filter(Boolean),
           }))
         }
+        brandsByBrewery={(breweries ?? []).flatMap((brewery) =>
+          (brewery.brewery_brands ?? []).flatMap((link) => {
+            const brand = singleRelation(link.brands);
+            return brand ? [{ breweryId: brewery.id, brand }] : [];
+          })
+        )}
         countries={
           countries ?? []
         }
