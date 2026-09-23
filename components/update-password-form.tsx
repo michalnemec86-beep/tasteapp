@@ -19,21 +19,37 @@ export function UpdatePasswordForm({
   ...props
 }: React.ComponentPropsWithoutRef<"div">) {
   const [password, setPassword] = useState("");
+  const [passwordAgain, setPasswordAgain] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleForgotPassword = async (e: React.FormEvent) => {
+  const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
+
+    if (password.length < 8) {
+      setError("Nové heslo musí mít alespoň 8 znaků.");
+      return;
+    }
+
+    if (password !== passwordAgain) {
+      setError("Zadaná hesla se neshodují.");
+      return;
+    }
+
     const supabase = createClient();
     setIsLoading(true);
-    setError(null);
 
     try {
       const { error } = await supabase.auth.updateUser({ password });
       if (error) throw error;
       window.location.replace("/");
-    } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "An error occurred");
+    } catch (caughtError: unknown) {
+      setError(
+        caughtError instanceof Error
+          ? caughtError.message
+          : "Heslo se nepodařilo změnit."
+      );
     } finally {
       setIsLoading(false);
     }
@@ -43,28 +59,44 @@ export function UpdatePasswordForm({
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl">Reset Your Password</CardTitle>
+          <CardTitle className="text-2xl">Nastavit nové heslo</CardTitle>
           <CardDescription>
-            Please enter your new password below.
+            Zadej nové heslo k účtu Pivník.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleForgotPassword}>
+          <form onSubmit={handleUpdatePassword}>
             <div className="flex flex-col gap-6">
               <div className="grid gap-2">
-                <Label htmlFor="password">New password</Label>
+                <Label htmlFor="password">Nové heslo</Label>
                 <Input
                   id="password"
                   type="password"
-                  placeholder="New password"
+                  placeholder="Alespoň 8 znaků"
                   required
+                  minLength={8}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
               </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="password-again">Nové heslo znovu</Label>
+                <Input
+                  id="password-again"
+                  type="password"
+                  placeholder="Zopakuj nové heslo"
+                  required
+                  minLength={8}
+                  value={passwordAgain}
+                  onChange={(e) => setPasswordAgain(e.target.value)}
+                />
+              </div>
+
               {error && <p className="text-sm text-red-500">{error}</p>}
+
               <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Saving..." : "Save new password"}
+                {isLoading ? "Ukládám…" : "Uložit nové heslo"}
               </Button>
             </div>
           </form>
