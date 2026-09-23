@@ -98,7 +98,8 @@ export default function TastingModalClient({
     useRouter();
 
   // ==================================================
-  // ESC + ZAMKNUTÍ SCROLLOVÁNÍ POZADÍ
+  // ZAMKNUTÍ SCROLLOVÁNÍ POZADÍ
+  // Modal se zavírá jen explicitní akcí: ×, Zrušit nebo Uložit.
   // ==================================================
 
   useEffect(() => {
@@ -112,30 +113,9 @@ export default function TastingModalClient({
     document.body.style.overflow =
       "hidden";
 
-    function handleKeyDown(
-      event: KeyboardEvent
-    ) {
-      if (
-        event.key ===
-        "Escape"
-      ) {
-        setOpen(false);
-      }
-    }
-
-    window.addEventListener(
-      "keydown",
-      handleKeyDown
-    );
-
     return () => {
       document.body.style.overflow =
         previousOverflow;
-
-      window.removeEventListener(
-        "keydown",
-        handleKeyDown
-      );
     };
   }, [open]);
 
@@ -222,14 +202,6 @@ export default function TastingModalClient({
           role="dialog"
           aria-modal="true"
           aria-labelledby="new-tasting-title"
-          onClick={(event) => {
-            if (
-              event.target ===
-              event.currentTarget
-            ) {
-              setOpen(false);
-            }
-          }}
           style={{
             position: "fixed",
             inset: 0,
