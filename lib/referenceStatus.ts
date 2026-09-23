@@ -45,8 +45,6 @@ export function getBreweryReferenceStatus(input: {
   if (!input.isNomadic && !hasText(input.address)) missing.push("adresa");
   if (!hasText(input.website)) missing.push("web");
   if (!hasText(input.logoUrl)) missing.push("logo");
-  if (input.foundedYear == null) missing.push("rok založení");
-
   if (
     isCzechCountry(input.country) &&
     (
