@@ -159,6 +159,7 @@ export default function EditTastingModalClient({
 
   const [beerName, setBeerName] =
     useState(initialBeerName);
+  const [beerOpen, setBeerOpen] = useState(false);
 
   const [
     existingBeerId,
@@ -393,48 +394,32 @@ export default function EditTastingModalClient({
     }
   }
 
-  function selectBeerFromList(
-    value: string
-  ) {
-    handleBeerNameChange(value);
+  const beerQuery = normalizeText(beerName);
+  const beerSuggestions = beerQuery.length >= 3
+    ? beers
+        .filter((beer) =>
+          normalizeText(beer.name).includes(beerQuery) ||
+          normalizeText(beer.brands?.name ?? "").includes(beerQuery)
+        )
+        .sort((a, b) => {
+          const aDirect = normalizeText(a.name).includes(beerQuery);
+          const bDirect = normalizeText(b.name).includes(beerQuery);
+          if (aDirect !== bDirect) return aDirect ? -1 : 1;
+          if (Boolean(a.is_catalog) !== Boolean(b.is_catalog)) {
+            return a.is_catalog ? -1 : 1;
+          }
+          return a.name.localeCompare(b.name, "cs");
+        })
+    : [];
 
-    const exactBeer =
-      beers.find(
-        (beer) =>
-          normalizeText(
-            beer.name
-          ) ===
-          normalizeText(value)
-      );
-
-    if (!exactBeer) {
-      return;
-    }
-
-    setExistingBeerId(
-      String(exactBeer.id)
-    );
-
-    setBeerName(
-      exactBeer.name
-    );
-
-    setBreweryName(
-      exactBeer.breweries?.name ??
-        ""
-    );
-
-    setBrandName(exactBeer.brands?.name ?? "");
-
-    setBreweryCountry(
-      exactBeer.breweries?.country ??
-        ""
-    );
-
-    setStyleName(
-      exactBeer.beer_styles?.name ??
-        ""
-    );
+  function selectBeer(beer: Beer) {
+    setExistingBeerId(String(beer.id));
+    setBeerName(beer.name);
+    setBreweryName(beer.breweries?.name ?? "");
+    setBrandName(beer.brands?.name ?? "");
+    setBreweryCountry(beer.breweries?.country ?? "");
+    setStyleName(beer.beer_styles?.name ?? "");
+    setBeerOpen(false);
   }
 
   async function handleUpdate(
@@ -639,37 +624,67 @@ export default function EditTastingModalClient({
                   Pivo *
                 </label>
 
-                <input
-                  list={
-                    beerName.trim().length >= 3
-                      ? `edit-beers-${tasting.id}`
-                      : undefined
-                  }
-                  name="beerName"
-                  value={beerName}
-                  onChange={(event) =>
-                    selectBeerFromList(
-                      event.target.value
-                    )
-                  }
-                  required
-                  autoComplete="off"
-                  style={inputStyle}
-                />
-
-                <datalist
-                  id={`edit-beers-${tasting.id}`}
-                >
-                  {beers.map((beer) => (
-                    <option
-                      key={beer.id}
-                      value={beer.name}
-                    >
-                      {beer.breweries
-                        ?.name ?? ""}
-                    </option>
-                  ))}
-                </datalist>
+                <div style={{ position: "relative" }}>
+                  <input
+                    name="beerName"
+                    value={beerName}
+                    onChange={(event) => {
+                      handleBeerNameChange(event.target.value);
+                      setBeerOpen(true);
+                    }}
+                    onFocus={() => setBeerOpen(true)}
+                    onBlur={() => setTimeout(() => setBeerOpen(false), 150)}
+                    required
+                    autoComplete="off"
+                    style={inputStyle}
+                  />
+                  {beerOpen && beerSuggestions.length > 0 && (
+                    <div style={{
+                      position: "absolute",
+                      top: "calc(100% + 4px)",
+                      left: 0,
+                      right: 0,
+                      zIndex: 60,
+                      maxHeight: "280px",
+                      overflowY: "auto",
+                      border: "1px solid var(--taste-border-strong)",
+                      borderRadius: "8px",
+                      background: "var(--taste-surface-raised)",
+                      boxShadow: "0 10px 24px rgba(0,0,0,0.35)",
+                    }}>
+                      {beerSuggestions.slice(0, 50).map((beer) => (
+                        <button
+                          key={beer.id}
+                          type="button"
+                          onMouseDown={(event) => event.preventDefault()}
+                          onClick={() => selectBeer(beer)}
+                          style={{
+                            display: "block",
+                            width: "100%",
+                            padding: "9px 12px",
+                            border: 0,
+                            borderBottom: "1px solid var(--taste-border)",
+                            background: "transparent",
+                            color: "var(--taste-text)",
+                            textAlign: "left",
+                            cursor: "pointer",
+                          }}
+                        >
+                          <strong>{beer.name}</strong>
+                          <span style={{ display: "block", marginTop: "3px", color: "var(--taste-text-muted)", fontSize: "11px" }}>
+                            {beer.brands?.name ? `${beer.brands.name} · ` : ""}
+                            {beer.breweries?.name ?? "Neznámý pivovar"}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                {!existingBeerId && beerName.trim() && (
+                  <p style={{ margin: "5px 0 0", color: "var(--taste-text-muted)", fontSize: "11px" }}>
+                    Pro změnu ochutnávky vyber konkrétní pivo z nabídky.
+                  </p>
+                )}
               </div>
 
               <input
