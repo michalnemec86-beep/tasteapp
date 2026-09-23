@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
+import { fetchAllRows } from "@/lib/fetch-all-rows";
 import { buildTasteStats } from "@/lib/stats";
 import { normalizeCountryName } from "@/lib/country-flags";
 import PageHero from "@/components/ui/PageHero";
@@ -55,7 +56,7 @@ export default async function CountryStatsPage({
         )
       `)
       .order("name"),
-    supabase
+    fetchAllRows((from, to) => supabase
       .from("tastings")
       .select(`
         id,
@@ -106,15 +107,12 @@ export default async function CountryStatsPage({
           )
         )
       `)
-      .order("tasted_on", { ascending: false }),
+      .order("id")
+      .range(from, to)),
   ]);
 
   if (breweriesResult.error) {
     throw new Error(breweriesResult.error.message);
-  }
-
-  if (tastingsResult.error) {
-    throw new Error(tastingsResult.error.message);
   }
 
   const countryBreweries = (breweriesResult.data ?? []).filter(
@@ -122,7 +120,7 @@ export default async function CountryStatsPage({
       normalizeCountryName(brewery.country ?? "") === normalizedCountry
   );
 
-  const allTastings = (tastingsResult.data ?? []).map((tasting) => {
+  const allTastings = tastingsResult.map((tasting) => {
     const beer = singleRelation(tasting.beers);
     const beerVersion = singleRelation(tasting.beer_versions);
 

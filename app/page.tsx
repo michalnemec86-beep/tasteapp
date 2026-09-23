@@ -31,6 +31,8 @@ import BreweryOfDayCard from "@/components/home/BreweryOfDayCard";
 import PageHero from "@/components/ui/PageHero";
 import AppIcon from "@/components/ui/AppIcon";
 import { getCzechVocative } from "@/lib/czech-vocative";
+import { fetchAllRows } from "@/lib/fetch-all-rows";
+import { parsePositivePage } from "@/lib/pagination";
 
 import {
   updateTastingInModal,
@@ -127,9 +129,6 @@ type TastingBeerRow = {
       }[]
     | null;
 
-  beer_versions?:
-    | { id: number }[]
-    | null;
 };
 
 type TastingRow = {
@@ -287,7 +286,17 @@ function getPragueDateKey(
 // HOMEPAGE
 // ==================================================
 
-export default async function HomePage() {
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ timelinePage?: string | string[] }>;
+}) {
+  const timelinePage = Math.min(
+    parsePositivePage((await searchParams).timelinePage),
+    1000
+  );
+  const timelinePageSize = 30;
+  const timelineFetchLimit = timelinePage * timelinePageSize + 1;
   const supabase =
     await createClient();
 
@@ -316,7 +325,7 @@ export default async function HomePage() {
         "display_name"
       );
 
-  const tastingsPromise =
+  const tastingsPromise = fetchAllRows((from, to) =>
     supabase
       .from("tastings")
       .select(`
@@ -368,9 +377,6 @@ export default async function HomePage() {
             id,
             name
           ),
-          beer_versions (
-            id
-          ),
           breweries (
             id,
             name,
@@ -400,9 +406,29 @@ export default async function HomePage() {
         {
           ascending: false,
         }
-      );
+      )
+      .order("id", { ascending: false })
+      .eq("show_in_timeline", true)
+      .range(from, to), 500, timelineFetchLimit);
 
-  const achievementsPromise =
+  const statsTastingsPromise = fetchAllRows((from, to) =>
+    supabase.from("tastings").select(`
+      id, user_id, quantity, packaging,
+      beer_versions (
+        breweries (id, name, country, logo_url),
+        beer_styles (id, name),
+        beer_version_hops (hops (id, name))
+      ),
+      beers (
+        id, name, brands (id, name),
+        breweries (id, name, country, logo_url),
+        beer_styles (id, name),
+        beer_hops (hops (id, name))
+      )
+    `).order("id").range(from, to)
+  );
+
+  const achievementsPromise = fetchAllRows((from, to) =>
     supabase
       .from(
         "user_achievements"
@@ -423,9 +449,11 @@ export default async function HomePage() {
         {
           ascending: false,
         }
-      );
+      )
+      .order("id", { ascending: false })
+      .range(from, to), 500, timelineFetchLimit);
 
-  const catalogEventsPromise = supabase
+  const catalogEventsPromise = fetchAllRows((from, to) => supabase
     .from("catalog_events")
     .select(`
       id, actor_user_id, event_type, created_at,
@@ -437,9 +465,10 @@ export default async function HomePage() {
     .eq("show_in_timeline", true)
     .neq("event_type", "beer_confirmed")
     .order("created_at", { ascending: false })
-    .limit(60);
+    .order("id", { ascending: false })
+    .range(from, to), 500, timelineFetchLimit);
 
-  const beersPromise =
+  const beersPromise = fetchAllRows((from, to) =>
     supabase
       .from("beers")
       .select(`
@@ -472,7 +501,9 @@ export default async function HomePage() {
         )
       `)
       .order("is_catalog", { ascending: false })
-      .order("name");
+      .order("name")
+      .order("id")
+      .range(from, to));
 
   const breweriesPromise =
     supabase
@@ -515,6 +546,7 @@ export default async function HomePage() {
   const [
     profilesResult,
     tastingsResult,
+    statsTastings,
     achievementsResult,
     catalogEventsResult,
     beersResult,
@@ -526,6 +558,7 @@ export default async function HomePage() {
     await Promise.all([
       profilesPromise,
       tastingsPromise,
+      statsTastingsPromise,
       achievementsPromise,
       catalogEventsPromise,
       beersPromise,
@@ -541,25 +574,11 @@ export default async function HomePage() {
   } =
     profilesResult;
 
-  const {
-    data: tastings,
-    error: tastingsError,
-  } =
-    tastingsResult;
+  const tastings = tastingsResult;
+  const achievements = achievementsResult;
+  const catalogEvents = catalogEventsResult;
 
-  const {
-    data: achievements,
-    error: achievementsError,
-  } =
-    achievementsResult;
-
-  const { data: catalogEvents, error: catalogEventsError } = catalogEventsResult;
-
-  const {
-    data: beers,
-    error: beersError,
-  } =
-    beersResult;
+  const beers = beersResult;
 
   const {
     data: breweries,
@@ -591,26 +610,6 @@ export default async function HomePage() {
     );
   }
 
-  if (tastingsError) {
-    throw new Error(
-      tastingsError.message
-    );
-  }
-
-  if (achievementsError) {
-    throw new Error(
-      achievementsError.message
-    );
-  }
-
-  if (catalogEventsError) throw new Error(catalogEventsError.message);
-
-  if (beersError) {
-    throw new Error(
-      beersError.message
-    );
-  }
-
   if (breweriesError) {
     throw new Error(
       breweriesError.message
@@ -639,10 +638,8 @@ export default async function HomePage() {
     (profiles ??
       []) as ProfileRow[];
 
-  const allTastings =
-    (tastings ??
-      []) as unknown as
-      TastingRow[];
+  const timelineTastings = (tastings ?? []) as unknown as TastingRow[];
+  const allTastings = statsTastings as unknown as TastingRow[];
 
   const allAchievements =
     (achievements ??
@@ -913,11 +910,7 @@ export default async function HomePage() {
 
   const timeline:
     TimelineEvent[] = [
-    ...allTastings
-      .filter(
-        (tasting) =>
-          tasting.show_in_timeline
-      )
+    ...timelineTastings
       .map(
         (tasting) => ({
           type:
@@ -959,11 +952,11 @@ export default async function HomePage() {
       a.sortAt
   );
 
-  const visibleTimeline =
-    timeline.slice(
-      0,
-      30
-    );
+  const visibleTimeline = timeline.slice(
+    (timelinePage - 1) * timelinePageSize,
+    timelinePage * timelinePageSize
+  );
+  const hasOlderTimeline = timeline.length > timelinePage * timelinePageSize;
 
   const timelineUserAccents =
     buildTimelineUserAccentMap(
@@ -1154,7 +1147,7 @@ export default async function HomePage() {
             TIMELINE
         ================================================== */}
 
-        <section className="order-1 xl:order-2 xl:col-span-6">
+        <section id="timeline" className="order-1 xl:order-2 xl:col-span-6">
 
           <div
             className="taste-label"
@@ -1309,6 +1302,18 @@ export default async function HomePage() {
               }
             )}
           </div>
+          <nav aria-label="Stránkování časové osy" className="flex items-center justify-between gap-4 pt-5">
+            {timelinePage > 1 ? (
+              <Link href={`/?timelinePage=${timelinePage - 1}#timeline`} className="taste-button-secondary">
+                ← Novější příspěvky
+              </Link>
+            ) : <span />}
+            {hasOlderTimeline && (
+              <Link href={`/?timelinePage=${timelinePage + 1}#timeline`} className="taste-button-secondary">
+                Starší příspěvky →
+              </Link>
+            )}
+          </nav>
         </section>
 
         {/* PRAVÁ STRANA */}
@@ -1582,23 +1587,6 @@ function TastingTimelineCard({
         Boolean(item)
     );
 
-  const showVersionYear =
-    (
-      tasting.beers
-        ?.beer_versions
-        ?.length ?? 0
-    ) > 1;
-
-  const versionYear =
-    tasting.beer_versions
-      ?.version_year ??
-    Number(
-      tasting.tasted_on.slice(
-        0,
-        4
-      )
-    );
-
   const versionHops =
     tasting.beer_versions
       ?.beer_version_hops
@@ -1668,10 +1656,6 @@ function TastingTimelineCard({
       : null,
     quantity > 1
       ? `${quantity}×`
-      : null,
-    showVersionYear &&
-      versionYear
-      ? `Verze ${versionYear}`
       : null,
   ].filter(
     (

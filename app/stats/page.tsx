@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
+import { fetchAllRows } from "@/lib/fetch-all-rows";
 import {
   buildTasteStats,
   type RankingItem,
@@ -96,7 +97,7 @@ export default async function StatsPage({
         .from("profiles")
         .select("id, display_name, avatar_url")
         .order("display_name"),
-      supabase
+      fetchAllRows((from, to) => supabase
         .from("tastings")
         .select(`
           id,
@@ -148,29 +149,18 @@ export default async function StatsPage({
             )
           )
         `)
-        .order("tasted_on", {
-          ascending: false,
-        })
-        .order("tasted_at", {
-          ascending: false,
-        }),
+        .order("id")
+        .range(from, to)),
     ]);
 
   const {
     data: profiles,
     error: profilesError,
   } = profilesResult;
-  const {
-    data: tastings,
-    error: tastingsError,
-  } = tastingsResult;
+  const tastings = tastingsResult;
 
   if (profilesError) {
     throw new Error(profilesError.message);
-  }
-
-  if (tastingsError) {
-    throw new Error(tastingsError.message);
   }
 
   const allProfiles = profiles ?? [];

@@ -8,6 +8,7 @@ import {
 import {
   createClient,
 } from "@/lib/supabase/server";
+import { fetchAllRows } from "@/lib/fetch-all-rows";
 
 import {
   getPackagingMeta,
@@ -176,7 +177,7 @@ export default async function ProfilePage({
   // DATA
   // ==================================================
 
-  const tastingsPromise =
+  const tastingsPromise = fetchAllRows((from, to) =>
     supabase
       .from("tastings")
       .select(`
@@ -245,20 +246,11 @@ export default async function ProfilePage({
           )
         )
       `)
-      .order(
-        "tasted_on",
-        {
-          ascending: false,
-        }
-      )
-      .order(
-        "tasted_at",
-        {
-          ascending: false,
-        }
-      );
+      .eq("user_id", id)
+      .order("id")
+      .range(from, to));
 
-  const beersPromise =
+  const beersPromise = fetchAllRows((from, to) =>
     supabase
       .from("beers")
       .select(`
@@ -283,7 +275,9 @@ export default async function ProfilePage({
         )
       `)
       .order("is_catalog", { ascending: false })
-      .order("name");
+      .order("name")
+      .order("id")
+      .range(from, to));
 
   const breweriesPromise =
     supabase
@@ -334,15 +328,8 @@ export default async function ProfilePage({
       hopsPromise,
     ]);
 
-  const {
-    data: tastings,
-    error: tastingsError,
-  } = tastingsResult;
-
-  const {
-    data: beers,
-    error: beersError,
-  } = beersResult;
+  const tastings = tastingsResult;
+  const beers = beersResult;
 
   const {
     data: breweries,
@@ -363,18 +350,6 @@ export default async function ProfilePage({
     data: hops,
     error: hopsError,
   } = hopsResult;
-
-  if (tastingsError) {
-    throw new Error(
-      tastingsError.message
-    );
-  }
-
-  if (beersError) {
-    throw new Error(
-      beersError.message
-    );
-  }
 
   if (breweriesError) {
     throw new Error(
@@ -503,11 +478,7 @@ export default async function ProfilePage({
       }
     );
 
-  const allTastings =
-    globalTastings.filter(
-      (tasting) =>
-        tasting.user_id === id
-    );
+  const allTastings = globalTastings;
 
   const normalizedBeers =
     (beers ?? []).map(

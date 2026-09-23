@@ -19,11 +19,16 @@ import type {
 import countries from "i18n-iso-countries";
 import csLocale from "i18n-iso-countries/langs/cs.json";
 
+let regionCodeByName = new Map<string, string>();
+
 const WorldMap = dynamic(
   () =>
-    import("react-svg-worldmap").then(
-      (module) => module.default
-    ),
+    import("react-svg-worldmap").then((module) => {
+      regionCodeByName = new Map(
+        module.regions.map((region) => [region.name, region.code.toUpperCase()])
+      );
+      return module.default;
+    }),
   { ssr: false }
 );
 
@@ -199,6 +204,7 @@ export default function BeerWorldMap({
   const [mapZoom, setMapZoom] = useState(1);
   const [mapPan, setMapPan] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
+  const [hoveredCountry, setHoveredCountry] = useState<string | null>(null);
 
   const dragRef = useRef<{
     pointerId: number;
@@ -232,8 +238,6 @@ export default function BeerWorldMap({
       return;
     }
 
-    event.currentTarget.setPointerCapture(event.pointerId);
-
     dragRef.current = {
       pointerId: event.pointerId,
       startX: event.clientX,
@@ -242,7 +246,6 @@ export default function BeerWorldMap({
       originY: mapPan.y,
     };
 
-    setIsDragging(true);
   }
 
   function handleMapPointerMove(
@@ -259,12 +262,18 @@ export default function BeerWorldMap({
 
     if (Math.abs(deltaX) + Math.abs(deltaY) > 6) {
       didDragRef.current = true;
+      if (!event.currentTarget.hasPointerCapture(event.pointerId)) {
+        event.currentTarget.setPointerCapture(event.pointerId);
+      }
+      setIsDragging(true);
     }
 
-    setMapPan({
-      x: drag.originX + deltaX,
-      y: drag.originY + deltaY,
-    });
+    if (didDragRef.current) {
+      setMapPan({
+        x: drag.originX + deltaX,
+        y: drag.originY + deltaY,
+      });
+    }
   }
 
   function handleMapPointerUp(
@@ -375,6 +384,16 @@ export default function BeerWorldMap({
     mappedCountries.map((item) => [item.code, item.count])
   );
 
+  function showCountryOnHover(target: EventTarget) {
+    if (!(target instanceof Element) || target.tagName.toLowerCase() !== "path") return;
+    const regionName = target.getAttribute("aria-label");
+    const code = regionName ? regionCodeByName.get(regionName) : null;
+    if (!code) return;
+    const name = nameByCode.get(code) ?? regionName;
+    const count = countByCode.get(code);
+    setHoveredCountry(count ? `${name}: ${count}×` : name);
+  }
+
   function styleCountry({
     countryValue,
   }: CountryContext<string | number>): CSSProperties {
@@ -406,31 +425,13 @@ export default function BeerWorldMap({
     };
   }
 
-  function tooltipText({
-    countryCode,
-    countryName,
-    countryValue,
-  }: CountryContext<string | number>) {
-    const code = String(countryCode).toUpperCase();
-    const czechName = nameByCode.get(code) ?? countryName;
-    const value =
-      countByCode.get(code) ??
-      (typeof countryValue === "number"
-        ? countryValue
-        : Number(countryValue));
-
-    if (!Number.isFinite(value) || value <= 0) {
-      return czechName;
-    }
-
-    return `${czechName}: ${value}× · kliknutím otevřít`;
-  }
-
   function handleCountryClick({
     countryCode,
     countryName,
     countryValue,
-  }: CountryContext<string | number>) {
+    event,
+  }: CountryContext<string | number> & { event: React.MouseEvent<SVGElement, Event> }) {
+    event.preventDefault();
     if (didDragRef.current) {
       didDragRef.current = false;
       return;
@@ -463,6 +464,19 @@ export default function BeerWorldMap({
     router.push(
       `/stats/country/${encodeURIComponent(czechName)}`
     );
+  }
+
+  function getCountryHref({
+    countryCode,
+    countryName,
+    countryValue,
+  }: CountryContext<string | number>) {
+    const value = Number(countryValue);
+    if (!Number.isFinite(value) || value <= 0) return undefined;
+    const name = nameByCode.get(String(countryCode).toUpperCase()) ?? countryName;
+    return statsContextUserId && lockStatsContext
+      ? `/stats?user=${encodeURIComponent(statsContextUserId)}&locked=1&country=${encodeURIComponent(name)}`
+      : `/stats/country/${encodeURIComponent(name)}`;
   }
 
   return (
@@ -616,6 +630,10 @@ export default function BeerWorldMap({
             onPointerMove={handleMapPointerMove}
             onPointerUp={handleMapPointerUp}
             onPointerCancel={handleMapPointerUp}
+            onMouseOverCapture={(event) => showCountryOnHover(event.target)}
+            onFocusCapture={(event) => showCountryOnHover(event.target)}
+            onMouseLeave={() => setHoveredCountry(null)}
+            onBlurCapture={() => setHoveredCountry(null)}
             style={{
               display: "flex",
               justifyContent: "center",
@@ -649,10 +667,10 @@ export default function BeerWorldMap({
               borderColor="#4b4439"
               frame={false}
               richInteraction={false}
-              tooltipBgColor="#17130d"
-              tooltipTextColor="#f2ede3"
+              regionClassName="taste-map-country"
               styleFunction={styleCountry}
-              tooltipTextFunction={tooltipText}
+              tooltipTextFunction={() => ""}
+              hrefFunction={getCountryHref}
               onClickFunction={handleCountryClick}
             />
           </div>
@@ -666,6 +684,22 @@ export default function BeerWorldMap({
             }}
           >
             Pro tento výběr zatím není co zakreslit.
+          </div>
+        )}
+        {hoveredCountry && (
+          <div
+            className="taste-world-map-hover-name"
+            aria-live="polite"
+            style={{
+              position: "absolute",
+              bottom: "8px",
+              left: "8px",
+              color: "var(--taste-text-muted)",
+              fontSize: "12px",
+              pointerEvents: "none",
+            }}
+          >
+            {hoveredCountry}
           </div>
         )}
       </div>
