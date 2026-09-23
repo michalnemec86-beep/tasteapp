@@ -5,6 +5,7 @@ import AppNav from "./AppNav";
 import AuthSessionSync from "./AuthSessionSync";
 import BreweryListStatePersistence from "./BreweryListStatePersistence";
 import PivnikLaunchScreen from "./PivnikLaunchScreen";
+import { createClient } from "@/lib/supabase/server";
 
 import "leaflet/dist/leaflet.css";
 import "./globals.css";
@@ -79,12 +80,17 @@ const geistSans =
       ["latin"],
   });
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children:
     React.ReactNode;
 }>) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   return (
     <html lang="cs">
       <body
@@ -93,7 +99,7 @@ export default function RootLayout({
         <PivnikLaunchScreen />
         <AuthSessionSync />
         <BreweryListStatePersistence />
-        <AppNav />
+        <AppNav currentUserId={user?.id ?? null} />
 
         {children}
       </body>
