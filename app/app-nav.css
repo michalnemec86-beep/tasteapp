@@ -14,6 +14,29 @@
   display: none;
 }
 
+.taste-settings-link {
+  width: 39px;
+  height: 39px;
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(231,166,47,0.28);
+  border-radius: 10px;
+  background: rgba(231,166,47,0.035);
+  color: var(--taste-text-soft);
+  text-decoration: none;
+}
+
+.taste-settings-link:hover,
+.taste-settings-link:focus-visible,
+.taste-settings-link[aria-current="page"] {
+  border-color: rgba(245,184,63,0.52);
+  background: rgba(231,166,47,0.14);
+  color: var(--taste-amber-bright);
+  outline: none;
+}
+
 @media (max-width: 760px) {
   .taste-nav-desktop {
     display: none !important;
@@ -132,6 +155,11 @@
     text-decoration: none;
     font-size: 12px;
     font-weight: 700;
+  }
+
+  .taste-settings-link {
+    width: 40px;
+    height: 40px;
   }
 
   .taste-mobile-menu-logout {

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { HopMark } from "@/components/brand/PivnikMark";
+import { Settings } from "lucide-react";
 
 export default function AppNav({
   currentUserId,
@@ -144,6 +145,16 @@ export default function AppNav({
           Můj pivní deník
         </Link>
 
+        <Link
+          href="/settings"
+          className="taste-settings-link"
+          aria-label="Nastavení profilu"
+          title="Nastavení profilu"
+          aria-current={isActive("/settings") ? "page" : undefined}
+        >
+          <Settings size={19} aria-hidden="true" />
+        </Link>
+
         <button
           type="button"
           onClick={handleLogout}
@@ -186,6 +197,15 @@ export default function AppNav({
             <span className="taste-mobile-profile-full">Můj pivní deník</span>
             <span className="taste-mobile-profile-compact">Deník</span>
           </Link>
+          <Link
+            href="/settings"
+            className="taste-settings-link"
+            aria-label="Nastavení profilu"
+            title="Nastavení profilu"
+            aria-current={isActive("/settings") ? "page" : undefined}
+          >
+            <Settings size={20} aria-hidden="true" />
+          </Link>
           <button
             type="button"
             className="taste-mobile-menu-button"
@@ -206,6 +226,7 @@ export default function AppNav({
           <MobileNavLink href="/breweries" active={isActive("/breweries")}>Pivovary</MobileNavLink>
           <MobileNavLink href="/profiles" active={isActive("/profiles")}>Štamgasti</MobileNavLink>
           <MobileNavLink href="/me" active={isActive("/me")}>Můj pivní deník</MobileNavLink>
+          <MobileNavLink href="/settings" active={isActive("/settings")}>Nastavení</MobileNavLink>
           <button type="button" onClick={handleLogout} className="taste-mobile-menu-logout">
             Odhlásit
           </button>

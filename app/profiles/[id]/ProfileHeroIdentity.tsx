@@ -1,9 +1,5 @@
 import Link from "next/link";
 
-import {
-  updateOwnRealName,
-} from "../actions";
-
 type ProfileHeroIdentityProps = {
   displayName: string;
   realName:
@@ -201,100 +197,6 @@ export default function ProfileHeroIdentity({
           </div>
         </div>
       </div>
-
-      {isMe && (
-        <details
-          open
-          style={{
-            padding: "10px 12px",
-            border:
-              "1px solid rgba(242,182,63,0.20)",
-            borderRadius: "12px",
-            background:
-              "rgba(43,27,16,0.72)",
-          }}
-        >
-          <summary
-            style={{
-              cursor: "pointer",
-              color:
-                "var(--taste-text)",
-              fontSize: "10px",
-              fontWeight: 800,
-            }}
-          >
-            Osobní údaje
-          </summary>
-
-          <div
-            style={{
-              marginTop: "9px",
-              color: "var(--taste-text-muted)",
-              fontSize: "9px",
-              lineHeight: 1.45,
-            }}
-          >
-            Nick <strong style={{ color: "var(--taste-text)" }}>{displayName}</strong> je trvalý
-            a nelze ho měnit. Níže můžeš doplnit vlastní jméno, které se zobrazí pod nickem.
-          </div>
-
-          <form
-            action={
-              updateOwnRealName
-            }
-            style={{
-              display: "grid",
-              gap: "7px",
-              marginTop: "10px",
-            }}
-          >
-            <input
-              type="text"
-              name="real_name"
-              defaultValue={
-                realName ?? ""
-              }
-              maxLength={60}
-              placeholder="Např. Petr"
-              style={{
-                width: "100%",
-                minWidth: 0,
-                padding: "9px 10px",
-                border:
-                  "1px solid rgba(242,182,63,0.25)",
-                borderRadius: "9px",
-                outline: "none",
-                color:
-                  "var(--taste-text)",
-                background:
-                  "rgba(15,10,7,0.72)",
-                fontSize: "11px",
-              }}
-            />
-
-            <button
-              type="submit"
-              className="taste-button-primary"
-              style={{
-                fontSize: "10px",
-              }}
-            >
-              Uložit vlastní jméno
-            </button>
-
-            <div
-              style={{
-                color:
-                  "var(--taste-text-muted)",
-                fontSize: "8px",
-                lineHeight: 1.4,
-              }}
-            >
-              Nepovinné. Prázdné pole osobní jméno odstraní.
-            </div>
-          </form>
-        </details>
-      )}
 
       <div
         style={{
