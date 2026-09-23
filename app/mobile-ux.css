@@ -274,21 +274,12 @@
     display: block !important;
   }
 
-  .taste-brewery-world-map .taste-world-map-eyebrow {
-    margin-bottom: 4px !important;
+  .taste-brewery-world-map .taste-world-map-title {
     color: var(--taste-text) !important;
     font-size: 20px !important;
-    line-height: 1.05 !important;
+    line-height: 1.1 !important;
     font-weight: 800 !important;
     letter-spacing: -0.025em !important;
-  }
-
-  .taste-brewery-world-map .taste-world-map-title {
-    color: var(--taste-text-muted) !important;
-    font-size: 11px !important;
-    line-height: 1.25 !important;
-    font-weight: 600 !important;
-    letter-spacing: 0 !important;
   }
 
   .taste-brewery-world-map .taste-world-map-count {

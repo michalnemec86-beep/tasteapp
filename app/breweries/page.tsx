@@ -825,7 +825,6 @@ export default async function BreweriesPage({
               <div style={{ marginBottom: "30px" }}>
                 <BeerWorldMap
                   items={breweryCountryItems}
-                  eyebrow="Pivovarský svět"
                   title="Mapa evidovaných pivovarů"
                   countLabel="států s pivovary"
                   focusEurope

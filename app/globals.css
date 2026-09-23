@@ -497,6 +497,31 @@
       uppercase;
   }
 
+  /* Decorative overlines above section titles add a duplicate heading. */
+  .taste-label:has(+ :is(h1, h2, h3)) {
+    display: none;
+  }
+
+  .taste-stats-hero-links {
+    display: flex;
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 9px;
+    justify-content: center;
+  }
+
+  .taste-stats-hero-links a {
+    min-width: 105px;
+    min-height: 40px;
+    font-size: 13px;
+    font-weight: 750;
+  }
+
+  .taste-stats-hero-links a[aria-current="page"] {
+    border-color: var(--taste-amber-bright);
+    background: rgba(245,184,63,0.23);
+  }
+
   .taste-muted {
     color:
       var(--taste-text-muted);

@@ -55,12 +55,6 @@ export default function ProfileBreweriesCard({
   const maxCount =
     winner?.count ?? 1;
 
-  const total =
-    items.reduce(
-      (sum, item) =>
-        sum + item.count,
-      0
-    );
 
   return (
     <section
@@ -120,200 +114,16 @@ export default function ProfileBreweriesCard({
 
       {winner ? (
         <article
-          className="
-            grid
-            grid-cols-1
-            gap-4
-            lg:grid-cols-[280px_minmax(0,1fr)]
-          "
           style={{
-            padding:
-              "20px",
-            border:
-              "1px solid rgba(225,126,48,0.40)",
-            borderRadius:
-              "var(--taste-radius-lg)",
-            background: `
-              radial-gradient(
-                circle at 8% 10%,
-                rgba(242,182,63,0.17),
-                transparent 17rem
-              ),
-              radial-gradient(
-                circle at 90% 80%,
-                rgba(196,81,61,0.08),
-                transparent 20rem
-              ),
-              linear-gradient(
-                145deg,
-                rgba(225,126,48,0.07),
-                transparent 68%
-              ),
-              var(--taste-surface)
-            `,
-            boxShadow:
-              "inset 0 1px 0 rgba(255,235,200,0.035)",
+            display: "grid",
+            gap: "10px",
+            padding: "20px",
+            border: "1px solid rgba(225,126,48,0.40)",
+            borderRadius: "var(--taste-radius-lg)",
+            background: "var(--taste-surface)",
+            boxShadow: "inset 0 1px 0 rgba(255,235,200,0.035)",
           }}
         >
-          <div
-            style={{
-              display:
-                "flex",
-              flexDirection:
-                "column",
-              justifyContent:
-                "space-between",
-              minHeight:
-                "250px",
-              padding:
-                "18px",
-              border:
-                "1px solid rgba(242,182,63,0.48)",
-              borderRadius:
-                "15px",
-              background: `
-                radial-gradient(
-                  circle at 20% 10%,
-                  rgba(242,182,63,0.18),
-                  transparent 11rem
-                ),
-                linear-gradient(
-                  145deg,
-                  rgba(232,136,53,0.13),
-                  rgba(196,81,61,0.04)
-                ),
-                rgba(18,12,8,0.48)
-              `,
-              boxShadow:
-                "0 0 24px rgba(232,136,53,0.08)",
-            }}
-          >
-            <div>
-              <div
-                style={{
-                  display:
-                    "flex",
-                  alignItems:
-                    "center",
-                  justifyContent:
-                    "space-between",
-                  gap:
-                    "10px",
-                }}
-              >
-                <div
-                  style={{
-                    color:
-                      "#f2b63f",
-                    fontSize:
-                      "9px",
-                    fontWeight:
-                      850,
-                    letterSpacing:
-                      "0.08em",
-                    textTransform:
-                      "uppercase",
-                  }}
-                >
-                  Pivovar č. 1
-                </div>
-
-                <div
-                  style={{
-                    color:
-                      "rgba(242,182,63,0.50)",
-                    fontSize:
-                      "30px",
-                    lineHeight:
-                      1,
-                    fontWeight:
-                      900,
-                  }}
-                >
-                  01
-                </div>
-              </div>
-
-              <Link
-                href={`/stats?user=${profileId}&locked=1&brewery=${winner.id}`}
-                style={{
-                  display:
-                    "inline-block",
-                  marginTop:
-                    "18px",
-                  color:
-                    "var(--taste-text)",
-                  fontSize:
-                    "25px",
-                  lineHeight:
-                    1.08,
-                  fontWeight:
-                    900,
-                  letterSpacing:
-                    "-0.04em",
-                  textDecoration:
-                    "none",
-                }}
-              >
-                {winner.name}
-              </Link>
-            </div>
-
-            <div>
-              <div
-                style={{
-                  color:
-                    "#f2b63f",
-                  fontSize:
-                    "34px",
-                  lineHeight:
-                    1,
-                  fontWeight:
-                    900,
-                  letterSpacing:
-                    "-0.05em",
-                }}
-              >
-                {winner.count}
-              </div>
-
-              <div
-                style={{
-                  marginTop:
-                    "5px",
-                  color:
-                    "var(--taste-text-muted)",
-                  fontSize:
-                    "10px",
-                }}
-              >
-                {total > 0
-                  ? `${(
-                      (winner.count /
-                        total) *
-                      100
-                    ).toLocaleString(
-                      "cs-CZ",
-                      {
-                        maximumFractionDigits:
-                          1,
-                      }
-                    )} % všech započítaných piv`
-                  : "Zatím bez dat"}
-              </div>
-            </div>
-          </div>
-
-          <div
-            style={{
-              display:
-                "grid",
-              alignContent:
-                "center",
-              gap:
-                "10px",
-            }}
-          >
             {visibleItems.map(
               (
                 item,
@@ -458,7 +268,6 @@ export default function ProfileBreweriesCard({
                 );
               }
             )}
-          </div>
         </article>
       ) : (
         <div

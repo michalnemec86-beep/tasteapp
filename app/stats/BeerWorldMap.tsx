@@ -37,7 +37,6 @@ type CountryRankingItem = {
 
 type BeerWorldMapProps = {
   items: CountryRankingItem[];
-  eyebrow?: string;
   title?: string;
   countLabel?: string;
   focusEurope?: boolean;
@@ -184,7 +183,6 @@ function getCountryShade(value: number) {
 
 export default function BeerWorldMap({
   items,
-  eyebrow = "Pivní svět",
   title = "Mapa ochutnaných zemí",
   countLabel = "ochutnaných zemí",
   focusEurope = false,
@@ -506,12 +504,6 @@ export default function BeerWorldMap({
         }}
       >
         <div>
-          <div
-            className="taste-label taste-world-map-eyebrow"
-            style={{ marginBottom: "5px" }}
-          >
-            {eyebrow}
-          </div>
           <h2
             className="taste-world-map-title"
             style={{

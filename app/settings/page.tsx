@@ -25,7 +25,6 @@ export default async function SettingsPage() {
   return (
     <main className="taste-settings-page">
       <div className="taste-settings-heading">
-        <span className="taste-settings-eyebrow">Můj účet</span>
         <h1>Nastavení</h1>
       </div>
       <AccountSettings

@@ -53,7 +53,7 @@ export default function ProfileWorldCard({
   profileId,
 }: ProfileWorldCardProps) {
   const topCountries =
-    items.slice(0, 5);
+    items.slice(0, 10);
 
   const total =
     items.reduce(
@@ -137,7 +137,6 @@ export default function ProfileWorldCard({
         >
           <BeerWorldMap
             items={items}
-            eyebrow="Osobní mapa"
             title="Mapa pivního původu"
             countLabel="zemí v profilu"
             statsContextUserId={profileId}
@@ -187,25 +186,6 @@ export default function ProfileWorldCard({
             <div>
               <div
                 style={{
-                  color:
-                    "#d65b3e",
-                  fontSize:
-                    "9px",
-                  fontWeight:
-                    850,
-                  letterSpacing:
-                    "0.075em",
-                  textTransform:
-                    "uppercase",
-                }}
-              >
-                TOP země
-              </div>
-
-              <div
-                style={{
-                  marginTop:
-                    "4px",
                   color:
                     "var(--taste-text)",
                   fontSize:

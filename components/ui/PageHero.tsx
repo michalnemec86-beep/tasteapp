@@ -217,13 +217,6 @@ export default function PageHero({
         )}
 
         <div className="taste-page-hero-copy relative z-[2] flex flex-col justify-center px-6 py-7 lg:px-8 lg:py-6">
-          <div
-            className="taste-label"
-            style={{ marginBottom: "6px" }}
-          >
-            {eyebrow}
-          </div>
-
           <h1
             className={
               isBreweryDetailHero

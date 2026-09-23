@@ -120,24 +120,6 @@ export default function ProfileHeroIdentity({
             <div
               style={{
                 color:
-                  "#f2b63f",
-                fontSize: "8px",
-                fontWeight: 900,
-                letterSpacing:
-                  "0.09em",
-                textTransform:
-                  "uppercase",
-              }}
-            >
-              {isMe
-                ? "Můj pivní deník"
-                : "Pivní cestovatel"}
-            </div>
-
-            <div
-              style={{
-                marginTop: "3px",
-                color:
                   "var(--taste-text)",
                 fontSize: "16px",
                 lineHeight: 1.15,

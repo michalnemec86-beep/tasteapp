@@ -240,10 +240,9 @@ export default async function StatsPage({
     requestedLocked === "1" && Boolean(selectedProfile);
   const comparisonLabel = selectedUserId ? "celkem" : "moje";
 
-  const selectedFocus =
-    selectedProfile && isStatsFocus(requestedFocus)
-      ? requestedFocus
-      : undefined;
+  const selectedFocus = isStatsFocus(requestedFocus)
+    ? requestedFocus
+    : undefined;
 
   const currentYear = new Date().getFullYear();
   const requestedYearNumber = requestedYear
@@ -654,26 +653,29 @@ export default async function StatsPage({
             ? `${focusedView.title} · ${selectedProfile.display_name}`
             : selectedProfile
               ? `Statistiky · ${selectedProfile.display_name}`
-              : "Co a jak pijeme"
+              : focusedView
+                ? focusedView.title
+                : "Co a jak pijeme"
         }
         subtitle={
           focusedView && selectedProfile
             ? `Pouze ${focusedView.title.toLowerCase()} z ochutnávek uživatele ${selectedProfile.display_name}.`
             : selectedProfile
               ? `Statistiky jsou omezené na uživatele ${selectedProfile.display_name}; srovnání v závorkách ukazuje celková data hospody.`
-              : "Společné statistiky všech lidí v hospodě; v závorkách je stejný výběr z tvé evidence."
+              : focusedView
+                ? `${focusedView.subtitle}. V závorkách je stejný výběr z tvé evidence.`
+                : "Společné statistiky všech lidí v hospodě; v závorkách je stejný výběr z tvé evidence."
         }
-        action={
-          selectedProfile && (focusedView || isLockedContext) ? (
-            <Link
-              href={`/profiles/${selectedProfile.id}`}
-              className="taste-button-secondary taste-focused-stats-profile-link"
-              style={{ fontSize: "12px", fontWeight: 650 }}
-            >
-              ← Profil
+        action={!selectedProfile ? (
+          <div className="taste-stats-hero-links">
+            <Link href="/stats?focus=hops" className="taste-button-secondary" aria-current={selectedFocus === "hops" ? "page" : undefined}>
+              Chmely
             </Link>
-          ) : undefined
-        }
+            <Link href="/stats?focus=styles" className="taste-button-secondary" aria-current={selectedFocus === "styles" ? "page" : undefined}>
+              Pivní styly
+            </Link>
+          </div>
+        ) : undefined}
         stats={
           focusedView
             ? [
@@ -837,7 +839,7 @@ export default async function StatsPage({
               comparisonItems={comparisonStats.beers}
               comparisonLabel={comparisonLabel}
               lockedContext={isLockedContext}
-              disableItemLinks={Boolean(selectedFocus) && !isLockedContext}
+              disableItemLinks={Boolean(selectedFocus) && Boolean(selectedProfile) && !isLockedContext}
               personalItemIds={personalStats.beers.map((item) => item.id)}
             />
           )}
@@ -854,7 +856,7 @@ export default async function StatsPage({
               comparisonLabel={comparisonLabel}
               lockedContext={isLockedContext}
               itemHrefPrefix="/brands"
-              disableItemLinks={Boolean(selectedFocus) && !isLockedContext}
+              disableItemLinks={Boolean(selectedFocus) && Boolean(selectedProfile) && !isLockedContext}
               personalItemIds={personalStats.brands.map((item) => item.id)}
             />
           )}
@@ -871,7 +873,7 @@ export default async function StatsPage({
               comparisonLabel={comparisonLabel}
               lockedContext={isLockedContext}
               itemHrefPrefix="/breweries"
-              disableItemLinks={Boolean(selectedFocus) && !isLockedContext}
+              disableItemLinks={Boolean(selectedFocus) && Boolean(selectedProfile) && !isLockedContext}
               personalItemIds={personalStats.breweries.map((item) => item.id)}
             />
           )}
@@ -887,7 +889,7 @@ export default async function StatsPage({
               comparisonItems={comparisonStats.styles}
               comparisonLabel={comparisonLabel}
               lockedContext={isLockedContext}
-              disableItemLinks={Boolean(selectedFocus) && !isLockedContext}
+              disableItemLinks={Boolean(selectedFocus) && Boolean(selectedProfile) && !isLockedContext}
               personalItemIds={personalStats.styles.map((item) => item.id)}
             />
           )}
@@ -903,7 +905,7 @@ export default async function StatsPage({
               comparisonItems={comparisonStats.countries}
               comparisonLabel={comparisonLabel}
               lockedContext={isLockedContext}
-              disableItemLinks={Boolean(selectedFocus) && !isLockedContext}
+              disableItemLinks={Boolean(selectedFocus) && Boolean(selectedProfile) && !isLockedContext}
               personalItemIds={personalStats.countries.map((item) => item.id)}
             />
           )}
@@ -919,7 +921,7 @@ export default async function StatsPage({
               comparisonItems={comparisonStats.hops}
               comparisonLabel={comparisonLabel}
               lockedContext={isLockedContext}
-              disableItemLinks={Boolean(selectedFocus) && !isLockedContext}
+              disableItemLinks={Boolean(selectedFocus) && Boolean(selectedProfile) && !isLockedContext}
               personalItemIds={personalStats.hops.map((item) => item.id)}
             />
           )}

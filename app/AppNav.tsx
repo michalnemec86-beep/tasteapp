@@ -117,30 +117,8 @@ export default function AppNav({
 
         <Link
           href="/me"
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "8px",
-            flexShrink: 0,
-            padding: "9px 13px",
-            border:
-              isActive("/me")
-                ? "1px solid rgba(245,184,63,0.52)"
-                : "1px solid rgba(231,166,47,0.28)",
-            borderRadius: "10px",
-            background:
-              isActive("/me")
-                ? "linear-gradient(180deg, rgba(231,166,47,0.18), rgba(168,98,33,0.08))"
-                : "rgba(231,166,47,0.035)",
-            color:
-              isActive("/me")
-                ? "var(--taste-amber-bright)"
-                : "var(--taste-text-soft)",
-            textDecoration: "none",
-            fontSize: "12px",
-            fontWeight: 700,
-          }}
+          className="taste-profile-nav-link"
+          aria-current={isActive("/me") ? "page" : undefined}
         >
           Můj pivní deník
         </Link>
@@ -193,7 +171,7 @@ export default function AppNav({
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <Link href="/me" className="taste-mobile-profile">
+          <Link href="/me" className="taste-mobile-profile" aria-current={isActive("/me") ? "page" : undefined}>
             <span className="taste-mobile-profile-full">Můj pivní deník</span>
             <span className="taste-mobile-profile-compact">Deník</span>
           </Link>
