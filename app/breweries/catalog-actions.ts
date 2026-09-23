@@ -409,7 +409,12 @@ export async function updateCatalogBeer(
 }
 
 export async function deleteCatalogBeer(breweryId: number, beerId: number) {
-  const { supabase } = await requireUser();
+  const { supabase, user } = await requireUser();
+
+  if (user.id !== CATALOG_ADMIN_USER_ID) {
+    throw new Error("Pivo z katalogu může fyzicky odstranit pouze administrátor.");
+  }
+
   if (!Number.isInteger(breweryId) || breweryId < 1) throw new Error("Neplatné ID pivovaru.");
   if (!Number.isInteger(beerId) || beerId < 1) throw new Error("Neplatné ID piva.");
 
