@@ -48,15 +48,10 @@ export default function BreweryCreateModalClient({
     if (!open) return;
     const previous = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && !saving) setOpen(false);
-    };
-    window.addEventListener("keydown", onKey);
     return () => {
       document.body.style.overflow = previous;
-      window.removeEventListener("keydown", onKey);
     };
-  }, [open, saving]);
+  }, [open]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -93,9 +88,6 @@ export default function BreweryCreateModalClient({
           role="dialog"
           aria-modal="true"
           aria-labelledby="new-brewery-title"
-          onClick={(event) => {
-            if (event.target === event.currentTarget && !saving) setOpen(false);
-          }}
           style={{ position: "fixed", inset: 0, zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "18px", background: "rgba(5,4,3,.80)", backdropFilter: "blur(18px)" }}
         >
           <div
