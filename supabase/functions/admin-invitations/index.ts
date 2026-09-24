@@ -1,10 +1,12 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import QRCode from "npm:qrcode@1.5.4";
 
 const ADMIN_USER_ID = "17be5dc3-a3f9-4fd2-ae90-dee7692034fc";
 const APP_URL = (Deno.env.get("PIVNIK_SITE_URL") ?? "https://tasteapp-eosin.vercel.app").replace(/\/$/, "");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+const QR_TTL_MS = 30 * 60 * 1000;
 
 const allowedOrigins = new Set([
   "https://tasteapp-eosin.vercel.app",
@@ -32,6 +34,15 @@ function json(origin: string | null, body: unknown, status = 200) {
   });
 }
 
+function serviceHeaders(extra: Record<string, string> = {}) {
+  return {
+    apikey: SERVICE_ROLE_KEY,
+    Authorization: "Bearer " + SERVICE_ROLE_KEY,
+    "Content-Type": "application/json",
+    ...extra,
+  };
+}
+
 type AuthUser = {
   id: string;
   email?: string | null;
@@ -43,8 +54,18 @@ type AuthUser = {
   created_at?: string | null;
 };
 
+type GenerateLinkPayload = AuthUser & {
+  action_link?: string;
+  hashed_token?: string;
+  verification_type?: string;
+  redirect_to?: string;
+  msg?: string;
+  message?: string;
+  error_description?: string;
+};
+
 async function getCurrentUser(authHeader: string) {
-  const response = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+  const response = await fetch(SUPABASE_URL + "/auth/v1/user", {
     headers: {
       apikey: ANON_KEY,
       Authorization: authHeader,
@@ -60,18 +81,13 @@ async function listAuthUsers() {
 
   for (let page = 1; page <= 10; page += 1) {
     const response = await fetch(
-      `${SUPABASE_URL}/auth/v1/admin/users?page=${page}&per_page=100`,
-      {
-        headers: {
-          apikey: SERVICE_ROLE_KEY,
-          Authorization: `Bearer ${SERVICE_ROLE_KEY}`,
-        },
-      },
+      SUPABASE_URL + "/auth/v1/admin/users?page=" + page + "&per_page=100",
+      { headers: serviceHeaders() },
     );
 
     if (!response.ok) {
       const detail = await response.text();
-      throw new Error(`Auth users request failed (${response.status}): ${detail}`);
+      throw new Error("Auth users request failed (" + response.status + "): " + detail);
     }
 
     const payload = await response.json() as { users?: AuthUser[] };
@@ -101,6 +117,136 @@ function invitationRows(users: AuthUser[]) {
       const right = b.invitedAt ? Date.parse(b.invitedAt) : 0;
       return right - left;
     });
+}
+
+function randomToken() {
+  const bytes = new Uint8Array(32);
+  crypto.getRandomValues(bytes);
+  let binary = "";
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return btoa(binary)
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/g, "");
+}
+
+async function sha256Hex(value: string) {
+  const digest = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(value),
+  );
+  return Array.from(new Uint8Array(digest))
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+async function revokeExistingQrLinks(email: string) {
+  const response = await fetch(
+    SUPABASE_URL +
+      "/rest/v1/admin_invite_links?email=eq." +
+      encodeURIComponent(email) +
+      "&revoked_at=is.null",
+    {
+      method: "PATCH",
+      headers: serviceHeaders(),
+      body: JSON.stringify({ revoked_at: new Date().toISOString() }),
+    },
+  );
+
+  if (!response.ok) {
+    const detail = await response.text();
+    throw new Error("QR revoke failed (" + response.status + "): " + detail);
+  }
+}
+
+async function createQrInvitation(email: string, createdBy: string) {
+  const linkResponse = await fetch(SUPABASE_URL + "/auth/v1/admin/generate_link", {
+    method: "POST",
+    headers: serviceHeaders(),
+    body: JSON.stringify({
+      type: "invite",
+      email,
+      redirect_to: APP_URL + "/auth/update-password",
+    }),
+  });
+
+  const linkPayload = await linkResponse.json().catch(() => ({})) as GenerateLinkPayload;
+
+  if (!linkResponse.ok || !linkPayload.hashed_token) {
+    const detail =
+      linkPayload.msg ??
+      linkPayload.message ??
+      linkPayload.error_description ??
+      "Supabase nevytvořil pozvánkový token.";
+    throw new Error(detail);
+  }
+
+  await revokeExistingQrLinks(email);
+
+  const token = randomToken();
+  const tokenHash = await sha256Hex(token);
+  const expiresAt = new Date(Date.now() + QR_TTL_MS).toISOString();
+
+  const insertResponse = await fetch(
+    SUPABASE_URL + "/rest/v1/admin_invite_links",
+    {
+      method: "POST",
+      headers: serviceHeaders({ Prefer: "return=representation" }),
+      body: JSON.stringify({
+        email,
+        token_hash: tokenHash,
+        auth_token_hash: linkPayload.hashed_token,
+        auth_user_id: linkPayload.id ?? null,
+        created_by: createdBy,
+        expires_at: expiresAt,
+      }),
+    },
+  );
+
+  const inserted = await insertResponse.json().catch(() => []) as Array<{ id?: string }>;
+  if (!insertResponse.ok || !inserted[0]?.id) {
+    const detail = Array.isArray(inserted) ? JSON.stringify(inserted) : String(inserted);
+    throw new Error("Uložení QR pozvánky selhalo: " + detail);
+  }
+
+  const url = APP_URL + "/pozvanka/" + token;
+  const qrSvg = await QRCode.toString(url, {
+    type: "svg",
+    errorCorrectionLevel: "M",
+    margin: 2,
+    width: 280,
+  });
+
+  return {
+    id: inserted[0].id,
+    email,
+    url,
+    qrSvg,
+    expiresAt,
+  };
+}
+
+async function sendEmailInvitation(email: string) {
+  const inviteResponse = await fetch(SUPABASE_URL + "/auth/v1/invite", {
+    method: "POST",
+    headers: serviceHeaders(),
+    body: JSON.stringify({
+      email,
+      redirect_to: APP_URL + "/auth/update-password",
+    }),
+  });
+
+  const invitePayload = await inviteResponse.json().catch(() => ({})) as GenerateLinkPayload;
+  if (!inviteResponse.ok) {
+    const detail =
+      invitePayload.msg ??
+      invitePayload.message ??
+      invitePayload.error_description ??
+      "Supabase pozvánku nepřijal.";
+    throw new Error(detail);
+  }
+
+  return invitePayload;
 }
 
 Deno.serve(async (req: Request) => {
@@ -146,7 +292,7 @@ Deno.serve(async (req: Request) => {
       return json(origin, { ok: true, invitations: invitationRows(users) });
     }
 
-    if (body.action !== "invite") {
+    if (body.action !== "invite" && body.action !== "qr") {
       return json(origin, { ok: false, message: "Neplatná akce." });
     }
 
@@ -171,8 +317,27 @@ Deno.serve(async (req: Request) => {
     if (existing && !existing.invited_at) {
       return json(origin, {
         ok: false,
-        message: "Tento e-mail už má rozpracovanou registraci. Pozvánku jsem z bezpečnostních důvodů neposlal.",
+        message: "Tento e-mail už má rozpracovanou registraci jiným způsobem. Pozvánku jsem z bezpečnostních důvodů nevytvořil.",
       });
+    }
+
+    if (body.action === "qr") {
+      try {
+        const invitation = await createQrInvitation(email, currentUser.id);
+        return json(origin, {
+          ok: true,
+          message: existing
+            ? "Vytvořil jsem nový QR kód. Předchozí QR pozvánka pro tento e-mail už neplatí."
+            : "QR pozvánka je připravená.",
+          invitation,
+        });
+      } catch (error) {
+        const detail = error instanceof Error ? error.message : "Neznámá chyba.";
+        return json(origin, {
+          ok: false,
+          message: "QR pozvánku se nepodařilo vytvořit. " + detail,
+        }, 400);
+      }
     }
 
     if (existing?.confirmation_sent_at) {
@@ -185,49 +350,25 @@ Deno.serve(async (req: Request) => {
       }
     }
 
-    const inviteResponse = await fetch(`${SUPABASE_URL}/auth/v1/invite`, {
-      method: "POST",
-      headers: {
-        apikey: SERVICE_ROLE_KEY,
-        Authorization: `Bearer ${SERVICE_ROLE_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        email,
-        redirect_to: `${APP_URL}/auth/update-password`,
-      }),
-    });
-
-    const invitePayload = await inviteResponse.json().catch(() => ({})) as {
-      id?: string;
-      msg?: string;
-      message?: string;
-      error_description?: string;
-    };
-
-    if (!inviteResponse.ok) {
-      const detail =
-        invitePayload.msg ??
-        invitePayload.message ??
-        invitePayload.error_description ??
-        "Supabase pozvánku nepřijal.";
-
+    try {
+      const invitePayload = await sendEmailInvitation(email);
+      return json(origin, {
+        ok: true,
+        message: existing
+          ? "Pozvánka byla odeslána znovu."
+          : "Pozvánka byla odeslána.",
+        invitation: {
+          id: invitePayload.id ?? existing?.id ?? "",
+          email,
+        },
+      });
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : "Supabase pozvánku nepřijal.";
       return json(origin, {
         ok: false,
-        message: `Pozvánku se nepodařilo odeslat. ${detail}`,
-      });
+        message: "Pozvánku se nepodařilo odeslat. " + detail,
+      }, 400);
     }
-
-    return json(origin, {
-      ok: true,
-      message: existing
-        ? "Pozvánka byla odeslána znovu."
-        : "Pozvánka byla odeslána.",
-      invitation: {
-        id: invitePayload.id ?? existing?.id ?? "",
-        email,
-      },
-    });
   } catch (error) {
     console.error("admin-invitations", error);
     return json(origin, {

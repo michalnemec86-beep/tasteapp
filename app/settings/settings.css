@@ -62,3 +62,23 @@
   .taste-settings-invite-row > .taste-settings-secondary-button { grid-column: 1 / -1; width: 100%; }
   .taste-settings-invite-list-heading { align-items: flex-start; }
 }
+
+.taste-settings-qr-card { margin-top: 18px; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 22px; align-items: center; padding: 18px; border: 1px solid rgba(231,166,47,.24); border-radius: 16px; background: rgba(15,10,7,.52); }
+.taste-settings-qr-image-wrap { width: 190px; aspect-ratio: 1; display: grid; place-items: center; padding: 10px; border-radius: 14px; background: #fff; }
+.taste-settings-qr-image { display: block; width: 100%; height: auto; }
+.taste-settings-qr-copy { min-width: 0; display: grid; gap: 6px; }
+.taste-settings-qr-copy strong { overflow-wrap: anywhere; font-size: 17px; }
+.taste-settings-qr-copy p { margin: 2px 0 4px; color: var(--taste-text-soft); font-size: 13px; line-height: 1.5; }
+.taste-settings-qr-kicker { color: #f1cf82; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; }
+.taste-settings-qr-actions { display: flex; flex-wrap: wrap; gap: 9px; }
+.taste-settings-card .taste-settings-qr-actions button { margin: 0; min-height: 40px; padding: 8px 13px; }
+.taste-settings-qr-message { color: #bde4ac; font-size: 12px; }
+.taste-settings-invite-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 7px; }
+.taste-settings-card .taste-settings-invite-actions button { margin: 0; }
+
+@media (max-width: 760px) {
+  .taste-settings-qr-card { grid-template-columns: 1fr; }
+  .taste-settings-qr-image-wrap { width: min(100%, 260px); margin: 0 auto; }
+  .taste-settings-qr-actions { display: grid; grid-template-columns: 1fr 1fr; }
+  .taste-settings-invite-actions { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; width: 100%; }
+}

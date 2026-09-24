@@ -16,6 +16,14 @@ type InvitationRow = {
   createdAt: string | null;
 };
 
+type QrInvitation = {
+  id: string;
+  email: string;
+  url: string;
+  qrSvg: string;
+  expiresAt: string;
+};
+
 const invitationDateFormatter = new Intl.DateTimeFormat("cs-CZ", {
   dateStyle: "short",
   timeStyle: "short",
@@ -61,6 +69,9 @@ export default function AccountSettings({
   const [invitations, setInvitations] = useState<InvitationRow[]>([]);
   const [invitationsLoading, setInvitationsLoading] = useState(canSwitchView);
   const [invitationsError, setInvitationsError] = useState("");
+  const [qrInvitation, setQrInvitation] = useState<QrInvitation | null>(null);
+  const [inviteBusyKind, setInviteBusyKind] = useState<"qr" | "email" | null>(null);
+  const [inviteLinkMessage, setInviteLinkMessage] = useState("");
 
   const loadInvitations = useCallback(async () => {
     if (!canSwitchView) return;
@@ -176,13 +187,53 @@ export default function AccountSettings({
     }
   }
 
-  async function sendInvitation(targetEmail: string, clearInput = false) {
+  async function createQrInvitation(targetEmail: string, clearInput = false) {
     const normalizedEmail = targetEmail.trim().toLowerCase();
     if (!normalizedEmail || inviteBusyEmail) return;
 
     setInviteBusyEmail(normalizedEmail);
+    setInviteBusyKind("qr");
     setInviteMessage("");
     setInviteMessageError(false);
+    setInviteLinkMessage("");
+    setQrInvitation(null);
+
+    try {
+      const supabase = createClient();
+      const { data, error } = await supabase.functions.invoke("admin-invitations", {
+        body: { action: "qr", email: normalizedEmail },
+      });
+
+      if (error) throw error;
+
+      if (!data?.ok || !data?.invitation?.url || !data?.invitation?.qrSvg) {
+        setInviteMessageError(true);
+        setInviteMessage(data?.message ?? "QR pozvánku se nepodařilo vytvořit.");
+        return;
+      }
+
+      setQrInvitation(data.invitation as QrInvitation);
+      setInviteMessage(data.message ?? "QR pozvánka je připravená.");
+      if (clearInput) setInviteEmail("");
+      await loadInvitations();
+    } catch {
+      setInviteMessageError(true);
+      setInviteMessage("QR pozvánku se nepodařilo vytvořit. Zkus to znovu.");
+    } finally {
+      setInviteBusyEmail(null);
+      setInviteBusyKind(null);
+    }
+  }
+
+  async function sendEmailInvitation(targetEmail: string) {
+    const normalizedEmail = targetEmail.trim().toLowerCase();
+    if (!normalizedEmail || inviteBusyEmail) return;
+
+    setInviteBusyEmail(normalizedEmail);
+    setInviteBusyKind("email");
+    setInviteMessage("");
+    setInviteMessageError(false);
+    setInviteLinkMessage("");
 
     try {
       const supabase = createClient();
@@ -199,21 +250,51 @@ export default function AccountSettings({
       }
 
       setInviteMessage(data.message ?? "Pozvánka byla odeslána.");
-      if (clearInput) setInviteEmail("");
       await loadInvitations();
     } catch {
       setInviteMessageError(true);
       setInviteMessage("Pozvánku se nepodařilo odeslat. Zkus to znovu.");
     } finally {
       setInviteBusyEmail(null);
+      setInviteBusyKind(null);
     }
   }
 
   async function submitInvitation(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    await sendInvitation(inviteEmail, true);
+    await createQrInvitation(inviteEmail, true);
   }
 
+  async function copyInvitationLink() {
+    if (!qrInvitation) return;
+    try {
+      await navigator.clipboard.writeText(qrInvitation.url);
+      setInviteLinkMessage("Odkaz je zkopírovaný.");
+    } catch {
+      setInviteLinkMessage("Odkaz se nepodařilo zkopírovat.");
+    }
+  }
+
+  async function shareInvitationLink() {
+    if (!qrInvitation) return;
+
+    if (typeof navigator.share !== "function") {
+      await copyInvitationLink();
+      return;
+    }
+
+    try {
+      await navigator.share({
+        title: "Pozvánka do Pivníku",
+        text: "Tady je tvoje pozvánka do Pivníku.",
+        url: qrInvitation.url,
+      });
+      setInviteLinkMessage("Pozvánka je připravená ke sdílení.");
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") return;
+      setInviteLinkMessage("Sdílení se nepodařilo. Můžeš použít kopírování odkazu.");
+    }
+  }
   return (
     <div className="taste-settings-grid">
       {canSwitchView && <section className="taste-settings-card taste-settings-view-card" aria-labelledby="settings-view-title">
@@ -228,7 +309,7 @@ export default function AccountSettings({
 
       {canSwitchView && <section className="taste-settings-card taste-settings-invite-card" aria-labelledby="settings-invite-title">
         <h2 id="settings-invite-title">Správa pozvánek</h2>
-        <p>Pozvánky se odesílají přes zabezpečenou serverovou funkci. Aktivní účet se znovu nepozve a žádný existující účet se při opakovaném odeslání nemaže.</p>
+        <p>Hlavní pozvánka je teď jednorázový QR kód nebo odkaz. QR neobsahuje přímo Supabase přihlašovací token a pouhé naskenování účet nepotvrdí. E-mailové odeslání zůstává jako záložní možnost.</p>
 
         <form className="taste-settings-invite-form" onSubmit={submitInvitation}>
           <div className="taste-settings-invite-field">
@@ -245,15 +326,39 @@ export default function AccountSettings({
             />
           </div>
           <button type="submit" disabled={inviteBusyEmail !== null || !inviteEmail.trim()}>
-            {inviteBusyEmail === inviteEmail.trim().toLowerCase() ? "Odesílám…" : "Odeslat pozvánku"}
+            {inviteBusyKind === "qr" && inviteBusyEmail === inviteEmail.trim().toLowerCase() ? "Vytvářím…" : "Vytvořit QR pozvánku"}
           </button>
         </form>
 
         {inviteMessage && <p className="taste-settings-feedback taste-settings-invite-feedback" role="status" data-error={inviteMessageError}>{inviteMessage}</p>}
 
+        {qrInvitation && (
+          <div className="taste-settings-qr-card">
+            <div className="taste-settings-qr-image-wrap">
+              <img
+                className="taste-settings-qr-image"
+                src={"data:image/svg+xml;charset=utf-8," + encodeURIComponent(qrInvitation.qrSvg)}
+                alt={"QR pozvánka pro " + qrInvitation.email}
+                width={280}
+                height={280}
+              />
+            </div>
+            <div className="taste-settings-qr-copy">
+              <span className="taste-settings-qr-kicker">Připraveno pro</span>
+              <strong>{qrInvitation.email}</strong>
+              <p>QR platí do {formatInvitationDate(qrInvitation.expiresAt)}. Nový QR pro stejný e-mail tenhle automaticky zneplatní.</p>
+              <div className="taste-settings-qr-actions">
+                <button type="button" onClick={() => void copyInvitationLink()}>Kopírovat odkaz</button>
+                <button type="button" className="taste-settings-secondary-button" onClick={() => void shareInvitationLink()}>Sdílet</button>
+              </div>
+              {inviteLinkMessage && <span className="taste-settings-qr-message">{inviteLinkMessage}</span>}
+            </div>
+          </div>
+        )}
+
         <div className="taste-settings-invite-list" aria-live="polite">
           <div className="taste-settings-invite-list-heading">
-            <h3>Odeslané pozvánky</h3>
+            <h3>Vytvořené pozvánky</h3>
             <button
               type="button"
               className="taste-settings-secondary-button"
@@ -269,17 +374,18 @@ export default function AccountSettings({
           ) : invitationsLoading && invitations.length === 0 ? (
             <p className="taste-settings-invite-empty">Načítám pozvánky…</p>
           ) : invitations.length === 0 ? (
-            <p className="taste-settings-invite-empty">Zatím tu nejsou žádné odeslané pozvánky.</p>
+            <p className="taste-settings-invite-empty">Zatím tu nejsou žádné pozvánky.</p>
           ) : (
             <div className="taste-settings-invite-rows">
               {invitations.map((invitation) => {
                 const accepted = Boolean(invitation.confirmedAt);
-                const sentAt = invitation.confirmationSentAt ?? invitation.invitedAt;
+                const createdAt = invitation.confirmationSentAt ?? invitation.invitedAt;
+                const busy = inviteBusyEmail === invitation.email.toLowerCase();
                 return (
                   <div className="taste-settings-invite-row" key={invitation.id}>
                     <div className="taste-settings-invite-address">
                       <strong>{invitation.email}</strong>
-                      <span>Odesláno {formatInvitationDate(sentAt)}</span>
+                      <span>Vytvořeno {formatInvitationDate(createdAt)}</span>
                     </div>
                     <div className="taste-settings-invite-status-wrap">
                       <span className="taste-settings-invite-status" data-status={accepted ? "accepted" : "pending"}>
@@ -290,14 +396,24 @@ export default function AccountSettings({
                       )}
                     </div>
                     {!accepted && (
-                      <button
-                        type="button"
-                        className="taste-settings-secondary-button"
-                        disabled={inviteBusyEmail !== null}
-                        onClick={() => void sendInvitation(invitation.email)}
-                      >
-                        {inviteBusyEmail === invitation.email.toLowerCase() ? "Odesílám…" : "Odeslat znovu"}
-                      </button>
+                      <div className="taste-settings-invite-actions">
+                        <button
+                          type="button"
+                          className="taste-settings-secondary-button"
+                          disabled={inviteBusyEmail !== null}
+                          onClick={() => void createQrInvitation(invitation.email)}
+                        >
+                          {busy && inviteBusyKind === "qr" ? "Vytvářím…" : "Nový QR"}
+                        </button>
+                        <button
+                          type="button"
+                          className="taste-settings-secondary-button"
+                          disabled={inviteBusyEmail !== null}
+                          onClick={() => void sendEmailInvitation(invitation.email)}
+                        >
+                          {busy && inviteBusyKind === "email" ? "Odesílám…" : "Poslat e-mailem"}
+                        </button>
+                      </div>
                     )}
                   </div>
                 );
