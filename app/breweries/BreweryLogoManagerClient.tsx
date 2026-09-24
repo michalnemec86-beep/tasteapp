@@ -160,7 +160,7 @@ export default function BreweryLogoManagerClient({
       setLogoUrl(result.logoUrl);
       setCandidates([]);
       setMessage(
-        `Logo pro ${result.breweryName} je uložené v TasteAppu.`
+        `Logo pro ${result.breweryName} je uložené v Pivníku.`
       );
       router.refresh();
     } catch (caughtError) {
@@ -259,7 +259,7 @@ export default function BreweryLogoManagerClient({
       setManualCandidates([]);
       setCandidates([]);
       setMessage(
-        `Logo pro ${result.breweryName} je uložené v TasteAppu.`
+        `Logo pro ${result.breweryName} je uložené v Pivníku.`
       );
       router.refresh();
     } catch (caughtError) {
@@ -480,7 +480,7 @@ export default function BreweryLogoManagerClient({
               lineHeight: 1.45,
             }}
           >
-            Vlož přímou URL obrázku nalezeného jinde. Po uložení se logo zkopíruje do TasteAppu, takže nezůstane závislé na cizím webu.
+            Vlož přímou URL obrázku nalezeného jinde. Po uložení se logo zkopíruje do Pivníku, takže nezůstane závislé na cizím webu.
           </div>
         </div>
 
@@ -562,7 +562,7 @@ export default function BreweryLogoManagerClient({
                   lineHeight: 1.45,
                 }}
               >
-                Přímý náhled se nepodařilo načíst. Pokud jde o běžnou webovou stránku, použij „Prověřit odkaz“ a BeerApp z ní zkusí logo najít.
+                Přímý náhled se nepodařilo načíst. Pokud jde o běžnou webovou stránku, použij „Prověřit odkaz“ a Pivník z ní zkusí logo najít.
               </div>
             ) : (
               <img

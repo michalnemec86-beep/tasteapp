@@ -4,6 +4,7 @@ import PageHero from "@/components/ui/PageHero";
 import AppIcon from "@/components/ui/AppIcon";
 import { createClient } from "@/lib/supabase/server";
 import { getBeerReferenceStatus } from "@/lib/referenceStatus";
+import { isAdminView, isCatalogAdminUser } from "@/lib/adminView";
 
 import BeerCatalogClient, { type BeerCatalogItem } from "./BeerCatalogClient";
 import { confirmCatalogBeer } from "./actions";
@@ -146,7 +147,8 @@ export default async function BeerCatalogPage() {
 
       <BeerCatalogClient
         beers={beers}
-        isCatalogAdmin={user.id === "17be5dc3-a3f9-4fd2-ae90-dee7692034fc"}
+        isCatalogAdmin={isCatalogAdminUser(user.id)}
+        adminView={await isAdminView(user.id)}
         confirmAction={confirmCatalogBeer}
       />
     </main>

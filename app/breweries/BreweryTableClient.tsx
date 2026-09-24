@@ -7,6 +7,7 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
+import ReferenceWarning from "@/components/ui/ReferenceWarning";
 import {
   usePathname,
   useRouter,
@@ -133,6 +134,7 @@ type BreweryTableClientProps = {
   profiles: ProfileOption[];
   countries: CountryOption[];
   currentUserId: string;
+  adminView: boolean;
   updateBreweryAction: (
     breweryId: number,
     formData: FormData
@@ -195,10 +197,10 @@ export default function BreweryTableClient({
   profiles,
   countries,
   currentUserId,
+  adminView,
   updateBreweryAction,
 }: BreweryTableClientProps) {
   const router = useRouter();
-  const isReferenceAdmin = currentUserId === "17be5dc3-a3f9-4fd2-ae90-dee7692034fc";
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
@@ -883,14 +885,6 @@ export default function BreweryTableClient({
                     style={{
                       borderBottom:
                         "1px solid var(--taste-border)",
-                      background:
-                        isReferenceAdmin && brewery.referenceReady
-                          ? "linear-gradient(90deg, rgba(36,220,99,0.18), rgba(36,220,99,0.055) 58%, transparent)"
-                          : undefined,
-                      boxShadow:
-                        isReferenceAdmin && brewery.referenceReady
-                          ? "inset 4px 0 0 rgba(44,235,111,0.92)"
-                          : undefined,
                     }}
                   >
                     <td
@@ -938,29 +932,7 @@ export default function BreweryTableClient({
                           </span>
                         )}
 
-                        {isReferenceAdmin && brewery.referenceReady && (
-                          <span
-                            title="Kompletní referenční karta pivovaru"
-                            aria-label="Referenční pivovar"
-                            style={{
-                              width: "18px",
-                              height: "18px",
-                              flex: "0 0 18px",
-                              display: "inline-flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              border: "1px solid rgba(54,235,118,0.72)",
-                              borderRadius: "999px",
-                              background: "rgba(38,215,101,0.20)",
-                              color: "#62f39a",
-                              fontSize: "10px",
-                              fontWeight: 900,
-                              lineHeight: 1,
-                            }}
-                          >
-                            ✓
-                          </span>
-                        )}
+                        {adminView && !brewery.referenceReady && <ReferenceWarning missing={brewery.referenceMissing} />}
 
                         <BreweryEditModalClient
                           brewery={{
@@ -977,7 +949,7 @@ export default function BreweryTableClient({
                             longitude: brewery.longitude,
                           }}
                           updateBreweryAction={updateBreweryAction}
-                          isAdmin={currentUserId === "17be5dc3-a3f9-4fd2-ae90-dee7692034fc"}
+                          isAdmin={adminView}
                         />
                       </div>
                     </td>

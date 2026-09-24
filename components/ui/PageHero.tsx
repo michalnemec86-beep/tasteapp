@@ -72,7 +72,7 @@ export default function PageHero({
 
   return (
     <section
-      className={mobileCompact ? "taste-page-hero-mobile-compact" : undefined}
+      className={mobileCompact ? "taste-page-hero taste-page-hero-mobile-compact" : "taste-page-hero"}
       style={{
         position: "relative",
         overflow: "hidden",

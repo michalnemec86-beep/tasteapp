@@ -1009,7 +1009,7 @@ export default async function ProfilePage({
         }
         subtitle={
           isMe
-            ? "Tvoje pivní cesta v TasteAppu. Ochutnávky, objevené pivovary, nové styly a odznaky na jednom místě."
+            ? "Tvoje pivní cesta v Pivníku. Ochutnávky, objevené pivovary, nové styly a odznaky na jednom místě."
             : `Pivní cesta uživatele ${profile.display_name}. Ochutnávky, objevené pivovary, styly a získané odznaky.`
         }
         action={

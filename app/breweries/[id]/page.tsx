@@ -4,6 +4,8 @@ import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getBeerReferenceStatus, getBreweryReferenceStatus } from "@/lib/referenceStatus";
 import PageHero from "@/components/ui/PageHero";
+import ReferenceWarning from "@/components/ui/ReferenceWarning";
+import { isAdminView, isCatalogAdminUser } from "@/lib/adminView";
 import AdminBadge from "@/components/ui/AdminBadge";
 import BreweryCzechMapClient from "../BreweryCzechMapClient";
 import BreweryEditModalClient from "../BreweryEditModalClient";
@@ -50,7 +52,8 @@ export default async function BreweryDetailPage({ params }: Props) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/auth/login");
-  const isCatalogAdmin = user.id === "17be5dc3-a3f9-4fd2-ae90-dee7692034fc";
+  const isCatalogAdmin = isCatalogAdminUser(user.id);
+  const adminView = await isAdminView(user.id);
 
   const [
     breweryResult,
@@ -210,7 +213,7 @@ export default async function BreweryDetailPage({ params }: Props) {
           abv: currentVersion?.abv ?? beer.abv,
           isCatalog: beer.is_catalog,
         }),
-        canEdit: isCatalogAdmin || (beer.tastings ?? []).some(
+        canEdit: (isCatalogAdmin && adminView) || (beer.tastings ?? []).some(
           (tasting: any) => tasting.user_id === user.id && tasting.tasted_on >= "2026-09-01"
         ),
       };
@@ -293,22 +296,7 @@ export default async function BreweryDetailPage({ params }: Props) {
         subtitle={[brewery.city, brewery.country].filter(Boolean).join(" · ")}
         action={
           <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
-            {isCatalogAdmin && breweryReferenceStatus.ready && (
-              <span
-                title="Kompletní referenční karta pivovaru"
-                style={{ padding: "7px 10px", border: "1px solid rgba(54,235,118,.72)", borderRadius: "999px", background: "rgba(38,215,101,.22)", color: "#62f39a", fontSize: "9px", fontWeight: 900, letterSpacing: ".045em" }}
-              >
-                ✓ REFERENČNÍ
-              </span>
-            )}
-            {isCatalogAdmin && !breweryReferenceStatus.ready && (
-              <span
-                title={`Chybí: ${breweryReferenceStatus.missing.join(", ")}`}
-                style={{ padding: "7px 10px", border: "1px solid rgba(231,166,47,.28)", borderRadius: "999px", background: "rgba(231,166,47,.07)", color: "var(--taste-text-muted)", fontSize: "9px", fontWeight: 750 }}
-              >
-                Chybí {breweryReferenceStatus.missing.length}
-              </span>
-            )}
+            {adminView && !breweryReferenceStatus.ready && <ReferenceWarning missing={breweryReferenceStatus.missing} />}
             <Link href="/breweries" className="taste-button-secondary" style={{ fontSize: "12px", fontWeight: 650 }}>← Katalog pivovarů</Link>
             <BreweryEditModalClient
               brewery={{
@@ -326,7 +314,7 @@ export default async function BreweryDetailPage({ params }: Props) {
               }}
               updateBreweryAction={updateBrewery}
               variant="primary"
-              isAdmin={isCatalogAdmin}
+              isAdmin={isCatalogAdmin && adminView}
             />
           </div>
         }
@@ -341,19 +329,11 @@ export default async function BreweryDetailPage({ params }: Props) {
         className="taste-card"
         style={{
           padding: "22px",
-          border: isCatalogAdmin && breweryReferenceStatus.ready
-            ? "1px solid rgba(54,235,118,.70)"
-            : undefined,
-          background: isCatalogAdmin && breweryReferenceStatus.ready
-            ? "linear-gradient(145deg, rgba(36,220,99,.16), rgba(36,220,99,.035) 45%, transparent), var(--taste-surface)"
-            : undefined,
-          boxShadow: isCatalogAdmin && breweryReferenceStatus.ready
-            ? "inset 4px 0 0 rgba(44,235,111,.92), var(--taste-shadow-soft)"
-            : undefined,
         }}
       >
-        {isCatalogAdmin && (
-          <div style={{ marginBottom: "20px", paddingBottom: "18px", borderBottom: "1px solid var(--taste-border)" }}>
+        {adminView && (
+          <details className="taste-brewery-logo-details">
+            <summary>Správa loga pivovaru</summary>
             <BreweryLogoManagerClient
               breweryId={brewery.id}
               breweryName={brewery.name}
@@ -365,7 +345,7 @@ export default async function BreweryDetailPage({ params }: Props) {
               saveManualUrlAction={saveBreweryLogoFromUrl}
               removeLogoAction={removeBreweryLogo}
             />
-          </div>
+          </details>
         )}
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: "18px" }}>
@@ -434,9 +414,9 @@ export default async function BreweryDetailPage({ params }: Props) {
                   lineHeight: 1.45,
                 }}
               >
-                {isCatalogAdmin && <AdminBadge />}
+                {adminView && <AdminBadge />}
                 <span>
-                  {isCatalogAdmin
+                  {adminView
                     ? "Pivovar zatím nemá souřadnice. Doplň je přes „Upravit pivovar“ a bod se na mapě zobrazí."
                     : "Poloha tohoto pivovaru zatím není na mapě zakreslená."}
                 </span>
@@ -473,9 +453,6 @@ export default async function BreweryDetailPage({ params }: Props) {
                     gap: "14px",
                     padding: "10px 10px",
                     borderBottom: index < breweryBeers.length - 1 ? "1px solid rgba(255,255,255,.055)" : "none",
-                    borderRadius: isCatalogAdmin && beer.referenceStatus.ready ? "10px" : undefined,
-                    background: isCatalogAdmin && beer.referenceStatus.ready ? "rgba(36,220,99,.09)" : undefined,
-                    boxShadow: isCatalogAdmin && beer.referenceStatus.ready ? "inset 3px 0 0 rgba(44,235,111,.84)" : undefined,
                   }}
                 >
                   <div style={{ minWidth: 0 }}>
@@ -483,14 +460,7 @@ export default async function BreweryDetailPage({ params }: Props) {
                     <Link href={`/beers/${beer.id}`} className="taste-entity-link" style={{ color: "var(--taste-text)", fontSize: "13px", fontWeight: 700, lineHeight: 1.3 }}>
                       {beer.name}
                     </Link>
-                    {isCatalogAdmin && beer.referenceStatus.ready && (
-                      <span style={{ marginLeft: "7px", color: "#62f39a", fontSize: "8px", fontWeight: 900 }}>✓ REFERENČNÍ</span>
-                    )}
-                    {isCatalogAdmin && !beer.referenceStatus.ready && (
-                      <span title={`Chybí: ${beer.referenceStatus.missing.join(", ")}`} style={{ marginLeft: "7px", color: "var(--taste-text-muted)", fontSize: "8px", fontWeight: 650 }}>
-                        chybí {beer.referenceStatus.missing.length}
-                      </span>
-                    )}
+                    {adminView && !beer.referenceStatus.ready && <span style={{ marginLeft: "7px" }}><ReferenceWarning missing={beer.referenceStatus.missing} /></span>}
                     {beer.brand && (
                       <div style={{ marginTop: "5px", color: "var(--taste-text-muted)", fontSize: "10px" }}>
                         <span style={{ marginRight: "5px" }}>Značka:</span>

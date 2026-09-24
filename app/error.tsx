@@ -9,7 +9,7 @@ export default function ErrorPage({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error("TasteApp page error:", error);
+    console.error("Pivník page error:", error);
   }, [error]);
 
   function handleRefresh() {
@@ -63,7 +63,7 @@ export default function ErrorPage({
             color: "#9fb84f",
           }}
         >
-          TasteApp
+          Pivník
         </div>
 
         <h1

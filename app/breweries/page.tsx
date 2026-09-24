@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getBreweryReferenceStatus } from "@/lib/referenceStatus";
 import PageHero from "@/components/ui/PageHero";
+import { isAdminView } from "@/lib/adminView";
 import AppIcon from "@/components/ui/AppIcon";
 import BeerWorldMap from "../stats/BeerWorldMap";
 import BreweryCzechMapClient from "./BreweryCzechMapClient";
@@ -428,7 +429,7 @@ export default async function BreweriesPage({
         subtitle={
           isFocusedDrilldown
             ? "Čistý přehled evidovaných pivovarů pro vybranou zemi."
-            : "Společná databáze pivovarů, jejich původu, historie a piv zaznamenaných v TasteAppu."
+            : "Společná databáze pivovarů, jejich původu, historie a piv zaznamenaných v Pivníku."
         }
         action={
           selectedCountry ? (
@@ -816,6 +817,7 @@ export default async function BreweriesPage({
                 countries={countries ?? []}
                 updateBreweryAction={updateBrewery}
                 currentUserId={user.id}
+                adminView={await isAdminView(user.id)}
               />
             )}
           </section>

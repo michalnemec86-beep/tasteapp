@@ -1030,7 +1030,7 @@ export default async function HomePage({
             .
           </>
         }
-        subtitle="Zapiš další ochutnávku, sleduj svoje pivní objevy a nech TasteApp skládat příběh z pivovarů, stylů, zemí a chmelů."
+        subtitle="Zapiš další ochutnávku, sleduj svoje pivní objevy a nech Pivník skládat příběh z pivovarů, stylů, zemí a chmelů."
         action={
           <div className="taste-desktop-brewery-of-day">
             <BreweryOfDayCard brewery={breweryOfDay} />
