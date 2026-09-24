@@ -20,13 +20,45 @@
 .taste-settings-card button:disabled { opacity: .65; cursor: wait; }
 .taste-settings-feedback { margin: 3px 0 0; color: #bde4ac; font-size: 14px; line-height: 1.45; }
 .taste-settings-feedback[data-error="true"] { color: #ffb4a8; }
-.taste-settings-view-card { grid-column: 1 / -1; }
+.taste-settings-view-card,
+.taste-settings-invite-card { grid-column: 1 / -1; }
 .taste-settings-view-options { display: flex; flex-wrap: wrap; gap: 10px; }
 .taste-settings-card .taste-settings-view-options button { margin: 0; background: rgba(28,18,10,.65); color: var(--taste-text-soft); border-color: rgba(231,166,47,.28); }
 .taste-settings-card .taste-settings-view-options button[aria-pressed="true"] { background: linear-gradient(135deg, #d8962f, #a96b26); color: #1b1008; border-color: rgba(245,184,63,.62); }
+
+.taste-settings-card .taste-settings-invite-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: end;
+}
+.taste-settings-invite-field { display: grid; gap: 7px; }
+.taste-settings-invite-form > button { margin: 0; white-space: nowrap; }
+.taste-settings-invite-feedback { margin-top: 12px; }
+.taste-settings-invite-list { margin-top: 24px; padding-top: 20px; border-top: 1px solid rgba(231,166,47,.18); }
+.taste-settings-invite-list-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.taste-settings-invite-list-heading h3 { margin: 0; font-size: 16px; font-weight: 800; }
+.taste-settings-card .taste-settings-secondary-button { min-height: 38px; margin: 0; padding: 7px 12px; background: rgba(28,18,10,.68); color: var(--taste-text-soft); border-color: rgba(231,166,47,.3); font-size: 13px; }
+.taste-settings-invite-empty { margin: 0; color: var(--taste-text-soft); font-size: 14px; }
+.taste-settings-invite-rows { display: grid; gap: 8px; }
+.taste-settings-invite-row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 14px; align-items: center; padding: 12px 0; border-top: 1px solid rgba(255,255,255,.06); }
+.taste-settings-invite-row:first-child { border-top: 0; }
+.taste-settings-invite-address { min-width: 0; display: grid; gap: 3px; }
+.taste-settings-invite-address strong { overflow-wrap: anywhere; font-size: 14px; }
+.taste-settings-invite-address span,
+.taste-settings-invite-confirmed { color: var(--taste-text-soft); font-size: 12px; }
+.taste-settings-invite-status-wrap { display: grid; justify-items: end; gap: 3px; }
+.taste-settings-invite-status { display: inline-flex; align-items: center; min-height: 26px; padding: 3px 9px; border: 1px solid; border-radius: 999px; font-size: 12px; font-weight: 800; white-space: nowrap; }
+.taste-settings-invite-status[data-status="accepted"] { color: #c7edb6; background: rgba(77,126,53,.18); border-color: rgba(145,203,113,.32); }
+.taste-settings-invite-status[data-status="pending"] { color: #f1cf82; background: rgba(162,110,33,.17); border-color: rgba(231,166,47,.3); }
 
 @media (max-width: 760px) {
   .taste-settings-page { padding-top: 27px; }
   .taste-settings-grid { grid-template-columns: 1fr; }
   .taste-settings-card { padding: 21px; }
+  .taste-settings-card .taste-settings-invite-form { grid-template-columns: 1fr; }
+  .taste-settings-invite-form > button { width: 100%; }
+  .taste-settings-invite-row { grid-template-columns: minmax(0, 1fr) auto; }
+  .taste-settings-invite-row > .taste-settings-secondary-button { grid-column: 1 / -1; width: 100%; }
+  .taste-settings-invite-list-heading { align-items: flex-start; }
 }

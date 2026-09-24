@@ -1,10 +1,31 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { updateOwnRealName } from "@/app/profiles/actions";
 import { updateCatalogView } from "./view-actions";
+
+type InvitationRow = {
+  id: string;
+  email: string;
+  invitedAt: string | null;
+  confirmationSentAt: string | null;
+  confirmedAt: string | null;
+  lastSignInAt: string | null;
+  createdAt: string | null;
+};
+
+const invitationDateFormatter = new Intl.DateTimeFormat("cs-CZ", {
+  dateStyle: "short",
+  timeStyle: "short",
+});
+
+function formatInvitationDate(value: string | null) {
+  if (!value) return "—";
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? "—" : invitationDateFormatter.format(date);
+}
 
 export default function AccountSettings({
   displayName,
@@ -33,6 +54,40 @@ export default function AccountSettings({
   const [view, setView] = useState<"admin" | "normal">(adminView ? "admin" : "normal");
   const [viewBusy, setViewBusy] = useState(false);
   const [viewError, setViewError] = useState("");
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteBusyEmail, setInviteBusyEmail] = useState<string | null>(null);
+  const [inviteMessage, setInviteMessage] = useState("");
+  const [inviteMessageError, setInviteMessageError] = useState(false);
+  const [invitations, setInvitations] = useState<InvitationRow[]>([]);
+  const [invitationsLoading, setInvitationsLoading] = useState(canSwitchView);
+  const [invitationsError, setInvitationsError] = useState("");
+
+  const loadInvitations = useCallback(async () => {
+    if (!canSwitchView) return;
+
+    setInvitationsLoading(true);
+    setInvitationsError("");
+
+    try {
+      const supabase = createClient();
+      const { data, error } = await supabase.functions.invoke("admin-invitations", {
+        body: { action: "list" },
+      });
+
+      if (error) throw error;
+      if (!data?.ok) throw new Error(data?.message ?? "Pozvánky se nepodařilo načíst.");
+
+      setInvitations(Array.isArray(data.invitations) ? data.invitations : []);
+    } catch {
+      setInvitationsError("Pozvánky se nepodařilo načíst. Zkus stránku obnovit.");
+    } finally {
+      setInvitationsLoading(false);
+    }
+  }, [canSwitchView]);
+
+  useEffect(() => {
+    void loadInvitations();
+  }, [loadInvitations]);
 
   async function changeView(next: "admin" | "normal") {
     if (viewBusy || next === view) return;
@@ -121,6 +176,44 @@ export default function AccountSettings({
     }
   }
 
+  async function sendInvitation(targetEmail: string, clearInput = false) {
+    const normalizedEmail = targetEmail.trim().toLowerCase();
+    if (!normalizedEmail || inviteBusyEmail) return;
+
+    setInviteBusyEmail(normalizedEmail);
+    setInviteMessage("");
+    setInviteMessageError(false);
+
+    try {
+      const supabase = createClient();
+      const { data, error } = await supabase.functions.invoke("admin-invitations", {
+        body: { action: "invite", email: normalizedEmail },
+      });
+
+      if (error) throw error;
+
+      if (!data?.ok) {
+        setInviteMessageError(true);
+        setInviteMessage(data?.message ?? "Pozvánku se nepodařilo odeslat.");
+        return;
+      }
+
+      setInviteMessage(data.message ?? "Pozvánka byla odeslána.");
+      if (clearInput) setInviteEmail("");
+      await loadInvitations();
+    } catch {
+      setInviteMessageError(true);
+      setInviteMessage("Pozvánku se nepodařilo odeslat. Zkus to znovu.");
+    } finally {
+      setInviteBusyEmail(null);
+    }
+  }
+
+  async function submitInvitation(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    await sendInvitation(inviteEmail, true);
+  }
+
   return (
     <div className="taste-settings-grid">
       {canSwitchView && <section className="taste-settings-card taste-settings-view-card" aria-labelledby="settings-view-title">
@@ -132,6 +225,88 @@ export default function AccountSettings({
         </div>
         {viewError && <p className="taste-settings-feedback" role="alert" data-error="true">{viewError}</p>}
       </section>}
+
+      {canSwitchView && <section className="taste-settings-card taste-settings-invite-card" aria-labelledby="settings-invite-title">
+        <h2 id="settings-invite-title">Správa pozvánek</h2>
+        <p>Pozvánky se odesílají přes zabezpečenou serverovou funkci. Aktivní účet se znovu nepozve a žádný existující účet se při opakovaném odeslání nemaže.</p>
+
+        <form className="taste-settings-invite-form" onSubmit={submitInvitation}>
+          <div className="taste-settings-invite-field">
+            <label htmlFor="invite-email">E-mail nového štamgasta</label>
+            <input
+              id="invite-email"
+              type="email"
+              autoComplete="email"
+              required
+              maxLength={254}
+              value={inviteEmail}
+              onChange={(event) => setInviteEmail(event.target.value)}
+              placeholder="jmeno@example.cz"
+            />
+          </div>
+          <button type="submit" disabled={inviteBusyEmail !== null || !inviteEmail.trim()}>
+            {inviteBusyEmail === inviteEmail.trim().toLowerCase() ? "Odesílám…" : "Odeslat pozvánku"}
+          </button>
+        </form>
+
+        {inviteMessage && <p className="taste-settings-feedback taste-settings-invite-feedback" role="status" data-error={inviteMessageError}>{inviteMessage}</p>}
+
+        <div className="taste-settings-invite-list" aria-live="polite">
+          <div className="taste-settings-invite-list-heading">
+            <h3>Odeslané pozvánky</h3>
+            <button
+              type="button"
+              className="taste-settings-secondary-button"
+              onClick={() => void loadInvitations()}
+              disabled={invitationsLoading || inviteBusyEmail !== null}
+            >
+              {invitationsLoading ? "Načítám…" : "Obnovit stav"}
+            </button>
+          </div>
+
+          {invitationsError ? (
+            <p className="taste-settings-feedback" role="alert" data-error="true">{invitationsError}</p>
+          ) : invitationsLoading && invitations.length === 0 ? (
+            <p className="taste-settings-invite-empty">Načítám pozvánky…</p>
+          ) : invitations.length === 0 ? (
+            <p className="taste-settings-invite-empty">Zatím tu nejsou žádné odeslané pozvánky.</p>
+          ) : (
+            <div className="taste-settings-invite-rows">
+              {invitations.map((invitation) => {
+                const accepted = Boolean(invitation.confirmedAt);
+                const sentAt = invitation.confirmationSentAt ?? invitation.invitedAt;
+                return (
+                  <div className="taste-settings-invite-row" key={invitation.id}>
+                    <div className="taste-settings-invite-address">
+                      <strong>{invitation.email}</strong>
+                      <span>Odesláno {formatInvitationDate(sentAt)}</span>
+                    </div>
+                    <div className="taste-settings-invite-status-wrap">
+                      <span className="taste-settings-invite-status" data-status={accepted ? "accepted" : "pending"}>
+                        {accepted ? "Přijata" : "Čeká na přijetí"}
+                      </span>
+                      {accepted && invitation.confirmedAt && (
+                        <span className="taste-settings-invite-confirmed">Potvrzeno {formatInvitationDate(invitation.confirmedAt)}</span>
+                      )}
+                    </div>
+                    {!accepted && (
+                      <button
+                        type="button"
+                        className="taste-settings-secondary-button"
+                        disabled={inviteBusyEmail !== null}
+                        onClick={() => void sendInvitation(invitation.email)}
+                      >
+                        {inviteBusyEmail === invitation.email.toLowerCase() ? "Odesílám…" : "Odeslat znovu"}
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </section>}
+
       <section className="taste-settings-card" aria-labelledby="settings-name-title">
         <h2 id="settings-name-title">Jméno v profilu</h2>
         <p>Přezdívka <strong>{displayName}</strong> se nemění. Jméno se zobrazí pod ní a můžeš ho kdykoliv upravit nebo smazat.</p>
