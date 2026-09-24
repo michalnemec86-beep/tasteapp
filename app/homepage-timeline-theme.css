@@ -118,12 +118,13 @@ main > .grid.grid-cols-1.gap-4.xl\:grid-cols-12 > section.order-1.xl\:order-2.xl
 
 .taste-timeline-card {
   overflow: hidden;
-  border: 1px solid rgba(231, 166, 47, .34);
+  border: 1px solid rgba(231, 166, 47, .52);
   border-radius: 15px;
   box-shadow:
-    0 10px 27px rgba(0, 0, 0, .25),
-    0 0 22px rgba(231, 166, 47, .17),
-    0 0 48px rgba(231, 166, 47, .07);
+    0 10px 27px rgba(0, 0, 0, .28),
+    0 0 28px rgba(231, 166, 47, .34),
+    0 0 62px rgba(231, 166, 47, .15),
+    inset 0 1px 0 rgba(255, 218, 154, .13);
 }
 
 .taste-timeline-card-header {
@@ -191,7 +192,9 @@ main > .grid.grid-cols-1.gap-4.xl\:grid-cols-12 > section.order-1.xl\:order-2.xl
 
 .taste-timeline-card-body {
   padding: 18px 20px 19px;
-  background: rgba(70, 46, 27, .64);
+  background:
+    radial-gradient(circle at 88% 0%, rgba(231, 166, 47, .20), transparent 72%),
+    rgba(70, 46, 27, .64);
 }
 
 .taste-timeline-beer-line {
@@ -265,11 +268,12 @@ main > .grid.grid-cols-1.gap-4.xl\:grid-cols-12 > section.order-1.xl\:order-2.xl
 }
 
 .taste-timeline-system .taste-timeline-card {
-  border-color: rgba(214, 91, 66, .58);
+  border-color: rgba(214, 91, 66, .72);
   box-shadow:
     0 10px 27px rgba(0, 0, 0, .28),
-    0 0 24px rgba(214, 91, 66, .21),
-    0 0 52px rgba(214, 91, 66, .08);
+    0 0 28px rgba(214, 91, 66, .36),
+    0 0 62px rgba(214, 91, 66, .15),
+    inset 0 1px 0 rgba(255, 166, 145, .13);
 }
 
 .taste-timeline-system .taste-timeline-card-header {
@@ -278,7 +282,9 @@ main > .grid.grid-cols-1.gap-4.xl\:grid-cols-12 > section.order-1.xl\:order-2.xl
 }
 
 .taste-timeline-system .taste-timeline-card-body {
-  background: #291410;
+  background:
+    radial-gradient(circle at 88% 0%, rgba(214, 91, 66, .23), transparent 72%),
+    #291410;
 }
 
 .taste-timeline-system .taste-timeline-packaging {
