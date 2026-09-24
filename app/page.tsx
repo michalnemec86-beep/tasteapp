@@ -980,6 +980,7 @@ export default async function HomePage({
     timelinePage * timelinePageSize
   );
   const hasOlderTimeline = timelinePage < 5 && timeline.length > timelinePage * timelinePageSize;
+  const timelineAccents = buildTimelineAccentMap(timeline);
 
   function getProfile(
     userId: string
@@ -1122,7 +1123,7 @@ export default async function HomePage({
 
         {/* LEVÁ STRANA */}
 
-        <aside className="order-2 grid gap-4 md:grid-cols-2 xl:order-1 xl:col-span-3 xl:grid-cols-1">
+        <aside className="order-2 grid self-start content-start gap-4 md:grid-cols-2 xl:order-1 xl:col-span-3 xl:grid-cols-1">
 
           <StatsRankingCard
             title="Nejčastější pivovary"
@@ -1284,7 +1285,7 @@ export default async function HomePage({
                     profile={
                       profile
                     }
-                    userAccent={getTimelineUserAccent(tasting.user_id)}
+                    userAccent={timelineAccents.get(tasting.id) ?? TIMELINE_USER_ACCENTS[0]}
                     isOwn={
                       isOwn
                     }
@@ -1323,7 +1324,7 @@ export default async function HomePage({
 
         {/* PRAVÁ STRANA */}
 
-        <aside className="order-3 grid gap-4 md:grid-cols-2 xl:col-span-3 xl:grid-cols-1">
+        <aside className="order-3 grid self-start content-start gap-4 md:grid-cols-2 xl:col-span-3 xl:grid-cols-1">
 
           <StatsRankingCard
             title="Nejčastější piva"
@@ -1385,26 +1386,35 @@ const TIMELINE_USER_ACCENTS = [
   "#cf8f29",
 ] as const;
 
-function getTimelineUserAccent(
-  userId: string
-) {
-  let hash = 0;
+function buildTimelineAccentMap(events: TimelineEvent[]) {
+  const userAccents = new Map<string, string>();
+  const tastingAccents = new Map<number, string>();
+  let previousUser: string | null = null;
+  let previousAccent: string | null = null;
 
-  for (
-    let index = 0;
-    index < userId.length;
-    index += 1
-  ) {
-    hash =
-      Math.imul(hash, 31) +
-      userId.charCodeAt(index);
-    hash |= 0;
+  for (const event of events) {
+    if (event.type !== "tasting") {
+      previousUser = null;
+      previousAccent = null;
+      continue;
+    }
+
+    const userId = event.tasting.user_id;
+    let accent = userAccents.get(userId) ??
+      TIMELINE_USER_ACCENTS[userAccents.size % TIMELINE_USER_ACCENTS.length];
+
+    // Při případném opakování palety mají sousední různí lidé vždy jinou barvu.
+    if (previousUser !== null && previousUser !== userId && accent === previousAccent) {
+      accent = TIMELINE_USER_ACCENTS.find((color) => color !== previousAccent) ?? accent;
+    }
+
+    if (!userAccents.has(userId)) userAccents.set(userId, accent);
+    tastingAccents.set(event.tasting.id, accent);
+    previousUser = userId;
+    previousAccent = accent;
   }
 
-  return TIMELINE_USER_ACCENTS[
-    Math.abs(hash) %
-      TIMELINE_USER_ACCENTS.length
-  ];
+  return tastingAccents;
 }
 
 function TastingTimelineCard({

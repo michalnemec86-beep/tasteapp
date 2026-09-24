@@ -120,7 +120,10 @@ main > .grid.grid-cols-1.gap-4.xl\:grid-cols-12 > section.order-1.xl\:order-2.xl
   overflow: hidden;
   border: 1px solid rgba(231, 166, 47, .34);
   border-radius: 15px;
-  box-shadow: 0 10px 27px rgba(0, 0, 0, .23);
+  box-shadow:
+    0 10px 27px rgba(0, 0, 0, .25),
+    0 0 22px rgba(231, 166, 47, .17),
+    0 0 48px rgba(231, 166, 47, .07);
 }
 
 .taste-timeline-card-header {
@@ -263,6 +266,10 @@ main > .grid.grid-cols-1.gap-4.xl\:grid-cols-12 > section.order-1.xl\:order-2.xl
 
 .taste-timeline-system .taste-timeline-card {
   border-color: rgba(214, 91, 66, .58);
+  box-shadow:
+    0 10px 27px rgba(0, 0, 0, .28),
+    0 0 24px rgba(214, 91, 66, .21),
+    0 0 52px rgba(214, 91, 66, .08);
 }
 
 .taste-timeline-system .taste-timeline-card-header {
