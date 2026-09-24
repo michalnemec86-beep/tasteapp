@@ -320,11 +320,67 @@ Deno.serve(async (req: Request) => {
       action?: string;
       email?: string;
       password?: string;
+      userId?: string;
     };
 
     if (body.action === "list") {
       const users = await listAuthUsers();
       return json(origin, { ok: true, invitations: invitationRows(users) });
+    }
+
+    if (body.action === "cancel") {
+      const userId = (body.userId ?? "").trim();
+      if (!/^[0-9a-f-]{36}$/i.test(userId)) {
+        return json(origin, { ok: false, message: "Neplatný identifikátor pozvánky." }, 400);
+      }
+
+      const users = await listAuthUsers();
+      const target = users.find((user) => user.id === userId);
+
+      if (!target) {
+        return json(origin, { ok: true, message: "Pozvánka už neexistuje." });
+      }
+
+      const confirmedAt = target.email_confirmed_at ?? target.confirmed_at ?? null;
+      if (confirmedAt || target.last_sign_in_at) {
+        return json(origin, {
+          ok: false,
+          message: "Tento účet už je aktivní. Přes správu pozvánek ho nelze zrušit.",
+        }, 409);
+      }
+
+      if (!target.invited_at) {
+        return json(origin, {
+          ok: false,
+          message: "Tento účet nevznikl jako čekající pozvánka. Z bezpečnostních důvodů jsem ho nesmazal.",
+        }, 409);
+      }
+
+      const deleteResponse = await fetch(
+        SUPABASE_URL + "/auth/v1/admin/users/" + encodeURIComponent(target.id),
+        {
+          method: "DELETE",
+          headers: serviceHeaders(),
+        },
+      );
+
+      if (!deleteResponse.ok) {
+        const detail = await deleteResponse.text();
+        throw new Error("Auth delete failed (" + deleteResponse.status + "): " + detail);
+      }
+
+      if (target.email) {
+        try {
+          await revokeExistingQrLinks(target.email.toLowerCase());
+        } catch (revokeError) {
+          console.error("cancel invitation QR cleanup", revokeError);
+        }
+      }
+
+      return json(origin, {
+        ok: true,
+        message: "Pozvánka byla zrušena. Starý QR kód ani původní invite odkaz už nejsou platnou cestou k účtu.",
+      });
     }
 
     if (body.action !== "qr" && body.action !== "create_account") {

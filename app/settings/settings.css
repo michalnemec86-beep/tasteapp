@@ -98,3 +98,14 @@
 @media (max-width: 760px) {
   .taste-settings-registration-paths { grid-template-columns: 1fr; }
 }
+
+.taste-settings-card .taste-settings-danger-button {
+  margin: 0;
+  border-color: rgba(239, 126, 105, .48);
+  background: rgba(120, 43, 34, .18);
+  color: #ffc0b4;
+}
+.taste-settings-card .taste-settings-danger-button:hover:not(:disabled) {
+  border-color: rgba(239, 126, 105, .72);
+  background: rgba(120, 43, 34, .3);
+}

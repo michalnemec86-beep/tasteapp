@@ -70,7 +70,7 @@ export default function AccountSettings({
   const [invitationsLoading, setInvitationsLoading] = useState(canSwitchView);
   const [invitationsError, setInvitationsError] = useState("");
   const [qrInvitation, setQrInvitation] = useState<QrInvitation | null>(null);
-  const [inviteBusyKind, setInviteBusyKind] = useState<"qr" | "account" | null>(null);
+  const [inviteBusyKind, setInviteBusyKind] = useState<"qr" | "account" | "cancel" | null>(null);
   const [inviteLinkMessage, setInviteLinkMessage] = useState("");
   const [manualEmail, setManualEmail] = useState("");
   const [manualPassword, setManualPassword] = useState("");
@@ -311,6 +311,48 @@ export default function AccountSettings({
     }
   }
 
+  async function cancelInvitation(invitation: InvitationRow) {
+    if (inviteBusyEmail || manualBusy) return;
+
+    const confirmed = window.confirm(
+      "Opravdu zrušit pozvánku pro " + invitation.email + "? Starý QR kód i původní invite odkaz přestanou fungovat.",
+    );
+    if (!confirmed) return;
+
+    setInviteBusyEmail(invitation.email.toLowerCase());
+    setInviteBusyKind("cancel");
+    setInviteMessage("");
+    setInviteMessageError(false);
+
+    try {
+      const supabase = createClient();
+      const { data, error } = await supabase.functions.invoke("admin-invitations", {
+        body: { action: "cancel", userId: invitation.id },
+      });
+
+      if (error) throw error;
+      if (!data?.ok) {
+        setInviteMessageError(true);
+        setInviteMessage(data?.message ?? "Pozvánku se nepodařilo zrušit.");
+        return;
+      }
+
+      if (qrInvitation?.email.toLowerCase() === invitation.email.toLowerCase()) {
+        setQrInvitation(null);
+        setInviteLinkMessage("");
+      }
+
+      setInviteMessage(data.message ?? "Pozvánka byla zrušena.");
+      await loadInvitations();
+    } catch {
+      setInviteMessageError(true);
+      setInviteMessage("Pozvánku se nepodařilo zrušit. Zkus to znovu.");
+    } finally {
+      setInviteBusyEmail(null);
+      setInviteBusyKind(null);
+    }
+  }
+
   async function submitInvitation(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     await createQrInvitation(inviteEmail, true);
@@ -522,6 +564,14 @@ export default function AccountSettings({
                         onClick={() => void createQrInvitation(invitation.email)}
                       >
                         {busy && inviteBusyKind === "qr" ? "Vytvářím…" : "Nový QR"}
+                      </button>
+                      <button
+                        type="button"
+                        className="taste-settings-danger-button"
+                        disabled={inviteBusyEmail !== null || manualBusy}
+                        onClick={() => void cancelInvitation(invitation)}
+                      >
+                        {busy && inviteBusyKind === "cancel" ? "Ruším…" : "Zrušit pozvánku"}
                       </button>
                     </div>
                   </div>
