@@ -105,7 +105,12 @@ function invitationRows(users: AuthUser[]) {
   return users
     .filter((user) => {
       const confirmedAt = user.email_confirmed_at ?? user.confirmed_at ?? null;
-      return Boolean(user.invited_at) && !confirmedAt;
+      const manualPending =
+        user.app_metadata?.registration_method === "admin_password" &&
+        user.app_metadata?.must_change_password === true &&
+        !user.last_sign_in_at;
+      const qrPending = Boolean(user.invited_at) && !confirmedAt && !user.last_sign_in_at;
+      return manualPending || qrPending;
     })
     .map((user) => ({
       id: user.id,
@@ -113,10 +118,14 @@ function invitationRows(users: AuthUser[]) {
       invitedAt: user.invited_at ?? null,
       confirmationSentAt: user.confirmation_sent_at ?? null,
       createdAt: user.created_at ?? null,
+      registrationMethod:
+        user.app_metadata?.registration_method === "admin_password"
+          ? "admin_password"
+          : "qr",
     }))
     .sort((a, b) => {
-      const left = a.invitedAt ? Date.parse(a.invitedAt) : 0;
-      const right = b.invitedAt ? Date.parse(b.invitedAt) : 0;
+      const left = Date.parse(a.invitedAt ?? a.createdAt ?? "") || 0;
+      const right = Date.parse(b.invitedAt ?? b.createdAt ?? "") || 0;
       return right - left;
     });
 }
@@ -342,17 +351,73 @@ Deno.serve(async (req: Request) => {
       }
 
       const confirmedAt = target.email_confirmed_at ?? target.confirmed_at ?? null;
-      if (confirmedAt || target.last_sign_in_at) {
+      const manualPending =
+        target.app_metadata?.registration_method === "admin_password" &&
+        target.app_metadata?.must_change_password === true &&
+        !target.last_sign_in_at;
+      const qrPending =
+        Boolean(target.invited_at) &&
+        !confirmedAt &&
+        !target.last_sign_in_at;
+
+      if (!manualPending && !qrPending) {
         return json(origin, {
           ok: false,
-          message: "Tento účet už je aktivní. Přes správu pozvánek ho nelze zrušit.",
+          message: "Tento účet už není čekající registrace. Přes správu registrací ho nelze zrušit.",
         }, 409);
       }
 
-      if (!target.invited_at) {
+      const dataChecks = [
+        ["tastings", "user_id"],
+        ["user_achievements", "user_id"],
+        ["catalog_events", "actor_user_id"],
+        ["beer_versions", "created_by"],
+        ["brewery_brands", "created_by"],
+      ] as const;
+
+      for (const [table, column] of dataChecks) {
+        const checkResponse = await fetch(
+          SUPABASE_URL +
+            "/rest/v1/" + table +
+            "?select=id&" + column + "=eq." + encodeURIComponent(target.id) +
+            "&limit=1",
+          { headers: serviceHeaders() },
+        );
+
+        if (!checkResponse.ok) {
+          const detail = await checkResponse.text();
+          throw new Error("Data safety check failed for " + table + " (" + checkResponse.status + "): " + detail);
+        }
+
+        const rows = await checkResponse.json() as Array<{ id?: unknown }>;
+        if (rows.length > 0) {
+          return json(origin, {
+            ok: false,
+            message: "Registraci nelze zrušit, protože už má navázaná data v Pivníku.",
+          }, 409);
+        }
+      }
+
+      const beerCheck = await fetch(
+        SUPABASE_URL +
+          "/rest/v1/beers?select=id&or=(created_by.eq." +
+          encodeURIComponent(target.id) +
+          ",catalog_confirmed_by.eq." +
+          encodeURIComponent(target.id) +
+          ")&limit=1",
+        { headers: serviceHeaders() },
+      );
+
+      if (!beerCheck.ok) {
+        const detail = await beerCheck.text();
+        throw new Error("Data safety check failed for beers (" + beerCheck.status + "): " + detail);
+      }
+
+      const linkedBeers = await beerCheck.json() as Array<{ id?: unknown }>;
+      if (linkedBeers.length > 0) {
         return json(origin, {
           ok: false,
-          message: "Tento účet nevznikl jako čekající pozvánka. Z bezpečnostních důvodů jsem ho nesmazal.",
+          message: "Registraci nelze zrušit, protože už má navázaná katalogová data v Pivníku.",
         }, 409);
       }
 

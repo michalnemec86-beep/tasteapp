@@ -14,6 +14,7 @@ type InvitationRow = {
   confirmedAt: string | null;
   lastSignInAt: string | null;
   createdAt: string | null;
+  registrationMethod?: "qr" | "admin_password";
 };
 
 type QrInvitation = {
@@ -314,8 +315,11 @@ export default function AccountSettings({
   async function cancelInvitation(invitation: InvitationRow) {
     if (inviteBusyEmail || manualBusy) return;
 
+    const methodText = invitation.registrationMethod === "admin_password"
+      ? "Účet s dočasným heslem bude odstraněn."
+      : "Starý QR kód i původní invite odkaz přestanou fungovat.";
     const confirmed = window.confirm(
-      "Opravdu zrušit pozvánku pro " + invitation.email + "? Starý QR kód i původní invite odkaz přestanou fungovat.",
+      "Opravdu zrušit registraci pro " + invitation.email + "? " + methodText,
     );
     if (!confirmed) return;
 
@@ -525,7 +529,7 @@ export default function AccountSettings({
 
         <div className="taste-settings-invite-list" aria-live="polite">
           <div className="taste-settings-invite-list-heading">
-            <h3>Čekající QR registrace</h3>
+            <h3>Čekající registrace</h3>
             <button
               type="button"
               className="taste-settings-secondary-button"
@@ -541,37 +545,49 @@ export default function AccountSettings({
           ) : invitationsLoading && invitations.length === 0 ? (
             <p className="taste-settings-invite-empty">Načítám čekající registrace…</p>
           ) : invitations.length === 0 ? (
-            <p className="taste-settings-invite-empty">Žádná QR registrace teď nečeká na přijetí.</p>
+            <p className="taste-settings-invite-empty">Žádná registrace teď nečeká na dokončení.</p>
           ) : (
             <div className="taste-settings-invite-rows">
               {invitations.map((invitation) => {
-                const createdAt = invitation.confirmationSentAt ?? invitation.invitedAt;
+                const createdAt =
+                  invitation.confirmationSentAt ??
+                  invitation.invitedAt ??
+                  invitation.createdAt;
                 const busy = inviteBusyEmail === invitation.email.toLowerCase();
+                const manual = invitation.registrationMethod === "admin_password";
+
                 return (
                   <div className="taste-settings-invite-row" key={invitation.id}>
                     <div className="taste-settings-invite-address">
                       <strong>{invitation.email}</strong>
                       <span>Vytvořeno {formatInvitationDate(createdAt)}</span>
+                      <span className="taste-settings-registration-method">
+                        {manual ? "E-mail + dočasné heslo" : "QR pozvánka"}
+                      </span>
                     </div>
                     <div className="taste-settings-invite-status-wrap">
-                      <span className="taste-settings-invite-status" data-status="pending">Čeká na přijetí</span>
+                      <span className="taste-settings-invite-status" data-status="pending">
+                        {manual ? "Čeká na první přihlášení" : "Čeká na přijetí"}
+                      </span>
                     </div>
                     <div className="taste-settings-invite-actions">
-                      <button
-                        type="button"
-                        className="taste-settings-secondary-button"
-                        disabled={inviteBusyEmail !== null || manualBusy}
-                        onClick={() => void createQrInvitation(invitation.email)}
-                      >
-                        {busy && inviteBusyKind === "qr" ? "Vytvářím…" : "Nový QR"}
-                      </button>
+                      {!manual && (
+                        <button
+                          type="button"
+                          className="taste-settings-secondary-button"
+                          disabled={inviteBusyEmail !== null || manualBusy}
+                          onClick={() => void createQrInvitation(invitation.email)}
+                        >
+                          {busy && inviteBusyKind === "qr" ? "Vytvářím…" : "Nový QR"}
+                        </button>
+                      )}
                       <button
                         type="button"
                         className="taste-settings-danger-button"
                         disabled={inviteBusyEmail !== null || manualBusy}
                         onClick={() => void cancelInvitation(invitation)}
                       >
-                        {busy && inviteBusyKind === "cancel" ? "Ruším…" : "Zrušit pozvánku"}
+                        {busy && inviteBusyKind === "cancel" ? "Ruším…" : "Zrušit registraci"}
                       </button>
                     </div>
                   </div>
