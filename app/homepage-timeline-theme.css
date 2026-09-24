@@ -165,7 +165,7 @@ main > .grid.grid-cols-1.gap-4.xl\:grid-cols-12 > section.order-1.xl\:order-2.xl
   padding: 3px 8px;
   border: 1px solid;
   border-radius: 7px;
-  font-size: 1rem;
+  font-size: .94rem;
   line-height: 1.25;
   font-weight: 800;
   overflow-wrap: anywhere;
@@ -175,7 +175,7 @@ main > .grid.grid-cols-1.gap-4.xl\:grid-cols-12 > section.order-1.xl\:order-2.xl
 .taste-timeline-realname,
 .taste-timeline-system-person {
   color: var(--taste-text-soft);
-  font-size: .85rem;
+  font-size: .8rem;
   line-height: 1.35;
   font-weight: 400;
   text-decoration: none;
@@ -186,7 +186,7 @@ main > .grid.grid-cols-1.gap-4.xl\:grid-cols-12 > section.order-1.xl\:order-2.xl
   align-self: flex-start;
   padding-top: 5px;
   color: var(--taste-text-soft);
-  font-size: .85rem;
+  font-size: .8rem;
   white-space: nowrap;
 }
 
@@ -207,7 +207,7 @@ main > .grid.grid-cols-1.gap-4.xl\:grid-cols-12 > section.order-1.xl\:order-2.xl
 .taste-timeline-beer-name {
   margin: 0;
   color: var(--taste-text);
-  font-size: 1.2rem;
+  font-size: 1.08rem;
   line-height: 1.35;
   font-weight: 800;
   overflow-wrap: anywhere;
@@ -215,14 +215,14 @@ main > .grid.grid-cols-1.gap-4.xl\:grid-cols-12 > section.order-1.xl\:order-2.xl
 
 .taste-timeline-quantity {
   color: var(--taste-amber-bright);
-  font-size: .85rem;
+  font-size: .8rem;
   font-weight: 700;
 }
 
 .taste-timeline-brewery {
   margin-top: 6px;
   color: var(--taste-text-soft);
-  font-size: .92rem;
+  font-size: .84rem;
   line-height: 1.5;
 }
 
@@ -236,7 +236,7 @@ main > .grid.grid-cols-1.gap-4.xl\:grid-cols-12 > section.order-1.xl\:order-2.xl
   gap: 4px 0;
   margin-top: 12px;
   color: var(--taste-text-soft);
-  font-size: .88rem;
+  font-size: .82rem;
   line-height: 1.5;
 }
 
@@ -249,7 +249,7 @@ main > .grid.grid-cols-1.gap-4.xl\:grid-cols-12 > section.order-1.xl\:order-2.xl
 .taste-timeline-note {
   margin-top: 12px;
   color: var(--taste-text-muted);
-  font-size: .85rem;
+  font-size: .8rem;
   line-height: 1.5;
   overflow-wrap: anywhere;
 }
@@ -296,20 +296,69 @@ main > .grid.grid-cols-1.gap-4.xl\:grid-cols-12 > section.order-1.xl\:order-2.xl
 
 .taste-timeline-system-title {
   color: #f7a394;
-  font-size: .98rem;
+  font-size: .9rem;
   line-height: 1.25;
 }
 
 .taste-timeline-system-description {
   margin-top: 7px;
   color: var(--taste-text-soft);
-  font-size: .88rem;
+  font-size: .82rem;
   line-height: 1.45;
+}
+
+.taste-timeline-achievement-heading {
+  color: var(--taste-text-soft);
+  font-size: .84rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.taste-timeline-achievement-user {
+  color: var(--taste-text);
+  font-size: .99rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.taste-timeline-achievement-progress {
+  max-width: 240px;
+  margin-top: 11px;
+}
+
+.taste-timeline-achievement-progress-label {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--taste-text-soft);
+  font-size: .8rem;
+}
+
+.taste-timeline-achievement-progress-label strong {
+  color: #f7a394;
+  white-space: nowrap;
+}
+
+.taste-timeline-achievement-progress-track {
+  height: 5px;
+  margin-top: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .07);
+}
+
+.taste-timeline-achievement-progress-track span {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background: #e77f6d;
+  box-shadow: 0 0 11px rgba(214, 91, 66, .68);
 }
 
 .taste-timeline-page {
   color: var(--taste-text-muted);
-  font-size: .85rem;
+  font-size: .8rem;
   white-space: nowrap;
 }
 
@@ -322,5 +371,5 @@ main > .grid.grid-cols-1.gap-4.xl\:grid-cols-12 > section.order-1.xl\:order-2.xl
   .taste-timeline-packaging { flex-basis: 38px; width: 38px; height: 38px; }
   .taste-timeline-date { flex-basis: 100%; padding: 0 0 0 47px; }
   .taste-timeline-card-body { padding: 16px 14px; }
-  .taste-timeline-beer-name { font-size: 1.1rem; }
+  .taste-timeline-beer-name { font-size: 1rem; }
 }

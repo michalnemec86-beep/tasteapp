@@ -30,6 +30,7 @@ import StatsRankingCard from "@/components/stats/StatsRankingCard";
 import BreweryOfDayCard from "@/components/home/BreweryOfDayCard";
 import PageHero from "@/components/ui/PageHero";
 import AppIcon from "@/components/ui/AppIcon";
+import { Medal } from "lucide-react";
 import { getCzechVocative } from "@/lib/czech-vocative";
 import { fetchAllRows } from "@/lib/fetch-all-rows";
 import { parsePositivePage } from "@/lib/pagination";
@@ -1588,12 +1589,14 @@ function AchievementTimelineCard({
     <div className="taste-timeline-entry taste-timeline-system">
       <article className="taste-timeline-card">
         <header className="taste-timeline-card-header">
-          <span className="taste-timeline-packaging" aria-hidden="true">{achievement.icon}</span>
+          <span className="taste-timeline-packaging" aria-hidden="true"><Medal size={23} strokeWidth={1.8} /></span>
           <div className="taste-timeline-person">
-            <strong className="taste-timeline-system-title">Systém · nové ocenění</strong>
-            <Link href={"/profiles/" + row.user_id} className="taste-timeline-system-person">
-              {profile?.display_name ?? "Neznámý uživatel"}
-            </Link>
+            <div className="taste-timeline-achievement-heading">
+              <Link href={"/profiles/" + row.user_id} className="taste-timeline-achievement-user">
+                {profile?.display_name ?? "Neznámý uživatel"}
+              </Link>
+              <span> – nové ocenění</span>
+            </div>
           </div>
           <time className="taste-timeline-date" dateTime={row.unlocked_at}>
             {formatAchievementDate(row.unlocked_at)}
@@ -1601,7 +1604,19 @@ function AchievementTimelineCard({
         </header>
         <div className="taste-timeline-card-body">
           <h3 className="taste-timeline-beer-name">{achievement.name}</h3>
-          <div className="taste-timeline-system-description">Získal nové hospodské ocenění.</div>
+          {achievement.series && achievement.target > 1 && (
+            <div className="taste-timeline-achievement-progress">
+              <div className="taste-timeline-achievement-progress-label">
+                <span>Splněná meta</span>
+                <strong>{achievement.target} / {achievement.target}</strong>
+              </div>
+              <div className="taste-timeline-achievement-progress-track" role="progressbar"
+                aria-label={"Splněná meta: " + achievement.description.replace(/^Dosáhni\s+/, "").replace(/\.$/, "")}
+                aria-valuemin={0} aria-valuemax={achievement.target} aria-valuenow={achievement.target}>
+                <span />
+              </div>
+            </div>
+          )}
         </div>
       </article>
     </div>
