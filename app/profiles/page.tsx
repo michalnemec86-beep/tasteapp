@@ -622,8 +622,8 @@ export default async function ProfilesPage() {
                         {profile.id ===
                           "17be5dc3-a3f9-4fd2-ae90-dee7692034fc" && (
                           <span
-                            title="Správce TasteAppu"
-                            aria-label="Správce TasteAppu"
+                            title="Správce Pivníku"
+                            aria-label="Správce Pivníku"
                             style={{
                               marginLeft:
                                 "6px",

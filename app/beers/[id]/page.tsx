@@ -2,6 +2,8 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
 import PageHero from "@/components/ui/PageHero";
+import ReferenceWarning from "@/components/ui/ReferenceWarning";
+import { isAdminView } from "@/lib/adminView";
 import { createClient } from "@/lib/supabase/server";
 import { getBeerReferenceStatus } from "@/lib/referenceStatus";
 
@@ -109,7 +111,7 @@ export default async function BeerDetailPage({ params }: Props) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/auth/login");
-  const isCatalogAdmin = user.id === "17be5dc3-a3f9-4fd2-ae90-dee7692034fc";
+  const adminView = await isAdminView(user.id);
 
   const { data: rawBeer, error } = await supabase
     .from("beers")
@@ -315,22 +317,7 @@ export default async function BeerDetailPage({ params }: Props) {
         subtitle=""
         action={
           <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
-            {isCatalogAdmin && referenceStatus.ready && (
-              <span
-                title="Potvrzené katalogové pivo se všemi povinnými referenčními údaji"
-                style={{ padding: "7px 10px", border: "1px solid rgba(54,235,118,.72)", borderRadius: "999px", background: "rgba(38,215,101,.22)", color: "#62f39a", fontSize: "9px", fontWeight: 900, letterSpacing: ".045em" }}
-              >
-                ✓ REFERENČNÍ
-              </span>
-            )}
-            {isCatalogAdmin && !referenceStatus.ready && (
-              <span
-                title={`Chybí: ${referenceStatus.missing.join(", ")}`}
-                style={{ padding: "7px 10px", border: "1px solid rgba(231,166,47,.28)", borderRadius: "999px", background: "rgba(231,166,47,.07)", color: "var(--taste-text-muted)", fontSize: "9px", fontWeight: 750 }}
-              >
-                Chybí {referenceStatus.missing.length}
-              </span>
-            )}
+            {adminView && !referenceStatus.ready && <ReferenceWarning missing={referenceStatus.missing} />}
             <Link href="/beers" className="taste-button-secondary">← Pivní lístek</Link>
           </div>
         }
@@ -347,15 +334,6 @@ export default async function BeerDetailPage({ params }: Props) {
         style={{
           padding: "20px",
           marginBottom: "18px",
-          border: isCatalogAdmin && referenceStatus.ready
-            ? "1px solid rgba(54,235,118,.70)"
-            : undefined,
-          background: isCatalogAdmin && referenceStatus.ready
-            ? "linear-gradient(145deg, rgba(36,220,99,.16), rgba(36,220,99,.035) 45%, transparent), var(--taste-surface)"
-            : undefined,
-          boxShadow: isCatalogAdmin && referenceStatus.ready
-            ? "inset 4px 0 0 rgba(44,235,111,.92), var(--taste-shadow-soft)"
-            : undefined,
         }}
       >
         <div className="taste-label">Aktuální parametry</div>

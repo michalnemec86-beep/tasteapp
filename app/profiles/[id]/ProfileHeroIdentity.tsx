@@ -134,8 +134,8 @@ export default function ProfileHeroIdentity({
 
               {isAdmin && (
                 <span
-                  title="Správce TasteAppu"
-                  aria-label="Správce TasteAppu"
+                  title="Správce Pivníku"
+                  aria-label="Správce Pivníku"
                   style={{
                     marginLeft:
                       "7px",
@@ -174,7 +174,7 @@ export default function ProfileHeroIdentity({
                 lineHeight: 1.35,
               }}
             >
-              Osobní pivní stopa v TasteAppu
+              Osobní pivní stopa v Pivníku
             </div>
           </div>
         </div>

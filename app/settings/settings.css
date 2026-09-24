@@ -20,6 +20,10 @@
 .taste-settings-card button:disabled { opacity: .65; cursor: wait; }
 .taste-settings-feedback { margin: 3px 0 0; color: #bde4ac; font-size: 14px; line-height: 1.45; }
 .taste-settings-feedback[data-error="true"] { color: #ffb4a8; }
+.taste-settings-view-card { grid-column: 1 / -1; }
+.taste-settings-view-options { display: flex; flex-wrap: wrap; gap: 10px; }
+.taste-settings-card .taste-settings-view-options button { margin: 0; background: rgba(28,18,10,.65); color: var(--taste-text-soft); border-color: rgba(231,166,47,.28); }
+.taste-settings-card .taste-settings-view-options button[aria-pressed="true"] { background: linear-gradient(135deg, #d8962f, #a96b26); color: #1b1008; border-color: rgba(245,184,63,.62); }
 
 @media (max-width: 760px) {
   .taste-settings-page { padding-top: 27px; }

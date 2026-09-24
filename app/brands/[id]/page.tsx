@@ -78,7 +78,7 @@ export default async function BrandDetailPage({ params, searchParams }: Props) {
         eyebrow="Značka"
         imageUrl="/images/heroes/breweries.jpg"
         title={rawBrand.name}
-        subtitle="Produktová značka je v TasteAppu oddělená od výrobního pivovaru. Díky tomu zůstává statisticky souvislá i při historické změně výrobce."
+        subtitle="Produktová značka je v Pivníku oddělená od výrobního pivovaru. Díky tomu zůstává statisticky souvislá i při historické změně výrobce."
         action={<Link href="/stats" className="taste-button-secondary">← Co a jak pijeme</Link>}
         stats={[
           { icon: "◆", accent: "#d98945", value: beers.length, label: "Piv" },

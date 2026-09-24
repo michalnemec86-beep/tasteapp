@@ -19,7 +19,7 @@ export default function CatalogConfirmButton({
   if (isCatalog) {
     return (
       <span
-        title="Potvrzené katalogové pivo. Zelený referenční stav navíc vyžaduje kompletní povinné údaje."
+        title="Potvrzené katalogové pivo."
         style={{ display: "inline-flex", alignItems: "center", gap: "5px", padding: "6px 9px", border: "1px solid rgba(231,166,47,.38)", borderRadius: "999px", background: "rgba(231,166,47,.10)", color: "var(--taste-amber-bright)", fontSize: "9px", fontWeight: 850 }}
       >
         ✓ Katalogové

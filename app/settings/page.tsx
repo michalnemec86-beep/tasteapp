@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { isAdminView, isCatalogAdminUser } from "@/lib/adminView";
 import AccountSettings from "./AccountSettings";
 import "./settings.css";
 
@@ -31,6 +32,8 @@ export default async function SettingsPage() {
         displayName={profile.display_name}
         realName={profile.real_name}
         email={user.email ?? ""}
+        canSwitchView={isCatalogAdminUser(user.id)}
+        adminView={await isAdminView(user.id)}
       />
     </main>
   );

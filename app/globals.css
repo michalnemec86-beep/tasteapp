@@ -834,6 +834,39 @@
 }
 
 /* Malá editační akce v katalogu pivovarů */
+.taste-reference-warning {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 18px;
+  width: 18px;
+  height: 18px;
+  border: 1px solid rgba(242,182,63,.65);
+  border-radius: 50%;
+  background: rgba(242,182,63,.16);
+  color: #ffd167;
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1;
+  box-shadow: 0 0 10px rgba(242,182,63,.13);
+  vertical-align: middle;
+}
+.taste-brewery-logo-details { margin-bottom: 20px; padding: 10px 14px; border: 1px solid rgba(231,166,47,.22); border-radius: 10px; background: rgba(231,166,47,.035); }
+.taste-brewery-logo-details summary { cursor: pointer; color: var(--taste-amber-bright); font-size: 12px; font-weight: 750; }
+.taste-brewery-logo-details[open] summary { margin-bottom: 14px; }
+@media (min-width: 1024px) and (prefers-reduced-motion: no-preference) {
+  .taste-beer-catalog-card { transition: transform .18s ease, box-shadow .18s ease; }
+  .taste-beer-catalog-card:hover { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(0,0,0,.26), 0 0 20px rgba(231,166,47,.08); }
+}
+
+@media (min-width: 1024px) {
+  .taste-page-hero-layout { min-height: 152px !important; }
+  .taste-page-hero-copy { padding-top: 17px !important; padding-bottom: 17px !important; }
+  .taste-page-hero-action-column { padding-top: 12px !important; padding-bottom: 12px !important; }
+  .taste-page-hero-stats .taste-hero-stat { min-height: 48px !important; }
+}
+
+/* Malá editační akce v katalogu pivovarů */
 .brewery-edit-trigger {
   cursor: pointer !important;
 }

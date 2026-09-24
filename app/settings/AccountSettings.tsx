@@ -4,15 +4,20 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { updateOwnRealName } from "@/app/profiles/actions";
+import { updateCatalogView } from "./view-actions";
 
 export default function AccountSettings({
   displayName,
   realName,
   email,
+  canSwitchView,
+  adminView,
 }: {
   displayName: string;
   realName: string | null;
   email: string;
+  canSwitchView: boolean;
+  adminView: boolean;
 }) {
   const router = useRouter();
   const [name, setName] = useState(realName ?? "");
@@ -25,6 +30,24 @@ export default function AccountSettings({
   const [passwordBusy, setPasswordBusy] = useState(false);
   const [passwordMessage, setPasswordMessage] = useState("");
   const [passwordError, setPasswordError] = useState(false);
+  const [view, setView] = useState<"admin" | "normal">(adminView ? "admin" : "normal");
+  const [viewBusy, setViewBusy] = useState(false);
+  const [viewError, setViewError] = useState("");
+
+  async function changeView(next: "admin" | "normal") {
+    if (viewBusy || next === view) return;
+    setViewBusy(true);
+    setViewError("");
+    try {
+      await updateCatalogView(next);
+      setView(next);
+      router.refresh();
+    } catch {
+      setViewError("Zobrazení se nepodařilo změnit. Zkus to znovu.");
+    } finally {
+      setViewBusy(false);
+    }
+  }
 
   async function saveName(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -100,6 +123,15 @@ export default function AccountSettings({
 
   return (
     <div className="taste-settings-grid">
+      {canSwitchView && <section className="taste-settings-card taste-settings-view-card" aria-labelledby="settings-view-title">
+        <h2 id="settings-view-title">Zobrazení katalogu</h2>
+        <p>V běžném pohledu uvidíš hotové záznamy bez správcovských značek. Správcovský pohled označí ty, které ještě potřebují doplnit.</p>
+        <div className="taste-settings-view-options" role="group" aria-label="Režim zobrazení">
+          <button type="button" aria-pressed={view === "normal"} disabled={viewBusy} onClick={() => changeView("normal")}>Běžné zobrazení</button>
+          <button type="button" aria-pressed={view === "admin"} disabled={viewBusy} onClick={() => changeView("admin")}>Admin zobrazení</button>
+        </div>
+        {viewError && <p className="taste-settings-feedback" role="alert" data-error="true">{viewError}</p>}
+      </section>}
       <section className="taste-settings-card" aria-labelledby="settings-name-title">
         <h2 id="settings-name-title">Jméno v profilu</h2>
         <p>Přezdívka <strong>{displayName}</strong> se nemění. Jméno se zobrazí pod ní a můžeš ho kdykoliv upravit nebo smazat.</p>
