@@ -1,0 +1,136 @@
+/* Desktop reading scale and spacing for the catalog and statistics. */
+@media (min-width: 1024px) {
+  .taste-page-hero:not(.taste-page-hero-mobile-compact) .taste-page-hero-subtitle {
+    font-size: 13px !important;
+    line-height: 1.55 !important;
+  }
+
+  .taste-page-hero:not(.taste-page-hero-mobile-compact) > .taste-page-hero-stats .taste-hero-stat {
+    min-height: 54px !important;
+    padding: 9px 12px !important;
+  }
+
+  .taste-page-hero:not(.taste-page-hero-mobile-compact) .taste-hero-stat-value {
+    font-size: 20px !important;
+  }
+
+  .taste-page-hero:not(.taste-page-hero-mobile-compact) .taste-hero-stat-label {
+    font-size: 11px !important;
+    line-height: 1.25;
+  }
+
+  .taste-beer-catalog-toolbar {
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 390px);
+    align-items: center;
+    column-gap: 24px;
+    row-gap: 14px;
+    padding: 16px 18px;
+    border: 1px solid rgba(231, 166, 47, .18);
+    border-radius: 16px;
+    background: rgba(29, 19, 11, .55);
+  }
+
+  .taste-beer-catalog-toolbar .taste-tasting-search {
+    grid-column: 2;
+    grid-row: 1;
+    width: 100%;
+    max-width: none;
+  }
+
+  .taste-beer-catalog-toolbar .taste-tasting-sort-buttons {
+    grid-column: 1 / -1;
+    padding-top: 13px;
+    border-top: 1px solid rgba(231, 166, 47, .13);
+  }
+
+  .taste-beer-catalog-toolbar .taste-tasting-letters,
+  .taste-beer-catalog-toolbar .taste-tasting-country-select {
+    grid-column: 1 / -1;
+  }
+
+  .taste-beer-catalog-toolbar [role="group"] .taste-button-secondary,
+  .taste-beer-catalog-toolbar .taste-tasting-sort-buttons .taste-button-secondary {
+    min-height: 38px;
+    font-size: 12px !important;
+  }
+
+  .taste-beer-catalog-toolbar .taste-tasting-search input {
+    min-height: 42px;
+  }
+
+  .taste-beer-catalog-count {
+    padding: 0 2px;
+    font-size: 13px !important;
+  }
+
+  .taste-beer-catalog-grid {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr));
+    gap: 18px;
+  }
+
+  .taste-beer-catalog-card {
+    display: flex;
+    flex-direction: column;
+    min-height: 232px;
+    padding: 20px !important;
+    box-shadow: inset 0 1px 0 rgba(255, 226, 174, .035), 0 10px 26px rgba(0, 0, 0, .18);
+  }
+
+  .taste-beer-catalog-name { font-size: 20px !important; line-height: 1.18 !important; }
+  .taste-beer-catalog-brand { font-size: 12px !important; }
+  .taste-beer-catalog-brewery { font-size: 13px !important; line-height: 1.45 !important; }
+  .taste-beer-catalog-total { font-size: 21px !important; }
+  .taste-beer-catalog-total-label,
+  .taste-beer-catalog-mine { font-size: 11px !important; }
+  .taste-beer-catalog-chip { font-size: 11px !important; }
+  .taste-beer-catalog-hops { font-size: 11px !important; line-height: 1.5 !important; }
+
+  .taste-beer-catalog-action {
+    align-self: flex-start;
+    min-height: 36px;
+    margin-top: auto !important;
+    padding: 8px 12px !important;
+    font-size: 12px !important;
+  }
+
+  .taste-ranking-card {
+    padding: 23px !important;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, .22), inset 0 1px 0 rgba(255, 224, 166, .04) !important;
+  }
+
+  .taste-ranking-title { font-size: 19px !important; }
+  .taste-ranking-subtitle { font-size: 12px !important; line-height: 1.45; }
+  .taste-ranking-list { gap: 15px !important; }
+  .taste-ranking-name { font-size: 13px !important; }
+  .taste-ranking-count { font-size: 12px !important; }
+  .taste-ranking-comparison { font-size: 10px !important; }
+  .taste-ranking-more { font-size: 12px !important; }
+
+  .taste-brewery-table { font-size: 13px !important; }
+  .taste-brewery-table thead button { font-size: 11px !important; }
+  .taste-brewery-table tbody td { padding: 12px 13px !important; }
+  .taste-brewery-table tbody tr:hover { background: rgba(231, 166, 47, .055); }
+
+  .taste-brewery-details-card .taste-brewery-section-title {
+    color: var(--taste-text);
+    font-size: 17px !important;
+    font-weight: 800;
+    letter-spacing: -.025em;
+    line-height: 1.2;
+    text-transform: none;
+  }
+
+  .taste-brewery-details-card .taste-brewery-beer-row {
+    border-radius: 10px;
+    transition: background-color .16s ease;
+  }
+
+  .taste-brewery-details-card .taste-brewery-beer-row:hover {
+    background: rgba(231, 166, 47, .045);
+  }
+
+  .taste-brewery-beer-name { font-size: 15px !important; }
+  .taste-brewery-beer-brand { font-size: 12px !important; }
+  .taste-brewery-beer-quantity { font-size: 13px !important; }
+  .taste-brewery-beer-badge { font-size: 10px !important; }
+}

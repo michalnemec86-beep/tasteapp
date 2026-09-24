@@ -326,7 +326,7 @@ export default async function BreweryDetailPage({ params }: Props) {
       />
 
       <section
-        className="taste-card"
+        className="taste-card taste-brewery-details-card"
         style={{
           padding: "22px",
         }}
@@ -427,7 +427,7 @@ export default async function BreweryDetailPage({ params }: Props) {
 
         <div style={{ marginTop: "24px", paddingTop: "18px", borderTop: "1px solid var(--taste-border)" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "14px", marginBottom: "12px", flexWrap: "wrap" }}>
-            <div className="taste-label">Zaznamenaná piva</div>
+            <div className="taste-label taste-brewery-section-title">Zaznamenaná piva</div>
             <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
               <CatalogBeerCreateModalClient
                 breweryName={brewery.name}
@@ -445,6 +445,7 @@ export default async function BreweryDetailPage({ params }: Props) {
             <div style={{ display: "grid" }}>
               {breweryBeers.map((beer: any, index: number) => (
                 <div
+                  className="taste-brewery-beer-row"
                   key={beer.id}
                   style={{
                     display: "grid",
@@ -456,13 +457,12 @@ export default async function BreweryDetailPage({ params }: Props) {
                   }}
                 >
                   <div style={{ minWidth: 0 }}>
-                    <div className="taste-label" style={{ marginBottom: "4px", fontSize: "8px" }}>Pivo</div>
-                    <Link href={`/beers/${beer.id}`} className="taste-entity-link" style={{ color: "var(--taste-text)", fontSize: "13px", fontWeight: 700, lineHeight: 1.3 }}>
+                    <Link href={`/beers/${beer.id}`} className="taste-entity-link taste-brewery-beer-name" style={{ color: "var(--taste-text)", fontSize: "13px", fontWeight: 700, lineHeight: 1.3 }}>
                       {beer.name}
                     </Link>
                     {adminView && !beer.referenceStatus.ready && <span style={{ marginLeft: "7px" }}><ReferenceWarning missing={beer.referenceStatus.missing} /></span>}
                     {beer.brand && (
-                      <div style={{ marginTop: "5px", color: "var(--taste-text-muted)", fontSize: "10px" }}>
+                      <div className="taste-brewery-beer-brand" style={{ marginTop: "5px", color: "var(--taste-text-muted)", fontSize: "10px" }}>
                         <span style={{ marginRight: "5px" }}>Značka:</span>
                         <Link href={`/brands/${beer.brand.id}`} className="taste-entity-link" style={{ color: "var(--taste-amber-bright)", fontWeight: 700 }}>
                           {beer.brand.name}
@@ -526,7 +526,7 @@ export default async function BreweryDetailPage({ params }: Props) {
                         deleteBeerAction={deleteCatalogBeer.bind(null, brewery.id, beer.id)}
                       />
                     )}
-                    <div style={{ color: "var(--taste-amber-bright)", fontSize: "11px", fontWeight: 750, whiteSpace: "nowrap" }}>
+                    <div className="taste-brewery-beer-quantity" style={{ color: "var(--taste-amber-bright)", fontSize: "11px", fontWeight: 750, whiteSpace: "nowrap" }}>
                       {(beer.tastings ?? []).reduce((sum: number, tasting: any) => sum + (tasting.quantity ?? 1), 0)}×
                     </div>
                   </div>
@@ -540,7 +540,7 @@ export default async function BreweryDetailPage({ params }: Props) {
 
         {linkedBrands.length > 0 && (
           <div style={{ marginTop: "22px", paddingTop: "18px", borderTop: "1px solid var(--taste-border)" }}>
-            <div className="taste-label" style={{ marginBottom: "9px" }}>Značky pivovaru</div>
+            <div className="taste-label taste-brewery-section-title" style={{ marginBottom: "9px" }}>Značky pivovaru</div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: "7px" }}>
               {linkedBrands.sort((a, b) => a.name.localeCompare(b.name, "cs")).map((brand) => (
                 <Link key={brand.id} href={`/brands/${brand.id}`} className="taste-button-secondary" style={{ padding: "6px 9px", fontSize: "10px" }}>
@@ -553,7 +553,7 @@ export default async function BreweryDetailPage({ params }: Props) {
 
         {collaborations.length > 0 && (
           <div style={{ marginTop: "24px", paddingTop: "18px", borderTop: "1px solid var(--taste-border)" }}>
-            <div className="taste-label" style={{ marginBottom: "10px" }}>Kolaborace</div>
+            <div className="taste-label taste-brewery-section-title" style={{ marginBottom: "10px" }}>Kolaborace</div>
             <div style={{ display: "grid", gap: "8px" }}>
               {collaborations.map((item: any) => (
                 <div key={item.key} style={{ padding: "10px 12px", border: "1px solid var(--taste-border)", borderRadius: "10px", background: "rgba(255,255,255,.018)", fontSize: "11px" }}>
@@ -571,7 +571,7 @@ export default async function BreweryDetailPage({ params }: Props) {
 
         {relationItems.length > 0 && (
           <div style={{ marginTop: "24px", paddingTop: "18px", borderTop: "1px solid var(--taste-border)" }}>
-            <div className="taste-label" style={{ marginBottom: "10px" }}>Historické vazby</div>
+            <div className="taste-label taste-brewery-section-title" style={{ marginBottom: "10px" }}>Historické vazby</div>
             <div style={{ display: "grid", gap: "10px" }}>
               {relationItems.map((item) => (
                 <div key={`${item.direction}-${item.id}`} style={{ padding: "11px 12px", border: "1px solid var(--taste-border)", borderRadius: "10px", background: "rgba(255,255,255,.018)", fontSize: "12px" }}>
@@ -586,7 +586,7 @@ export default async function BreweryDetailPage({ params }: Props) {
         )}
 
         <div style={{ marginTop: "24px", paddingTop: "18px", borderTop: "1px solid var(--taste-border)" }}>
-          <div className="taste-label" style={{ marginBottom: "8px" }}>Historie názvů</div>
+          <div className="taste-label taste-brewery-section-title" style={{ marginBottom: "8px" }}>Historie názvů</div>
 
           {history.length > 0 ? (
             <div style={{ display: "grid", gap: "5px", marginBottom: "16px" }}>
@@ -649,5 +649,5 @@ function DetailItem({ label, value }: { label: string; value: React.ReactNode })
 }
 
 function Badge({ children }: { children: React.ReactNode }) {
-  return <span style={{ padding: "2px 6px", borderRadius: "999px", border: "1px solid var(--taste-border)", color: "var(--taste-text-muted)", fontSize: "9px", fontWeight: 700 }}>{children}</span>;
+  return <span className="taste-brewery-beer-badge" style={{ padding: "2px 6px", borderRadius: "999px", border: "1px solid var(--taste-border)", color: "var(--taste-text-muted)", fontSize: "9px", fontWeight: 700 }}>{children}</span>;
 }
