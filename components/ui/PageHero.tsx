@@ -376,6 +376,7 @@ export default function PageHero({
 
                 <div>
                   <div
+                    className="taste-hero-stat-value"
                     style={{
                       color:
                         index === 0
@@ -391,6 +392,7 @@ export default function PageHero({
                   </div>
 
                   <div
+                    className="taste-hero-stat-label"
                     style={{
                       marginTop: "3px",
                       color: "var(--taste-text-muted)",

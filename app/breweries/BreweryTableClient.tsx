@@ -730,6 +730,7 @@ export default function BreweryTableClient({
         }}
       >
         <table
+          className="taste-brewery-table"
           style={{
             width: "100%",
             minWidth: "1120px",

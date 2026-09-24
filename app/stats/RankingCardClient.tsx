@@ -217,6 +217,7 @@ export default function RankingCardClient({
     <>
       <section
         id={anchorId}
+        className="taste-ranking-card"
         style={{
           scrollMarginTop: "88px",
           position: "relative",
@@ -265,6 +266,7 @@ export default function RankingCardClient({
           <button
             type="button"
             onClick={() => setIsOpen(true)}
+            className="taste-ranking-more"
             style={{
               width: "100%",
               marginTop: "18px",
@@ -435,6 +437,7 @@ function RankingHeader({
         </div>
 
         <h3
+          className="taste-ranking-title"
           style={{
             margin: 0,
             color: tone.accent,
@@ -448,6 +451,7 @@ function RankingHeader({
       </div>
 
       <div
+        className="taste-ranking-subtitle"
         style={{
           marginLeft: "44px",
           marginBottom: "18px",
@@ -548,6 +552,7 @@ function RankingList({
 
   return (
     <div
+      className="taste-ranking-list"
       style={{
         display: "grid",
         gap: "13px",
@@ -617,6 +622,7 @@ function RankingList({
 
               {href ? (
                 <Link
+                  className="taste-ranking-name"
                   href={href}
                   title={item.name}
                   style={{
@@ -629,7 +635,7 @@ function RankingList({
                   <RankingItemLabel item={item} />
                 </Link>
               ) : (
-                <div title={item.name} style={nameStyle}>
+                <div className="taste-ranking-name" title={item.name} style={nameStyle}>
                   <RankingItemLabel item={item} />
                 </div>
               )}
@@ -650,6 +656,7 @@ function RankingList({
               </span>
 
               <div
+                className="taste-ranking-count"
                 style={{
                   display: "inline-flex",
                   alignItems: "baseline",
@@ -663,6 +670,7 @@ function RankingList({
               >
                 <span>{item.count}×</span>
                 <span
+                  className="taste-ranking-comparison"
                   style={{
                     color: "var(--taste-text-muted)",
                     fontSize: "9px",

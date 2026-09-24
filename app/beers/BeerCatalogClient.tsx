@@ -153,8 +153,8 @@ export default function BeerCatalogClient({
   }
 
   return (
-    <section>
-      <div className="taste-tasting-sort" aria-label="Filtrování pivního lístku">
+    <section className="taste-beer-catalog">
+      <div className="taste-tasting-sort taste-beer-catalog-toolbar" aria-label="Filtrování pivního lístku">
         <div role="group" aria-label="Rozsah piv" style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
           {([[
             "all", "Všechna piva",
@@ -320,7 +320,7 @@ export default function BeerCatalogClient({
         )}
       </div>
 
-      <div style={{ marginBottom: "12px", color: "var(--taste-text-muted)", fontSize: "12px" }}>
+      <div className="taste-beer-catalog-count" style={{ marginBottom: "12px", color: "var(--taste-text-muted)", fontSize: "12px" }}>
         {filtered.length} {filtered.length === 1 ? "pivo" : "piv"}
       </div>
 
@@ -347,25 +347,25 @@ export default function BeerCatalogClient({
               <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "flex-start" }}>
                 <div style={{ minWidth: 0 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                    <Link href={`/beers/${beer.id}`} className="taste-entity-link" style={{ color: "var(--taste-text)", fontSize: "18px", lineHeight: 1.15, fontWeight: 850 }}>
+                    <Link href={`/beers/${beer.id}`} className="taste-entity-link taste-beer-catalog-name" style={{ color: "var(--taste-text)", fontSize: "18px", lineHeight: 1.15, fontWeight: 850 }}>
                       {beer.name}
                     </Link>
                     {adminView && !beer.referenceReady && <ReferenceWarning missing={beer.referenceMissing} />}
                   </div>
                   {beer.brand && (
-                    <div style={{ marginTop: "5px", fontSize: "11px" }}>
+                    <div className="taste-beer-catalog-brand" style={{ marginTop: "5px", fontSize: "11px" }}>
                       <Link href={`/brands/${beer.brand.id}`} className="taste-entity-link">{beer.brand.name}</Link>
                     </div>
                   )}
                 </div>
                 <div style={{ flexShrink: 0, textAlign: "right" }}>
-                  <strong style={{ color: "var(--taste-amber-bright)", fontSize: "19px" }}>{beer.totalQuantity}</strong>
-                  <div style={{ color: "var(--taste-text-muted)", fontSize: "9px" }}>vypito</div>
-                  {beer.myQuantity > 0 && <div style={{ marginTop: "3px", color: "var(--taste-green)", fontSize: "9px", fontWeight: 800 }}>Ty: {beer.myQuantity}×</div>}
+                  <strong className="taste-beer-catalog-total" style={{ color: "var(--taste-amber-bright)", fontSize: "19px" }}>{beer.totalQuantity}</strong>
+                  <div className="taste-beer-catalog-total-label" style={{ color: "var(--taste-text-muted)", fontSize: "9px" }}>vypito</div>
+                  {beer.myQuantity > 0 && <div className="taste-beer-catalog-mine" style={{ marginTop: "3px", color: "var(--taste-green)", fontSize: "9px", fontWeight: 800 }}>Ty: {beer.myQuantity}×</div>}
                 </div>
               </div>
 
-              <div style={{ marginTop: "12px", color: "var(--taste-text-soft)", fontSize: "11px", lineHeight: 1.5 }}>
+              <div className="taste-beer-catalog-brewery" style={{ marginTop: "12px", color: "var(--taste-text-soft)", fontSize: "11px", lineHeight: 1.5 }}>
                 {beer.brewery ? (
                   <Link href={`/breweries/${beer.brewery.id}`} className="taste-entity-link">{beer.brewery.name}</Link>
                 ) : "Neznámý pivovar"}
@@ -381,14 +381,14 @@ export default function BeerCatalogClient({
               </div>
 
               {beer.hops.length > 0 && (
-                <div style={{ marginTop: "11px", color: "var(--taste-text-muted)", fontSize: "10px", lineHeight: 1.45 }}>
+                <div className="taste-beer-catalog-hops" style={{ marginTop: "11px", color: "var(--taste-text-muted)", fontSize: "10px", lineHeight: 1.45 }}>
                   Chmely: {beer.hops.map((hop) => hop.name).join(", ")}
                 </div>
               )}
 
               <Link
                 href={`/tastings/new?beer=${beer.id}`}
-                className="taste-button-secondary"
+                className="taste-button-secondary taste-beer-catalog-action"
                 style={{
                   display: "inline-flex",
                   marginTop: "13px",
@@ -427,6 +427,7 @@ export default function BeerCatalogClient({
 function InfoChip({ children }: { children: ReactNode }) {
   return (
     <span
+      className="taste-beer-catalog-chip"
       style={{
         padding: "5px 8px",
         border: "1px solid rgba(231,166,47,0.18)",

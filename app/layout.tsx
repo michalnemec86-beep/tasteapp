@@ -15,6 +15,7 @@ import "./preimport-ui-tweaks.css";
 import "./modal-responsive.css";
 import "./app-nav.css";
 import "./mobile-ux.css";
+import "./desktop-polish.css";
 
 const defaultUrl =
   process.env.VERCEL_URL
