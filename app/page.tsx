@@ -293,10 +293,20 @@ export default async function HomePage({
 }) {
   const timelinePage = Math.min(
     parsePositivePage((await searchParams).timelinePage),
-    1000
+    5
   );
-  const timelinePageSize = 30;
-  const timelineFetchLimit = timelinePage * timelinePageSize + 1;
+  const timelinePageSize = 15;
+  const timelineFetchLimit = 5 * timelinePageSize + 1;
+  // Tři kalendářní měsíce historie zůstávají v databázi i ve statistikách.
+  const timelineCutoff = new Date();
+  const cutoffDay = timelineCutoff.getUTCDate();
+  timelineCutoff.setUTCDate(1);
+  timelineCutoff.setUTCMonth(timelineCutoff.getUTCMonth() - 3);
+  const lastDayOfCutoffMonth = new Date(Date.UTC(
+    timelineCutoff.getUTCFullYear(), timelineCutoff.getUTCMonth() + 1, 0
+  )).getUTCDate();
+  timelineCutoff.setUTCDate(Math.min(cutoffDay, lastDayOfCutoffMonth));
+  const timelineCutoffDate = timelineCutoff.toISOString().slice(0, 10);
   const supabase =
     await createClient();
 
@@ -409,6 +419,7 @@ export default async function HomePage({
       )
       .order("id", { ascending: false })
       .eq("show_in_timeline", true)
+      .gte("tasted_on", timelineCutoffDate)
       .range(from, to), 500, timelineFetchLimit);
 
   const statsTastingsPromise = fetchAllRows((from, to) =>
@@ -444,6 +455,7 @@ export default async function HomePage({
         "show_in_timeline",
         true
       )
+      .gte("unlocked_at", timelineCutoff.toISOString())
       .order(
         "unlocked_at",
         {
@@ -463,6 +475,7 @@ export default async function HomePage({
       hops ( id, name )
     `)
     .eq("show_in_timeline", true)
+    .gte("created_at", timelineCutoff.toISOString())
     .neq("event_type", "beer_confirmed")
     .order("created_at", { ascending: false })
     .order("id", { ascending: false })
@@ -966,12 +979,7 @@ export default async function HomePage({
     (timelinePage - 1) * timelinePageSize,
     timelinePage * timelinePageSize
   );
-  const hasOlderTimeline = timeline.length > timelinePage * timelinePageSize;
-
-  const timelineUserAccents =
-    buildTimelineUserAccentMap(
-      visibleTimeline
-    );
+  const hasOlderTimeline = timelinePage < 5 && timeline.length > timelinePage * timelinePageSize;
 
   function getProfile(
     userId: string
@@ -1197,15 +1205,7 @@ export default async function HomePage({
             </div>
           )}
 
-          <div
-            style={{
-              display:
-                "grid",
-
-              gap:
-                "10px",
-            }}
-          >
+          <div className="taste-timeline-list">
             {visibleTimeline.map(
               (event) => {
                 // ==========================================
@@ -1284,14 +1284,7 @@ export default async function HomePage({
                     profile={
                       profile
                     }
-                    userAccent={
-                      timelineUserAccents.get(
-                        tasting.user_id
-                      ) ??
-                      getTimelineUserAccent(
-                        tasting.user_id
-                      )
-                    }
+                    userAccent={getTimelineUserAccent(tasting.user_id)}
                     isOwn={
                       isOwn
                     }
@@ -1319,6 +1312,7 @@ export default async function HomePage({
                 ← Novější příspěvky
               </Link>
             ) : <span />}
+            {visibleTimeline.length > 0 && <span className="taste-timeline-page">{timelinePage} / {Math.min(5, Math.ceil(timeline.length / timelinePageSize))}</span>}
             {hasOlderTimeline && (
               <Link href={`/?timelinePage=${timelinePage + 1}#timeline`} className="taste-button-secondary">
                 Starší příspěvky →
@@ -1385,8 +1379,8 @@ export default async function HomePage({
 const TIMELINE_USER_ACCENTS = [
   "#f2b63f",
   "#8ea34a",
-  "#d65b42",
-  "#a86221",
+  "#f5c16d",
+  "#9cad47",
   "#e88835",
   "#cf8f29",
 ] as const;
@@ -1413,103 +1407,8 @@ function getTimelineUserAccent(
   ];
 }
 
-function buildTimelineUserAccentMap(
-  events: TimelineEvent[]
-) {
-  const assignments =
-    new Map<string, string>();
-
-  for (const event of events) {
-    if (
-      event.type !==
-      "tasting"
-    ) {
-      continue;
-    }
-
-    const userId =
-      event.tasting.user_id;
-
-    if (
-      assignments.has(
-        userId
-      )
-    ) {
-      continue;
-    }
-
-    const accent =
-      TIMELINE_USER_ACCENTS[
-        assignments.size %
-          TIMELINE_USER_ACCENTS.length
-      ];
-
-    assignments.set(
-      userId,
-      accent
-    );
-  }
-
-  return assignments;
-}
-
-function getTastingGlowVisual(
-  tastingId: number
-) {
-  const variants = [
-    {
-      x: 82,
-      y: 18,
-      radius: "14rem",
-      alpha: "46",
-      shadow: "38",
-    },
-    {
-      x: 18,
-      y: 72,
-      radius: "17rem",
-      alpha: "3F",
-      shadow: "34",
-    },
-    {
-      x: 68,
-      y: 82,
-      radius: "15rem",
-      alpha: "4C",
-      shadow: "3D",
-    },
-    {
-      x: 26,
-      y: 20,
-      radius: "16rem",
-      alpha: "44",
-      shadow: "36",
-    },
-    {
-      x: 92,
-      y: 58,
-      radius: "18rem",
-      alpha: "42",
-      shadow: "3A",
-    },
-  ] as const;
-
-  return variants[
-    Math.abs(tastingId) %
-      variants.length
-  ];
-}
-
 function TastingTimelineCard({
-  tasting,
-  profile,
-  userAccent,
-  isOwn,
-  beers,
-  breweries,
-  countries,
-  styles,
-  hops,
+  tasting, profile, userAccent, isOwn, beers, breweries, countries, styles, hops,
 }: {
   tasting: TastingRow;
   profile: ProfileRow | null;
@@ -1521,602 +1420,80 @@ function TastingTimelineCard({
   styles: BeerStyleRow[];
   hops: HopRow[];
 }) {
-  const packaging =
-    getPackagingMeta(
-      tasting.packaging
-    );
-
-  const quantity =
-    tasting.quantity ?? 1;
-
-  const glowVisual =
-    getTastingGlowVisual(
-      tasting.id
-    );
-
-  const visual = {
-    accent: userAccent,
-    background:
-      `${userAccent}12`,
-    border:
-      `${userAccent}52`,
-    glow:
-      `${userAccent}${glowVisual.alpha}`,
-  };
-
   const packagingIcon =
-    tasting.packaging === "bottle"
-      ? "bottle"
-      : tasting.packaging === "can"
-        ? "can"
-        : tasting.packaging === "pet"
-          ? "pet"
-          : tasting.packaging ===
-                "other" ||
-              tasting.packaging ===
-                null
-            ? "package"
-            : "beer";
-
-  const beerName =
-    tasting.beers?.name ??
-    "Neznámé pivo";
-
-  const tastingBrewery =
-    tasting.beer_versions
-      ?.breweries ??
-    tasting.beers
-      ?.breweries ??
-    null;
-
-  const breweryName =
-    tastingBrewery?.name ??
-    null;
-
-  const breweryId =
-    tastingBrewery?.id ??
-    null;
-
-  const collaborators = [
-    ...(tasting.beer_versions
-      ?.beer_version_collaborators ??
-      []),
-  ]
-    .sort(
-      (a, b) =>
-        a.display_order -
-        b.display_order
-    )
-    .map(
-      (item) =>
-        item.breweries
-    )
-    .filter(
-      (
-        item
-      ): item is BreweryRow =>
-        Boolean(item)
-    );
-
-  const versionHops =
-    tasting.beer_versions
-      ?.beer_version_hops
-      ?.map(
-        (item) =>
-          item.hops?.name
-      )
-      .filter(
-        (
-          name
-        ): name is string =>
-          Boolean(name)
-      ) ?? [];
-
-  const catalogHops =
-    tasting.beers
-      ?.beer_hops
-      ?.map(
-        (item) =>
-          item.hops?.name
-      )
-      .filter(
-        (
-          name
-        ): name is string =>
-          Boolean(name)
-      ) ?? [];
-
-  const hopNames = [
-    ...new Set(
-      versionHops.length > 0
-        ? versionHops
-        : catalogHops
-    ),
-  ];
-
-  const metadata = [
-    tasting.beers
-      ?.brands
-      ?.name
-      ? `Značka: ${tasting.beers.brands.name}`
-      : null,
-    tasting.beer_versions
-      ?.beer_styles
-      ?.name ??
-    tasting.beers
-      ?.beer_styles
-      ?.name ??
-      null,
-    tasting.plato !== null
-      ? `${tasting.plato} °P`
-      : null,
-    tasting.abv !== null
-      ? `${tasting.abv} %`
-      : null,
-    tasting.ibu !== null
-      ? `IBU ${tasting.ibu}`
-      : null,
-    hopNames.length > 0
-      ? `Chmel: ${hopNames.join(", ")}`
-      : null,
-    tastingBrewery?.country
-      ? tastingBrewery.country
-      : null,
-    packaging
-      ? packaging.label
-      : null,
-    quantity > 1
-      ? `${quantity}×`
-      : null,
-  ].filter(
-    (
-      value
-    ): value is string =>
-      Boolean(value)
-  );
-
-  const displayName =
-    profile
-      ?.display_name ??
-    "Neznámý uživatel";
+    tasting.packaging === "bottle" ? "bottle" :
+    tasting.packaging === "can" ? "can" :
+    tasting.packaging === "pet" ? "pet" :
+    tasting.packaging === "draft" ? "beer" : "package";
+  const packagingLabel = getPackagingMeta(tasting.packaging)?.label ?? "Neurčený způsob podání";
+  const brewery = tasting.beer_versions?.breweries ?? tasting.beers?.breweries;
+  const collaborators = [...(tasting.beer_versions?.beer_version_collaborators ?? [])]
+    .sort((a, b) => a.display_order - b.display_order)
+    .map((item) => item.breweries)
+    .filter((item): item is BreweryRow => Boolean(item));
+  const details = [
+    tasting.beer_versions?.beer_styles?.name ?? tasting.beers?.beer_styles?.name,
+    tasting.plato != null ? String(tasting.plato).replace(".", ",") + "°" : null,
+    tasting.abv != null ? String(tasting.abv).replace(".", ",") + " %" : null,
+    tasting.ibu != null ? "IBU: " + tasting.ibu : null,
+  ].filter((value): value is string => Boolean(value));
+  const quantity = tasting.quantity ?? 1;
+  const nickname = profile?.display_name ?? "Neznámý uživatel";
+  const realName = profile?.real_name?.trim();
 
   return (
-    <div
-      style={{
-        position:
-          "relative",
-        paddingLeft:
-          "20px",
-      }}
-    >
-      <div
-        style={{
-          position:
-            "absolute",
-          left: "5px",
-          top: "-10px",
-          bottom: "-10px",
-          width: "1px",
-          background:
-            `linear-gradient(180deg, ${userAccent}10, ${userAccent}66, ${userAccent}10)`,
-        }}
-      />
-
-      <div
-        style={{
-          position:
-            "absolute",
-          left: 0,
-          top: "27px",
-          width: "11px",
-          height: "11px",
-          borderRadius:
-            "50%",
-          border:
-            `2px solid ${visual.accent}`,
-          background:
-            "var(--taste-bg-deep)",
-          boxShadow:
-            `0 0 16px ${visual.glow}`,
-          zIndex: 2,
-        }}
-      />
-
-      <article
-        style={{
-          position:
-            "relative",
-          overflow:
-            "hidden",
-          padding:
-            "14px",
-          border:
-            `1px solid ${visual.border}`,
-          borderRadius:
-            "14px",
-          background: `
-            radial-gradient(
-              circle at ${glowVisual.x}% ${glowVisual.y}%,
-              ${visual.glow},
-              transparent ${glowVisual.radius}
-            ),
-            linear-gradient(
-              145deg,
-              ${visual.background},
-              transparent 48%
-            ),
-            rgba(33,21,12,0.82)
-          `,
-          boxShadow: `
-            0 8px 24px rgba(0,0,0,0.18),
-            0 0 34px ${userAccent}${glowVisual.shadow}
-          `,
-        }}
-      >
-        <div
-          style={{
-            position:
-              "absolute",
-            right: 0,
-            top: "13px",
-            bottom: "13px",
-            width: "2px",
-            borderRadius:
-              "999px",
-            background:
-              visual.accent,
-            opacity: 0.82,
-          }}
-        />
-
-        <div
-          style={{
-            display:
-              "grid",
-            gridTemplateColumns:
-              "42px minmax(0,1fr)",
-            gap: "11px",
-            alignItems:
-              "start",
-          }}
-        >
-          <div
-            style={{
-              width: "42px",
-              height: "42px",
-              display:
-                "flex",
-              alignItems:
-                "center",
-              justifyContent:
-                "center",
-              border:
-                `1px solid ${visual.border}`,
-              borderRadius:
-                "11px",
-              background: `
-                radial-gradient(
-                  circle at 28% 22%,
-                  ${visual.glow},
-                  transparent 68%
-                ),
-                ${visual.background}
-              `,
-              color:
-                visual.accent,
-              boxShadow: `
-                inset 0 1px 0 rgba(255,255,255,0.045),
-                0 0 22px ${visual.glow}
-              `,
-            }}
-          >
-            <AppIcon
-              name={
-                packagingIcon
-              }
-              size={24}
-              strokeWidth={
-                1.85
-              }
-            />
+    <div className="taste-timeline-entry">
+      <article className="taste-timeline-card">
+        <header className="taste-timeline-card-header">
+          <span className="taste-timeline-packaging" title={packagingLabel} aria-label={packagingLabel}>
+            <AppIcon name={packagingIcon} size={26} strokeWidth={1.8} />
+          </span>
+          <div className="taste-timeline-person">
+            <Link href={"/profiles/" + tasting.user_id} className="taste-timeline-nickname"
+              style={{ backgroundColor: userAccent + "27", borderColor: userAccent + "66", color: userAccent }}>
+              {nickname}
+            </Link>
+            {realName && realName !== nickname && <span className="taste-timeline-realname">{realName}</span>}
           </div>
-
-          <div
-            style={{
-              minWidth: 0,
-            }}
-          >
-            <div
-              style={{
-                color:
-                  "var(--taste-text-soft)",
-                fontSize:
-                  "11px",
-                lineHeight:
-                  1.35,
-                fontWeight:
-                  650,
-              }}
-            >
-              Uživatel:{" "}
-              <Link
-                href={`/profiles/${tasting.user_id}`}
-                style={{
-                  color:
-                    userAccent,
-                  fontWeight:
-                    800,
-                  textDecoration:
-                    "none",
-                }}
-              >
-                {displayName}
-              </Link>{" "}
-              ochutnal:
-            </div>
-
-            <div
-              style={{
-                display:
-                  "flex",
-                flexWrap:
-                  "wrap",
-                alignItems:
-                  "baseline",
-                gap: "5px",
-                marginTop:
-                  "4px",
-                color:
-                  "var(--taste-text)",
-                fontSize:
-                  "16px",
-                lineHeight:
-                  1.25,
-                fontWeight:
-                  800,
-                letterSpacing:
-                  "-0.02em",
-              }}
-            >
+          <time className="taste-timeline-date" dateTime={tasting.tasted_on}>
+            {formatTastingDate(tasting.tasted_on)}
+          </time>
+        </header>
+        <div className="taste-timeline-card-body">
+          <div className="taste-timeline-beer-line">
+            <h3 className="taste-timeline-beer-name">
               {tasting.beers?.id ? (
-                <Link
-                  href={`/beers/${tasting.beers.id}`}
-                  className="taste-entity-link"
-                  style={{
-                    color:
-                      "inherit",
-                  }}
-                >
-                  {beerName}
+                <Link href={"/beers/" + tasting.beers.id} className="taste-entity-link">
+                  {tasting.beers.name}
                 </Link>
-              ) : (
-                <span>
-                  {beerName}
-                </span>
-              )}
-
-              {breweryName &&
-                breweryId && (
-                <>
-                  <span
-                    style={{
-                      color:
-                        "var(--taste-text-muted)",
-                      fontWeight:
-                        500,
-                    }}
-                  >
-                    ,
-                  </span>
-                  <Link
-                    href={`/breweries/${breweryId}`}
-                    className="taste-entity-link"
-                    style={{
-                      color:
-                        "inherit",
-                    }}
-                  >
-                    {breweryName}
-                  </Link>
-                </>
-              )}
-
-              {collaborators.map(
-                (
-                  collaborator
-                ) => (
-                  <span
-                    key={
-                      collaborator.id
-                    }
-                    style={{
-                      color:
-                        "var(--taste-text-muted)",
-                      fontSize:
-                        "11px",
-                      fontWeight:
-                        650,
-                    }}
-                  >
-                    +{" "}
-                    <Link
-                      href={`/breweries/${collaborator.id}`}
-                      className="taste-entity-link"
-                      style={{
-                        color:
-                          "inherit",
-                      }}
-                    >
-                      {
-                        collaborator.name
-                      }
-                    </Link>
-                  </span>
-                )
-              )}
-
-              <span
-                style={{
-                  color:
-                    "var(--taste-text-muted)",
-                  fontWeight:
-                    500,
-                }}
-              >
-                ,
-              </span>
-
-              <span
-                style={{
-                  color:
-                    "var(--taste-text-soft)",
-                  fontSize:
-                    "12px",
-                  fontWeight:
-                    650,
-                  whiteSpace:
-                    "nowrap",
-                }}
-              >
-                {formatTastingDate(
-                  tasting.tasted_on
-                )}
-              </span>
-            </div>
-
-            {metadata.length >
-              0 && (
-              <div
-                style={{
-                  display:
-                    "flex",
-                  flexWrap:
-                    "wrap",
-                  alignItems:
-                    "center",
-                  gap: "4px",
-                  marginTop:
-                    "7px",
-                  color:
-                    "var(--taste-text-muted)",
-                  fontSize:
-                    "10px",
-                  lineHeight:
-                    1.4,
-                }}
-              >
-                {metadata.map(
-                  (
-                    item,
-                    index
-                  ) => (
-                    <span
-                      key={`${item}-${index}`}
-                      style={{
-                        display:
-                          "inline-flex",
-                        alignItems:
-                          "center",
-                      }}
-                    >
-                      {index >
-                        0 && (
-                        <span
-                          style={{
-                            margin:
-                              "0 5px 0 1px",
-                            color:
-                              visual.accent,
-                            opacity:
-                              0.55,
-                          }}
-                        >
-                          •
-                        </span>
-                      )}
-                      {item}
-                    </span>
-                  )
-                )}
-              </div>
-            )}
-
-            {(tasting.place ||
-              tasting.notes) && (
-              <div
-                style={{
-                  marginTop:
-                    "7px",
-                  color:
-                    "var(--taste-text-muted)",
-                  fontSize:
-                    "9px",
-                  lineHeight:
-                    1.4,
-                }}
-              >
-                {tasting.place && (
-                  <span>
-                    📍{" "}
-                    {
-                      tasting.place
-                    }
-                  </span>
-                )}
-
-                {tasting.place &&
-                  tasting.notes && (
-                    <span>
-                      {" · "}
-                    </span>
-                  )}
-
-                {tasting.notes && (
-                  <span>
-                    {
-                      tasting.notes
-                    }
-                  </span>
-                )}
-              </div>
-            )}
-
-            {isOwn && (
-              <div
-                style={{
-                  marginTop:
-                    "8px",
-                }}
-              >
-                <EditTastingModalClient
-                  tasting={
-                    tasting
-                  }
-                  beers={
-                    beers
-                  }
-                  breweries={
-                    breweries
-                  }
-                  countries={
-                    countries
-                  }
-                  styles={
-                    styles
-                  }
-                  hops={
-                    hops
-                  }
-                  updateTastingAction={
-                    updateTastingInModal
-                  }
-                  deleteTastingAction={
-                    deleteTastingInModal
-                  }
-                />
-              </div>
-            )}
+              ) : "Neznámé pivo"}
+            </h3>
+            {quantity > 1 && <span className="taste-timeline-quantity">{quantity}×</span>}
           </div>
+          {(brewery || collaborators.length > 0) && (
+            <div className="taste-timeline-brewery">
+              {brewery && <Link href={"/breweries/" + brewery.id} className="taste-entity-link">{brewery.name}</Link>}
+              {collaborators.map((item) => (
+                <span key={item.id}> + <Link href={"/breweries/" + item.id} className="taste-entity-link">{item.name}</Link></span>
+              ))}
+              {brewery?.country && <span className="taste-timeline-country"> · {brewery.country}</span>}
+            </div>
+          )}
+          {details.length > 0 && <div className="taste-timeline-details">
+            {details.map((detail, index) => <span key={index}>{detail}</span>)}
+          </div>}
+          {(tasting.place || tasting.notes) && (
+            <div className="taste-timeline-note">
+              {tasting.place && <span>📍 {tasting.place}</span>}
+              {tasting.place && tasting.notes && <span> · </span>}
+              {tasting.notes && <span>{tasting.notes}</span>}
+            </div>
+          )}
+          {isOwn && <div className="taste-timeline-edit">
+            <EditTastingModalClient tasting={tasting} beers={beers} breweries={breweries}
+              countries={countries} styles={styles} hops={hops}
+              updateTastingAction={updateTastingInModal} deleteTastingAction={deleteTastingInModal} />
+          </div>}
         </div>
       </article>
     </div>
@@ -2151,249 +1528,38 @@ const SYSTEM_EVENT_VISUALS = {
   },
 } as const;
 
-const SYSTEM_COPPER =
-  "#b87333";
-
 function CatalogTimelineCard({ row, profile }: { row: CatalogEventRow; profile: ProfileRow | null }) {
   const visual = SYSTEM_EVENT_VISUALS[row.event_type];
-  const systemAccent = SYSTEM_COPPER;
-  const userAccent = getTimelineUserAccent(row.actor_user_id);
-  const initial = profile?.display_name?.charAt(0).toUpperCase() ?? "?";
-
   const entity =
     row.event_type === "brand_created" && row.brands ? (
-      <Link href={`/brands/${row.brands.id}`} className="taste-entity-link">
-        {row.brands.name}
-      </Link>
+      <Link href={"/brands/" + row.brands.id} className="taste-entity-link">{row.brands.name}</Link>
     ) : row.event_type === "brewery_created" && row.breweries ? (
-      <Link href={`/breweries/${row.breweries.id}`} className="taste-entity-link">
-        {row.breweries.name}
-      </Link>
-    ) : row.event_type === "hop_created" && row.hops ? (
-      <span>{row.hops.name}</span>
-    ) : row.beers ? (
-      <Link href={`/beers/${row.beers.id}`} className="taste-entity-link">
-        {row.beers.name}
-      </Link>
-    ) : (
-      <span>Nový katalogový záznam</span>
-    );
-
+      <Link href={"/breweries/" + row.breweries.id} className="taste-entity-link">{row.breweries.name}</Link>
+    ) : row.event_type === "hop_created" && row.hops ? row.hops.name
+    : row.beers ? <Link href={"/beers/" + row.beers.id} className="taste-entity-link">{row.beers.name}</Link>
+    : "Nový katalogový záznam";
   return (
-    <div style={{ position: "relative", paddingLeft: "20px" }}>
-      <div
-        style={{
-          position: "absolute",
-          left: "5px",
-          top: "-10px",
-          bottom: "-10px",
-          width: "3px",
-          borderRadius: "999px",
-          background: `linear-gradient(180deg, ${systemAccent}54, ${systemAccent}B8, ${systemAccent}54)`,
-        }}
-      />
-      <div
-        style={{
-          position: "absolute",
-          left: "0px",
-          top: "23px",
-          width: "11px",
-          height: "11px",
-          borderRadius: "3px",
-          border: `1px solid ${systemAccent}`,
-          background: `${systemAccent}66`,
-          boxShadow: "none",
-          zIndex: 2,
-        }}
-      />
-
-      <article
-        style={{
-          position: "relative",
-          overflow: "hidden",
-          padding: "12px 13px",
-          border: `1px solid ${systemAccent}78`,
-          borderRadius: "13px",
-          background: `
-            linear-gradient(
-              118deg,
-              rgba(184,115,51,0.34) 0%,
-              rgba(231,166,47,0.13) 19%,
-              rgba(87,49,22,0.42) 43%,
-              rgba(45,28,16,0.98) 67%,
-              rgba(35,22,12,0.99) 100%
-            )
-          `,
-          boxShadow:
-            "inset 0 1px 0 rgba(255,214,159,0.10), 0 6px 16px rgba(0,0,0,0.18)",
-        }}
-      >
-        <div
-          style={{
-            position: "absolute",
-            left: 0,
-            top: "13px",
-            bottom: "13px",
-            width: "4px",
-            borderRadius: "0 999px 999px 0",
-            background: systemAccent,
-            opacity: 0.96,
-          }}
-        />
-
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_140px] sm:gap-4">
-          <div className="order-2 min-w-0 sm:order-1">
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "38px minmax(0,1fr)",
-                gap: "10px",
-                alignItems: "start",
-              }}
-            >
-              <div
-                style={{
-                  width: "38px",
-                  height: "38px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  border: `1px solid ${systemAccent}78`,
-                  borderRadius: "11px",
-                  background: `${systemAccent}38`,
-                  color: systemAccent,
-                  boxShadow:
-                    "inset 0 1px 0 rgba(255,222,176,0.10)",
-                }}
-              >
-                <AppIcon name={visual.icon} size={21} strokeWidth={1.8} />
-              </div>
-
-              <div style={{ minWidth: 0 }}>
-                <div
-                  className="taste-label"
-                  style={{
-                    marginBottom: "3px",
-                    color: systemAccent,
-                    opacity: 0.9,
-                  }}
-                >
-                  {visual.eyebrow}
-                </div>
-
-                <h3
-                  style={{
-                    margin: 0,
-                    color: "var(--taste-text)",
-                    fontSize: "15px",
-                    lineHeight: 1.2,
-                    fontWeight: 800,
-                    letterSpacing: "-0.02em",
-                  }}
-                >
-                  {entity}
-                </h3>
-
-                <div
-                  style={{
-                    marginTop: "5px",
-                    color: "var(--taste-text-soft)",
-                    fontSize: "10px",
-                    lineHeight: 1.45,
-                  }}
-                >
-                  {visual.action}
-                  {row.event_type.startsWith("beer_") && row.beers?.brands && (
-                    <span> · značka {row.beers.brands.name}</span>
-                  )}
-                  {row.event_type !== "brewery_created" && row.breweries && (
-                    <span>
-                      {" · "}
-                      <Link href={`/breweries/${row.breweries.id}`} className="taste-entity-link">
-                        {row.breweries.name}
-                      </Link>
-                    </span>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div
-            className="order-1 sm:order-2"
-            style={{
-              minWidth: 0,
-              display: "flex",
-              alignItems: "center",
-              gap: "9px",
-              padding: "7px 8px",
-              border: `1px solid ${userAccent}30`,
-              borderRadius: "10px",
-              background: `${userAccent}09`,
-              alignSelf: "start",
-            }}
-          >
-            <Link
-              href={`/profiles/${row.actor_user_id}`}
-              aria-label={profile?.display_name ?? "Profil uživatele"}
-              style={{
-                width: "32px",
-                height: "32px",
-                flexShrink: 0,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                overflow: "hidden",
-                borderRadius: "9px",
-                border: `1px solid ${userAccent}55`,
-                backgroundColor: `${userAccent}12`,
-                backgroundImage: profile?.avatar_url ? `url("${profile.avatar_url}")` : undefined,
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-                color: userAccent,
-                textDecoration: "none",
-                fontSize: "10px",
-                fontWeight: 850,
-              }}
-            >
-              {!profile?.avatar_url && initial}
+    <div className="taste-timeline-entry taste-timeline-system">
+      <article className="taste-timeline-card">
+        <header className="taste-timeline-card-header">
+          <span className="taste-timeline-packaging"><AppIcon name={visual.icon} size={24} /></span>
+          <div className="taste-timeline-person">
+            <strong className="taste-timeline-system-title">{visual.eyebrow}</strong>
+            <Link href={"/profiles/" + row.actor_user_id} className="taste-timeline-system-person">
+              {profile?.display_name ?? "Neznámý uživatel"}
             </Link>
-
-            <div style={{ minWidth: 0, flex: 1 }}>
-              <Link
-                href={`/profiles/${row.actor_user_id}`}
-                style={{
-                  display: "block",
-                  overflow: "hidden",
-                  color: userAccent,
-                  fontSize: "10px",
-                  fontWeight: 800,
-                  lineHeight: 1.2,
-                  textDecoration: "none",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {profile?.display_name ?? "Neznámý uživatel"}
-              </Link>
-              <div
-                style={{
-                  marginTop: "3px",
-                  color: "var(--taste-text-muted)",
-                  fontSize: "9px",
-                  lineHeight: 1.3,
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {new Intl.DateTimeFormat("cs-CZ", {
-                  day: "numeric",
-                  month: "numeric",
-                  year: "numeric",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                }).format(new Date(row.created_at))}
-              </div>
-            </div>
+          </div>
+          <time className="taste-timeline-date" dateTime={row.created_at}>
+            {new Intl.DateTimeFormat("cs-CZ", { day: "numeric", month: "numeric", year: "numeric" }).format(new Date(row.created_at))}
+          </time>
+        </header>
+        <div className="taste-timeline-card-body">
+          <h3 className="taste-timeline-beer-name">{entity}</h3>
+          <div className="taste-timeline-system-description">
+            {profile?.display_name ?? "Uživatel"} {visual.action}
+            {row.event_type.startsWith("beer_") && row.beers?.brands && <span> · značka {row.beers.brands.name}</span>}
+            {row.event_type !== "brewery_created" && row.breweries &&
+              <span> · <Link href={"/breweries/" + row.breweries.id} className="taste-entity-link">{row.breweries.name}</Link></span>}
           </div>
         </div>
       </article>
@@ -2401,228 +1567,31 @@ function CatalogTimelineCard({ row, profile }: { row: CatalogEventRow; profile: 
   );
 }
 
-// ==================================================
-// ODZNAK V TIMELINE
-// ==================================================
-
 function AchievementTimelineCard({
-  row,
-  profile,
-  achievement,
+  row, profile, achievement,
 }: {
   row: AchievementRow;
   profile: ProfileRow | null;
-  achievement:
-    AchievementDefinition;
+  achievement: AchievementDefinition;
 }) {
-  const userAccent =
-    getTimelineUserAccent(
-      row.user_id
-    );
-
-  const achievementAccent =
-    "#f5c16d";
-
-  const displayName =
-    profile
-      ?.display_name ??
-    "Neznámý uživatel";
-
   return (
-    <div
-      style={{
-        position: "relative",
-        paddingLeft: "20px",
-      }}
-    >
-      <div
-        style={{
-          position: "absolute",
-          left: "5px",
-          top: "-10px",
-          bottom: "-10px",
-          width: "2px",
-          borderRadius: "999px",
-          background:
-            "linear-gradient(180deg, rgba(245,193,109,0.18), rgba(245,193,109,0.78), rgba(245,193,109,0.18))",
-        }}
-      />
-
-      <div
-        style={{
-          position: "absolute",
-          left: "0px",
-          top: "23px",
-          width: "11px",
-          height: "11px",
-          border:
-            `1px solid ${achievementAccent}`,
-          borderRadius:
-            "2px",
-          background:
-            "rgba(245,193,109,0.42)",
-          transform:
-            "rotate(45deg)",
-          boxShadow:
-            "none",
-          zIndex: 2,
-        }}
-      />
-
-      <article
-        style={{
-          position: "relative",
-          overflow: "hidden",
-          padding: "12px 13px",
-          border:
-            "1px solid rgba(245,193,109,0.52)",
-          borderRadius: "13px",
-          background: `
-            linear-gradient(
-              112deg,
-              rgba(245,193,109,0.24) 0%,
-              rgba(207,143,41,0.12) 18%,
-              rgba(83,48,20,0.46) 42%,
-              rgba(45,28,16,0.98) 68%,
-              rgba(35,22,12,0.99) 100%
-            )
-          `,
-          boxShadow:
-            "inset 0 1px 0 rgba(255,234,190,0.12), 0 6px 16px rgba(0,0,0,0.18)",
-        }}
-      >
-        <div
-          style={{
-            position: "absolute",
-            left: 0,
-            top: "11px",
-            bottom: "11px",
-            width: "3px",
-            borderRadius:
-              "0 999px 999px 0",
-            background:
-              achievementAccent,
-            opacity: 0.9,
-          }}
-        />
-
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns:
-              "42px minmax(0,1fr)",
-            gap: "11px",
-            alignItems:
-              "center",
-          }}
-        >
-          <div
-            style={{
-              width: "42px",
-              height: "42px",
-              flexShrink: 0,
-              display: "flex",
-              alignItems:
-                "center",
-              justifyContent:
-                "center",
-              border:
-                "1px solid rgba(245,193,109,0.58)",
-              borderRadius:
-                "50%",
-              background: `
-                linear-gradient(
-                  145deg,
-                  rgba(245,193,109,0.30),
-                  rgba(113,64,20,0.42)
-                )
-              `,
-              color:
-                achievementAccent,
-              fontSize: "21px",
-              boxShadow:
-                "inset 0 1px 0 rgba(255,239,204,0.16)",
-            }}
-          >
-            {achievement.icon}
+    <div className="taste-timeline-entry taste-timeline-system">
+      <article className="taste-timeline-card">
+        <header className="taste-timeline-card-header">
+          <span className="taste-timeline-packaging" aria-hidden="true">{achievement.icon}</span>
+          <div className="taste-timeline-person">
+            <strong className="taste-timeline-system-title">Systém · nové ocenění</strong>
+            <Link href={"/profiles/" + row.user_id} className="taste-timeline-system-person">
+              {profile?.display_name ?? "Neznámý uživatel"}
+            </Link>
           </div>
-
-          <div
-            style={{
-              minWidth: 0,
-            }}
-          >
-            <h3
-              style={{
-                margin: 0,
-                color:
-                  "var(--taste-text)",
-                fontSize:
-                  "15px",
-                lineHeight:
-                  1.25,
-                fontWeight:
-                  800,
-                letterSpacing:
-                  "-0.02em",
-              }}
-            >
-              Uživatel{" "}
-              <Link
-                href={`/profiles/${row.user_id}`}
-                style={{
-                  color:
-                    userAccent,
-                  textDecoration:
-                    "none",
-                }}
-              >
-                {displayName}
-              </Link>{" "}
-              získal nový odznak!
-            </h3>
-
-            <div
-              style={{
-                marginTop:
-                  "5px",
-                color:
-                  achievementAccent,
-                fontSize:
-                  "11px",
-                lineHeight:
-                  1.4,
-                fontWeight:
-                  750,
-              }}
-            >
-              {achievement.name}
-              <span
-                style={{
-                  margin:
-                    "0 5px",
-                  color:
-                    "var(--taste-text-muted)",
-                  fontWeight:
-                    500,
-                }}
-              >
-                ·
-              </span>
-              <span
-                style={{
-                  color:
-                    "var(--taste-text-soft)",
-                  fontWeight:
-                    600,
-                }}
-              >
-                {formatAchievementDate(
-                  row.unlocked_at
-                )}
-              </span>
-            </div>
-          </div>
+          <time className="taste-timeline-date" dateTime={row.unlocked_at}>
+            {formatAchievementDate(row.unlocked_at)}
+          </time>
+        </header>
+        <div className="taste-timeline-card-body">
+          <h3 className="taste-timeline-beer-name">{achievement.name}</h3>
+          <div className="taste-timeline-system-description">Získal nové hospodské ocenění.</div>
         </div>
       </article>
     </div>

@@ -67,3 +67,247 @@ main > .grid.grid-cols-1.gap-4.xl\:grid-cols-12 > section.order-1.xl\:order-2.xl
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* Společná osa: linka pokračuje i mezi jednotlivými příspěvky. */
+.taste-timeline-list {
+  position: relative;
+  display: grid;
+  gap: 27px;
+  padding: 4px 0 5px 27px;
+}
+
+.taste-timeline-list::before {
+  content: "";
+  position: absolute;
+  top: 7px;
+  bottom: 8px;
+  left: 8px;
+  width: 2px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, transparent, rgba(231, 166, 47, .58) 4%, rgba(231, 166, 47, .36) 96%, transparent);
+}
+
+.taste-timeline-entry {
+  position: relative;
+  min-width: 0;
+}
+
+.taste-timeline-entry::before {
+  content: "";
+  position: absolute;
+  top: 34px;
+  left: -19px;
+  width: 19px;
+  height: 2px;
+  background: rgba(231, 166, 47, .56);
+}
+
+.taste-timeline-entry::after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  top: 29px;
+  left: -24px;
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--taste-amber);
+  border-radius: 50%;
+  background: var(--taste-bg-deep);
+  box-shadow: 0 0 0 4px rgba(231, 166, 47, .10);
+}
+
+.taste-timeline-card {
+  overflow: hidden;
+  border: 1px solid rgba(231, 166, 47, .34);
+  border-radius: 15px;
+  box-shadow: 0 10px 27px rgba(0, 0, 0, .23);
+}
+
+.taste-timeline-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 13px 17px;
+  background: #1b110b;
+  border-bottom: 1px solid rgba(231, 166, 47, .22);
+}
+
+.taste-timeline-packaging {
+  display: inline-flex;
+  flex: 0 0 43px;
+  align-items: center;
+  justify-content: center;
+  width: 43px;
+  height: 43px;
+  border: 1px solid rgba(231, 166, 47, .35);
+  border-radius: 11px;
+  color: var(--taste-amber-bright);
+  background: rgba(231, 166, 47, .08);
+}
+
+.taste-timeline-person {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  min-width: 0;
+}
+
+.taste-timeline-nickname {
+  display: inline-block;
+  max-width: 100%;
+  padding: 3px 8px;
+  border: 1px solid;
+  border-radius: 7px;
+  font-size: 1rem;
+  line-height: 1.25;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+  text-decoration: none;
+}
+
+.taste-timeline-realname,
+.taste-timeline-system-person {
+  color: var(--taste-text-soft);
+  font-size: .85rem;
+  line-height: 1.35;
+  font-weight: 400;
+  text-decoration: none;
+}
+
+.taste-timeline-date {
+  flex: 0 0 auto;
+  align-self: flex-start;
+  padding-top: 5px;
+  color: var(--taste-text-soft);
+  font-size: .85rem;
+  white-space: nowrap;
+}
+
+.taste-timeline-card-body {
+  padding: 18px 20px 19px;
+  background: rgba(70, 46, 27, .64);
+}
+
+.taste-timeline-beer-line {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+}
+
+.taste-timeline-beer-name {
+  margin: 0;
+  color: var(--taste-text);
+  font-size: 1.2rem;
+  line-height: 1.35;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.taste-timeline-quantity {
+  color: var(--taste-amber-bright);
+  font-size: .85rem;
+  font-weight: 700;
+}
+
+.taste-timeline-brewery {
+  margin-top: 6px;
+  color: var(--taste-text-soft);
+  font-size: .92rem;
+  line-height: 1.5;
+}
+
+.taste-timeline-country {
+  color: var(--taste-text-muted);
+}
+
+.taste-timeline-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 0;
+  margin-top: 12px;
+  color: var(--taste-text-soft);
+  font-size: .88rem;
+  line-height: 1.5;
+}
+
+.taste-timeline-details span + span::before {
+  content: "·";
+  color: var(--taste-amber);
+  padding: 0 9px;
+}
+
+.taste-timeline-note {
+  margin-top: 12px;
+  color: var(--taste-text-muted);
+  font-size: .85rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.taste-timeline-edit {
+  margin-top: 14px;
+}
+
+.taste-timeline-system::before {
+  background: rgba(214, 91, 66, .7);
+}
+
+.taste-timeline-system::after {
+  border-color: var(--taste-red);
+  box-shadow: 0 0 0 4px rgba(214, 91, 66, .13);
+}
+
+.taste-timeline-system .taste-timeline-card {
+  border-color: rgba(214, 91, 66, .58);
+}
+
+.taste-timeline-system .taste-timeline-card-header {
+  background: #391912;
+  border-bottom-color: rgba(214, 91, 66, .35);
+}
+
+.taste-timeline-system .taste-timeline-card-body {
+  background: #291410;
+}
+
+.taste-timeline-system .taste-timeline-packaging {
+  color: #f18d7b;
+  border-color: rgba(214, 91, 66, .5);
+  background: rgba(214, 91, 66, .13);
+  font-size: 1.4rem;
+}
+
+.taste-timeline-system-title {
+  color: #f7a394;
+  font-size: .98rem;
+  line-height: 1.25;
+}
+
+.taste-timeline-system-description {
+  margin-top: 7px;
+  color: var(--taste-text-soft);
+  font-size: .88rem;
+  line-height: 1.45;
+}
+
+.taste-timeline-page {
+  color: var(--taste-text-muted);
+  font-size: .85rem;
+  white-space: nowrap;
+}
+
+@media (max-width: 600px) {
+  .taste-timeline-list { gap: 23px; padding-left: 22px; }
+  .taste-timeline-list::before { left: 6px; }
+  .taste-timeline-entry::before { left: -16px; width: 16px; }
+  .taste-timeline-entry::after { left: -21px; }
+  .taste-timeline-card-header { gap: 9px; padding: 12px; flex-wrap: wrap; }
+  .taste-timeline-packaging { flex-basis: 38px; width: 38px; height: 38px; }
+  .taste-timeline-date { flex-basis: 100%; padding: 0 0 0 47px; }
+  .taste-timeline-card-body { padding: 16px 14px; }
+  .taste-timeline-beer-name { font-size: 1.1rem; }
+}
