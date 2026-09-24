@@ -50,15 +50,36 @@ export async function updateSession(request: NextRequest) {
   const { data } = await supabase.auth.getClaims();
   const user = data?.claims;
 
+  const pathname = request.nextUrl.pathname;
+  const publicInvitation = pathname.startsWith("/pozvanka/");
+
   if (
-    request.nextUrl.pathname !== "/" &&
+    pathname !== "/" &&
     !user &&
-    !request.nextUrl.pathname.startsWith("/login") &&
-    !request.nextUrl.pathname.startsWith("/auth")
+    !pathname.startsWith("/login") &&
+    !pathname.startsWith("/auth") &&
+    !publicInvitation
   ) {
-    // no user, potentially respond by redirecting the user to the login page
     const url = request.nextUrl.clone();
     url.pathname = "/auth/login";
+    return NextResponse.redirect(url);
+  }
+
+  const appMetadata =
+    user && typeof user.app_metadata === "object" && user.app_metadata
+      ? user.app_metadata as Record<string, unknown>
+      : null;
+  const mustChangePassword = appMetadata?.must_change_password === true;
+
+  if (
+    user &&
+    mustChangePassword &&
+    !pathname.startsWith("/auth/update-password") &&
+    !pathname.startsWith("/auth/error")
+  ) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/auth/update-password";
+    url.search = "?first=1";
     return NextResponse.redirect(url);
   }
 

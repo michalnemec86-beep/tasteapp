@@ -82,3 +82,19 @@
   .taste-settings-qr-actions { display: grid; grid-template-columns: 1fr 1fr; }
   .taste-settings-invite-actions { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; width: 100%; }
 }
+
+.taste-settings-registration-paths { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.taste-settings-registration-path { position: relative; min-width: 0; padding: 18px; border: 1px solid rgba(231,166,47,.18); border-radius: 15px; background: rgba(15,10,7,.35); }
+.taste-settings-registration-path > div:first-of-type { padding-left: 38px; }
+.taste-settings-registration-path h3 { margin: 0 0 5px; font-size: 17px; font-weight: 850; }
+.taste-settings-registration-path > div > p { margin: 0 0 16px; color: var(--taste-text-soft); font-size: 13px; line-height: 1.5; }
+.taste-settings-registration-number { position: absolute; top: 18px; left: 18px; display: grid; width: 27px; height: 27px; place-items: center; border-radius: 50%; background: rgba(231,166,47,.18); color: #f1cf82; font-size: 13px; font-weight: 900; }
+.taste-settings-manual-form { margin-top: 4px; }
+.taste-settings-credentials { margin-top: 16px; display: grid; gap: 7px; padding: 14px; border: 1px solid rgba(145,203,113,.28); border-radius: 13px; background: rgba(77,126,53,.10); }
+.taste-settings-credentials strong { overflow-wrap: anywhere; }
+.taste-settings-credentials code { display: block; padding: 10px 12px; border-radius: 9px; background: rgba(0,0,0,.28); color: #f7dfaa; font-size: 15px; overflow-wrap: anywhere; }
+.taste-settings-credentials p { margin: 0; color: var(--taste-text-soft); font-size: 12px; line-height: 1.5; }
+
+@media (max-width: 760px) {
+  .taste-settings-registration-paths { grid-template-columns: 1fr; }
+}

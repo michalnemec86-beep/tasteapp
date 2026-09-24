@@ -31,12 +31,13 @@ export function LoginForm({
     setError(null);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
       if (error) throw error;
-      window.location.replace("/");
+      const mustChangePassword = data.user?.app_metadata?.must_change_password === true;
+      window.location.replace(mustChangePassword ? "/auth/update-password?first=1" : "/");
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "Přihlášení se nepodařilo.");
     } finally {

@@ -52,6 +52,7 @@ type AuthUser = {
   confirmed_at?: string | null;
   last_sign_in_at?: string | null;
   created_at?: string | null;
+  app_metadata?: Record<string, unknown> | null;
 };
 
 type GenerateLinkPayload = AuthUser & {
@@ -102,14 +103,15 @@ async function listAuthUsers() {
 
 function invitationRows(users: AuthUser[]) {
   return users
-    .filter((user) => Boolean(user.invited_at))
+    .filter((user) => {
+      const confirmedAt = user.email_confirmed_at ?? user.confirmed_at ?? null;
+      return Boolean(user.invited_at) && !confirmedAt;
+    })
     .map((user) => ({
       id: user.id,
       email: user.email ?? "",
       invitedAt: user.invited_at ?? null,
       confirmationSentAt: user.confirmation_sent_at ?? null,
-      confirmedAt: user.email_confirmed_at ?? user.confirmed_at ?? null,
-      lastSignInAt: user.last_sign_in_at ?? null,
       createdAt: user.created_at ?? null,
     }))
     .sort((a, b) => {
@@ -226,27 +228,59 @@ async function createQrInvitation(email: string, createdBy: string) {
   };
 }
 
-async function sendEmailInvitation(email: string) {
-  const inviteResponse = await fetch(SUPABASE_URL + "/auth/v1/invite", {
-    method: "POST",
-    headers: serviceHeaders(),
-    body: JSON.stringify({
-      email,
-      redirect_to: APP_URL + "/auth/update-password",
-    }),
-  });
+async function createPasswordAccount(email: string, password: string, existing: AuthUser | undefined) {
+  const appMetadata = {
+    ...(existing?.app_metadata ?? {}),
+    must_change_password: true,
+    registration_method: "admin_password",
+  };
 
-  const invitePayload = await inviteResponse.json().catch(() => ({})) as GenerateLinkPayload;
-  if (!inviteResponse.ok) {
+  let response: Response;
+  if (existing) {
+    response = await fetch(
+      SUPABASE_URL + "/auth/v1/admin/users/" + encodeURIComponent(existing.id),
+      {
+        method: "PUT",
+        headers: serviceHeaders(),
+        body: JSON.stringify({
+          password,
+          email_confirm: true,
+          app_metadata: appMetadata,
+        }),
+      },
+    );
+  } else {
+    response = await fetch(
+      SUPABASE_URL + "/auth/v1/admin/users",
+      {
+        method: "POST",
+        headers: serviceHeaders(),
+        body: JSON.stringify({
+          email,
+          password,
+          email_confirm: true,
+          app_metadata: appMetadata,
+        }),
+      },
+    );
+  }
+
+  const payload = await response.json().catch(() => ({})) as GenerateLinkPayload;
+  if (!response.ok || !payload.id) {
     const detail =
-      invitePayload.msg ??
-      invitePayload.message ??
-      invitePayload.error_description ??
-      "Supabase pozvánku nepřijal.";
+      payload.msg ??
+      payload.message ??
+      payload.error_description ??
+      "Supabase účet nevytvořil.";
     throw new Error(detail);
   }
 
-  return invitePayload;
+  await revokeExistingQrLinks(email);
+
+  return {
+    id: payload.id,
+    email: payload.email ?? email,
+  };
 }
 
 Deno.serve(async (req: Request) => {
@@ -285,6 +319,7 @@ Deno.serve(async (req: Request) => {
     const body = await req.json().catch(() => ({})) as {
       action?: string;
       email?: string;
+      password?: string;
     };
 
     if (body.action === "list") {
@@ -292,13 +327,13 @@ Deno.serve(async (req: Request) => {
       return json(origin, { ok: true, invitations: invitationRows(users) });
     }
 
-    if (body.action !== "invite" && body.action !== "qr") {
-      return json(origin, { ok: false, message: "Neplatná akce." });
+    if (body.action !== "qr" && body.action !== "create_account") {
+      return json(origin, { ok: false, message: "Neplatná akce." }, 400);
     }
 
     const email = (body.email ?? "").trim().toLowerCase();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) {
-      return json(origin, { ok: false, message: "Zadej platnou e-mailovou adresu." });
+      return json(origin, { ok: false, message: "Zadej platnou e-mailovou adresu." }, 400);
     }
 
     const users = await listAuthUsers();
@@ -311,17 +346,17 @@ Deno.serve(async (req: Request) => {
       return json(origin, {
         ok: false,
         message: "Tento e-mail už má aktivní účet v Pivníku.",
-      });
-    }
-
-    if (existing && !existing.invited_at) {
-      return json(origin, {
-        ok: false,
-        message: "Tento e-mail už má rozpracovanou registraci jiným způsobem. Pozvánku jsem z bezpečnostních důvodů nevytvořil.",
-      });
+      }, 409);
     }
 
     if (body.action === "qr") {
+      if (existing && !existing.invited_at) {
+        return json(origin, {
+          ok: false,
+          message: "Tento e-mail už má rozpracovanou registraci jiným způsobem. QR pozvánku jsem z bezpečnostních důvodů nevytvořil.",
+        }, 409);
+      }
+
       try {
         const invitation = await createQrInvitation(email, currentUser.id);
         return json(origin, {
@@ -340,40 +375,42 @@ Deno.serve(async (req: Request) => {
       }
     }
 
-    if (existing?.confirmation_sent_at) {
-      const sentAt = Date.parse(existing.confirmation_sent_at);
-      if (Number.isFinite(sentAt) && Date.now() - sentAt < 60_000) {
-        return json(origin, {
-          ok: false,
-          message: "Pozvánka byla odeslána před méně než minutou. Chvíli počkej a pak to zkus znovu.",
-        });
-      }
+    const password = body.password ?? "";
+    if (password.length < 10 || password.length > 128) {
+      return json(origin, {
+        ok: false,
+        message: "Dočasné heslo musí mít 10 až 128 znaků.",
+      }, 400);
+    }
+
+    if (existing && !existing.invited_at) {
+      return json(origin, {
+        ok: false,
+        message: "Tento e-mail už má rozpracovanou registraci jiným způsobem. Účet jsem nepřepsal.",
+      }, 409);
     }
 
     try {
-      const invitePayload = await sendEmailInvitation(email);
+      const account = await createPasswordAccount(email, password, existing);
       return json(origin, {
         ok: true,
         message: existing
-          ? "Pozvánka byla odeslána znovu."
-          : "Pozvánka byla odeslána.",
-        invitation: {
-          id: invitePayload.id ?? existing?.id ?? "",
-          email,
-        },
+          ? "Čekající QR registrace byla převedena na účet s dočasným heslem."
+          : "Účet byl vytvořen. Uživatel si při prvním přihlášení musí nastavit vlastní heslo.",
+        account,
       });
     } catch (error) {
-      const detail = error instanceof Error ? error.message : "Supabase pozvánku nepřijal.";
+      const detail = error instanceof Error ? error.message : "Supabase účet nevytvořil.";
       return json(origin, {
         ok: false,
-        message: "Pozvánku se nepodařilo odeslat. " + detail,
+        message: "Účet se nepodařilo vytvořit. " + detail,
       }, 400);
     }
   } catch (error) {
     console.error("admin-invitations", error);
     return json(origin, {
       ok: false,
-      message: "Správu pozvánek se nepodařilo dokončit. Zkus to znovu.",
+      message: "Správu registrací se nepodařilo dokončit. Zkus to znovu.",
     }, 500);
   }
 });

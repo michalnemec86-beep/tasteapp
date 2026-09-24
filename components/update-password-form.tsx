@@ -43,6 +43,16 @@ export function UpdatePasswordForm({
     try {
       const { error } = await supabase.auth.updateUser({ password });
       if (error) throw error;
+
+      const { data: completion, error: completionError } = await supabase.functions.invoke(
+        "complete-initial-password",
+        { body: {} },
+      );
+      if (completionError || completion?.ok === false) {
+        throw new Error(completion?.message ?? "Dokončení prvního nastavení hesla selhalo.");
+      }
+
+      await supabase.auth.refreshSession();
       window.location.replace("/");
     } catch (caughtError: unknown) {
       setError(
