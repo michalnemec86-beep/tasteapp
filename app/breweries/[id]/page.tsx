@@ -119,7 +119,7 @@ export default async function BreweryDetailPage({ params, searchParams }: Props)
         beer_versions (
           id, version_year, is_current,
           beers ( id, name ),
-          breweries ( id, name )
+          breweries!beer_versions_brewery_id_fkey ( id, name )
         )
       `)
       .eq("brewery_id", breweryId),
