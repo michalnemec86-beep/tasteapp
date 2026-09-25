@@ -39,7 +39,7 @@ export default async function BeerCatalogPage() {
         beer_hops ( hops ( id, name ) ),
         beer_versions (
           id, is_current, plato, abv, ibu,
-          breweries ( id, name, country ),
+          breweries!beer_versions_brewery_id_fkey ( id, name, country ),
           beer_styles ( id, name ),
           beer_version_hops ( hops ( id, name ) )
         ),
