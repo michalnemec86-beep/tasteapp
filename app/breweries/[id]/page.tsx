@@ -539,14 +539,16 @@ export default async function BreweryDetailPage({ params, searchParams }: Props)
                   </Link>
                 ))}
               </nav>
-              <CatalogBeerCreateModalClient
-                breweryName={brewery.name}
-                styles={styles}
-                hops={hops}
-                createBeerAction={createCatalogBeer.bind(null, brewery.id)}
-              />
-              <div style={{ color: "var(--taste-text-muted)", fontSize: "10px" }}>
-                {visibleBreweryBeers.length} {formatBeerCount(visibleBreweryBeers.length)} · {brandCount} {formatBrandCount(brandCount)}
+              <div className="taste-brewery-portfolio-secondary">
+                <CatalogBeerCreateModalClient
+                  breweryName={brewery.name}
+                  styles={styles}
+                  hops={hops}
+                  createBeerAction={createCatalogBeer.bind(null, brewery.id)}
+                />
+                <div className="taste-brewery-portfolio-count" style={{ color: "var(--taste-text-muted)", fontSize: "10px" }}>
+                  {visibleBreweryBeers.length} {formatBeerCount(visibleBreweryBeers.length)} · {brandCount} {formatBrandCount(brandCount)}
+                </div>
               </div>
             </div>
           </div>
