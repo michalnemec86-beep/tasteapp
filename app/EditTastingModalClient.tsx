@@ -95,14 +95,15 @@ type Tasting = {
   } | null;
 };
 
-type Props = {
-  tasting: Tasting;
-
+type TastingOptions = {
   beers: Beer[];
-  breweries: Brewery[];
   countries: Country[];
   styles: BeerStyle[];
   hops: Hop[];
+};
+
+type Props = {
+  tasting: Tasting;
 
   updateTastingAction: (
     formData: FormData
@@ -127,11 +128,6 @@ function normalizeText(text: string) {
 
 export default function EditTastingModalClient({
   tasting,
-  beers,
-  breweries,
-  countries,
-  styles,
-  hops,
   updateTastingAction,
   deleteTastingAction,
 }: Props) {
@@ -139,6 +135,53 @@ export default function EditTastingModalClient({
 
   const [open, setOpen] =
     useState(false);
+
+  const [options, setOptions] =
+    useState<TastingOptions | null>(null);
+
+  const [loadingOptions, setLoadingOptions] =
+    useState(false);
+
+  const beers = options?.beers ?? [];
+  const countries = options?.countries ?? [];
+  const styles = options?.styles ?? [];
+  const hops = options?.hops ?? [];
+
+  async function loadOptions() {
+    if (options || loadingOptions) {
+      return;
+    }
+
+    setLoadingOptions(true);
+
+    try {
+      const response = await fetch("/api/tasting-options", {
+        cache: "no-store",
+      });
+      const payload = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          payload?.error ?? "Nepodařilo se načíst podklady pro úpravu."
+        );
+      }
+
+      setOptions({
+        beers: payload.beers ?? [],
+        countries: payload.countries ?? [],
+        styles: payload.styles ?? [],
+        hops: payload.hops ?? [],
+      });
+    } catch (loadError) {
+      setError(
+        loadError instanceof Error
+          ? loadError.message
+          : "Nepodařilo se načíst podklady pro úpravu."
+      );
+    } finally {
+      setLoadingOptions(false);
+    }
+  }
 
   const [saving, setSaving] =
     useState(false);
@@ -490,6 +533,7 @@ export default function EditTastingModalClient({
         onClick={() => {
           setError("");
           setOpen(true);
+          void loadOptions();
         }}
         style={editButtonStyle}
       >
@@ -583,6 +627,21 @@ export default function EditTastingModalClient({
                   "16px 20px 20px",
               }}
             >
+            {loadingOptions && (
+              <div
+                style={{
+                  marginBottom: "18px",
+                  padding: "10px 12px",
+                  border: "1px solid var(--taste-border)",
+                  borderRadius: "10px",
+                  color: "var(--taste-text-muted)",
+                  fontSize: "12px",
+                }}
+              >
+                Načítám nabídku piv, stylů a chmelů…
+              </div>
+            )}
+
             {error && (
               <div
                 style={{
