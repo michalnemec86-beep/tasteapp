@@ -81,6 +81,7 @@ export default async function BreweryDetailPage({ params, searchParams }: Props)
     incomingResult,
     asCollaboratorResult,
     asPrimaryResult,
+    commissionedResult,
   ] = await Promise.all([
     supabase
       .from("breweries")
@@ -133,10 +134,26 @@ export default async function BreweryDetailPage({ params, searchParams }: Props)
         )
       `)
       .eq("beer_versions.brewery_id", breweryId),
+    supabase
+      .from("beer_versions")
+      .select(`
+        id, version_year, is_current, plato, abv, ibu, brewery_id, brewed_for_brewery_id,
+        beer_styles ( id, name ),
+        beer_version_hops ( hops ( name ) ),
+        beers!inner (
+          id, name, plato, abv, ibu, is_non_alcoholic, is_catalog, portfolio_status,
+          brands ( id, name ),
+          beer_styles ( id, name ),
+          beer_hops ( hops ( name ) ),
+          tastings ( id, user_id, tasted_on, quantity )
+        )
+      `)
+      .eq("is_current", true)
+      .eq("brewed_for_brewery_id", breweryId),
   ]);
 
   if (breweryResult.error || !breweryResult.data) notFound();
-  for (const result of [countriesResult, stylesResult, hopsResult, outgoingResult, incomingResult, asCollaboratorResult, asPrimaryResult]) {
+  for (const result of [countriesResult, stylesResult, hopsResult, outgoingResult, incomingResult, asCollaboratorResult, asPrimaryResult, commissionedResult]) {
     if (result.error) throw new Error(result.error.message);
   }
 
@@ -185,7 +202,34 @@ export default async function BreweryDetailPage({ params, searchParams }: Props)
     return earliest == null || item.from_year < earliest ? item.from_year : earliest;
   }, null);
 
-  const breweryBeers = (brewery.beers ?? [])
+  const commissionedBeers = (commissionedResult.data ?? []).flatMap((version: any) => {
+    const beer = one(version.beers);
+    if (!beer) return [];
+    return [{
+      ...beer,
+      beer_versions: [{
+        id: version.id,
+        version_year: version.version_year,
+        is_current: version.is_current,
+        plato: version.plato,
+        abv: version.abv,
+        ibu: version.ibu,
+        brewery_id: version.brewery_id,
+        brewed_for_brewery_id: version.brewed_for_brewery_id,
+        beer_styles: version.beer_styles,
+        beer_version_hops: version.beer_version_hops,
+      }],
+      isCommissionedForThisBrewery: true,
+    }];
+  });
+
+  const directBeerIds = new Set((brewery.beers ?? []).map((beer: any) => beer.id));
+  const breweryBeerRows = [
+    ...(brewery.beers ?? []),
+    ...commissionedBeers.filter((beer: any) => !directBeerIds.has(beer.id)),
+  ];
+
+  const breweryBeers = breweryBeerRows
     .map((beer: any) => {
       const brand = one(beer.brands);
       const fallbackStyle = one(beer.beer_styles);
@@ -234,7 +278,7 @@ export default async function BreweryDetailPage({ params, searchParams }: Props)
         referenceStatus: getBeerReferenceStatus({
           name: beer.name,
           brandId: brand?.id ?? null,
-          breweryId: brewery.id,
+          breweryId: currentVersion?.brewery_id ?? brewery.id,
           styleId: currentStyle?.id ?? fallbackStyle?.id ?? null,
           plato: currentVersion?.plato ?? beer.plato,
           abv: currentVersion?.abv ?? beer.abv,
@@ -537,6 +581,9 @@ export default async function BreweryDetailPage({ params, searchParams }: Props)
                     )}
                     <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "5px", marginTop: "6px" }}>
                       {beer.is_non_alcoholic && <Badge>NEALKO</Badge>}
+                      {beer.isCommissionedForThisBrewery && (
+                        <Badge>VAŘENO PRO</Badge>
+                      )}
                       {beer.effectivePortfolioStatus !== "active" && (
                         <Badge>{beerPortfolioStatusLabel(beer.effectivePortfolioStatus).toUpperCase()}</Badge>
                       )}
