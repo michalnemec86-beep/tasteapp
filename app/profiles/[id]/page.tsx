@@ -1720,32 +1720,9 @@ export default async function ProfilePage({
 
                     {isMe && (
                       <EditTastingModalClient
-                        tasting={
-                          tasting
-                        }
-                        beers={
-                          normalizedBeers
-                        }
-                        breweries={
-                          breweries ??
-                          []
-                        }
-                        countries={
-                          countries ??
-                          []
-                        }
-                        styles={
-                          styles ?? []
-                        }
-                        hops={
-                          hops ?? []
-                        }
-                        updateTastingAction={
-                          updateTastingInModal
-                        }
-                        deleteTastingAction={
-                          deleteTastingInModal
-                        }
+                        tasting={tasting}
+                        updateTastingAction={updateTastingInModal}
+                        deleteTastingAction={deleteTastingInModal}
                       />
                     )}
                   </div>
