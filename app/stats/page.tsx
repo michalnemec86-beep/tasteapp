@@ -813,7 +813,7 @@ export default async function StatsPage({
           style={{
             display: "grid",
             gridTemplateColumns:
-              "repeat(auto-fit, minmax(330px, 1fr))",
+              "repeat(auto-fit, minmax(min(330px, 100%), 1fr))",
             gap: "16px",
             alignItems: "start",
           }}
