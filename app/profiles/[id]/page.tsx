@@ -250,35 +250,6 @@ export default async function ProfilePage({
       .order("id")
       .range(from, to));
 
-  const beersPromise = fetchAllRows((from, to) =>
-    supabase
-      .from("beers")
-      .select(`
-        id,
-        name,
-        plato,
-        abv,
-        ibu,
-        is_catalog,
-        brands (
-          id,
-          name
-        ),
-        breweries (
-          id,
-          name,
-          country
-        ),
-        beer_styles (
-          id,
-          name
-        )
-      `)
-      .order("is_catalog", { ascending: false })
-      .order("name")
-      .order("id")
-      .range(from, to));
-
   const breweriesPromise =
     supabase
       .from("breweries")
@@ -287,91 +258,25 @@ export default async function ProfilePage({
       )
       .order("name");
 
-  const countriesPromise =
-    supabase
-      .from("countries")
-      .select(
-        "id, name"
-      )
-      .order("name");
-
-  const stylesPromise =
-    supabase
-      .from("beer_styles")
-      .select(
-        "id, name, aliases"
-      )
-      .order("name");
-
-  const hopsPromise =
-    supabase
-      .from("hops")
-      .select(
-        "id, name, aliases"
-      )
-      .order("name");
-
   const [
     tastingsResult,
-    beersResult,
     breweriesResult,
-    countriesResult,
-    stylesResult,
-    hopsResult,
   ] =
     await Promise.all([
       tastingsPromise,
-      beersPromise,
       breweriesPromise,
-      countriesPromise,
-      stylesPromise,
-      hopsPromise,
     ]);
 
   const tastings = tastingsResult;
-  const beers = beersResult;
 
   const {
     data: breweries,
     error: breweriesError,
   } = breweriesResult;
 
-  const {
-    data: countries,
-    error: countriesError,
-  } = countriesResult;
-
-  const {
-    data: styles,
-    error: stylesError,
-  } = stylesResult;
-
-  const {
-    data: hops,
-    error: hopsError,
-  } = hopsResult;
-
   if (breweriesError) {
     throw new Error(
       breweriesError.message
-    );
-  }
-
-  if (countriesError) {
-    throw new Error(
-      countriesError.message
-    );
-  }
-
-  if (stylesError) {
-    throw new Error(
-      stylesError.message
-    );
-  }
-
-  if (hopsError) {
-    throw new Error(
-      hopsError.message
     );
   }
 
@@ -479,28 +384,6 @@ export default async function ProfilePage({
     );
 
   const allTastings = globalTastings;
-
-  const normalizedBeers =
-    (beers ?? []).map(
-      (beer) => ({
-        ...beer,
-
-        breweries:
-          singleRelation(
-            beer.breweries
-          ),
-
-        brands:
-          singleRelation(
-            beer.brands
-          ),
-
-        beer_styles:
-          singleRelation(
-            beer.beer_styles
-          ),
-      })
-    );
 
   const tastingCountries = Array.from(
     new Set(
