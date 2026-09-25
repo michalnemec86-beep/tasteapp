@@ -6,6 +6,10 @@ import ReferenceWarning from "@/components/ui/ReferenceWarning";
 import { isAdminView } from "@/lib/adminView";
 import { createClient } from "@/lib/supabase/server";
 import { getBeerReferenceStatus } from "@/lib/referenceStatus";
+import {
+  beerPortfolioStatusLabel,
+  isHistoricalBeerPortfolioStatus,
+} from "@/lib/beerPortfolio";
 
 type Props = { params: Promise<{ id: string }> };
 type Relation<T> = T | T[] | null;
@@ -14,6 +18,7 @@ type BreweryRef = {
   id: number;
   name: string;
   country: string | null;
+  closed_year: number | null;
 };
 
 type StyleRef = {
@@ -116,23 +121,23 @@ export default async function BeerDetailPage({ params }: Props) {
   const { data: rawBeer, error } = await supabase
     .from("beers")
     .select(`
-      id, name, plato, abv, ibu, is_non_alcoholic, is_catalog,
+      id, name, plato, abv, ibu, is_non_alcoholic, is_catalog, portfolio_status,
       brands ( id, name ),
-      breweries ( id, name, country ),
+      breweries ( id, name, country, closed_year ),
       beer_styles ( id, name ),
       beer_hops (
         hops ( id, name )
       ),
       beer_versions (
         id, version_year, valid_from, valid_to, plato, abv, ibu, is_current,
-        breweries ( id, name, country ),
+        breweries ( id, name, country, closed_year ),
         beer_styles ( id, name ),
         beer_version_hops (
           hops ( id, name )
         ),
         beer_version_collaborators (
           display_order,
-          breweries ( id, name, country )
+          breweries ( id, name, country, closed_year )
         )
       )
     `)
@@ -150,6 +155,7 @@ export default async function BeerDetailPage({ params }: Props) {
     ibu: number | null;
     is_non_alcoholic: boolean;
     is_catalog: boolean | null;
+    portfolio_status: string | null;
     brands: Relation<{ id: number; name: string }>;
     breweries: Relation<BreweryRef>;
     beer_styles: Relation<StyleRef>;
@@ -195,6 +201,11 @@ export default async function BeerDetailPage({ params }: Props) {
   const currentPlato = current?.plato ?? beer.plato;
   const currentAbv = current?.abv ?? beer.abv;
   const currentIbu = current?.ibu ?? beer.ibu;
+  const effectivePortfolioStatus =
+    brewery?.closed_year != null ? "historical" : beer.portfolio_status;
+  const isHistoricalBeer = isHistoricalBeerPortfolioStatus(
+    effectivePortfolioStatus
+  );
   const fallbackHopNames = (beer.beer_hops ?? [])
     .map((item) => one(item.hops)?.name)
     .filter((name): name is string => Boolean(name));
@@ -350,7 +361,35 @@ export default async function BeerDetailPage({ params }: Props) {
             </span>
           )}
           {beer.is_non_alcoholic && <span style={{ padding: "3px 8px", borderRadius: "999px", background: "rgba(156,173,71,0.12)", color: "#9cad47", fontSize: "10px", fontWeight: 800 }}>NEALKO</span>}
+          <span
+            style={{
+              padding: "3px 8px",
+              borderRadius: "999px",
+              border: "1px solid var(--taste-border)",
+              color: isHistoricalBeer ? "#d9a15d" : "var(--taste-text-muted)",
+              fontSize: "10px",
+              fontWeight: 800,
+            }}
+          >
+            {beerPortfolioStatusLabel(effectivePortfolioStatus)}
+          </span>
         </div>
+        {isHistoricalBeer && (
+          <div
+            style={{
+              marginTop: "10px",
+              padding: "9px 10px",
+              borderRadius: "9px",
+              border: "1px solid rgba(217,161,93,.28)",
+              background: "rgba(217,161,93,.07)",
+              color: "var(--taste-text-muted)",
+              fontSize: "11px",
+              lineHeight: 1.45,
+            }}
+          >
+            Historické pivo zůstává v katalogu a statistikách, ale není dostupné pro nový zápis ochutnávky.
+          </div>
+        )}
         {currentCollaboratorNames.length > 0 && (
           <div style={{ marginTop: "10px", color: "var(--taste-text-muted)", fontSize: "11px" }}>
             Spolupráce: {currentCollaboratorNames.join(", ")}
