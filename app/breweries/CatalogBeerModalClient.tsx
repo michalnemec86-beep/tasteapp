@@ -4,6 +4,10 @@ import { useEffect, useId, useState, type FormEvent } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import {
+  BEER_PORTFOLIO_STATUSES,
+  beerPortfolioStatusLabel,
+} from "@/lib/beerPortfolio";
 
 type BeerStyle = { id: number; name: string; aliases: string[] | null };
 type Hop = { id: number; name: string; aliases: string[] | null };
@@ -18,6 +22,7 @@ type BeerSeed = {
   styleName: string;
   hopNames: string[];
   tastingCount: number;
+  portfolioStatus: string;
 };
 
 type Props = {
@@ -42,6 +47,7 @@ type FormState = {
   collaboratorNames: string;
   photoUrl: string;
   notes: string;
+  portfolioStatus: string;
   isNonAlcoholic: boolean;
 };
 
@@ -57,6 +63,7 @@ const emptyState: FormState = {
   collaboratorNames: "",
   photoUrl: "",
   notes: "",
+  portfolioStatus: "active",
   isNonAlcoholic: false,
 };
 
@@ -92,6 +99,7 @@ export default function CatalogBeerModalClient({
           abv: beer.abv == null ? "" : String(beer.abv),
           ibu: beer.ibu == null ? "" : String(beer.ibu),
           hopNames: beer.hopNames.join(", "),
+          portfolioStatus: beer.portfolioStatus,
           isNonAlcoholic: beer.isNonAlcoholic,
         }
       : emptyState
@@ -154,7 +162,7 @@ export default function CatalogBeerModalClient({
         const detailResult = await supabase
           .from("beers")
           .select(`
-            ebc, notes, photo_url,
+            ebc, notes, photo_url, portfolio_status,
             brands ( name ),
             beer_versions (
               id, is_current,
@@ -189,6 +197,7 @@ export default function CatalogBeerModalClient({
           collaboratorNames: collaborators.join(", "),
           photoUrl: raw?.photo_url ?? "",
           notes: raw?.notes ?? "",
+          portfolioStatus: raw?.portfolio_status ?? beer.portfolioStatus ?? "active",
           isNonAlcoholic: beer.isNonAlcoholic,
         });
       } else {
@@ -298,6 +307,22 @@ export default function CatalogBeerModalClient({
                 <Field label="Pivní styl" required>
                   <input name="styleName" required list={`styles-${id}`} value={form.styleName} onChange={(e) => setField("styleName", e.target.value)} placeholder="Např. IPA" style={inputStyle} />
                   <datalist id={`styles-${id}`}>{styles.map((style) => <option key={style.id} value={style.name} />)}</datalist>
+                </Field>
+
+                <Field label="Stav sortimentu" required>
+                  <select
+                    name="portfolioStatus"
+                    required
+                    value={form.portfolioStatus}
+                    onChange={(e) => setField("portfolioStatus", e.target.value)}
+                    style={inputStyle}
+                  >
+                    {BEER_PORTFOLIO_STATUSES.map((status) => (
+                      <option key={status} value={status}>
+                        {beerPortfolioStatusLabel(status)}
+                      </option>
+                    ))}
+                  </select>
                 </Field>
 
                 <Field label="Stupňovitost °P">
