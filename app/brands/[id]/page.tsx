@@ -38,7 +38,7 @@ export default async function BrandDetailPage({ params, searchParams }: Props) {
       id, name,
       beer_versions (
         id, is_current, version_year,
-        breweries ( id, name, country )
+        breweries!beer_versions_brewery_id_fkey ( id, name, country )
       )
     `)
     .eq("brand_id", brandId)
