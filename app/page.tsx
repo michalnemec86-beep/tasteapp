@@ -60,11 +60,6 @@ type BreweryRow = {
   aliases?: string[];
 };
 
-type CountryRow = {
-  id: number;
-  name: string;
-};
-
 type BeerStyleRow = {
   id: number;
   name: string;
