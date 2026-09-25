@@ -5,6 +5,7 @@ import { syncUserAchievements } from "@/lib/achievement-sync";
 import { isPackaging, type Packaging } from "@/lib/packaging";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { isBeerAvailableForTasting } from "@/lib/beerPortfolio";
 
 type SupabaseClient = Awaited<ReturnType<typeof createClient>>;
 
@@ -136,7 +137,7 @@ async function resolveBrewery(
   }
 
   const [breweriesResult, historyResult] = await Promise.all([
-    supabase.from("breweries").select("id, name, country"),
+    supabase.from("breweries").select("id, name, country, closed_year"),
     supabase.from("brewery_name_history").select("brewery_id, previous_name"),
   ]);
 
@@ -166,7 +167,7 @@ async function resolveBrewery(
         name: values.breweryName,
         country: canonicalCountry || null,
       })
-      .select("id, name, country")
+      .select("id, name, country, closed_year")
       .single();
     if (error || !created) {
       throw new Error(error?.message || "Pivovar se nepodařilo vytvořit.");
@@ -186,12 +187,18 @@ async function resolveBrewery(
       .from("breweries")
       .update({ country: canonicalCountry })
       .eq("id", brewery.id)
-      .select("id, name, country")
+      .select("id, name, country, closed_year")
       .single();
     if (error || !updated) {
       throw new Error(error?.message || "Pivovar se nepodařilo aktualizovat.");
     }
     brewery = updated;
+  }
+
+  if (brewery.closed_year != null) {
+    throw new Error(
+      "Tento pivovar je vedený jako uzavřený. Novou ochutnávku lze zapisovat jen k současnému pivovaru."
+    );
   }
 
   return brewery;
@@ -444,7 +451,7 @@ async function resolveBeer(
 
   const { data: breweryBeers, error: breweryBeersError } = await supabase
     .from("beers")
-    .select("id, name, brand_id")
+    .select("id, name, brand_id, is_catalog, portfolio_status")
     .eq("brewery_id", breweryId)
     .eq("brand_id", brandId);
   if (breweryBeersError) throw new Error(breweryBeersError.message);
@@ -454,6 +461,14 @@ async function resolveBeer(
   );
 
   if (existingBeer) {
+    if (
+      !existingBeer.is_catalog ||
+      !isBeerAvailableForTasting(existingBeer.portfolio_status, null)
+    ) {
+      throw new Error(
+        "Toto pivo je historické nebo není potvrzené jako současné katalogové pivo. Pro nový zápis ho nelze použít."
+      );
+    }
     return { beerId: existingBeer.id, isNewBeer: false };
   }
 
@@ -559,7 +574,7 @@ async function resolveCatalogData(
 
     const { data: beer, error: beerError } = await supabase
       .from("beers")
-      .select("id, name, brewery_id, brand_id")
+      .select("id, name, brewery_id, brand_id, is_catalog, portfolio_status")
       .eq("id", beerId)
       .maybeSingle();
 
@@ -572,7 +587,7 @@ async function resolveCatalogData(
     const [breweryResult, brandResult] = await Promise.all([
       supabase
         .from("breweries")
-        .select("id, name")
+        .select("id, name, closed_year")
         .eq("id", beer.brewery_id)
         .maybeSingle(),
       supabase
@@ -586,6 +601,18 @@ async function resolveCatalogData(
     if (brandResult.error) throw new Error(brandResult.error.message);
     if (!breweryResult.data || !brandResult.data) {
       throw new Error("Vybrané pivo má neplatnou vazbu na pivovar nebo značku.");
+    }
+
+    if (
+      !beer.is_catalog ||
+      !isBeerAvailableForTasting(
+        beer.portfolio_status,
+        breweryResult.data.closed_year
+      )
+    ) {
+      throw new Error(
+        "Toto pivo je historické nebo už není v současném sortimentu. Novou ochutnávku k němu nelze zapsat."
+      );
     }
 
     if (
