@@ -65,7 +65,7 @@ export default async function CountryStatsPage({
         packaging,
         quantity,
         beer_versions (
-          breweries (
+          breweries!beer_versions_brewery_id_fkey (
             id,
             name,
             country,
