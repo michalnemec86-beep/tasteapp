@@ -34,6 +34,7 @@ import { Medal } from "lucide-react";
 import { getCzechVocative } from "@/lib/czech-vocative";
 import { fetchAllRows } from "@/lib/fetch-all-rows";
 import { parsePositivePage } from "@/lib/pagination";
+import { isBeerAvailableForTasting } from "@/lib/beerPortfolio";
 
 import {
   updateTastingInModal,
@@ -56,6 +57,7 @@ type BreweryRow = {
   name: string;
   country: string | null;
   logo_url: string | null;
+  closed_year?: number | null;
   aliases?: string[];
 };
 
@@ -84,6 +86,7 @@ type CatalogBeerRow = {
   ibu: number | null;
   is_non_alcoholic: boolean;
   is_catalog: boolean;
+  portfolio_status: string;
 
   brands:
     | { id: number; name: string }
@@ -359,7 +362,8 @@ export default async function HomePage({
             id,
             name,
             country,
-            logo_url
+            logo_url,
+            closed_year
           ),
           beer_styles (
             id,
@@ -493,6 +497,7 @@ export default async function HomePage({
         ibu,
         is_non_alcoholic,
         is_catalog,
+        portfolio_status,
         brands (
           id,
           name
@@ -527,6 +532,7 @@ export default async function HomePage({
         name,
         country,
         logo_url,
+        closed_year,
         brewery_name_history (
           previous_name
         ),
@@ -694,10 +700,22 @@ export default async function HomePage({
       name: brewery.name,
       country: brewery.country,
       logo_url: brewery.logo_url,
+      closed_year: brewery.closed_year,
       aliases: (brewery.brewery_name_history ?? [])
         .map((item) => item.previous_name)
         .filter(Boolean),
     })) as BreweryRow[];
+
+  const availableBeers = allBeers.filter((beer) =>
+    isBeerAvailableForTasting(
+      beer.portfolio_status,
+      beer.breweries?.closed_year
+    )
+  );
+
+  const availableBreweries = allBreweries.filter(
+    (brewery) => brewery.closed_year == null
+  );
 
   const brandsByBrewery = (breweries ?? []).flatMap((brewery) =>
     (brewery.brewery_brands ?? []).flatMap((link) => {
@@ -1178,8 +1196,8 @@ export default async function HomePage({
 
           <div className="taste-timeline-actions">
             <TastingModal
-              beers={allBeers}
-              breweries={allBreweries}
+              beers={availableBeers}
+              breweries={availableBreweries}
               brandsByBrewery={brandsByBrewery}
               countries={countries ?? []}
               styles={allStyles}
