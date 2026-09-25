@@ -599,7 +599,7 @@ export default async function BreweriesPage({
                 style={{
                   display: "grid",
                   gridTemplateColumns:
-                    "repeat(auto-fit, minmax(260px, 1fr))",
+                    "repeat(auto-fit, minmax(min(260px, 100%), 1fr))",
                   gap: "12px",
                 }}
               >
