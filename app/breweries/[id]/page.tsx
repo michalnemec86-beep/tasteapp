@@ -3,6 +3,10 @@ import { notFound, redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
 import { getBeerReferenceStatus, getBreweryReferenceStatus } from "@/lib/referenceStatus";
+import {
+  beerPortfolioStatusLabel,
+  isHistoricalBeerPortfolioStatus,
+} from "@/lib/beerPortfolio";
 import PageHero from "@/components/ui/PageHero";
 import ReferenceWarning from "@/components/ui/ReferenceWarning";
 import { isAdminView, isCatalogAdminUser } from "@/lib/adminView";
@@ -42,12 +46,25 @@ function relationLabel(type: string, direction: "from" | "to") {
   return "Historická vazba";
 }
 
-type Props = { params: Promise<{ id: string }> };
+type Props = {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ portfolio?: string | string[] }>;
+};
 
-export default async function BreweryDetailPage({ params }: Props) {
+export default async function BreweryDetailPage({ params, searchParams }: Props) {
   const { id } = await params;
   const breweryId = Number(id);
   if (!Number.isInteger(breweryId) || breweryId < 1) notFound();
+
+  const resolvedSearchParams = await searchParams;
+  const requestedPortfolio =
+    typeof resolvedSearchParams.portfolio === "string"
+      ? resolvedSearchParams.portfolio
+      : undefined;
+  const portfolioFilter =
+    requestedPortfolio === "all" || requestedPortfolio === "historical"
+      ? requestedPortfolio
+      : "current";
 
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -74,7 +91,7 @@ export default async function BreweryDetailPage({ params }: Props) {
           brands ( id, name )
         ),
         beers (
-          id, name, plato, abv, ibu, is_non_alcoholic, is_catalog,
+          id, name, plato, abv, ibu, is_non_alcoholic, is_catalog, portfolio_status,
           brands ( id, name ),
           beer_styles ( id, name ),
           beer_hops ( hops ( name ) ),
@@ -190,9 +207,19 @@ export default async function BreweryDetailPage({ params }: Props) {
             .filter(Boolean) as string[]
         : [];
 
+      const portfolioStatus = beer.portfolio_status ?? "active";
+      const effectivePortfolioStatus =
+        brewery.closed_year != null ? "historical" : portfolioStatus;
+      const isHistorical = isHistoricalBeerPortfolioStatus(
+        effectivePortfolioStatus
+      );
+
       return {
         ...beer,
         brand,
+        portfolioStatus,
+        effectivePortfolioStatus,
+        isHistorical,
         plato: currentVersion?.plato ?? beer.plato,
         abv: currentVersion?.abv ?? beer.abv,
         ibu: currentVersion?.ibu ?? beer.ibu,
@@ -223,6 +250,19 @@ export default async function BreweryDetailPage({ params }: Props) {
         sensitivity: "base",
       })
     );
+
+  const currentBreweryBeers = breweryBeers.filter(
+    (beer: any) => !beer.isHistorical
+  );
+  const historicalBreweryBeers = breweryBeers.filter(
+    (beer: any) => beer.isHistorical
+  );
+  const visibleBreweryBeers =
+    portfolioFilter === "all"
+      ? breweryBeers
+      : portfolioFilter === "historical"
+        ? historicalBreweryBeers
+        : currentBreweryBeers;
 
   const consumedBeerCount = breweryBeers.reduce(
     (total: number, beer: any) =>
@@ -427,8 +467,34 @@ export default async function BreweryDetailPage({ params }: Props) {
 
         <div style={{ marginTop: "24px", paddingTop: "18px", borderTop: "1px solid var(--taste-border)" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "14px", marginBottom: "12px", flexWrap: "wrap" }}>
-            <div className="taste-label taste-brewery-section-title">Zaznamenaná piva</div>
+            <div className="taste-label taste-brewery-section-title">Sortiment</div>
             <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+              <nav aria-label="Filtr sortimentu" style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
+                {[
+                  { key: "current", label: "Současný", href: `/breweries/${brewery.id}` },
+                  { key: "all", label: "Vše", href: `/breweries/${brewery.id}?portfolio=all` },
+                  { key: "historical", label: "Historický", href: `/breweries/${brewery.id}?portfolio=historical` },
+                ].map((item) => (
+                  <Link
+                    key={item.key}
+                    href={item.href}
+                    className="taste-button-secondary"
+                    style={{
+                      padding: "6px 9px",
+                      fontSize: "10px",
+                      ...(portfolioFilter === item.key
+                        ? {
+                            borderColor: "rgba(232,136,53,.62)",
+                            background: "rgba(232,136,53,.12)",
+                            color: "var(--taste-amber-bright)",
+                          }
+                        : {}),
+                    }}
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+              </nav>
               <CatalogBeerCreateModalClient
                 breweryName={brewery.name}
                 styles={styles}
@@ -436,14 +502,14 @@ export default async function BreweryDetailPage({ params }: Props) {
                 createBeerAction={createCatalogBeer.bind(null, brewery.id)}
               />
               <div style={{ color: "var(--taste-text-muted)", fontSize: "10px" }}>
-                {breweryBeers.length} {formatBeerCount(breweryBeers.length)} · {brandCount} {formatBrandCount(brandCount)}
+                {visibleBreweryBeers.length} {formatBeerCount(visibleBreweryBeers.length)} · {brandCount} {formatBrandCount(brandCount)}
               </div>
             </div>
           </div>
 
-          {breweryBeers.length > 0 ? (
+          {visibleBreweryBeers.length > 0 ? (
             <div style={{ display: "grid" }}>
-              {breweryBeers.map((beer: any, index: number) => (
+              {visibleBreweryBeers.map((beer: any, index: number) => (
                 <div
                   className="taste-brewery-beer-row"
                   key={beer.id}
@@ -453,7 +519,7 @@ export default async function BreweryDetailPage({ params }: Props) {
                     alignItems: "center",
                     gap: "14px",
                     padding: "10px 10px",
-                    borderBottom: index < breweryBeers.length - 1 ? "1px solid rgba(255,255,255,.055)" : "none",
+                    borderBottom: index < visibleBreweryBeers.length - 1 ? "1px solid rgba(255,255,255,.055)" : "none",
                   }}
                 >
                   <div style={{ minWidth: 0 }}>
@@ -471,6 +537,9 @@ export default async function BreweryDetailPage({ params }: Props) {
                     )}
                     <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "5px", marginTop: "6px" }}>
                       {beer.is_non_alcoholic && <Badge>NEALKO</Badge>}
+                      {beer.effectivePortfolioStatus !== "active" && (
+                        <Badge>{beerPortfolioStatusLabel(beer.effectivePortfolioStatus).toUpperCase()}</Badge>
+                      )}
                       {beer.styleName && <span style={{ color: "var(--taste-text-soft)", fontSize: "10px", fontWeight: 650 }}>{beer.styleName}</span>}
                       {beer.plato != null && <Badge>{beer.plato} °P</Badge>}
                       {beer.abv != null && <Badge>{beer.abv} %</Badge>}
@@ -519,6 +588,7 @@ export default async function BreweryDetailPage({ params }: Props) {
                           styleName: beer.styleName,
                           hopNames: beer.hopNames,
                           tastingCount: beer.tastings?.length ?? 0,
+                          portfolioStatus: beer.portfolioStatus,
                         }}
                         styles={styles}
                         hops={hops}
@@ -534,7 +604,15 @@ export default async function BreweryDetailPage({ params }: Props) {
               ))}
             </div>
           ) : (
-            <div style={{ color: "var(--taste-text-muted)", fontSize: "12px" }}>Zatím není zaznamenané žádné pivo.</div>
+            <div style={{ color: "var(--taste-text-muted)", fontSize: "12px" }}>
+              {portfolioFilter === "current" && brewery.closed_year != null
+                ? "Pivovar je uzavřený. Současný sortiment už nemá; přepněte na Vše nebo Historický."
+                : portfolioFilter === "historical"
+                  ? "U tohoto pivovaru zatím není označené žádné historické pivo."
+                  : portfolioFilter === "current"
+                    ? "U tohoto pivovaru zatím není evidovaný současný sortiment."
+                    : "Zatím není zaznamenané žádné pivo."}
+            </div>
           )}
         </div>
 
