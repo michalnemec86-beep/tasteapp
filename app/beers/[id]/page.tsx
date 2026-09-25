@@ -130,7 +130,7 @@ export default async function BeerDetailPage({ params }: Props) {
       ),
       beer_versions (
         id, version_year, valid_from, valid_to, plato, abv, ibu, is_current,
-        breweries ( id, name, country, closed_year ),
+        breweries!beer_versions_brewery_id_fkey ( id, name, country, closed_year ),
         beer_styles ( id, name ),
         beer_version_hops (
           hops ( id, name )
