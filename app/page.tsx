@@ -34,7 +34,6 @@ import { Medal } from "lucide-react";
 import { getCzechVocative } from "@/lib/czech-vocative";
 import { fetchAllRows } from "@/lib/fetch-all-rows";
 import { parsePositivePage } from "@/lib/pagination";
-import { isBeerAvailableForTasting } from "@/lib/beerPortfolio";
 
 import {
   updateTastingInModal,
@@ -486,44 +485,6 @@ export default async function HomePage({
     .order("id", { ascending: false })
     .range(from, to), 500, timelineFetchLimit);
 
-  const beersPromise = fetchAllRows((from, to) =>
-    supabase
-      .from("beers")
-      .select(`
-        id,
-        name,
-        plato,
-        abv,
-        ibu,
-        is_non_alcoholic,
-        is_catalog,
-        portfolio_status,
-        brands (
-          id,
-          name
-        ),
-        breweries (
-            id,
-            name,
-            country,
-            logo_url
-          ),
-        beer_styles (
-          id,
-          name
-        ),
-        beer_hops (
-          hops (
-            id,
-            name
-          )
-        )
-      `)
-      .order("is_catalog", { ascending: false })
-      .order("name")
-      .order("id")
-      .range(from, to));
-
   const breweriesPromise =
     supabase
       .from("breweries")
@@ -532,38 +493,8 @@ export default async function HomePage({
         name,
         country,
         logo_url,
-        closed_year,
-        brewery_name_history (
-          previous_name
-        ),
-        brewery_brands (
-          brands (id, name)
-        )
+        closed_year
       `)
-      .order("name");
-
-  const countriesPromise =
-    supabase
-      .from("countries")
-      .select(
-        "id, name"
-      )
-      .order("name");
-
-  const stylesPromise =
-    supabase
-      .from("beer_styles")
-      .select(
-        "id, name, aliases"
-      )
-      .order("name");
-
-  const hopsPromise =
-    supabase
-      .from("hops")
-      .select(
-        "id, name, aliases"
-      )
       .order("name");
 
   const [
@@ -572,11 +503,7 @@ export default async function HomePage({
     statsTastings,
     achievementsResult,
     catalogEventsResult,
-    beersResult,
     breweriesResult,
-    countriesResult,
-    stylesResult,
-    hopsResult,
   ] =
     await Promise.all([
       profilesPromise,
@@ -584,11 +511,7 @@ export default async function HomePage({
       statsTastingsPromise,
       achievementsPromise,
       catalogEventsPromise,
-      beersPromise,
       breweriesPromise,
-      countriesPromise,
-      stylesPromise,
-      hopsPromise,
     ]);
 
   const {
@@ -601,31 +524,11 @@ export default async function HomePage({
   const achievements = achievementsResult;
   const catalogEvents = catalogEventsResult;
 
-  const beers = beersResult;
-
   const {
     data: breweries,
     error: breweriesError,
   } =
     breweriesResult;
-
-  const {
-    data: countries,
-    error: countriesError,
-  } =
-    countriesResult;
-
-  const {
-    data: styles,
-    error: stylesError,
-  } =
-    stylesResult;
-
-  const {
-    data: hops,
-    error: hopsError,
-  } =
-    hopsResult;
 
   if (profilesError) {
     throw new Error(
@@ -636,24 +539,6 @@ export default async function HomePage({
   if (breweriesError) {
     throw new Error(
       breweriesError.message
-    );
-  }
-
-  if (countriesError) {
-    throw new Error(
-      countriesError.message
-    );
-  }
-
-  if (stylesError) {
-    throw new Error(
-      stylesError.message
-    );
-  }
-
-  if (hopsError) {
-    throw new Error(
-      hopsError.message
     );
   }
 
@@ -689,11 +574,6 @@ export default async function HomePage({
     };
   }) as CatalogEventRow[];
 
-  const allBeers =
-    (beers ??
-      []) as unknown as
-      CatalogBeerRow[];
-
   const allBreweries =
     (breweries ?? []).map((brewery) => ({
       id: brewery.id,
@@ -701,38 +581,7 @@ export default async function HomePage({
       country: brewery.country,
       logo_url: brewery.logo_url,
       closed_year: brewery.closed_year,
-      aliases: (brewery.brewery_name_history ?? [])
-        .map((item) => item.previous_name)
-        .filter(Boolean),
     })) as BreweryRow[];
-
-  const availableBeers = allBeers.filter(
-    (beer) =>
-      beer.is_catalog &&
-      isBeerAvailableForTasting(
-        beer.portfolio_status,
-        beer.breweries?.closed_year
-      )
-  );
-
-  const availableBreweries = allBreweries.filter(
-    (brewery) => brewery.closed_year == null
-  );
-
-  const brandsByBrewery = (breweries ?? []).flatMap((brewery) =>
-    (brewery.brewery_brands ?? []).flatMap((link) => {
-      const brand = singleRelation(link.brands);
-      return brand ? [{ breweryId: brewery.id, brand }] : [];
-    })
-  );
-
-  const allStyles =
-    (styles ??
-      []) as BeerStyleRow[];
-
-  const allHops =
-    (hops ??
-      []) as HopRow[];
 
   const currentProfile =
     allProfiles.find(
@@ -1197,14 +1046,7 @@ export default async function HomePage({
           </div>
 
           <div className="taste-timeline-actions">
-            <TastingModal
-              beers={availableBeers}
-              breweries={availableBreweries}
-              brandsByBrewery={brandsByBrewery}
-              countries={countries ?? []}
-              styles={allStyles}
-              hops={allHops}
-            />
+            <TastingModal />
           </div>
 
           {visibleTimeline.length ===
@@ -1309,19 +1151,6 @@ export default async function HomePage({
                     userAccent={timelineAccents.get(tasting.id) ?? TIMELINE_USER_ACCENTS[0]}
                     isOwn={
                       isOwn
-                    }
-                    beers={
-                      allBeers
-                    }
-                    breweries={
-                      allBreweries
-                    }
-                    countries={countries ?? []}
-                styles={
-                      allStyles
-                    }
-                    hops={
-                      allHops
                     }
                   />
                 );
@@ -1439,17 +1268,12 @@ function buildTimelineAccentMap(events: TimelineEvent[]) {
 }
 
 function TastingTimelineCard({
-  tasting, profile, userAccent, isOwn, beers, breweries, countries, styles, hops,
+  tasting, profile, userAccent, isOwn,
 }: {
   tasting: TastingRow;
   profile: ProfileRow | null;
   userAccent: string;
   isOwn: boolean;
-  beers: CatalogBeerRow[];
-  breweries: BreweryRow[];
-  countries: CountryRow[];
-  styles: BeerStyleRow[];
-  hops: HopRow[];
 }) {
   const packagingIcon =
     tasting.packaging === "bottle" ? "bottle" :
@@ -1521,9 +1345,11 @@ function TastingTimelineCard({
             </div>
           )}
           {isOwn && <div className="taste-timeline-edit">
-            <EditTastingModalClient tasting={tasting} beers={beers} breweries={breweries}
-              countries={countries} styles={styles} hops={hops}
-              updateTastingAction={updateTastingInModal} deleteTastingAction={deleteTastingInModal} />
+            <EditTastingModalClient
+              tasting={tasting}
+              updateTastingAction={updateTastingInModal}
+              deleteTastingAction={deleteTastingInModal}
+            />
           </div>}
         </div>
       </article>
