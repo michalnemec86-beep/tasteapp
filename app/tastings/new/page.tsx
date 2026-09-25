@@ -6,6 +6,7 @@ import TastingForm from "./TastingForm";
 
 import { saveTastingAndRedirect } from "../actions";
 import { fetchAllRows } from "@/lib/fetch-all-rows";
+import { isBeerAvailableForTasting } from "@/lib/beerPortfolio";
 
 // ==================================================
 // JEDNA RELACE ZE SUPABASE
@@ -75,6 +76,7 @@ export default async function NewTastingPage({
         ibu,
         is_non_alcoholic,
         is_catalog,
+        portfolio_status,
         brands (
           id,
           name
@@ -82,7 +84,8 @@ export default async function NewTastingPage({
         breweries (
           id,
           name,
-          country
+          country,
+          closed_year
         ),
         beer_styles (
           id,
@@ -126,6 +129,13 @@ export default async function NewTastingPage({
             hops: singleRelation(row.hops),
           })),
       })
+    ).filter(
+      (beer) =>
+        Boolean(beer.is_catalog) &&
+        isBeerAvailableForTasting(
+          beer.portfolio_status,
+          beer.breweries?.closed_year
+        )
     );
 
   // ==================================================
@@ -142,6 +152,7 @@ export default async function NewTastingPage({
         id,
         name,
         country,
+        closed_year,
         brewery_name_history (
           previous_name
         ),
@@ -155,6 +166,17 @@ export default async function NewTastingPage({
     throw new Error(
       breweriesError.message
     );
+  }
+
+  const availableBreweries = (breweries ?? []).filter(
+    (brewery) => brewery.closed_year == null
+  );
+
+  if (
+    initialBeerId != null &&
+    !normalizedBeers.some((beer) => beer.id === initialBeerId)
+  ) {
+    redirect("/tastings/new");
   }
 
   // ==================================================
@@ -245,7 +267,7 @@ export default async function NewTastingPage({
           normalizedBeers
         }
         breweries={
-          (breweries ?? []).map((brewery) => ({
+          availableBreweries.map((brewery) => ({
             id: brewery.id,
             name: brewery.name,
             country: brewery.country,
@@ -254,7 +276,7 @@ export default async function NewTastingPage({
               .filter(Boolean),
           }))
         }
-        brandsByBrewery={(breweries ?? []).flatMap((brewery) =>
+        brandsByBrewery={availableBreweries.flatMap((brewery) =>
           (brewery.brewery_brands ?? []).flatMap((link) => {
             const brand = singleRelation(link.brands);
             return brand ? [{ breweryId: brewery.id, brand }] : [];
