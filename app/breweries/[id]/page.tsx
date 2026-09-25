@@ -510,10 +510,10 @@ export default async function BreweryDetailPage({ params, searchParams }: Props)
         )}
 
         <div style={{ marginTop: "24px", paddingTop: "18px", borderTop: "1px solid var(--taste-border)" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "14px", marginBottom: "12px", flexWrap: "wrap" }}>
+          <div className="taste-brewery-portfolio-header" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "14px", marginBottom: "12px", flexWrap: "wrap" }}>
             <div className="taste-label taste-brewery-section-title">Sortiment</div>
-            <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
-              <nav aria-label="Filtr sortimentu" style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
+            <div className="taste-brewery-portfolio-tools" style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+              <nav className="taste-brewery-portfolio-filters" aria-label="Filtr sortimentu" style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
                 {[
                   { key: "current", label: "Současný", href: `/breweries/${brewery.id}` },
                   { key: "all", label: "Vše", href: `/breweries/${brewery.id}?portfolio=all` },
@@ -621,7 +621,7 @@ export default async function BreweryDetailPage({ params, searchParams }: Props)
                     )}
                   </div>
 
-                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <div className="taste-brewery-beer-actions" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                     {beer.canEdit && (
                       <CatalogBeerEditModalClient
                         breweryName={brewery.name}
