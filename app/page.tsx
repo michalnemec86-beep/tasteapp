@@ -358,7 +358,7 @@ export default async function HomePage({
         beer_versions (
           id,
           version_year,
-          breweries (
+          breweries!beer_versions_brewery_id_fkey (
             id,
             name,
             country,
@@ -431,7 +431,7 @@ export default async function HomePage({
     supabase.from("tastings").select(`
       id, user_id, quantity, packaging,
       beer_versions (
-        breweries (id, name, country, logo_url),
+        breweries!beer_versions_brewery_id_fkey (id, name, country, logo_url),
         beer_styles (id, name),
         beer_version_hops (hops (id, name))
       ),
