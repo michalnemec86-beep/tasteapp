@@ -203,7 +203,7 @@ export default async function ProfilesPage() {
           abv,
           ibu,
           beer_versions (
-            breweries (
+            breweries!beer_versions_brewery_id_fkey (
               id,
               country
             ),
