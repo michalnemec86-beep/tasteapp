@@ -67,14 +67,16 @@ type ExistingBeer = {
   }> | null;
 };
 
-type TastingModalClientProps = {
-  beers: ExistingBeer[];
+type TastingOptions = {
+  availableBeers: ExistingBeer[];
   breweries: Brewery[];
   brandsByBrewery: { breweryId: number; brand: { id: number; name: string } }[];
   countries: Country[];
   styles: BeerStyle[];
   hops: Hop[];
+};
 
+type TastingModalClientProps = {
   saveTastingAction: (
     formData: FormData
   ) => Promise<{
@@ -83,12 +85,6 @@ type TastingModalClientProps = {
 };
 
 export default function TastingModalClient({
-  beers,
-  breweries,
-  brandsByBrewery,
-  countries,
-  styles,
-  hops,
   saveTastingAction,
 }: TastingModalClientProps) {
   const [
@@ -96,8 +92,50 @@ export default function TastingModalClient({
     setOpen,
   ] = useState(false);
 
+  const [options, setOptions] =
+    useState<TastingOptions | null>(null);
+
+  const [loadingOptions, setLoadingOptions] =
+    useState(false);
+
+  const [optionsError, setOptionsError] =
+    useState("");
+
   const router =
     useRouter();
+
+  async function loadOptions() {
+    if (options || loadingOptions) {
+      return;
+    }
+
+    setLoadingOptions(true);
+    setOptionsError("");
+
+    try {
+      const response = await fetch("/api/tasting-options", {
+        cache: "no-store",
+      });
+
+      const payload = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          payload?.error ?? "Nepodařilo se načíst podklady pro ochutnávku."
+        );
+      }
+
+      setOptions(payload as TastingOptions);
+    } catch (error) {
+      setOptionsError(
+        error instanceof Error
+          ? error.message
+          : "Nepodařilo se načíst podklady pro ochutnávku."
+      );
+    } finally {
+      setLoadingOptions(false);
+    }
+  }
 
   // ==================================================
   // ZAMKNUTÍ SCROLLOVÁNÍ POZADÍ
@@ -147,8 +185,9 @@ export default function TastingModalClient({
 
       <button
         type="button"
-        onClick={() =>
-          setOpen(true)
+        onClick={() => {
+          setOpen(true);
+          void loadOptions();
         }
         className="taste-button-primary"
         style={{
@@ -412,21 +451,43 @@ export default function TastingModalClient({
                   "16px 20px 20px",
               }}
             >
-              <TastingForm
-                saveTastingAction={
-                  handleSave
-                }
-                beers={beers}
-                breweries={
-                  breweries
-                }
-                brandsByBrewery={brandsByBrewery}
-                countries={
-                  countries
-                }
-                styles={styles}
-                hops={hops}
-              />
+              {options ? (
+                <TastingForm
+                  saveTastingAction={handleSave}
+                  beers={options.availableBeers}
+                  breweries={options.breweries}
+                  brandsByBrewery={options.brandsByBrewery}
+                  countries={options.countries}
+                  styles={options.styles}
+                  hops={options.hops}
+                />
+              ) : (
+                <div
+                  style={{
+                    padding: "26px 4px",
+                    color: "var(--taste-text-muted)",
+                    textAlign: "center",
+                    fontSize: "13px",
+                  }}
+                >
+                  {loadingOptions ? (
+                    "Načítám nabídku piv…"
+                  ) : (
+                    <>
+                      <div style={{ marginBottom: "12px" }}>
+                        {optionsError || "Podklady pro formulář nejsou načtené."}
+                      </div>
+                      <button
+                        type="button"
+                        className="taste-button-secondary"
+                        onClick={() => void loadOptions()}
+                      >
+                        Zkusit znovu
+                      </button>
+                    </>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>,
