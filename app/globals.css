@@ -1005,3 +1005,77 @@
 .taste-collapsible-filters[open] .taste-filter-chevron {
   transform: rotate(180deg);
 }
+
+
+/* Mobile hardening after portfolio/status additions */
+@media (max-width: 639px) {
+  .taste-brewery-portfolio-header {
+    align-items: stretch !important;
+    gap: 9px !important;
+  }
+
+  .taste-brewery-portfolio-header > .taste-brewery-section-title {
+    width: 100%;
+  }
+
+  .taste-brewery-portfolio-tools {
+    width: 100%;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 8px !important;
+    align-items: stretch !important;
+  }
+
+  .taste-brewery-portfolio-filters {
+    width: 100%;
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 6px !important;
+  }
+
+  .taste-brewery-portfolio-filters .taste-button-secondary {
+    width: 100%;
+    min-width: 0;
+    padding-left: 5px !important;
+    padding-right: 5px !important;
+    white-space: nowrap;
+  }
+
+  .taste-brewery-portfolio-secondary {
+    width: 100%;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .taste-brewery-portfolio-count {
+    margin-left: auto;
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  .taste-brewery-beer-row {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 8px !important;
+    padding-left: 4px !important;
+    padding-right: 4px !important;
+  }
+
+  .taste-brewery-beer-name {
+    overflow-wrap: anywhere;
+  }
+
+  .taste-brewery-beer-actions {
+    width: 100%;
+    min-width: 0;
+    justify-content: flex-end;
+    gap: 7px !important;
+  }
+
+  .taste-brewery-beer-quantity {
+    margin-left: auto;
+  }
+}
