@@ -2,8 +2,6 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 import type { RankingItem } from "@/lib/stats";
-import { getPackagingMeta } from "@/lib/packaging";
-import { createClient } from "@/lib/supabase/server";
 import AppIcon from "@/components/ui/AppIcon";
 
 type StatsRankingCardProps = {
@@ -12,56 +10,18 @@ type StatsRankingCardProps = {
   icon: ReactNode;
   accent: string;
   items: RankingItem[];
+  packagingItems?: RankingItem[];
   getItemHref?: (
     item: RankingItem
   ) => string;
 };
 
-export default async function StatsRankingCard(
+export default function StatsRankingCard(
   props: StatsRankingCardProps
 ) {
   if (props.title !== "Pivní styly") {
     return <RankingCardView {...props} />;
   }
-
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("tastings")
-    .select("packaging, quantity");
-
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  const packagingMap = new Map<string, RankingItem>();
-
-  for (const tasting of data ?? []) {
-    const packaging = getPackagingMeta(tasting.packaging);
-
-    if (!packaging) {
-      continue;
-    }
-
-    const amount = tasting.quantity ?? 1;
-    const existing = packagingMap.get(packaging.value);
-
-    if (existing) {
-      existing.count += amount;
-    } else {
-      packagingMap.set(packaging.value, {
-        id: packaging.value,
-        name: packaging.label,
-        count: amount,
-      });
-    }
-  }
-
-  const packagingItems = Array.from(packagingMap.values()).sort(
-    (a, b) =>
-      b.count !== a.count
-        ? b.count - a.count
-        : a.name.localeCompare(b.name, "cs")
-  );
 
   return (
     <>
@@ -72,7 +32,7 @@ export default async function StatsRankingCard(
         subtitle="Čepované, lahvové a plechovky"
         icon={<AppIcon name="package" size={20} />}
         accent="#b77a36"
-        items={packagingItems}
+        items={props.packagingItems ?? []}
         getItemHref={(item) =>
           `/stats/packaging/${item.id}`
         }
