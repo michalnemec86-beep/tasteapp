@@ -5,12 +5,6 @@ import { useRouter } from "next/navigation";
 
 import { PACKAGING_OPTIONS } from "@/lib/packaging";
 
-type Brewery = {
-  id: number;
-  name: string;
-  country: string | null;
-};
-
 type Country = {
   id: number;
   name: string;
