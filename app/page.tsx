@@ -1177,6 +1177,9 @@ export default async function HomePage({
             items={
               globalStats.styles
             }
+            packagingItems={
+              globalStats.packaging
+            }
             getItemHref={(item) => `/styles/${item.id}`}
           />
 
