@@ -196,7 +196,7 @@ export default async function ProfilePage({
           id,
           version_year,
           brewery_id,
-          breweries (
+          breweries!beer_versions_brewery_id_fkey (
             id,
             name,
             country
