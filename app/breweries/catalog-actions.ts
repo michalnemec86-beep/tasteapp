@@ -2,6 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import {
+  BEER_PORTFOLIO_STATUSES,
+  type BeerPortfolioStatus,
+} from "@/lib/beerPortfolio";
 
 const CATALOG_ADMIN_USER_ID = "17be5dc3-a3f9-4fd2-ae90-dee7692034fc";
 
@@ -24,6 +28,14 @@ function readOptionalNumber(formData: FormData, key: string) {
 function readOptionalText(formData: FormData, key: string) {
   const value = String(formData.get(key) ?? "").trim();
   return value || null;
+}
+
+function readPortfolioStatus(formData: FormData): BeerPortfolioStatus {
+  const value = String(formData.get("portfolioStatus") ?? "active").trim();
+  if (!BEER_PORTFOLIO_STATUSES.includes(value as BeerPortfolioStatus)) {
+    throw new Error("Neplatný stav sortimentu.");
+  }
+  return value as BeerPortfolioStatus;
 }
 
 function readNames(formData: FormData, key: string) {
@@ -256,6 +268,7 @@ function readBeerValues(formData: FormData) {
     ebc: readOptionalNumber(formData, "ebc"),
     notes: readOptionalText(formData, "notes"),
     photoUrl: readOptionalText(formData, "photoUrl"),
+    portfolioStatus: readPortfolioStatus(formData),
     isNonAlcoholic: formData.get("isNonAlcoholic") === "on",
     hopNames: readNames(formData, "hopNames"),
     collaboratorNames: readNames(formData, "collaboratorNames"),
@@ -312,6 +325,7 @@ export async function createCatalogBeer(breweryId: number, formData: FormData) {
       notes: values.notes,
       photo_url: values.photoUrl,
       is_non_alcoholic: values.isNonAlcoholic,
+      portfolio_status: values.portfolioStatus,
       created_by: user.id,
     })
     .select("id")
@@ -418,6 +432,13 @@ export async function updateCatalogBeer(
     p_collaborator_ids: collaboratorIds,
   });
   if (versionError) throw new Error(versionError.message);
+
+  const { error: portfolioError } = await supabase
+    .from("beers")
+    .update({ portfolio_status: values.portfolioStatus })
+    .eq("id", beerId)
+    .eq("brewery_id", breweryId);
+  if (portfolioError) throw new Error(portfolioError.message);
 
   revalidateCatalog(breweryId, beerId);
   return { success: true, beerId };
