@@ -24,6 +24,7 @@ type Beer = {
   styleName: string;
   hopNames: string[];
   tastingCount: number;
+  portfolioStatus: string;
 };
 
 type Props = {
