@@ -706,11 +706,13 @@ export default async function HomePage({
         .filter(Boolean),
     })) as BreweryRow[];
 
-  const availableBeers = allBeers.filter((beer) =>
-    isBeerAvailableForTasting(
-      beer.portfolio_status,
-      beer.breweries?.closed_year
-    )
+  const availableBeers = allBeers.filter(
+    (beer) =>
+      beer.is_catalog &&
+      isBeerAvailableForTasting(
+        beer.portfolio_status,
+        beer.breweries?.closed_year
+      )
   );
 
   const availableBreweries = allBreweries.filter(
