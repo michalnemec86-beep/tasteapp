@@ -708,11 +708,11 @@ export default async function HomePage({
 
   const availableBeers = allBeers.filter(
     (beer) =>
-      beer.is_catalog &&
       isBeerAvailableForTasting(
         beer.portfolio_status,
         beer.breweries?.closed_year
-      )
+      ) &&
+      Boolean(beer.brands && beer.breweries)
   );
 
   const availableBreweries = allBreweries.filter(

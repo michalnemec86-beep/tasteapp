@@ -451,7 +451,7 @@ async function resolveBeer(
 
   const { data: breweryBeers, error: breweryBeersError } = await supabase
     .from("beers")
-    .select("id, name, brand_id, is_catalog, portfolio_status")
+    .select("id, name, brand_id, portfolio_status")
     .eq("brewery_id", breweryId)
     .eq("brand_id", brandId);
   if (breweryBeersError) throw new Error(breweryBeersError.message);
@@ -462,11 +462,10 @@ async function resolveBeer(
 
   if (existingBeer) {
     if (
-      !existingBeer.is_catalog ||
       !isBeerAvailableForTasting(existingBeer.portfolio_status, null)
     ) {
       throw new Error(
-        "Toto pivo je historické nebo není potvrzené jako současné katalogové pivo. Pro nový zápis ho nelze použít."
+        "Toto pivo je historické nebo už není v současném sortimentu. Novou ochutnávku k němu nelze zapsat."
       );
     }
     return { beerId: existingBeer.id, isNewBeer: false };
@@ -574,7 +573,7 @@ async function resolveCatalogData(
 
     const { data: beer, error: beerError } = await supabase
       .from("beers")
-      .select("id, name, brewery_id, brand_id, is_catalog, portfolio_status")
+      .select("id, name, brewery_id, brand_id, portfolio_status")
       .eq("id", beerId)
       .maybeSingle();
 
@@ -604,7 +603,6 @@ async function resolveCatalogData(
     }
 
     if (
-      !beer.is_catalog ||
       !isBeerAvailableForTasting(
         beer.portfolio_status,
         breweryResult.data.closed_year
@@ -621,7 +619,7 @@ async function resolveCatalogData(
       normalizeText(values.brandName) !== normalizeText(brandResult.data.name)
     ) {
       throw new Error(
-        "Vybrané katalogové pivo musí zachovat svůj pivovar, značku a název."
+        "Vybrané pivo musí zachovat svůj pivovar, značku a název."
       );
     }
 

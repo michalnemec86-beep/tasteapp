@@ -5,6 +5,7 @@ import AppIcon from "@/components/ui/AppIcon";
 import { createClient } from "@/lib/supabase/server";
 import { getBeerReferenceStatus } from "@/lib/referenceStatus";
 import { isAdminView, isCatalogAdminUser } from "@/lib/adminView";
+import { isBeerAvailableForTasting } from "@/lib/beerPortfolio";
 
 import BeerCatalogClient, { type BeerCatalogItem } from "./BeerCatalogClient";
 import { confirmCatalogBeer } from "./actions";
@@ -32,9 +33,9 @@ export default async function BeerCatalogPage() {
     const { data, error } = await supabase
       .from("beers")
       .select(`
-        id, name, plato, abv, ibu, is_non_alcoholic, is_catalog,
+        id, name, plato, abv, ibu, is_non_alcoholic, is_catalog, portfolio_status,
         brands ( id, name ),
-        breweries ( id, name, country ),
+        breweries ( id, name, country, closed_year ),
         beer_styles ( id, name ),
         beer_hops ( hops ( id, name ) ),
         beer_versions (
@@ -69,8 +70,9 @@ export default async function BeerCatalogPage() {
       ibu: number | null;
       is_non_alcoholic: boolean | null;
       is_catalog: boolean | null;
+      portfolio_status: string | null;
       brands: Relation<{ id: number; name: string }>;
-      breweries: Relation<{ id: number; name: string; country: string | null }>;
+      breweries: Relation<{ id: number; name: string; country: string | null; closed_year: number | null }>;
       beer_styles: Relation<{ id: number; name: string }>;
       beer_hops: Array<{ hops: Relation<{ id: number; name: string }> }> | null;
       beer_versions: Array<{
@@ -79,7 +81,7 @@ export default async function BeerCatalogPage() {
         plato: number | null;
         abv: number | null;
         ibu: number | null;
-        breweries: Relation<{ id: number; name: string; country: string | null }>;
+        breweries: Relation<{ id: number; name: string; country: string | null; closed_year: number | null }>;
         beer_styles: Relation<{ id: number; name: string }>;
         beer_version_hops: Array<{ hops: Relation<{ id: number; name: string }> }> | null;
       }> | null;
@@ -88,6 +90,7 @@ export default async function BeerCatalogPage() {
 
     const current = beer.beer_versions?.find((version) => version.is_current) ?? null;
     const brewery = one(current?.breweries) ?? one(beer.breweries);
+    const identityBrewery = one(beer.breweries);
     const style = one(current?.beer_styles) ?? one(beer.beer_styles);
     const hopRows = current ? current.beer_version_hops ?? [] : beer.beer_hops ?? [];
     const hops = hopRows
@@ -117,6 +120,8 @@ export default async function BeerCatalogPage() {
       ibu: current?.ibu ?? beer.ibu,
       isNonAlcoholic: Boolean(beer.is_non_alcoholic),
       isCatalog: Boolean(beer.is_catalog),
+      canTaste: Boolean(brand && identityBrewery) &&
+        isBeerAvailableForTasting(beer.portfolio_status, identityBrewery?.closed_year),
       hops,
       totalQuantity: tastings.reduce((sum, tasting) => sum + (tasting.quantity ?? 1), 0),
       myQuantity: tastings

@@ -16,6 +16,7 @@ export type BeerCatalogItem = {
   ibu: number | null;
   isNonAlcoholic: boolean;
   isCatalog: boolean;
+  canTaste: boolean;
   hops: Array<{ id: number; name: string }>;
   totalQuantity: number;
   myQuantity: number;
@@ -386,19 +387,21 @@ export default function BeerCatalogClient({
                 </div>
               )}
 
-              <Link
-                href={`/tastings/new?beer=${beer.id}`}
-                className="taste-button-secondary taste-beer-catalog-action"
-                style={{
-                  display: "inline-flex",
-                  marginTop: "13px",
-                  padding: "7px 10px",
-                  fontSize: "10px",
-                  fontWeight: 750,
-                }}
-              >
-                + Zapsat ochutnávku
-              </Link>
+              {beer.canTaste && (
+                <Link
+                  href={`/tastings/new?beer=${beer.id}`}
+                  className="taste-button-secondary taste-beer-catalog-action"
+                  style={{
+                    display: "inline-flex",
+                    marginTop: "13px",
+                    padding: "7px 10px",
+                    fontSize: "10px",
+                    fontWeight: 750,
+                  }}
+                >
+                  + Zapsat ochutnávku
+                </Link>
+              )}
 
               {isCatalogAdmin && adminView && !beer.isCatalog && (
                 <div style={{ marginTop: "10px" }}>

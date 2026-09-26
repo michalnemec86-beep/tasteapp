@@ -131,11 +131,11 @@ export default async function NewTastingPage({
       })
     ).filter(
       (beer) =>
-        Boolean(beer.is_catalog) &&
         isBeerAvailableForTasting(
           beer.portfolio_status,
           beer.breweries?.closed_year
-        )
+        ) &&
+        Boolean(beer.brands && beer.breweries)
     );
 
   // ==================================================
@@ -291,6 +291,7 @@ export default async function NewTastingPage({
         hops={
           hops ?? []
         }
+        key={initialBeerId ?? "new"}
         initialBeerId={initialBeerId}
       />
     </main>
