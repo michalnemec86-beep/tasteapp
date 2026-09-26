@@ -337,23 +337,13 @@ export async function createCatalogBeer(breweryId: number, formData: FormData) {
 
     const { data: version, error: versionError } = await supabase
       .from("beer_versions")
-      .update({
-        brewery_id: breweryId,
-        style_id: styleId,
-        plato: values.plato,
-        abv: values.abv,
-        ibu: values.ibu,
-        ebc: values.ebc,
-        notes: values.notes,
-        photo_url: values.photoUrl,
-        is_non_alcoholic: values.isNonAlcoholic,
-        created_by: user.id,
-      })
+      .select("id")
       .eq("beer_id", beer.id)
       .eq("is_current", true)
-      .select("id")
       .single();
-    if (versionError || !version) throw new Error(versionError?.message || "Aktuální verzi piva se nepodařilo vytvořit.");
+    if (versionError || !version) {
+      throw new Error(versionError?.message || "Aktuální verzi piva se nepodařilo načíst.");
+    }
 
     await replaceVersionHops(supabase, version.id, hopIds);
     await replaceCollaborators(supabase, version.id, collaboratorIds);
@@ -445,7 +435,12 @@ export async function updateCatalogBeer(
 }
 
 export async function deleteCatalogBeer(breweryId: number, beerId: number) {
-  const { supabase } = await requireUser();
+  const { supabase, user } = await requireUser();
+
+  if (user.id !== CATALOG_ADMIN_USER_ID) {
+    throw new Error("Pivo z katalogu může fyzicky odstranit pouze administrátor.");
+  }
+
   if (!Number.isInteger(breweryId) || breweryId < 1) throw new Error("Neplatné ID pivovaru.");
   if (!Number.isInteger(beerId) || beerId < 1) throw new Error("Neplatné ID piva.");
 
