@@ -365,23 +365,66 @@ export default function BeerWorldMap({
     (item) => !getCountryCode(item.name)
   );
 
-  const hasGroupedUkRegion = items.some((item) =>
-    UK_REGION_NORMALIZED_NAMES.has(
-      normalizeCountryName(item.name)
-    )
+  const mapCountries = Array.from(
+    mappedCountries
+      .reduce(
+        (map, item) => {
+          const isUkRegion = UK_REGION_NORMALIZED_NAMES.has(
+            normalizeCountryName(item.name)
+          );
+          const existing = map.get(item.code);
+
+          if (existing) {
+            existing.count += item.count;
+
+            if (
+              item.code === "GB" &&
+              (existing.isGroupedUk || isUkRegion)
+            ) {
+              existing.name = "Spojené království";
+              existing.isGroupedUk = true;
+            }
+
+            return map;
+          }
+
+          map.set(item.code, {
+            ...item,
+            name:
+              item.code === "GB" && isUkRegion
+                ? "Spojené království"
+                : item.name,
+            isGroupedUk: item.code === "GB" && isUkRegion,
+          });
+
+          return map;
+        },
+        new Map<
+          string,
+          CountryRankingItem & {
+            code: string;
+            isGroupedUk: boolean;
+          }
+        >()
+      )
+      .values()
   );
 
-  const data: Data = mappedCountries.map((item) => ({
+  const hasGroupedUkRegion = mapCountries.some(
+    (item) => item.code === "GB" && item.isGroupedUk
+  );
+
+  const data: Data = mapCountries.map((item) => ({
     country: item.code as ISOCode,
     value: item.count,
   }));
 
   const nameByCode = new Map(
-    mappedCountries.map((item) => [item.code, item.name])
+    mapCountries.map((item) => [item.code, item.name])
   );
 
   const countByCode = new Map(
-    mappedCountries.map((item) => [item.code, item.count])
+    mapCountries.map((item) => [item.code, item.count])
   );
 
   function showCountryOnHover(target: EventTarget) {
@@ -395,6 +438,7 @@ export default function BeerWorldMap({
   }
 
   function styleCountry({
+    countryCode,
     countryValue,
   }: CountryContext<string | number>): CSSProperties {
     const value =
@@ -421,7 +465,11 @@ export default function BeerWorldMap({
       stroke: "#9b773b",
       strokeWidth: 0.65,
       strokeOpacity: 0.78,
-      cursor: "pointer",
+      cursor:
+        String(countryCode).toUpperCase() === "GB" &&
+        hasGroupedUkRegion
+          ? "default"
+          : "pointer",
     };
   }
 
@@ -447,6 +495,11 @@ export default function BeerWorldMap({
     }
 
     const code = String(countryCode).toUpperCase();
+
+    if (code === "GB" && hasGroupedUkRegion) {
+      return;
+    }
+
     const czechName = nameByCode.get(code) ?? countryName;
 
     if (statsContextUserId && lockStatsContext) {
@@ -473,7 +526,11 @@ export default function BeerWorldMap({
   }: CountryContext<string | number>) {
     const value = Number(countryValue);
     if (!Number.isFinite(value) || value <= 0) return undefined;
-    const name = nameByCode.get(String(countryCode).toUpperCase()) ?? countryName;
+
+    const code = String(countryCode).toUpperCase();
+    if (code === "GB" && hasGroupedUkRegion) return undefined;
+
+    const name = nameByCode.get(code) ?? countryName;
     return statsContextUserId && lockStatsContext
       ? `/stats?user=${encodeURIComponent(statsContextUserId)}&locked=1&country=${encodeURIComponent(name)}`
       : `/stats/country/${encodeURIComponent(name)}`;
@@ -718,10 +775,10 @@ export default function BeerWorldMap({
             lineHeight: 1.5,
           }}
         >
-          Poznámka: Skotsko, Wales a Severní Irsko se ve
-          světové mapě zobrazují sloučeně pod Velkou Británií,
-          protože použitý mapový podklad nemá jejich vnitřní
-          hranice jako samostatné oblasti.
+          Poznámka: Anglie, Skotsko, Wales a Severní Irsko se
+          ve světové mapě zobrazují společně jako Spojené
+          království. Jejich hodnoty se na mapě sčítají, ale ve
+          statistikách a ochutnávkách zůstávají samostatně.
         </div>
       )}
 
