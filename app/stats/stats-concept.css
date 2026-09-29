@@ -710,7 +710,7 @@ body:has(.taste-stats-concept) {
 
   .taste-stats-concept .taste-page-hero-title {
     max-width: 100% !important;
-    font-size: 21px !important;
+    font-size: 20px !important;
     line-height: 1.04 !important;
     letter-spacing: -.028em !important;
   }
