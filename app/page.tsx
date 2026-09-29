@@ -908,6 +908,82 @@ export default async function HomePage({
       allTastings
     );
 
+  // "Nejčastější pivovary" na domovské stránce ukazují skutečný
+  // počet ochutnávek (řádků), nikoli součet vypitých kusů.
+  const breweryTastingMap = new Map<
+    number,
+    {
+      id: number;
+      name: string;
+      count: number;
+      logoUrl?: string;
+    }
+  >();
+
+  for (const tasting of allTastings) {
+    const brewery =
+      tasting.beer_versions?.breweries ??
+      tasting.beers?.breweries ??
+      null;
+
+    if (!brewery) {
+      continue;
+    }
+
+    const existing =
+      breweryTastingMap.get(
+        brewery.id
+      );
+
+    if (existing) {
+      existing.count += 1;
+
+      if (
+        !existing.logoUrl &&
+        brewery.logo_url
+      ) {
+        existing.logoUrl =
+          brewery.logo_url;
+      }
+
+      continue;
+    }
+
+    breweryTastingMap.set(
+      brewery.id,
+      {
+        id: brewery.id,
+        name: brewery.name,
+        count: 1,
+        ...(brewery.logo_url
+          ? {
+              logoUrl:
+                brewery.logo_url,
+            }
+          : {}),
+      }
+    );
+  }
+
+  const breweryTastingRanking =
+    Array.from(
+      breweryTastingMap.values()
+    ).sort((a, b) => {
+      if (
+        b.count !== a.count
+      ) {
+        return (
+          b.count -
+          a.count
+        );
+      }
+
+      return a.name.localeCompare(
+        b.name,
+        "cs"
+      );
+    });
+
   const totalTastings =
     allTastings.reduce(
       (
@@ -1141,7 +1217,7 @@ export default async function HomePage({
             }
             accent="#e88835"
             items={
-              globalStats.breweries
+              breweryTastingRanking
             }
             getItemHref={(item) =>
               `/breweries/${item.id}`
