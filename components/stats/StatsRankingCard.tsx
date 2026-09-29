@@ -27,56 +27,56 @@ const RANKING_CARD_SURFACES: Record<
 > = {
   "Nejčastější pivovary": {
     border:
-      "1px solid rgba(196,121,58,.46)",
+      "1px solid rgba(208,136,72,.58)",
     background:
-      "radial-gradient(circle at 22% 8%, rgba(214,136,70,.34), transparent 34%), linear-gradient(167deg, #311d0b 0%, #2c1a0b 24%, #22170d 54%, #18140f 78%, #12110e 100%)",
+      "radial-gradient(circle at 18% 6%, rgba(255,214,149,.18), transparent 18%), radial-gradient(circle at 22% 8%, rgba(214,136,70,.38), transparent 34%), linear-gradient(167deg, #311d0b 0%, #2c1a0b 24%, #22170d 54%, #18140f 78%, #12110e 100%)",
     boxShadow:
-      "0 10px 28px rgba(0,0,0,.32), 0 0 24px rgba(201,116,48,.16), inset 0 1px 0 rgba(255,220,164,.14)",
+      "0 12px 30px rgba(0,0,0,.34), 0 0 28px rgba(201,116,48,.18), -2px -2px 16px rgba(255,205,138,.11), inset 0 1px 0 rgba(255,230,180,.18), inset 0 0 18px rgba(255,201,126,.05), inset 10px 10px 24px rgba(255,210,145,.045)",
   },
 
   "Pivní styly": {
     border:
-      "1px solid rgba(183,126,66,.44)",
+      "1px solid rgba(194,141,84,.56)",
     background:
-      "radial-gradient(circle at 76% 10%, rgba(205,148,83,.30), transparent 36%), linear-gradient(156deg, #311d0b 0%, #2b1a0c 26%, #22180f 55%, #181510 79%, #12110e 100%)",
+      "radial-gradient(circle at 78% 7%, rgba(255,220,168,.16), transparent 18%), radial-gradient(circle at 76% 10%, rgba(205,148,83,.34), transparent 36%), linear-gradient(156deg, #311d0b 0%, #2b1a0c 26%, #22180f 55%, #181510 79%, #12110e 100%)",
     boxShadow:
-      "0 10px 28px rgba(0,0,0,.32), 0 0 22px rgba(175,112,54,.14), inset 0 1px 0 rgba(244,209,151,.13)",
+      "0 12px 30px rgba(0,0,0,.34), 0 0 26px rgba(175,112,54,.17), 2px -2px 14px rgba(255,214,161,.10), inset 0 1px 0 rgba(244,218,171,.17), inset 0 0 18px rgba(247,212,155,.045), inset -10px 10px 22px rgba(248,216,164,.04)",
   },
 
   "Způsob podání": {
     border:
-      "1px solid rgba(198,108,47,.45)",
+      "1px solid rgba(214,122,62,.58)",
     background:
-      "radial-gradient(circle at 34% 7%, rgba(224,126,56,.36), transparent 34%), linear-gradient(172deg, #311d0b 0%, #2d190b 24%, #24150c 52%, #18130e 78%, #12110e 100%)",
+      "radial-gradient(circle at 30% 6%, rgba(255,210,156,.18), transparent 17%), radial-gradient(circle at 34% 7%, rgba(224,126,56,.40), transparent 34%), linear-gradient(172deg, #311d0b 0%, #2d190b 24%, #24150c 52%, #18130e 78%, #12110e 100%)",
     boxShadow:
-      "0 10px 28px rgba(0,0,0,.33), 0 0 24px rgba(196,94,36,.17), inset 0 1px 0 rgba(255,205,139,.13)",
+      "0 12px 30px rgba(0,0,0,.35), 0 0 30px rgba(196,94,36,.19), -2px -2px 18px rgba(255,196,136,.11), inset 0 1px 0 rgba(255,214,154,.18), inset 0 0 20px rgba(255,184,118,.05), inset 12px 10px 24px rgba(255,201,142,.045)",
   },
 
   "Nejčastější piva": {
     border:
-      "1px solid rgba(217,149,67,.47)",
+      "1px solid rgba(224,159,79,.60)",
     background:
-      "radial-gradient(circle at 66% 8%, rgba(242,181,84,.38), transparent 35%), linear-gradient(161deg, #311d0b 0%, #2d1b0b 23%, #24180c 52%, #19150f 78%, #12110e 100%)",
+      "radial-gradient(circle at 70% 7%, rgba(255,232,176,.18), transparent 18%), radial-gradient(circle at 66% 8%, rgba(242,181,84,.42), transparent 35%), linear-gradient(161deg, #311d0b 0%, #2d1b0b 23%, #24180c 52%, #19150f 78%, #12110e 100%)",
     boxShadow:
-      "0 10px 28px rgba(0,0,0,.32), 0 0 25px rgba(224,145,53,.17), inset 0 1px 0 rgba(255,227,166,.15)",
+      "0 12px 30px rgba(0,0,0,.34), 0 0 30px rgba(224,145,53,.20), 2px -2px 18px rgba(255,228,162,.12), inset 0 1px 0 rgba(255,236,186,.19), inset 0 0 20px rgba(255,216,132,.055), inset -12px 10px 24px rgba(255,220,151,.045)",
   },
 
   "Státy": {
     border:
-      "1px solid rgba(188,104,60,.44)",
+      "1px solid rgba(199,117,73,.56)",
     background:
-      "radial-gradient(circle at 18% 10%, rgba(211,124,76,.33), transparent 35%), linear-gradient(163deg, #311d0b 0%, #2b1a0d 25%, #221810 55%, #181410 80%, #12110e 100%)",
+      "radial-gradient(circle at 16% 8%, rgba(255,213,181,.16), transparent 18%), radial-gradient(circle at 18% 10%, rgba(211,124,76,.36), transparent 35%), linear-gradient(163deg, #311d0b 0%, #2b1a0d 25%, #221810 55%, #181410 80%, #12110e 100%)",
     boxShadow:
-      "0 10px 28px rgba(0,0,0,.32), 0 0 23px rgba(173,83,47,.15), inset 0 1px 0 rgba(244,194,148,.13)",
+      "0 12px 30px rgba(0,0,0,.34), 0 0 27px rgba(173,83,47,.17), -2px -2px 16px rgba(250,204,172,.10), inset 0 1px 0 rgba(246,204,176,.17), inset 0 0 18px rgba(232,170,138,.045), inset 10px 10px 22px rgba(244,203,178,.04)",
   },
 
   "Značky": {
     border:
-      "1px solid rgba(194,122,58,.45)",
+      "1px solid rgba(206,133,72,.58)",
     background:
-      "radial-gradient(circle at 82% 9%, rgba(227,149,72,.34), transparent 35%), linear-gradient(154deg, #311d0b 0%, #2d1b0c 25%, #24180e 54%, #19150f 79%, #12110e 100%)",
+      "radial-gradient(circle at 84% 8%, rgba(255,219,165,.17), transparent 18%), radial-gradient(circle at 82% 9%, rgba(227,149,72,.38), transparent 35%), linear-gradient(154deg, #311d0b 0%, #2d1b0c 25%, #24180e 54%, #19150f 79%, #12110e 100%)",
     boxShadow:
-      "0 10px 28px rgba(0,0,0,.32), 0 0 23px rgba(194,113,44,.16), inset 0 1px 0 rgba(251,211,149,.13)",
+      "0 12px 30px rgba(0,0,0,.34), 0 0 28px rgba(194,113,44,.18), 2px -2px 16px rgba(255,214,152,.10), inset 0 1px 0 rgba(251,220,171,.18), inset 0 0 18px rgba(240,188,132,.05), inset -10px 10px 22px rgba(248,211,162,.04)",
   },
 };
 
@@ -88,11 +88,11 @@ function getRankingCardSurface(
       title
     ] ?? {
       border:
-        "1px solid rgba(190,120,58,.40)",
+        "1px solid rgba(198,130,70,.52)",
       background:
-        "radial-gradient(circle at 50% 8%, rgba(214,145,79,.28), transparent 36%), linear-gradient(160deg, #311d0b 0%, #2c1b0c 26%, #22180e 56%, #181510 80%, #12110e 100%)",
+        "radial-gradient(circle at 50% 8%, rgba(255,220,162,.14), transparent 18%), radial-gradient(circle at 50% 8%, rgba(214,145,79,.30), transparent 36%), linear-gradient(160deg, #311d0b 0%, #2c1b0c 26%, #22180e 56%, #181510 80%, #12110e 100%)",
       boxShadow:
-        "0 10px 28px rgba(0,0,0,.31), 0 0 20px rgba(182,110,50,.14), inset 0 1px 0 rgba(245,205,147,.11)",
+        "0 12px 30px rgba(0,0,0,.33), 0 0 24px rgba(182,110,50,.16), 0 -2px 14px rgba(255,214,154,.08), inset 0 1px 0 rgba(245,214,169,.15), inset 0 0 18px rgba(240,198,144,.04), inset 0 10px 22px rgba(255,215,160,.035)",
     }
   );
 }
