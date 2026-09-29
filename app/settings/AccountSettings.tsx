@@ -396,7 +396,7 @@ export default function AccountSettings({
     <div className="taste-settings-grid">
       {canSwitchView && <section className="taste-settings-card taste-settings-view-card" aria-labelledby="settings-view-title">
         <h2 id="settings-view-title">Zobrazení katalogu</h2>
-        <p>V běžném pohledu uvidíš hotové záznamy bez správcovských značek. Správcovský pohled označí ty, které ještě potřebují doplnit.</p>
+        <p>V admin pohledu můžeš spravovat katalog a vykřičník upozorní na pivovary a piva, která potřebují doplnit.</p>
         <div className="taste-settings-view-options" role="group" aria-label="Režim zobrazení">
           <button type="button" aria-pressed={view === "normal"} disabled={viewBusy} onClick={() => changeView("normal")}>Běžné zobrazení</button>
           <button type="button" aria-pressed={view === "admin"} disabled={viewBusy} onClick={() => changeView("admin")}>Admin zobrazení</button>
@@ -626,3 +626,4 @@ export default function AccountSettings({
     </div>
   );
 }
+

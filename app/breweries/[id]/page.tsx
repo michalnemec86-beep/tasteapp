@@ -10,7 +10,6 @@ import {
 import PageHero from "@/components/ui/PageHero";
 import ReferenceWarning from "@/components/ui/ReferenceWarning";
 import { isAdminView, isCatalogAdminUser } from "@/lib/adminView";
-import AdminBadge from "@/components/ui/AdminBadge";
 import BreweryCzechMapClient from "../BreweryCzechMapClient";
 import BreweryEditModalClient from "../BreweryEditModalClient";
 import BreweryBrandAddClient from "../BreweryBrandAddClient";
@@ -500,7 +499,6 @@ export default async function BreweryDetailPage({ params, searchParams }: Props)
                   lineHeight: 1.45,
                 }}
               >
-                {adminView && <AdminBadge />}
                 <span>
                   {adminView
                     ? "Pivovar zatím nemá souřadnice. Doplň je přes „Upravit pivovar“ a bod se na mapě zobrazí."

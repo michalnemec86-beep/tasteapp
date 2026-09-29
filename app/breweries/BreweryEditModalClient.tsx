@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import AdminBadge from "@/components/ui/AdminBadge";
 
 type BreweryEditData = {
   id: number;
@@ -364,8 +363,6 @@ export default function BreweryEditModalClient({
                   <section
                     style={{
                       ...sectionStyle,
-                      borderColor: "rgba(214,91,66,0.30)",
-                      background: "rgba(214,91,66,0.035)",
                     }}
                   >
                     <div
@@ -377,7 +374,6 @@ export default function BreweryEditModalClient({
                       }}
                     >
                       <div className="taste-label">Souřadnice pro mapu</div>
-                      <AdminBadge />
                     </div>
 
                     <div style={gridStyle}>
