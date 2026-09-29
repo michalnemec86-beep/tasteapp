@@ -184,6 +184,20 @@ async function addBreweryBrands(
   }
 }
 
+export async function addBreweryBrand(breweryId: number, formData: FormData) {
+  const { supabase, user } = await requireUser();
+  const name = String(formData.get("brandName") ?? "").trim();
+  if (!Number.isInteger(breweryId) || breweryId < 1 || !name || name.length > 120) {
+    throw new Error("Zadejte platný název značky.");
+  }
+  const { data: brewery, error } = await supabase
+    .from("breweries").select("id").eq("id", breweryId).maybeSingle();
+  if (error || !brewery) throw new Error("Pivovar nebyl nalezen.");
+  await addBreweryBrands(supabase, user.id, breweryId, [name]);
+  revalidatePath(`/breweries/${breweryId}`);
+  revalidatePath("/breweries");
+}
+
 function readBreweryFormData(
   formData: FormData
 ) {
@@ -325,6 +339,10 @@ export async function createBrewery(
       values.country
     );
 
+  if (!canonicalCountry) {
+    throw new Error("Stát pivovaru je povinný.");
+  }
+
   const {
     data: breweries,
     error: breweriesError,
@@ -451,6 +469,9 @@ export async function updateBrewery(
     newName ||
     currentBrewery.name;
 
+  const city = String(formData.get("city") ?? "").trim();
+  const country = String(formData.get("country") ?? "").trim();
+
   const address = String(
     formData.get("address") ?? ""
   ).trim();
@@ -458,6 +479,11 @@ export async function updateBrewery(
   const website = String(
     formData.get("website") ?? ""
   ).trim();
+
+  if (!city || !country || !website || (!currentBrewery.is_nomadic && !address)) {
+    throw new Error("Pro úpravu pivovaru vyplňte město, stát, web a adresu (kromě létajícího pivovaru).");
+  }
+  const canonicalCountry = await getCanonicalCountry(country);
 
   const foundedYear =
     readOptionalInteger(
@@ -736,6 +762,8 @@ export async function updateBrewery(
     .update({
       name:
         effectiveName,
+      city,
+      country: canonicalCountry,
       address:
         currentBrewery.is_nomadic
           ? null

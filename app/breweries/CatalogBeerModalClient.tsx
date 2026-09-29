@@ -33,6 +33,7 @@ type Props = {
   beer?: BeerSeed;
   saveAction: (formData: FormData) => Promise<{ success: boolean; beerId: number }>;
   deleteAction?: () => Promise<{ success: boolean; beerId: number }>;
+  allowBrandAssignment?: boolean;
 };
 
 type FormState = {
@@ -75,6 +76,7 @@ export default function CatalogBeerModalClient({
   beer,
   saveAction,
   deleteAction,
+  allowBrandAssignment = false,
 }: Props) {
   const router = useRouter();
   const id = useId().replace(/:/g, "");
@@ -84,6 +86,7 @@ export default function CatalogBeerModalClient({
   const [loadingDetails, setLoadingDetails] = useState(false);
   const [error, setError] = useState("");
   const [brandOptions, setBrandOptions] = useState<string[]>([]);
+  const [brandWasMissing, setBrandWasMissing] = useState(false);
   const [breweryOptions, setBreweryOptions] = useState<Array<{
     value: string;
     label: string;
@@ -178,6 +181,7 @@ export default function CatalogBeerModalClient({
         if (detailResult.error) throw detailResult.error;
         const raw = detailResult.data as any;
         const brandRelation = Array.isArray(raw?.brands) ? raw.brands[0] : raw?.brands;
+        setBrandWasMissing(!brandRelation);
         const currentVersion = (raw?.beer_versions ?? []).find((version: any) => version.is_current);
         const collaborators = (currentVersion?.beer_version_collaborators ?? [])
           .slice()
@@ -299,8 +303,8 @@ export default function CatalogBeerModalClient({
                   <input name="name" required readOnly={mode === "edit"} aria-readonly={mode === "edit"} value={form.name} onChange={(e) => setField("name", e.target.value)} style={mode === "edit" ? lockedInputStyle : inputStyle} />
                 </Field>
 
-                <Field label="Značka" required>
-                  <input name="brandName" required readOnly={mode === "edit"} aria-readonly={mode === "edit"} list={mode === "create" ? `brands-${id}` : undefined} value={form.brandName} onChange={(e) => setField("brandName", e.target.value)} placeholder="Např. Kozel" style={mode === "edit" ? lockedInputStyle : inputStyle} />
+                <Field label="Značka" required={mode === "create"}>
+                  <input name="brandName" required={mode === "create"} readOnly={mode === "edit" && !(allowBrandAssignment && brandWasMissing)} aria-readonly={mode === "edit" && !(allowBrandAssignment && brandWasMissing)} list={mode === "create" || (allowBrandAssignment && brandWasMissing) ? `brands-${id}` : undefined} value={form.brandName} onChange={(e) => setField("brandName", e.target.value)} placeholder="Např. Kozel" style={mode === "edit" && !(allowBrandAssignment && brandWasMissing) ? lockedInputStyle : inputStyle} />
                   <datalist id={`brands-${id}`}>{brandOptions.map((name) => <option key={name} value={name} />)}</datalist>
                 </Field>
 

@@ -32,6 +32,7 @@ type Props = {
   beer: Beer;
   styles: BeerStyle[];
   hops: Hop[];
+  allowBrandAssignment?: boolean;
   updateBeerAction: (
     formData: FormData
   ) => Promise<{
@@ -49,6 +50,7 @@ export default function CatalogBeerEditModalClient({
   beer,
   styles,
   hops,
+  allowBrandAssignment,
   updateBeerAction,
   deleteBeerAction,
 }: Props) {
@@ -59,6 +61,7 @@ export default function CatalogBeerEditModalClient({
       beer={beer}
       styles={styles}
       hops={hops}
+      allowBrandAssignment={allowBrandAssignment}
       saveAction={updateBeerAction}
       deleteAction={deleteBeerAction}
     />

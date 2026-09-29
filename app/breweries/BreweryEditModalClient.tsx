@@ -305,6 +305,14 @@ export default function BreweryEditModalClient({
                   </div>
 
                   <div style={gridStyle}>
+                    <Field label="Město" required>
+                      <input name="city" defaultValue={brewery.city ?? ""} required style={inputStyle} />
+                    </Field>
+
+                    <Field label="Stát" required>
+                      <input name="country" defaultValue={brewery.country ?? ""} required style={inputStyle} />
+                    </Field>
+
                     <Field label="Rok založení">
                       <input
                         name="foundedYear"
@@ -329,20 +337,22 @@ export default function BreweryEditModalClient({
                       />
                     </Field>
 
-                    <Field label="Adresa">
+                    <Field label="Adresa" required={!brewery.isNomadic}>
                       <input
                         name="address"
                         defaultValue={brewery.address ?? ""}
                         disabled={brewery.isNomadic}
+                        required={!brewery.isNomadic}
                         placeholder={brewery.isNomadic ? "Letající pivovar" : undefined}
                         style={brewery.isNomadic ? lockedInputStyle : inputStyle}
                       />
                     </Field>
 
-                    <Field label="Web">
+                    <Field label="Web" required>
                       <input
                         name="website"
                         defaultValue={brewery.website ?? ""}
+                        required
                         placeholder="https://…"
                         style={inputStyle}
                       />
@@ -576,9 +586,11 @@ export default function BreweryEditModalClient({
 
 function Field({
   label,
+  required = false,
   children,
 }: {
   label: string;
+  required?: boolean;
   children: React.ReactNode;
 }) {
   return (
@@ -592,7 +604,7 @@ function Field({
           letterSpacing: "0.055em",
         }}
       >
-        {label}
+        {label}{required ? " *" : ""}
       </span>
       {children}
     </label>

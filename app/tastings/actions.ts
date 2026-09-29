@@ -44,13 +44,13 @@ function readTastingFormData(formData: FormData): TastingFormValues {
   const breweryName = String(formData.get("brewery") || "").trim();
   const breweryCountry = String(formData.get("breweryCountry") || "").trim();
   const styleName = String(formData.get("style") || "").trim();
-  const platoValue = String(formData.get("plato") || "").trim();
-  const abvValue = String(formData.get("abv") || "").trim();
-  const ibuValue = String(formData.get("ibu") || "").trim();
+  const platoValue = String(formData.get("plato") || "").trim().replace(",", ".");
+  const abvValue = String(formData.get("abv") || "").trim().replace(",", ".");
+  const ibuValue = String(formData.get("ibu") || "").trim().replace(",", ".");
   const isNonAlcoholic = formData.get("isNonAlcoholic") === "on";
   const tastedOn = String(formData.get("tastedOn") || "").trim();
   const packagingValue = String(formData.get("packaging") || "").trim();
-  const quantityValue = String(formData.get("quantity") || "1").trim();
+  const quantityValue = String(formData.get("quantity") ?? "").trim();
   const place = String(formData.get("place") || "").trim();
   const notes = String(formData.get("notes") || "").trim();
 
@@ -76,16 +76,24 @@ function readTastingFormData(formData: FormData): TastingFormValues {
     throw new Error("Musí být vyplněné datum ochutnávky.");
   }
 
-  if (packagingValue && !isPackaging(packagingValue)) {
-    throw new Error("Neplatný typ podání nebo obalu.");
+  if (!isPackaging(packagingValue)) {
+    throw new Error("Vyberte způsob podání nebo obal.");
   }
 
-  const packaging: Packaging | null =
-    packagingValue && isPackaging(packagingValue) ? packagingValue : null;
+  const packaging: Packaging = packagingValue;
 
   const quantity = Number(quantityValue);
   if (!Number.isInteger(quantity) || quantity < 1) {
     throw new Error("Počet musí být celé číslo alespoň 1.");
+  }
+
+  for (const [label, value] of [["stupňovitost", platoValue], ["alkohol", abvValue], ["IBU", ibuValue]]) {
+    if (value && (!Number.isFinite(Number(value.replace(",", "."))) || Number(value.replace(",", ".")) < 0)) {
+      throw new Error(`Pole ${label} musí být nezáporné číslo.`);
+    }
+  }
+  if (!existingBeerId && !platoValue && !abvValue) {
+    throw new Error("U nového piva vyplňte stupňovitost nebo obsah alkoholu.");
   }
 
   return {
@@ -161,11 +169,14 @@ async function resolveBrewery(
   }
 
   if (!brewery) {
+    if (!canonicalCountry) {
+      throw new Error("U nového pivovaru vyberte stát.");
+    }
     const { data: created, error } = await supabase
       .from("breweries")
       .insert({
         name: values.breweryName,
-        country: canonicalCountry || null,
+        country: canonicalCountry,
       })
       .select("id, name, country, closed_year")
       .single();
@@ -211,11 +222,7 @@ async function resolveBrandId(
   userId: string
 ) {
   const cleanName = brandName.trim();
-  if (!cleanName) {
-    throw new Error(
-      "U nového piva je značka povinná. Pivovar, značka a pivo se evidují samostatně."
-    );
-  }
+  if (!cleanName) return null;
 
   const { data: links, error: linksError } = await supabase
     .from("brewery_brands")
@@ -412,7 +419,13 @@ async function resolveStyle(
   );
 
   if (!style) {
-    throw new Error("Zadaný pivní styl není v katalogu. Vyberte existující styl.");
+    const { data: created, error: createError } = await supabase
+      .from("beer_styles")
+      .insert({ name: styleName.trim() })
+      .select("id")
+      .single();
+    if (createError || !created) throw new Error(createError?.message || "Styl se nepodařilo přidat.");
+    return created.id;
   }
 
   return style.id;
@@ -449,11 +462,14 @@ async function resolveBeer(
     userId
   );
 
-  const { data: breweryBeers, error: breweryBeersError } = await supabase
+  let breweryBeersQuery = supabase
     .from("beers")
     .select("id, name, brand_id, portfolio_status")
-    .eq("brewery_id", breweryId)
-    .eq("brand_id", brandId);
+    .eq("brewery_id", breweryId);
+  breweryBeersQuery = brandId === null
+    ? breweryBeersQuery.is("brand_id", null)
+    : breweryBeersQuery.eq("brand_id", brandId);
+  const { data: breweryBeers, error: breweryBeersError } = await breweryBeersQuery;
   if (breweryBeersError) throw new Error(breweryBeersError.message);
 
   const existingBeer = breweryBeers?.find(
@@ -491,10 +507,12 @@ async function resolveBeer(
     throw new Error(beerError?.message || "Pivo se nepodařilo vytvořit.");
   }
 
-  const { error: brandLinkError } = await supabase
-    .from("brewery_brands")
-    .upsert({ brewery_id: breweryId, brand_id: brandId, created_by: userId });
-  if (brandLinkError) throw new Error(brandLinkError.message);
+  if (brandId !== null) {
+    const { error: brandLinkError } = await supabase
+      .from("brewery_brands")
+      .upsert({ brewery_id: breweryId, brand_id: brandId, created_by: userId });
+    if (brandLinkError) throw new Error(brandLinkError.message);
+  }
 
   const { error: eventError } = await supabase.from("catalog_events").insert({
     actor_user_id: userId,
@@ -528,10 +546,14 @@ async function resolveHopIds(
     );
 
     if (!hop) {
-      throw new Error(`Chmel "${hopName}" není v katalogu. Vyberte existující chmel.`);
-    }
-
-    if (!hopIds.includes(hop.id)) hopIds.push(hop.id);
+      const { data: created, error: createError } = await supabase
+        .from("hops")
+        .insert({ name: hopName })
+        .select("id")
+        .single();
+      if (createError || !created) throw new Error(createError?.message || `Chmel „${hopName}“ se nepodařilo přidat.`);
+      hopIds.push(created.id);
+    } else if (!hopIds.includes(hop.id)) hopIds.push(hop.id);
   }
 
   return hopIds;
@@ -579,8 +601,8 @@ async function resolveCatalogData(
 
     if (beerError) throw new Error(beerError.message);
     if (!beer) throw new Error("Vybrané pivo už v katalogu neexistuje.");
-    if (!beer.brewery_id || !beer.brand_id) {
-      throw new Error("Vybrané pivo nemá kompletní katalogovou identitu.");
+    if (!beer.brewery_id) {
+      throw new Error("Vybrané pivo nemá přiřazený pivovar.");
     }
 
     const [breweryResult, brandResult] = await Promise.all([
@@ -589,16 +611,14 @@ async function resolveCatalogData(
         .select("id, name, closed_year")
         .eq("id", beer.brewery_id)
         .maybeSingle(),
-      supabase
-        .from("brands")
-        .select("id, name")
-        .eq("id", beer.brand_id)
-        .maybeSingle(),
+      beer.brand_id
+        ? supabase.from("brands").select("id, name").eq("id", beer.brand_id).maybeSingle()
+        : Promise.resolve({ data: null, error: null }),
     ]);
 
     if (breweryResult.error) throw new Error(breweryResult.error.message);
     if (brandResult.error) throw new Error(brandResult.error.message);
-    if (!breweryResult.data || !brandResult.data) {
+    if (!breweryResult.data || (beer.brand_id && !brandResult.data)) {
       throw new Error("Vybrané pivo má neplatnou vazbu na pivovar nebo značku.");
     }
 
@@ -616,7 +636,7 @@ async function resolveCatalogData(
     if (
       normalizeText(values.beerName) !== normalizeText(beer.name) ||
       normalizeText(values.breweryName) !== normalizeText(breweryResult.data.name) ||
-      normalizeText(values.brandName) !== normalizeText(brandResult.data.name)
+      normalizeText(values.brandName) !== normalizeText(brandResult.data?.name ?? "")
     ) {
       throw new Error(
         "Vybrané pivo musí zachovat svůj pivovar, značku a název."
