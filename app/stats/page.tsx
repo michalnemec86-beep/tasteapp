@@ -49,6 +49,7 @@ type StatsPageProps = {
     hop?: string | string[];
     letter?: string | string[];
     locked?: string | string[];
+    q?: string | string[];
   }>;
 };
 
@@ -85,6 +86,8 @@ export default async function StatsPage({
   const requestedCountry = getStringParam(params.country);
   const requestedHop = getStringParam(params.hop);
   const requestedLocked = getStringParam(params.locked);
+  const requestedSearch =
+    getStringParam(params.q)?.trim() ?? "";
   const selectedLetter = getStringParam(params.letter)
     ?.toLocaleUpperCase("cs") ?? "";
 
@@ -420,39 +423,103 @@ export default async function StatsPage({
       Boolean(filter)
   );
 
+  const normalizedSearch =
+    normalizeSearchValue(
+      requestedSearch
+    );
+
+  const filterBySearch = (
+    items: RankingItem[]
+  ) =>
+    normalizedSearch
+      ? items.filter(
+          (item) =>
+            normalizeSearchValue(
+              item.name
+            ).includes(
+              normalizedSearch
+            )
+        )
+      : items;
+
   const alphabetItems = [
-    ...rawStats.beers,
-    ...rawStats.brands,
-    ...rawStats.breweries,
-    ...rawStats.styles,
-    ...rawStats.countries,
-    ...rawStats.hops,
+    ...filterBySearch(rawStats.beers),
+    ...filterBySearch(rawStats.brands),
+    ...filterBySearch(rawStats.breweries),
+    ...filterBySearch(rawStats.styles),
+    ...filterBySearch(rawStats.countries),
+    ...filterBySearch(rawStats.hops),
   ];
+
   const availableLetters = Array.from(
-    new Set(alphabetItems.map((item) => rankingInitial(item.name)))
+    new Set(
+      alphabetItems.map(
+        (item) =>
+          rankingInitial(
+            item.name
+          )
+      )
+    )
   ).sort((a, b) => {
     if (a === "#") return 1;
     if (b === "#") return -1;
     return a.localeCompare(b, "cs");
   });
-  const filterByLetter = (items: RankingItem[]) =>
-    selectedLetter
-      ? items.filter((item) => rankingInitial(item.name) === selectedLetter)
-      : items;
+
+  const filterRankingItems = (
+    items: RankingItem[]
+  ) => {
+    const searched =
+      filterBySearch(items);
+
+    return selectedLetter
+      ? searched.filter(
+          (item) =>
+            rankingInitial(
+              item.name
+            ) ===
+            selectedLetter
+        )
+      : searched;
+  };
 
   const stats = {
-    beers: sortRanking(filterByLetter(rawStats.beers), sortMode),
-    brands: sortRanking(filterByLetter(rawStats.brands), sortMode),
+    beers: sortRanking(
+      filterRankingItems(
+        rawStats.beers
+      ),
+      sortMode
+    ),
+    brands: sortRanking(
+      filterRankingItems(
+        rawStats.brands
+      ),
+      sortMode
+    ),
     breweries: sortRanking(
-      filterByLetter(rawStats.breweries),
+      filterRankingItems(
+        rawStats.breweries
+      ),
       sortMode
     ),
-    styles: sortRanking(filterByLetter(rawStats.styles), sortMode),
+    styles: sortRanking(
+      filterRankingItems(
+        rawStats.styles
+      ),
+      sortMode
+    ),
     countries: sortRanking(
-      filterByLetter(rawStats.countries),
+      filterRankingItems(
+        rawStats.countries
+      ),
       sortMode
     ),
-    hops: sortRanking(filterByLetter(rawStats.hops), sortMode),
+    hops: sortRanking(
+      filterRankingItems(
+        rawStats.hops
+      ),
+      sortMode
+    ),
     packaging: sortRanking(
       rawStats.packaging,
       sortMode
@@ -668,6 +735,7 @@ export default async function StatsPage({
             </Link>
           </div>
         ) : undefined}
+        statsScrollable
         stats={
           focusedView
             ? [
@@ -769,6 +837,7 @@ export default async function StatsPage({
         selectedPackaging={selectedPackaging}
         sortMode={sortMode}
         selectedLetter={selectedLetter}
+        searchQuery={requestedSearch}
         letters={availableLetters}
         firstYear={FIRST_YEAR}
         contextFilters={contextFilters}
@@ -991,6 +1060,16 @@ function normalizeCountry(value: string) {
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
+    .trim();
+}
+
+function normalizeSearchValue(
+  value: string
+) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLocaleLowerCase("cs")
     .trim();
 }
 
