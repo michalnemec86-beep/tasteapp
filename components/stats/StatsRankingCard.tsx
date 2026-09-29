@@ -163,6 +163,11 @@ function BreweryRankingCardView({
                         : "rgba(255,255,255,.035)",
                     boxShadow:
                       "0 3px 10px rgba(0,0,0,.28), inset 0 0 0 1px rgba(255,255,255,.04)",
+                    boxSizing:
+                      "border-box",
+                    // Přepisuje globální procentní padding logových dlaždic.
+                    // U malého kruhu by 7 % rodiče prakticky sežralo celý obsah.
+                    padding: "3px",
                   }}
                 >
                   {item.logoUrl ? (
@@ -173,12 +178,21 @@ function BreweryRankingCardView({
                       alt=""
                       aria-hidden="true"
                       style={{
+                        display:
+                          "block",
                         width: "100%",
                         height:
                           "100%",
+                        minWidth: 0,
+                        minHeight: 0,
+                        maxWidth:
+                          "100%",
+                        maxHeight:
+                          "100%",
                         objectFit:
                           "contain",
-                        padding: "4px",
+                        borderRadius:
+                          "50%",
                       }}
                     />
                   ) : null}
