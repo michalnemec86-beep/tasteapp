@@ -735,7 +735,7 @@ export default async function StatsPage({
             </Link>
           </div>
         ) : undefined}
-        statsScrollable
+        statsScrollable={!focusedView}
         stats={
           focusedView
             ? [
@@ -1008,6 +1008,7 @@ export default async function StatsPage({
             style: requestedStyleId ? String(requestedStyleId) : undefined,
             country: requestedCountry,
             hop: requestedHopId ? String(requestedHopId) : undefined,
+            q: requestedSearch || undefined,
           }}
         />
       )}
