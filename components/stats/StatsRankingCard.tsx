@@ -40,6 +40,28 @@ export default function StatsRankingCard(
     );
   }
 
+  if (
+    props.title ===
+    "Značky"
+  ) {
+    return (
+      <BrandRankingCardView
+        {...props}
+      />
+    );
+  }
+
+  if (
+    props.title ===
+    "Státy"
+  ) {
+    return (
+      <CountryRankingCardView
+        {...props}
+      />
+    );
+  }
+
   if (props.title !== "Pivní styly") {
     return <RankingCardView {...props} />;
   }
@@ -351,6 +373,596 @@ function BeerRankingCardView({
         <Link
           href="/stats#piva"
           aria-label="Zobrazit všechna piva ve statistikách"
+          style={{
+            color:
+              "#fff",
+            textDecoration:
+              "none",
+            fontSize:
+              "10.5px",
+            fontWeight:
+              650,
+          }}
+        >
+          Zobrazit všechny
+        </Link>
+      </div>
+    </section>
+  );
+}
+
+function BrandRankingCardView({
+  title,
+  items,
+  getItemHref,
+}: StatsRankingCardProps) {
+  const topItems =
+    items.slice(0, 5);
+
+  const maximum =
+    Math.max(
+      1,
+      ...topItems.map(
+        (item) =>
+          item.count
+      )
+    );
+
+  return (
+    <section
+      style={{
+        position:
+          "relative",
+        overflow:
+          "hidden",
+        padding:
+          "14px",
+        border:
+          "1px solid var(--taste-border)",
+        borderRadius:
+          "var(--taste-radius-lg)",
+        background: `
+          linear-gradient(
+            145deg,
+            rgba(231,166,47,0.035),
+            transparent 42%
+          ),
+          var(--taste-surface)
+        `,
+        boxShadow:
+          "var(--taste-shadow-soft)",
+      }}
+    >
+      <h3
+        style={{
+          margin: 0,
+          color:
+            "var(--taste-amber-bright)",
+          fontSize:
+            "14px",
+          lineHeight:
+            1.15,
+          fontWeight:
+            800,
+          letterSpacing:
+            "0.01em",
+        }}
+      >
+        {title}
+      </h3>
+
+      {topItems.length ===
+        0 && (
+        <div
+          style={{
+            padding:
+              "18px 0 8px",
+            color:
+              "#fff",
+            fontSize:
+              "11px",
+          }}
+        >
+          Zatím nejsou žádná data.
+        </div>
+      )}
+
+      <div
+        style={{
+          display:
+            "grid",
+          gap:
+            "11px",
+          marginTop:
+            "13px",
+        }}
+      >
+        {topItems.map(
+          (item) => {
+            const percentage =
+              maximum > 0
+                ? Math.max(
+                    8,
+                    (
+                      item.count /
+                      maximum
+                    ) *
+                      100
+                  )
+                : 0;
+
+            const row = (
+              <>
+                <span
+                  className="taste-brewery-logo-frame"
+                  aria-hidden="true"
+                  style={{
+                    width:
+                      "28px",
+                    height:
+                      "28px",
+                    flexShrink:
+                      0,
+                    display:
+                      "inline-flex",
+                    alignItems:
+                      "center",
+                    justifyContent:
+                      "center",
+                    overflow:
+                      "hidden",
+                    borderRadius:
+                      "50%",
+                    border:
+                      "1px solid rgba(235,174,75,.42)",
+                    background:
+                      item.logoUrl
+                        ? "rgba(255,255,255,.94)"
+                        : "rgba(255,255,255,.035)",
+                    boxShadow:
+                      "0 2px 7px rgba(0,0,0,.27), inset 0 0 0 1px rgba(255,255,255,.04)",
+                    boxSizing:
+                      "border-box",
+                    padding:
+                      "2px",
+                  }}
+                >
+                  {item.logoUrl ? (
+                    <img
+                      src={
+                        item.logoUrl
+                      }
+                      alt=""
+                      style={{
+                        display:
+                          "block",
+                        width:
+                          "100%",
+                        height:
+                          "100%",
+                        minWidth: 0,
+                        minHeight: 0,
+                        maxWidth:
+                          "100%",
+                        maxHeight:
+                          "100%",
+                        objectFit:
+                          "contain",
+                        borderRadius:
+                          "50%",
+                      }}
+                    />
+                  ) : null}
+                </span>
+
+                <span
+                  title={
+                    item.name
+                  }
+                  style={{
+                    minWidth:
+                      0,
+                    overflow:
+                      "hidden",
+                    textOverflow:
+                      "ellipsis",
+                    whiteSpace:
+                      "nowrap",
+                    color:
+                      "#fff",
+                    fontSize:
+                      "12px",
+                    lineHeight:
+                      1.2,
+                    fontWeight:
+                      700,
+                  }}
+                >
+                  {item.name}
+                </span>
+
+                <span
+                  aria-hidden="true"
+                  style={{
+                    position:
+                      "relative",
+                    height:
+                      "4px",
+                    minWidth:
+                      "34px",
+                    overflow:
+                      "hidden",
+                    borderRadius:
+                      "999px",
+                    background:
+                      "rgba(255,255,255,.045)",
+                    boxShadow:
+                      "inset 0 1px 1px rgba(0,0,0,.45)",
+                  }}
+                >
+                  <span
+                    style={{
+                      position:
+                        "absolute",
+                      inset:
+                        "0 auto 0 0",
+                      width:
+                        `${percentage}%`,
+                      borderRadius:
+                        "999px",
+                      background:
+                        "linear-gradient(90deg, rgba(181,111,28,.72), #f2b63f 58%, #ffe075 100%)",
+                      boxShadow:
+                        "0 0 9px rgba(242,182,63,.45), inset 0 1px rgba(255,255,255,.32)",
+                    }}
+                  />
+                </span>
+
+                <span
+                  style={{
+                    color:
+                      "#f2b63f",
+                    fontSize:
+                      "11px",
+                    lineHeight:
+                      1,
+                    fontWeight:
+                      800,
+                    fontVariantNumeric:
+                      "tabular-nums",
+                  }}
+                >
+                  {item.count}
+                </span>
+              </>
+            );
+
+            return getItemHref ? (
+              <Link
+                key={
+                  item.id
+                }
+                href={
+                  getItemHref(
+                    item
+                  )
+                }
+                style={{
+                  display:
+                    "grid",
+                  gridTemplateColumns:
+                    "28px minmax(0,auto) minmax(34px,1fr) auto",
+                  alignItems:
+                    "center",
+                  gap:
+                    "8px",
+                  minWidth:
+                    0,
+                  color:
+                    "inherit",
+                  textDecoration:
+                    "none",
+                }}
+              >
+                {row}
+              </Link>
+            ) : (
+              <div
+                key={
+                  item.id
+                }
+                style={{
+                  display:
+                    "grid",
+                  gridTemplateColumns:
+                    "28px minmax(0,auto) minmax(34px,1fr) auto",
+                  alignItems:
+                    "center",
+                  gap:
+                    "8px",
+                  minWidth:
+                    0,
+                }}
+              >
+                {row}
+              </div>
+            );
+          }
+        )}
+      </div>
+
+      <div
+        style={{
+          marginTop:
+            "14px",
+          paddingTop:
+            "9px",
+          borderTop:
+            "1px solid rgba(231,166,47,0.11)",
+        }}
+      >
+        <Link
+          href="/stats#znacky"
+          aria-label="Zobrazit všechny značky ve statistikách"
+          style={{
+            color:
+              "#fff",
+            textDecoration:
+              "none",
+            fontSize:
+              "10.5px",
+            fontWeight:
+              650,
+          }}
+        >
+          Zobrazit všechny
+        </Link>
+      </div>
+    </section>
+  );
+}
+
+function CountryRankingCardView({
+  title,
+  items,
+  getItemHref,
+}: StatsRankingCardProps) {
+  const topItems =
+    items.slice(0, 5);
+
+  return (
+    <section
+      style={{
+        position:
+          "relative",
+        overflow:
+          "hidden",
+        padding:
+          "14px",
+        border:
+          "1px solid var(--taste-border)",
+        borderRadius:
+          "var(--taste-radius-lg)",
+        background: `
+          linear-gradient(
+            145deg,
+            rgba(231,166,47,0.035),
+            transparent 42%
+          ),
+          var(--taste-surface)
+        `,
+        boxShadow:
+          "var(--taste-shadow-soft)",
+      }}
+    >
+      <h3
+        style={{
+          margin: 0,
+          color:
+            "var(--taste-amber-bright)",
+          fontSize:
+            "14px",
+          lineHeight:
+            1.15,
+          fontWeight:
+            800,
+          letterSpacing:
+            "0.01em",
+        }}
+      >
+        {title}
+      </h3>
+
+      {topItems.length ===
+        0 && (
+        <div
+          style={{
+            padding:
+              "18px 0 8px",
+            color:
+              "#fff",
+            fontSize:
+              "11px",
+          }}
+        >
+          Zatím nejsou žádná data.
+        </div>
+      )}
+
+      <div
+        style={{
+          display:
+            "grid",
+          gap:
+            "9px",
+          marginTop:
+            "13px",
+        }}
+      >
+        {topItems.map(
+          (item) => {
+            const row = (
+              <>
+                <span
+                  aria-hidden="true"
+                  style={{
+                    width:
+                      "30px",
+                    height:
+                      "30px",
+                    flexShrink:
+                      0,
+                    display:
+                      "inline-flex",
+                    alignItems:
+                      "center",
+                    justifyContent:
+                      "center",
+                    overflow:
+                      "hidden",
+                    borderRadius:
+                      "50%",
+                    border:
+                      "1px solid rgba(235,174,75,.42)",
+                    background:
+                      "rgba(255,255,255,.04)",
+                    boxShadow:
+                      "0 2px 7px rgba(0,0,0,.27), inset 0 0 0 1px rgba(255,255,255,.04)",
+                  }}
+                >
+                  <span
+                    style={{
+                      display:
+                        "block",
+                      fontSize:
+                        "28px",
+                      lineHeight:
+                        1,
+                      transform:
+                        "scale(1.34)",
+                      transformOrigin:
+                        "center",
+                    }}
+                  >
+                    {item.flag ??
+                      "🌍"}
+                  </span>
+                </span>
+
+                <span
+                  title={
+                    item.name
+                  }
+                  style={{
+                    minWidth:
+                      0,
+                    overflow:
+                      "hidden",
+                    textOverflow:
+                      "ellipsis",
+                    whiteSpace:
+                      "nowrap",
+                    color:
+                      "#fff",
+                    fontSize:
+                      "12px",
+                    lineHeight:
+                      1.2,
+                    fontWeight:
+                      700,
+                  }}
+                >
+                  {item.name}
+                </span>
+
+                <span
+                  style={{
+                    color:
+                      "#fff",
+                    fontSize:
+                      "11px",
+                    lineHeight:
+                      1,
+                    fontWeight:
+                      750,
+                    fontVariantNumeric:
+                      "tabular-nums",
+                    opacity:
+                      .92,
+                  }}
+                >
+                  {item.count}
+                </span>
+              </>
+            );
+
+            return getItemHref ? (
+              <Link
+                key={
+                  item.id
+                }
+                href={
+                  getItemHref(
+                    item
+                  )
+                }
+                style={{
+                  display:
+                    "grid",
+                  gridTemplateColumns:
+                    "30px minmax(0,1fr) auto",
+                  alignItems:
+                    "center",
+                  gap:
+                    "9px",
+                  minWidth:
+                    0,
+                  color:
+                    "inherit",
+                  textDecoration:
+                    "none",
+                }}
+              >
+                {row}
+              </Link>
+            ) : (
+              <div
+                key={
+                  item.id
+                }
+                style={{
+                  display:
+                    "grid",
+                  gridTemplateColumns:
+                    "30px minmax(0,1fr) auto",
+                  alignItems:
+                    "center",
+                  gap:
+                    "9px",
+                  minWidth:
+                    0,
+                }}
+              >
+                {row}
+              </div>
+            );
+          }
+        )}
+      </div>
+
+      <div
+        style={{
+          marginTop:
+            "14px",
+          paddingTop:
+            "9px",
+          borderTop:
+            "1px solid rgba(231,166,47,0.11)",
+        }}
+      >
+        <Link
+          href="/stats#staty"
+          aria-label="Zobrazit všechny státy ve statistikách"
           style={{
             color:
               "#fff",
