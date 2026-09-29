@@ -1,0 +1,458 @@
+/* "Co a jak pijeme" visual system, aligned with the homepage. */
+
+body:has(.taste-stats-concept) {
+  background: #080807;
+}
+
+.taste-app-shell:has(.taste-stats-concept) {
+  position: relative;
+  isolation: isolate;
+  box-sizing: border-box;
+  width: min(1500px, calc(100% - 48px));
+  margin: 28px auto 42px;
+  border: 2px solid transparent;
+  border-radius: 17px;
+  background:
+    linear-gradient(#100d0a, #0c0a08) padding-box,
+    linear-gradient(125deg, #e5af61 0%, #69411f 13%, #f1cb89 29%, #50331e 48%, #b77d3f 74%, #ead2a2 100%) border-box;
+  box-shadow:
+    0 0 0 1px #302012,
+    0 0 0 5px rgba(9,7,5,.95),
+    0 23px 65px rgba(0,0,0,.60),
+    inset 0 0 0 1px rgba(255,225,164,.13);
+}
+
+.taste-app-shell:has(.taste-stats-concept)::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 64px 0 0;
+  border-radius: 0 0 14px 14px;
+  background:
+    radial-gradient(circle at 18% 14%, rgba(172,92,31,.13), transparent 26rem),
+    radial-gradient(circle at 79% 31%, rgba(231,166,47,.07), transparent 29rem),
+    linear-gradient(180deg, rgba(20,13,9,.86), #100d0a 44%, #0d0b09 100%);
+  pointer-events: none;
+}
+
+.taste-app-shell:has(.taste-stats-concept) > .taste-app-nav {
+  top: 0;
+  border-radius: 15px 15px 0 0;
+  border-bottom-color: rgba(236,177,88,.31) !important;
+  background: linear-gradient(180deg, rgba(23,18,14,.97), rgba(18,13,10,.94)) !important;
+  box-shadow: inset 0 1px rgba(255,226,166,.055);
+}
+
+.taste-stats-concept {
+  max-width: 1500px !important;
+  padding: 24px 24px 72px !important;
+}
+
+.taste-stats-concept > .taste-page-hero {
+  border-color: rgba(224,153,69,.52) !important;
+  border-radius: 14px !important;
+  background: #15100c !important;
+  box-shadow:
+    0 15px 38px rgba(0,0,0,.36),
+    0 0 28px rgba(205,116,45,.10),
+    -2px -2px 15px rgba(255,209,144,.07),
+    inset 0 1px 0 rgba(255,226,168,.13) !important;
+}
+
+.taste-stats-concept .taste-page-hero-layout > div:first-child {
+  filter: saturate(1.10) contrast(1.06) brightness(.91);
+}
+
+.taste-stats-concept .taste-page-hero-stats {
+  border-top-color: rgba(225,157,68,.24) !important;
+  background: linear-gradient(180deg, rgba(54,31,15,.96), rgba(20,15,11,.98)) !important;
+}
+
+.taste-stats-concept .taste-hero-stat {
+  min-height: 68px !important;
+  border-color: rgba(232,170,78,.25) !important;
+  border-radius: 10px !important;
+  background:
+    radial-gradient(circle at 18% 0%, rgba(237,176,84,.13), transparent 42%),
+    linear-gradient(145deg, rgba(76,43,20,.44), rgba(22,16,12,.87)) !important;
+  box-shadow:
+    inset 0 1px rgba(255,230,174,.07),
+    0 4px 12px rgba(0,0,0,.22) !important;
+}
+
+.taste-stats-concept .taste-hero-stat:hover {
+  border-color: rgba(246,190,93,.55) !important;
+  background:
+    radial-gradient(circle at 18% 0%, rgba(244,188,91,.17), transparent 44%),
+    linear-gradient(145deg, rgba(88,49,22,.50), rgba(27,19,13,.92)) !important;
+}
+
+.taste-stats-concept .taste-hero-stat > div:first-child {
+  width: 42px !important;
+  height: 42px !important;
+  border-radius: 10px !important;
+  border-color: rgba(236,178,89,.38) !important;
+  background: linear-gradient(145deg, rgba(232,168,65,.18), rgba(70,37,18,.42)) !important;
+  box-shadow:
+    inset 0 1px rgba(255,230,170,.15),
+    0 3px 9px rgba(0,0,0,.32) !important;
+}
+
+.taste-stats-concept .taste-hero-stat > div:first-child svg {
+  width: 34px;
+  height: 34px;
+}
+
+.taste-stats-concept .taste-stats-hero-links {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.taste-stats-concept .taste-stats-hero-links .taste-button-secondary {
+  min-height: 40px;
+  border: 1px solid rgba(224,154,70,.34) !important;
+  border-radius: 9px !important;
+  background: linear-gradient(145deg, rgba(99,55,24,.34), rgba(31,22,15,.90)) !important;
+  color: #f4d39c !important;
+  box-shadow:
+    inset 0 1px rgba(255,224,170,.08),
+    0 3px 9px rgba(0,0,0,.23);
+}
+
+.taste-stats-concept .taste-stats-hero-links .taste-button-secondary[aria-current="page"] {
+  border-color: rgba(242,182,63,.68) !important;
+  color: #ffd36d !important;
+  background: linear-gradient(145deg, rgba(129,72,25,.48), rgba(42,27,16,.94)) !important;
+  box-shadow:
+    0 0 16px rgba(231,166,47,.13),
+    inset 0 1px rgba(255,232,182,.12);
+}
+
+/* Sorting and filters */
+.taste-stats-concept .taste-tasting-sort {
+  padding: 10px;
+  border: 1px solid rgba(196,126,60,.28);
+  border-radius: 11px;
+  background:
+    radial-gradient(circle at 12% 0%, rgba(224,150,69,.09), transparent 32%),
+    linear-gradient(150deg, #29180d, #17120e 58%, #12110e);
+  box-shadow:
+    0 7px 18px rgba(0,0,0,.24),
+    inset 0 1px rgba(255,221,159,.06);
+}
+
+.taste-stats-concept .taste-tasting-sort .taste-button-secondary,
+.taste-stats-concept .taste-tasting-letters .taste-button-secondary {
+  border-color: rgba(207,139,70,.25) !important;
+  background: rgba(25,19,14,.78) !important;
+  color: rgba(255,255,255,.78) !important;
+}
+
+.taste-stats-concept .taste-tasting-sort .taste-button-secondary[aria-pressed="true"],
+.taste-stats-concept .taste-tasting-letters .taste-button-secondary[aria-pressed="true"] {
+  border-color: rgba(242,182,63,.65) !important;
+  background: linear-gradient(145deg, rgba(113,66,25,.48), rgba(38,25,15,.94)) !important;
+  color: #f2b63f !important;
+  box-shadow: 0 0 13px rgba(242,182,63,.10);
+}
+
+.taste-stats-concept .taste-filter-toggle {
+  border-color: rgba(198,127,60,.34) !important;
+  border-radius: 10px !important;
+  background: linear-gradient(145deg, rgba(73,42,20,.32), rgba(25,19,14,.90)) !important;
+  color: #f0c782;
+  box-shadow:
+    inset 0 1px rgba(255,224,168,.065),
+    0 4px 12px rgba(0,0,0,.20);
+}
+
+.taste-stats-concept .taste-collapsible-filters > section {
+  border-color: rgba(208,139,67,.34) !important;
+  background:
+    radial-gradient(circle at 12% 0%, rgba(228,154,72,.12), transparent 36%),
+    linear-gradient(158deg, #311d0b 0%, #24170e 42%, #15120f 78%, #12110e 100%) !important;
+  box-shadow:
+    0 8px 22px rgba(0,0,0,.27),
+    0 0 18px rgba(194,111,45,.08),
+    inset 0 1px rgba(255,225,171,.09) !important;
+}
+
+.taste-stats-concept .taste-collapsible-filters select {
+  border-color: rgba(204,137,67,.34) !important;
+  background: #15120f !important;
+  color: #f5ead8 !important;
+  color-scheme: dark;
+}
+
+.taste-stats-concept .taste-collapsible-filters .taste-label {
+  color: #f0c782;
+}
+
+/* Main ranking grid */
+.taste-stats-concept .taste-stats-section-heading {
+  margin-top: 6px;
+}
+
+.taste-stats-concept .taste-stats-section-heading .taste-label {
+  color: #e7a62f;
+  letter-spacing: .07em;
+}
+
+.taste-stats-concept .taste-stats-section-heading h2,
+.taste-stats-concept .taste-packaging-summary h2 {
+  color: #f8f1e7;
+  text-shadow: 0 2px 14px rgba(0,0,0,.38);
+}
+
+.taste-stats-concept .taste-ranking-card {
+  border-color: rgba(208,136,72,.48) !important;
+  background:
+    radial-gradient(circle at 18% 5%, rgba(255,213,149,.13), transparent 19%),
+    radial-gradient(circle at 23% 8%, rgba(218,139,70,.25), transparent 35%),
+    linear-gradient(163deg, #311d0b 0%, #29190c 28%, #21170f 57%, #171410 81%, #12110e 100%) !important;
+  box-shadow:
+    0 10px 26px rgba(0,0,0,.31),
+    0 0 22px rgba(195,111,45,.13),
+    -1px -2px 13px rgba(255,207,140,.075),
+    inset 0 1px rgba(255,229,177,.14),
+    inset 8px 8px 20px rgba(255,207,139,.035) !important;
+}
+
+.taste-stats-concept .taste-stats-ranking-grid > .taste-ranking-card:nth-child(2) {
+  background:
+    radial-gradient(circle at 78% 5%, rgba(255,220,164,.12), transparent 19%),
+    radial-gradient(circle at 76% 9%, rgba(207,146,78,.23), transparent 36%),
+    linear-gradient(154deg, #311d0b 0%, #2b1a0c 28%, #21180f 58%, #171410 81%, #12110e 100%) !important;
+}
+
+.taste-stats-concept .taste-stats-ranking-grid > .taste-ranking-card:nth-child(3) {
+  background:
+    radial-gradient(circle at 30% 5%, rgba(255,209,150,.13), transparent 18%),
+    radial-gradient(circle at 34% 8%, rgba(224,128,59,.25), transparent 35%),
+    linear-gradient(171deg, #311d0b 0%, #2d190b 27%, #22170e 56%, #17130f 80%, #12110e 100%) !important;
+}
+
+.taste-stats-concept .taste-stats-ranking-grid > .taste-ranking-card:nth-child(4) {
+  background:
+    radial-gradient(circle at 67% 5%, rgba(255,230,173,.14), transparent 19%),
+    radial-gradient(circle at 66% 9%, rgba(237,176,83,.26), transparent 35%),
+    linear-gradient(160deg, #311d0b 0%, #2c1b0b 27%, #22180e 57%, #181410 80%, #12110e 100%) !important;
+}
+
+.taste-stats-concept .taste-stats-ranking-grid > .taste-ranking-card:nth-child(5) {
+  background:
+    radial-gradient(circle at 16% 7%, rgba(255,212,179,.11), transparent 19%),
+    radial-gradient(circle at 18% 10%, rgba(207,121,73,.23), transparent 36%),
+    linear-gradient(165deg, #311d0b 0%, #2a1a0d 28%, #21180f 58%, #171410 81%, #12110e 100%) !important;
+}
+
+.taste-stats-concept .taste-stats-ranking-grid > .taste-ranking-card:nth-child(6) {
+  background:
+    radial-gradient(circle at 84% 6%, rgba(255,219,163,.12), transparent 19%),
+    radial-gradient(circle at 82% 10%, rgba(225,148,71,.23), transparent 36%),
+    linear-gradient(153deg, #311d0b 0%, #2c1a0c 28%, #22180e 58%, #181410 81%, #12110e 100%) !important;
+}
+
+.taste-stats-concept .taste-ranking-title {
+  color: #f2b63f !important;
+  font-size: 16px !important;
+  letter-spacing: .005em !important;
+}
+
+.taste-stats-concept .taste-ranking-subtitle {
+  color: rgba(255,255,255,.58) !important;
+}
+
+.taste-stats-concept .taste-ranking-header-icon {
+  border-color: rgba(231,166,47,.30) !important;
+  background: linear-gradient(145deg, rgba(232,168,65,.16), rgba(70,37,18,.40)) !important;
+  box-shadow:
+    inset 0 1px rgba(255,230,170,.12),
+    0 3px 8px rgba(0,0,0,.27) !important;
+}
+
+.taste-stats-concept .taste-ranking-header-icon svg {
+  width: 30px;
+  height: 30px;
+}
+
+.taste-stats-concept .taste-ranking-progress-track {
+  background: rgba(255,255,255,.045) !important;
+  box-shadow: inset 0 1px 1px rgba(0,0,0,.42);
+}
+
+.taste-stats-concept .taste-ranking-progress-fill {
+  box-shadow:
+    0 0 8px rgba(242,182,63,.22),
+    inset 0 1px rgba(255,255,255,.18);
+}
+
+.taste-stats-concept .taste-ranking-more {
+  border-color: rgba(225,151,68,.26) !important;
+  background: linear-gradient(145deg, rgba(91,51,22,.30), rgba(24,18,13,.82)) !important;
+  color: #f0c782 !important;
+}
+
+.taste-stats-concept .taste-ranking-card .taste-brewery-logo-frame {
+  width: 24px !important;
+  height: 24px !important;
+  border-radius: 50% !important;
+  padding: 2px !important;
+  background: rgba(255,255,255,.92) !important;
+  border-color: rgba(231,166,47,.38) !important;
+}
+
+/* Packaging */
+.taste-stats-concept .taste-packaging-summary {
+  margin-top: 28px;
+}
+
+.taste-stats-concept .taste-packaging-summary-card {
+  border-color: rgba(207,132,62,.48) !important;
+  background:
+    radial-gradient(circle at 84% 4%, rgba(255,219,163,.13), transparent 20%),
+    radial-gradient(circle at 82% 9%, rgba(225,148,71,.24), transparent 36%),
+    linear-gradient(154deg, #311d0b 0%, #2c1a0c 27%, #22180e 58%, #181410 81%, #12110e 100%) !important;
+  box-shadow:
+    0 10px 26px rgba(0,0,0,.31),
+    0 0 22px rgba(194,112,44,.12),
+    2px -2px 13px rgba(255,214,152,.07),
+    inset 0 1px rgba(251,220,171,.13) !important;
+}
+
+.taste-stats-concept .taste-packaging-summary-tile {
+  border-color: rgba(216,150,76,.27) !important;
+  background: linear-gradient(145deg, rgba(99,55,24,.28), rgba(24,18,13,.78)) !important;
+  box-shadow:
+    inset 0 1px rgba(255,226,172,.05),
+    0 3px 9px rgba(0,0,0,.17);
+}
+
+.taste-stats-concept .taste-packaging-summary-tile:hover {
+  border-color: rgba(239,177,86,.48) !important;
+  background: linear-gradient(145deg, rgba(116,64,26,.34), rgba(28,20,14,.86)) !important;
+}
+
+.taste-stats-concept .taste-packaging-summary-icon {
+  width: 42px !important;
+  height: 42px !important;
+  border-color: rgba(231,166,47,.30) !important;
+  background: linear-gradient(145deg, rgba(232,168,65,.15), rgba(70,37,18,.38)) !important;
+  box-shadow:
+    inset 0 1px rgba(255,230,170,.11),
+    0 3px 8px rgba(0,0,0,.25);
+}
+
+.taste-stats-concept .taste-packaging-summary-icon svg {
+  width: 34px;
+  height: 34px;
+}
+
+/* Map */
+.taste-stats-concept .taste-world-map {
+  border-color: rgba(214,141,66,.50) !important;
+  background:
+    radial-gradient(circle at 50% 11%, rgba(231,166,47,.14), transparent 24rem),
+    radial-gradient(circle at 80% 0%, rgba(255,220,163,.09), transparent 18rem),
+    linear-gradient(158deg, #311d0b 0%, #26180e 34%, #17130f 72%, #12110e 100%) !important;
+  box-shadow:
+    0 12px 31px rgba(0,0,0,.33),
+    0 0 25px rgba(195,112,45,.11),
+    inset 0 1px rgba(255,226,169,.13) !important;
+}
+
+.taste-stats-concept .taste-world-map-title {
+  color: #f2b63f;
+  font-size: 21px !important;
+}
+
+.taste-stats-concept .taste-world-map-count-value {
+  color: #ffd36d !important;
+}
+
+.taste-stats-concept .taste-world-map-stage {
+  border-radius: 12px;
+  background:
+    radial-gradient(circle at 50% 42%, rgba(120,74,34,.10), transparent 44%),
+    rgba(12,11,9,.30);
+}
+
+.taste-stats-concept .taste-world-map-stage button {
+  color: #f2b63f !important;
+}
+
+.taste-stats-concept > .taste-card {
+  border: 1px solid rgba(205,133,62,.36);
+  background: linear-gradient(145deg, rgba(80,46,21,.28), rgba(20,16,12,.90));
+  box-shadow: 0 7px 18px rgba(0,0,0,.23);
+}
+
+/* Portaled ranking modal */
+.taste-ranking-modal-overlay {
+  background: rgba(6,5,4,.86) !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+.taste-ranking-modal-panel {
+  border-color: rgba(220,150,71,.50) !important;
+  background:
+    radial-gradient(circle at 20% 4%, rgba(255,215,151,.12), transparent 20%),
+    linear-gradient(158deg, #311d0b 0%, #26180e 38%, #17130f 74%, #12110e 100%) !important;
+  box-shadow:
+    0 28px 90px rgba(0,0,0,.62),
+    0 0 28px rgba(199,114,46,.13),
+    inset 0 1px rgba(255,226,170,.12) !important;
+}
+
+@media (max-width: 760px) {
+  .taste-app-shell:has(.taste-stats-concept) {
+    width: 100%;
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .taste-app-shell:has(.taste-stats-concept)::before {
+    inset: 58px 0 0;
+    border-radius: 0;
+  }
+
+  .taste-app-shell:has(.taste-stats-concept) > .taste-app-nav {
+    border-radius: 0;
+  }
+
+  .taste-stats-concept {
+    padding: 12px 12px 56px !important;
+  }
+
+  .taste-stats-concept .taste-hero-stat > div:first-child {
+    width: 34px !important;
+    height: 34px !important;
+  }
+
+  .taste-stats-concept .taste-hero-stat > div:first-child svg {
+    width: 28px;
+    height: 28px;
+  }
+
+  .taste-stats-concept .taste-stats-hero-links {
+    grid-template-columns: 1fr;
+  }
+
+  .taste-stats-concept .taste-ranking-card {
+    padding: 16px !important;
+  }
+
+  .taste-stats-concept .taste-packaging-summary-icon {
+    width: 38px !important;
+    height: 38px !important;
+  }
+
+  .taste-stats-concept .taste-packaging-summary-icon svg {
+    width: 31px;
+    height: 31px;
+  }
+}
