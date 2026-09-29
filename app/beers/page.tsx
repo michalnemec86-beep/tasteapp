@@ -1,7 +1,8 @@
 import { redirect } from "next/navigation";
 
 import PageHero from "@/components/ui/PageHero";
-import AppIcon from "@/components/ui/AppIcon";
+import HomeStatIcon from "@/components/home/HomeStatIcon";
+import "./beers-concept.css";
 import { createClient } from "@/lib/supabase/server";
 import { getBeerReferenceStatus } from "@/lib/referenceStatus";
 import { isAdminView, isCatalogAdminUser } from "@/lib/adminView";
@@ -136,17 +137,18 @@ export default async function BeerCatalogPage() {
   const myCount = beers.filter((beer) => beer.myQuantity > 0).length;
 
   return (
-    <main style={{ maxWidth: "1500px", margin: "0 auto", padding: "34px 24px 80px" }}>
+    <main className="taste-beer-menu-concept" style={{ maxWidth: "1500px", margin: "0 auto", padding: "34px 24px 80px" }}>
       <PageHero
         eyebrow="Katalog piv"
         imageUrl="/images/heroes/catalog.jpg"
         visualVariant="catalog"
         title="Pivní lístek"
         subtitle="Všechna piva evidovaná v aplikaci na jednom místě."
+        statsScrollable
         stats={[
-          { icon: <AppIcon name="label" size={18} />, value: beers.length, label: "Všech piv", accent: "#f2b63f" },
-          { icon: <AppIcon name="beer" size={18} />, value: tastedCount, label: "Ochutnaných", accent: "#e88835" },
-          { icon: <AppIcon name="beer" size={18} />, value: myCount, label: "Moje piva", accent: "#9cad47" },
+          { icon: <HomeStatIcon kind="mug" />, value: beers.length, label: "Všech piv", accent: "#f2b63f" },
+          { icon: <HomeStatIcon kind="barrel" />, value: tastedCount, label: "Ochutnaných", accent: "#e88835" },
+          { icon: <HomeStatIcon kind="hop" />, value: myCount, label: "Moje piva", accent: "#9cad47" },
         ]}
       />
 

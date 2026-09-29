@@ -156,7 +156,7 @@ export default function BeerCatalogClient({
   return (
     <section className="taste-beer-catalog">
       <div className="taste-tasting-sort taste-beer-catalog-toolbar" aria-label="Filtrování pivního lístku">
-        <div role="group" aria-label="Rozsah piv" style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+        <div className="taste-beer-catalog-scope-buttons" role="group" aria-label="Rozsah piv" style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
           {([[
             "all", "Všechna piva",
           ], [
@@ -334,7 +334,7 @@ export default function BeerCatalogClient({
           {filtered.slice(0, visibleCount).map((beer) => (
             <article
               key={beer.id}
-              className="taste-card taste-beer-catalog-card"
+              className={`taste-card taste-beer-catalog-card${beer.myQuantity > 0 ? " taste-beer-catalog-card-mine" : ""}`}
               style={{
                 padding: "17px",
                 border: beer.myQuantity > 0
