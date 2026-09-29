@@ -11,6 +11,7 @@ type StatsRankingCardProps = {
   accent: string;
   items: RankingItem[];
   packagingItems?: RankingItem[];
+  showPackaging?: boolean;
   getItemHref?: (
     item: RankingItem
   ) => string;
@@ -155,16 +156,35 @@ export default function StatsRankingCard(
         {...props}
       />
 
-      <PackagingRankingCardView
-        items={props.packagingItems ?? []}
-        accent="#e7a62f"
-        getItemHref={(item) =>
-          `/stats/packaging/${item.id}`
-        }
-      />
+      {props.showPackaging !== false && (
+        <PackagingRankingCardView
+          items={props.packagingItems ?? []}
+          accent="#e7a62f"
+          getItemHref={(item) =>
+            `/stats/packaging/${item.id}`
+          }
+        />
+      )}
     </>
   );
 }
+
+export function StatsPackagingCard({
+  items,
+}: {
+  items: RankingItem[];
+}) {
+  return (
+    <PackagingRankingCardView
+      items={items}
+      accent="#e7a62f"
+      getItemHref={(item) =>
+        `/stats/packaging/${item.id}`
+      }
+    />
+  );
+}
+
 
 function BeerRankingCardView({
   title,
