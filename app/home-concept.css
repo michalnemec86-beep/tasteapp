@@ -126,3 +126,92 @@
   .taste-home-concept .taste-timeline-list { padding-left: 19px; }
   .taste-home-concept .taste-timeline-date { flex-basis: 100%; padding-left: 44px; }
 }
+
+/* The homepage lives in a single metal-edged panel on a black canvas. */
+body:has(.taste-home-concept) {
+  background: #080807;
+}
+
+.taste-app-shell:has(.taste-home-concept) {
+  position: relative;
+  isolation: isolate;
+  box-sizing: border-box;
+  width: min(1500px, calc(100% - 48px));
+  margin: 28px auto 42px;
+  border: 2px solid transparent;
+  border-radius: 17px;
+  background:
+    linear-gradient(#100d0a, #0c0a08) padding-box,
+    linear-gradient(125deg, #e5af61 0%, #69411f 13%, #f1cb89 29%, #50331e 48%, #b77d3f 74%, #ead2a2 100%) border-box;
+  box-shadow:
+    0 0 0 1px #302012,
+    0 0 0 5px rgba(9, 7, 5, .95),
+    0 23px 65px rgba(0, 0, 0, .60),
+    inset 0 0 0 1px rgba(255, 225, 164, .13);
+}
+
+.taste-app-shell:has(.taste-home-concept)::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: 65px;
+  left: 0;
+  right: 0;
+  height: 790px;
+  border-radius: 0 0 14px 14px;
+  background:
+    linear-gradient(180deg, rgba(10, 7, 5, .06) 0%, rgba(19, 11, 7, .47) 38%, #100d0a 96%),
+    linear-gradient(90deg, rgba(12, 8, 6, .82), rgba(12, 8, 6, .18) 53%, rgba(12, 8, 6, .10)),
+    url("/images/heroes/home.jpg") center 27% / cover no-repeat;
+  pointer-events: none;
+}
+
+.taste-app-shell:has(.taste-home-concept) > .taste-app-nav {
+  top: 0;
+  border-radius: 15px 15px 0 0;
+  border-bottom-color: rgba(236, 177, 88, .31) !important;
+  background: linear-gradient(180deg, rgba(23, 18, 14, .96), rgba(18, 13, 10, .92)) !important;
+  box-shadow: inset 0 1px rgba(255, 229, 174, .12) !important;
+}
+
+.taste-app-shell:has(.taste-home-concept) .taste-home-concept {
+  position: relative;
+  z-index: 0;
+  padding-top: 12px !important;
+  padding-bottom: 35px !important;
+}
+
+.taste-home-concept > .taste-page-hero {
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+}
+
+.taste-home-concept .taste-page-hero-layout > div:first-child {
+  opacity: 0;
+}
+
+.taste-home-concept .taste-page-hero-layout > div:nth-child(2) {
+  background: linear-gradient(90deg, rgba(10, 7, 5, .42), transparent 78%) !important;
+}
+
+.taste-home-concept .taste-page-hero-stats {
+  border: 0 !important;
+  border-radius: 12px;
+  background: rgba(13, 10, 8, .28) !important;
+}
+
+@media (max-width: 760px) {
+  .taste-app-shell:has(.taste-home-concept) {
+    width: 100%;
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .taste-app-shell:has(.taste-home-concept)::before { top: 58px; height: 540px; }
+  .taste-app-shell:has(.taste-home-concept) > .taste-app-nav { border-radius: 0; }
+  .taste-app-shell:has(.taste-home-concept) .taste-home-concept { padding-top: 12px !important; }
+}
