@@ -4,7 +4,6 @@
   --home-line: rgba(225, 162, 68, .25);
 }
 
-.taste-home-concept .taste-page-hero-mobile-inline-action,
 .taste-home-mobile-stats-wrap {
   display: none;
 }
@@ -448,7 +447,7 @@ body:has(.taste-home-concept) {
   .taste-home-concept .taste-hero-stat > div:first-child svg { width: 27px; height: 27px; }
 }
 
-/* Mobile homepage refinement: compact greeting, inline brewery of the day,
+/* Mobile homepage refinement: compact greeting,
    five timeline posts per view, and a looping stats carousel. */
 @media (max-width: 760px) {
   .taste-home-concept .taste-page-hero-mobile-compact h1 {
@@ -459,64 +458,6 @@ body:has(.taste-home-concept) {
 
   .taste-home-concept .taste-page-hero-mobile-compact .taste-page-hero-copy {
     padding: 11px 15px 8px !important;
-  }
-
-  .taste-home-concept .taste-page-hero-mobile-inline-action {
-    display: block;
-    width: 100%;
-    margin-top: 7px;
-  }
-
-  .taste-home-concept .taste-page-hero-mobile-inline-action .taste-brewery-of-day {
-    width: 100% !important;
-    min-height: 31px;
-    display: flex !important;
-    align-items: center;
-    gap: 7px;
-    padding: 6px 9px !important;
-    border-radius: 9px !important;
-    box-shadow:
-      0 5px 14px rgba(0,0,0,.22),
-      inset 0 1px rgba(255,226,168,.055) !important;
-  }
-
-  .taste-home-concept .taste-page-hero-mobile-inline-action .taste-brewery-of-day > div:first-child {
-    flex: 0 0 auto;
-    margin-bottom: 0 !important;
-    justify-content: flex-start !important;
-    gap: 0 !important;
-  }
-
-  .taste-home-concept .taste-page-hero-mobile-inline-action .taste-brewery-of-day > div:first-child > span:first-child {
-    font-size: 8.5px !important;
-    letter-spacing: .085em !important;
-    white-space: nowrap;
-  }
-
-  .taste-home-concept .taste-page-hero-mobile-inline-action .taste-brewery-of-day > div:first-child > span:last-child {
-    display: none;
-  }
-
-  .taste-home-concept .taste-page-hero-mobile-inline-action .taste-brewery-of-day > div:last-child {
-    min-width: 0;
-    flex: 1 1 auto;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    font-size: 12px !important;
-    line-height: 1.1 !important;
-    font-weight: 760 !important;
-  }
-
-  .taste-home-concept .taste-page-hero-mobile-inline-action .taste-brewery-of-day::after {
-    content: "→";
-    flex: 0 0 auto;
-    color: rgba(255,255,255,.54);
-    font-size: 10px;
-  }
-
-  .taste-home-concept .taste-page-hero-layout {
-    min-height: 124px !important;
   }
 
   .taste-home-desktop-stats-column {
