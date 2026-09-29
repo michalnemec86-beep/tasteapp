@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 
+import HorizontalStatScroller from "@/components/ui/HorizontalStatScroller";
 import { getCountryHeroTheme } from "@/lib/country-flags";
 
 type HeroStat = {
@@ -22,6 +23,7 @@ type PageHeroProps = {
   subtitle: string;
   action?: ReactNode;
   stats?: HeroStat[];
+  statsScrollable?: boolean;
   imageUrl?: string;
   imagePosition?: string;
   visualVariant?: HeroVisualVariant;
@@ -38,6 +40,7 @@ export default function PageHero({
   subtitle,
   action,
   stats = [],
+  statsScrollable = false,
   imageUrl,
   imagePosition = "center",
   visualVariant = "beer",
@@ -69,6 +72,101 @@ export default function PageHero({
     effectiveImageUrl === "/images/heroes/breweries.jpg";
 
   const usesContainedVisual = isBreweryHero || hasCountryHero;
+
+  const statCards =
+    stats.map((stat, index) => (
+              <a
+                key={stat.label}
+                href={stat.href}
+                aria-label={stat.href ? `${stat.label}: ${stat.value}` : undefined}
+                className="taste-hero-stat"
+                style={{
+                  textDecoration: "none",
+                  cursor: stat.href ? "pointer" : "default",
+                  minHeight: "58px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "9px",
+                  padding: "8px 11px",
+                  border:
+                    index === 0
+                      ? "1px solid rgba(245,184,63,0.34)"
+                      : "1px solid rgba(231,166,47,0.18)",
+                  borderRadius: "11px",
+                  background:
+                    index === 0
+                      ? `
+                          linear-gradient(
+                            145deg,
+                            rgba(231,166,47,0.11),
+                            rgba(168,98,33,0.04)
+                          ),
+                          rgba(23,14,8,0.80)
+                        `
+                      : `
+                          linear-gradient(
+                            145deg,
+                            rgba(231,166,47,0.04),
+                            transparent
+                          ),
+                          rgba(23,14,8,0.76)
+                        `,
+                  boxShadow:
+                    index === 0
+                      ? "0 0 18px rgba(231,166,47,0.05)"
+                      : "inset 0 1px 0 rgba(255,225,170,0.02)",
+                }}
+              >
+                <div
+                  style={{
+                    width: "30px",
+                    height: "30px",
+                    flexShrink: 0,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    borderRadius: "8px",
+                    border: `1px solid ${stat.accent ?? "#e7a62f"}33`,
+                    background: `${stat.accent ?? "#e7a62f"}12`,
+                    color: stat.accent ?? "var(--taste-amber-bright)",
+                    boxShadow: `0 0 14px ${stat.accent ?? "#e7a62f"}18`,
+                  }}
+                >
+                  {stat.icon}
+                </div>
+
+                <div>
+                  <div
+                    className="taste-hero-stat-value"
+                    style={{
+                      color:
+                        index === 0
+                          ? "var(--taste-amber-bright)"
+                          : "var(--taste-text)",
+                      fontSize: "19px",
+                      lineHeight: 1,
+                      fontWeight: 850,
+                      letterSpacing: "-0.03em",
+                    }}
+                  >
+                    {stat.value}
+                  </div>
+
+                  <div
+                    className="taste-hero-stat-label"
+                    style={{
+                      marginTop: "3px",
+                      color: "var(--taste-text-muted)",
+                      fontSize: "9px",
+                      fontWeight: 600,
+                      letterSpacing: "0.015em",
+                    }}
+                  >
+                    {stat.label}
+                  </div>
+                </div>
+              </a>
+            ));
 
   return (
     <section
@@ -306,107 +404,22 @@ export default function PageHero({
             `,
           }}
         >
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(135px, 1fr))",
-              gap: "7px",
-            }}
-          >
-            {stats.map((stat, index) => (
-              <a
-                key={stat.label}
-                href={stat.href}
-                aria-label={stat.href ? `${stat.label}: ${stat.value}` : undefined}
-                className="taste-hero-stat"
-                style={{
-                  textDecoration: "none",
-                  cursor: stat.href ? "pointer" : "default",
-                  minHeight: "58px",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "9px",
-                  padding: "8px 11px",
-                  border:
-                    index === 0
-                      ? "1px solid rgba(245,184,63,0.34)"
-                      : "1px solid rgba(231,166,47,0.18)",
-                  borderRadius: "11px",
-                  background:
-                    index === 0
-                      ? `
-                          linear-gradient(
-                            145deg,
-                            rgba(231,166,47,0.11),
-                            rgba(168,98,33,0.04)
-                          ),
-                          rgba(23,14,8,0.80)
-                        `
-                      : `
-                          linear-gradient(
-                            145deg,
-                            rgba(231,166,47,0.04),
-                            transparent
-                          ),
-                          rgba(23,14,8,0.76)
-                        `,
-                  boxShadow:
-                    index === 0
-                      ? "0 0 18px rgba(231,166,47,0.05)"
-                      : "inset 0 1px 0 rgba(255,225,170,0.02)",
-                }}
-              >
-                <div
-                  style={{
-                    width: "30px",
-                    height: "30px",
-                    flexShrink: 0,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    borderRadius: "8px",
-                    border: `1px solid ${stat.accent ?? "#e7a62f"}33`,
-                    background: `${stat.accent ?? "#e7a62f"}12`,
-                    color: stat.accent ?? "var(--taste-amber-bright)",
-                    boxShadow: `0 0 14px ${stat.accent ?? "#e7a62f"}18`,
-                  }}
-                >
-                  {stat.icon}
-                </div>
-
-                <div>
-                  <div
-                    className="taste-hero-stat-value"
-                    style={{
-                      color:
-                        index === 0
-                          ? "var(--taste-amber-bright)"
-                          : "var(--taste-text)",
-                      fontSize: "19px",
-                      lineHeight: 1,
-                      fontWeight: 850,
-                      letterSpacing: "-0.03em",
-                    }}
-                  >
-                    {stat.value}
-                  </div>
-
-                  <div
-                    className="taste-hero-stat-label"
-                    style={{
-                      marginTop: "3px",
-                      color: "var(--taste-text-muted)",
-                      fontSize: "9px",
-                      fontWeight: 600,
-                      letterSpacing: "0.015em",
-                    }}
-                  >
-                    {stat.label}
-                  </div>
-                </div>
-              </a>
-            ))}
-          </div>
+          {statsScrollable ? (
+            <HorizontalStatScroller>
+              {statCards}
+            </HorizontalStatScroller>
+          ) : (
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns:
+                  "repeat(auto-fit, minmax(135px, 1fr))",
+                gap: "7px",
+              }}
+            >
+              {statCards}
+            </div>
+          )}
         </div>
       )}
     </section>
