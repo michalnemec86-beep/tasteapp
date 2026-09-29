@@ -54,6 +54,7 @@ function RankingItemLabel({ item }: { item: RankingItem }) {
     >
       {item.logoUrl ? (
         <span
+          className="taste-brewery-logo-frame"
           style={{
             width: "22px",
             height: "16px",
@@ -62,8 +63,7 @@ function RankingItemLabel({ item }: { item: RankingItem }) {
             alignItems: "center",
             justifyContent: "center",
             overflow: "hidden",
-            borderRadius: "5px",
-            background: "rgba(255,255,255,0.035)",
+
           }}
         >
           <img
@@ -71,10 +71,9 @@ function RankingItemLabel({ item }: { item: RankingItem }) {
             alt=""
             aria-hidden="true"
             style={{
-              maxWidth: "100%",
-              maxHeight: "100%",
+              width: "100%",
+              height: "100%",
               objectFit: "contain",
-              padding: "2px",
             }}
           />
         </span>
@@ -372,3 +371,4 @@ function RankingCardView({
     </section>
   );
 }
+

@@ -925,8 +925,8 @@
   .taste-page-hero-brewery-logo {
     top: 16px !important;
     right: 16px !important;
-    width: clamp(66px, 20vw, 82px) !important;
-    height: clamp(52px, 16vw, 64px) !important;
+    width: clamp(72px, 20vw, 84px) !important;
+    height: clamp(72px, 20vw, 84px) !important;
     transform: none !important;
   }
 }
@@ -1078,4 +1078,43 @@
   .taste-brewery-beer-quantity {
     margin-left: auto;
   }
+}
+
+
+/* One consistent tile for logos from sources with different proportions and transparency. */
+.taste-brewery-logo-frame {
+  box-sizing: border-box;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: 10px;
+  background: #77716b;
+  padding: 7%;
+  box-shadow: 0 8px 24px rgba(0,0,0,.18);
+}
+.taste-brewery-logo-frame img {
+  display: block;
+  box-sizing: border-box;
+  min-width: 0;
+  min-height: 0;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+/* Brewery hero: a circular beer coaster keeps logos in one recognizable shape. */
+.taste-brewery-logo-coaster {
+  box-sizing: border-box;
+  isolation: isolate;
+  border-radius: 50%;
+  border: 4px solid #bb9256;
+  background: #77716b;
+  padding: 17%;
+  box-shadow: 0 0 0 2px rgba(58,34,15,.9), inset 0 0 0 4px #d7b479, inset 0 0 0 7px rgba(61,39,23,.65), 0 12px 28px rgba(0,0,0,.46);
+}
+.taste-brewery-logo-coaster img {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
