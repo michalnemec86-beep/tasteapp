@@ -62,7 +62,18 @@ function PackagingRankingCardView({
   ) => string;
 }) {
   const topItems =
-    items.slice(0, 5);
+    items
+      .slice(0, 5)
+      .sort((a, b) => {
+        if (a.count !== b.count) {
+          return a.count - b.count;
+        }
+
+        return a.name.localeCompare(
+          b.name,
+          "cs"
+        );
+      });
 
   const maximum =
     Math.max(
@@ -284,7 +295,7 @@ function PackagingRankingCardView({
               (item) => {
                 const height =
                   Math.max(
-                    10,
+                    1.5,
                     (
                       item.count /
                       maximum
@@ -300,11 +311,13 @@ function PackagingRankingCardView({
                       display:
                         "block",
                       width:
-                        "100%",
+                        "24px",
+                      maxWidth:
+                        "68%",
                       height:
                         `${height}%`,
                       minHeight:
-                        "10px",
+                        "2px",
                       overflow:
                         "hidden",
                       border:
@@ -403,6 +416,8 @@ function PackagingRankingCardView({
                             "flex",
                           alignItems:
                             "flex-end",
+                          justifyContent:
+                            "center",
                           textDecoration:
                             "none",
                         }}
