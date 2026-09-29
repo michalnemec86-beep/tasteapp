@@ -2,9 +2,7 @@
 
 import {
   type ReactNode,
-  useEffect,
   useRef,
-  useState,
 } from "react";
 
 export default function HorizontalRankingScroller({
@@ -16,39 +14,6 @@ export default function HorizontalRankingScroller({
 }) {
   const trackRef =
     useRef<HTMLDivElement>(null);
-
-  const [
-    canScrollLeft,
-    setCanScrollLeft,
-  ] = useState(false);
-
-  const [
-    canScrollRight,
-    setCanScrollRight,
-  ] = useState(false);
-
-  function updateScrollState() {
-    const track =
-      trackRef.current;
-
-    if (!track) {
-      return;
-    }
-
-    const maxScroll =
-      track.scrollWidth -
-      track.clientWidth;
-
-    setCanScrollLeft(
-      track.scrollLeft >
-        3
-    );
-
-    setCanScrollRight(
-      track.scrollLeft <
-        maxScroll - 3
-    );
-  }
 
   function scroll(
     direction:
@@ -62,6 +27,10 @@ export default function HorizontalRankingScroller({
       return;
     }
 
+    const maxScroll =
+      track.scrollWidth -
+      track.clientWidth;
+
     const firstCard =
       track.querySelector<HTMLElement>(
         ".taste-ranking-card"
@@ -71,55 +40,49 @@ export default function HorizontalRankingScroller({
       firstCard?.getBoundingClientRect()
         .width ?? 390;
 
+    const step =
+      cardWidth + 16;
+
+    const atStart =
+      track.scrollLeft <= 4;
+
+    const atEnd =
+      track.scrollLeft >=
+      maxScroll - 4;
+
+    if (
+      direction === -1 &&
+      atStart
+    ) {
+      track.scrollTo({
+        left:
+          maxScroll,
+        behavior:
+          "smooth",
+      });
+      return;
+    }
+
+    if (
+      direction === 1 &&
+      atEnd
+    ) {
+      track.scrollTo({
+        left: 0,
+        behavior:
+          "smooth",
+      });
+      return;
+    }
+
     track.scrollBy({
       left:
         direction *
-        (cardWidth +
-          16),
+        step,
       behavior:
         "smooth",
     });
   }
-
-  useEffect(() => {
-    if (!enabled) {
-      return;
-    }
-
-    const track =
-      trackRef.current;
-
-    if (!track) {
-      return;
-    }
-
-    updateScrollState();
-
-    const observer =
-      new ResizeObserver(
-        updateScrollState
-      );
-
-    observer.observe(
-      track
-    );
-
-    track.addEventListener(
-      "scroll",
-      updateScrollState,
-      {
-        passive: true,
-      }
-    );
-
-    return () => {
-      observer.disconnect();
-      track.removeEventListener(
-        "scroll",
-        updateScrollState
-      );
-    };
-  }, [enabled]);
 
   if (!enabled) {
     return (
@@ -135,9 +98,6 @@ export default function HorizontalRankingScroller({
         type="button"
         className="taste-ranking-scroll-button taste-ranking-scroll-button-left"
         aria-label="Posunout žebříčky doleva"
-        disabled={
-          !canScrollLeft
-        }
         onClick={() =>
           scroll(-1)
         }
@@ -158,9 +118,6 @@ export default function HorizontalRankingScroller({
         type="button"
         className="taste-ranking-scroll-button taste-ranking-scroll-button-right"
         aria-label="Posunout žebříčky doprava"
-        disabled={
-          !canScrollRight
-        }
         onClick={() =>
           scroll(1)
         }
