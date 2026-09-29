@@ -162,7 +162,7 @@ body:has(.taste-home-concept) {
   background:
     linear-gradient(180deg, rgba(10, 7, 5, .06) 0%, rgba(19, 11, 7, .60) 32%, rgba(16, 12, 9, .93) 57%, #100d0a 79%),
     linear-gradient(90deg, rgba(12, 8, 6, .82), rgba(12, 8, 6, .18) 53%, rgba(12, 8, 6, .10)),
-    url("/images/heroes/home.jpg") center 27% / cover no-repeat;
+    url("/images/heroes/home.jpg") center -85px / cover no-repeat;
   pointer-events: none;
 }
 
@@ -193,6 +193,10 @@ body:has(.taste-home-concept) {
   opacity: 0;
 }
 
+.taste-home-concept .taste-page-hero-copy {
+  transform: translateY(-24px);
+}
+
 .taste-home-concept .taste-page-hero-layout > div:nth-child(2) {
   background: linear-gradient(90deg, rgba(10, 7, 5, .42), transparent 78%) !important;
 }
@@ -211,7 +215,12 @@ body:has(.taste-home-concept) {
     border-radius: 0;
     box-shadow: none;
   }
-  .taste-app-shell:has(.taste-home-concept)::before { top: 58px; height: 540px; }
+  .taste-app-shell:has(.taste-home-concept)::before {
+    top: 58px;
+    height: 540px;
+    background-position: center, center, 58% -28px;
+  }
+  .taste-home-concept .taste-page-hero-copy { transform: none; }
   .taste-app-shell:has(.taste-home-concept) > .taste-app-nav { border-radius: 0; }
   .taste-app-shell:has(.taste-home-concept) .taste-home-concept { padding-top: 12px !important; }
 }
