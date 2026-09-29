@@ -13,6 +13,7 @@ import StatsFilterBarClient from "./StatsFilterBarClient";
 import BeerWorldMap from "./BeerWorldMap";
 import RankingCardClient from "./RankingCardClient";
 import PackagingSummaryCard from "./PackagingSummaryCard";
+import HorizontalRankingScroller from "./HorizontalRankingScroller";
 import PageHero from "@/components/ui/PageHero";
 import HomeStatIcon from "@/components/home/HomeStatIcon";
 import "./stats-concept.css";
@@ -880,15 +881,8 @@ export default async function StatsPage({
           </h2>
         </div>
 
-        <div
-          className="taste-stats-ranking-grid"
-          style={{
-            display: "grid",
-            gridTemplateColumns:
-              "repeat(auto-fit, minmax(min(330px, 100%), 1fr))",
-            gap: "16px",
-            alignItems: "start",
-          }}
+        <HorizontalRankingScroller
+          enabled={!selectedFocus}
         >
           {(!selectedFocus || selectedFocus === "beers") && (
             <RankingCardClient
@@ -987,7 +981,7 @@ export default async function StatsPage({
               personalItemIds={personalStats.hops.map((item) => item.id)}
             />
           )}
-        </div>
+        </HorizontalRankingScroller>
       </section>
 
       {!selectedFocus && (
