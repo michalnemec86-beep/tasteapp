@@ -15,6 +15,83 @@ type StatsRankingCardProps = {
   ) => string;
 };
 
+type RankingCardSurface = {
+  border: string;
+  background: string;
+  boxShadow: string;
+};
+
+const RANKING_CARD_SURFACES: Record<
+  string,
+  RankingCardSurface
+> = {
+  "Nejčastější pivovary": {
+    border:
+      "1px solid rgba(208,126,54,.40)",
+    background:
+      "radial-gradient(circle at 24% 0%, rgba(230,155,76,.13), transparent 42%), linear-gradient(0deg, #0b0806 0%, #120c08 48%, #472713 100%)",
+    boxShadow:
+      "0 8px 24px rgba(0,0,0,.28), 0 0 18px rgba(202,116,46,.10), inset 0 1px 0 rgba(255,212,142,.11)",
+  },
+  "Pivní styly": {
+    border:
+      "1px solid rgba(184,126,66,.38)",
+    background:
+      "radial-gradient(circle at 72% 0%, rgba(196,139,78,.11), transparent 44%), linear-gradient(0deg, #0b0806 0%, #120d09 50%, #3f2b19 100%)",
+    boxShadow:
+      "0 8px 24px rgba(0,0,0,.28), 0 0 17px rgba(171,109,54,.09), inset 0 1px 0 rgba(241,203,144,.10)",
+  },
+  "Způsob podání": {
+    border:
+      "1px solid rgba(198,105,43,.38)",
+    background:
+      "radial-gradient(circle at 35% 0%, rgba(219,127,55,.12), transparent 41%), linear-gradient(0deg, #0a0706 0%, #130c08 50%, #512716 100%)",
+    boxShadow:
+      "0 8px 24px rgba(0,0,0,.29), 0 0 18px rgba(194,89,34,.10), inset 0 1px 0 rgba(255,201,131,.10)",
+  },
+  "Nejčastější piva": {
+    border:
+      "1px solid rgba(220,151,66,.40)",
+    background:
+      "radial-gradient(circle at 64% 0%, rgba(238,176,83,.13), transparent 43%), linear-gradient(0deg, #0b0806 0%, #130e09 49%, #563316 100%)",
+    boxShadow:
+      "0 8px 24px rgba(0,0,0,.28), 0 0 19px rgba(223,145,55,.10), inset 0 1px 0 rgba(255,222,155,.12)",
+  },
+  "Státy": {
+    border:
+      "1px solid rgba(188,101,58,.38)",
+    background:
+      "radial-gradient(circle at 18% 0%, rgba(203,116,70,.12), transparent 43%), linear-gradient(0deg, #0a0807 0%, #120c09 50%, #47261b 100%)",
+    boxShadow:
+      "0 8px 24px rgba(0,0,0,.28), 0 0 18px rgba(174,83,47,.09), inset 0 1px 0 rgba(245,190,143,.10)",
+  },
+  "Značky": {
+    border:
+      "1px solid rgba(194,121,58,.39)",
+    background:
+      "radial-gradient(circle at 82% 0%, rgba(222,145,70,.11), transparent 42%), linear-gradient(0deg, #0b0806 0%, #130d09 49%, #4c2c17 100%)",
+    boxShadow:
+      "0 8px 24px rgba(0,0,0,.28), 0 0 18px rgba(194,112,44,.10), inset 0 1px 0 rgba(251,207,143,.10)",
+  },
+};
+
+function getRankingCardSurface(
+  title: string
+): RankingCardSurface {
+  return (
+    RANKING_CARD_SURFACES[
+      title
+    ] ?? {
+      border:
+        "1px solid rgba(190,120,58,.34)",
+      background:
+        "linear-gradient(0deg, #0b0806 0%, #120d09 52%, #3f2918 100%)",
+      boxShadow:
+        "0 8px 24px rgba(0,0,0,.27), 0 0 16px rgba(181,109,49,.08), inset 0 1px 0 rgba(245,205,147,.08)",
+    }
+  );
+}
+
 export default function StatsRankingCard(
   props: StatsRankingCardProps
 ) {
@@ -110,20 +187,11 @@ function BeerRankingCardView({
           "hidden",
         padding:
           "14px",
-        border:
-          "1px solid var(--taste-border)",
         borderRadius:
           "var(--taste-radius-lg)",
-        background: `
-          linear-gradient(
-            145deg,
-            rgba(231,166,47,0.035),
-            transparent 42%
-          ),
-          var(--taste-surface)
-        `,
-        boxShadow:
-          "var(--taste-shadow-soft)",
+        ...getRankingCardSurface(
+          title
+        ),
       }}
     >
       <h3
@@ -417,20 +485,11 @@ function BrandRankingCardView({
           "hidden",
         padding:
           "14px",
-        border:
-          "1px solid var(--taste-border)",
         borderRadius:
           "var(--taste-radius-lg)",
-        background: `
-          linear-gradient(
-            145deg,
-            rgba(231,166,47,0.035),
-            transparent 42%
-          ),
-          var(--taste-surface)
-        `,
-        boxShadow:
-          "var(--taste-shadow-soft)",
+        ...getRankingCardSurface(
+          title
+        ),
       }}
     >
       <h3
@@ -739,20 +798,11 @@ function CountryRankingCardView({
           "hidden",
         padding:
           "14px",
-        border:
-          "1px solid var(--taste-border)",
         borderRadius:
           "var(--taste-radius-lg)",
-        background: `
-          linear-gradient(
-            145deg,
-            rgba(231,166,47,0.035),
-            transparent 42%
-          ),
-          var(--taste-surface)
-        `,
-        boxShadow:
-          "var(--taste-shadow-soft)",
+        ...getRankingCardSurface(
+          title
+        ),
       }}
     >
       <h3
@@ -992,6 +1042,9 @@ function PackagingRankingCardView({
     item: RankingItem
   ) => string;
 }) {
+  const title =
+    "Způsob podání";
+
   const topItems =
     items
       .slice(0, 5)
@@ -1024,20 +1077,11 @@ function PackagingRankingCardView({
           "hidden",
         padding:
           "14px",
-        border:
-          "1px solid var(--taste-border)",
         borderRadius:
           "var(--taste-radius-lg)",
-        background: `
-          linear-gradient(
-            145deg,
-            rgba(231,166,47,0.035),
-            transparent 42%
-          ),
-          var(--taste-surface)
-        `,
-        boxShadow:
-          "var(--taste-shadow-soft)",
+        ...getRankingCardSurface(
+          title
+        ),
       }}
     >
       <h3
@@ -1055,7 +1099,7 @@ function PackagingRankingCardView({
             "0.01em",
         }}
       >
-        Způsob podání
+        {title}
       </h3>
 
       {topItems.length ===
@@ -1848,20 +1892,11 @@ function BeerStyleRankingCardView({
           "hidden",
         padding:
           "14px",
-        border:
-          "1px solid var(--taste-border)",
         borderRadius:
           "var(--taste-radius-lg)",
-        background: `
-          linear-gradient(
-            145deg,
-            rgba(231,166,47,0.035),
-            transparent 42%
-          ),
-          var(--taste-surface)
-        `,
-        boxShadow:
-          "var(--taste-shadow-soft)",
+        ...getRankingCardSurface(
+          title
+        ),
       }}
     >
       <h3
@@ -2165,20 +2200,11 @@ function BreweryRankingCardView({
         position: "relative",
         overflow: "hidden",
         padding: "14px",
-        border:
-          "1px solid var(--taste-border)",
         borderRadius:
           "var(--taste-radius-lg)",
-        background: `
-          linear-gradient(
-            145deg,
-            rgba(231,166,47,0.035),
-            transparent 42%
-          ),
-          var(--taste-surface)
-        `,
-        boxShadow:
-          "var(--taste-shadow-soft)",
+        ...getRankingCardSurface(
+          title
+        ),
       }}
     >
       <h3
