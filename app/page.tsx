@@ -1021,6 +1021,7 @@ export default async function HomePage({
 
   return (
     <main
+      className="taste-home-concept"
       style={{
         maxWidth:
           "1500px",
@@ -1196,7 +1197,7 @@ export default async function HomePage({
             className="taste-label"
             style={{ marginBottom: "10px" }}
           >
-            Hospoda
+            Aktivita v hospodě
           </div>
 
           <div className="taste-timeline-actions">
@@ -1940,3 +1941,4 @@ function formatAchievementDate(
     date
   );
 }
+

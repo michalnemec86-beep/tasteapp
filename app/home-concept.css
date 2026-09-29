@@ -1,0 +1,128 @@
+/* First visual pass from the amber dashboard concept, scoped to the homepage. */
+.taste-home-concept {
+  --home-panel: #17120e;
+  --home-line: rgba(225, 162, 68, .25);
+}
+
+.taste-home-concept > .taste-page-hero {
+  border-color: rgba(233, 169, 68, .48) !important;
+  border-radius: 13px !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .28), 0 0 0 1px rgba(228, 155, 45, .07) !important;
+}
+
+.taste-home-concept .taste-page-hero-layout {
+  min-height: 215px;
+}
+
+.taste-home-concept .taste-page-hero-title {
+  font-size: clamp(29px, 3vw, 38px) !important;
+  letter-spacing: -.025em !important;
+}
+
+.taste-home-concept .taste-page-hero-subtitle {
+  max-width: 420px !important;
+  font-size: 13px !important;
+}
+
+.taste-home-concept .taste-page-hero-stats {
+  background: #100d0b !important;
+  padding: 9px !important;
+}
+
+.taste-home-concept .taste-page-hero-stats > div {
+  gap: 9px !important;
+}
+
+.taste-home-concept .taste-hero-stat {
+  min-height: 72px !important;
+  border-color: var(--home-line) !important;
+  border-radius: 10px !important;
+  background: linear-gradient(145deg, rgba(111, 65, 28, .13), rgba(20, 14, 10, .96)) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 230, 174, .035) !important;
+}
+
+.taste-home-concept .taste-hero-stat:hover {
+  border-color: rgba(246, 190, 93, .57) !important;
+  background: #281b11 !important;
+}
+
+.taste-home-concept > .grid > aside > section,
+.taste-home-concept > .grid > section#timeline {
+  border: 1px solid var(--home-line) !important;
+  border-radius: 12px !important;
+  background: linear-gradient(150deg, rgba(92, 55, 25, .13), transparent 55%), var(--home-panel) !important;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, .22), inset 0 1px 0 rgba(255, 219, 154, .035) !important;
+}
+
+.taste-home-concept > .grid > aside > section {
+  padding: 16px !important;
+}
+
+.taste-home-concept > .grid > section#timeline {
+  padding: 15px !important;
+}
+
+.taste-home-concept #timeline > .taste-label {
+  color: #edc98b;
+  font-size: 13px;
+  letter-spacing: .055em;
+}
+
+.taste-home-concept .taste-timeline-actions .taste-button-primary {
+  min-height: 43px !important;
+  border-radius: 9px !important;
+  box-shadow: 0 5px 14px rgba(197, 118, 28, .19) !important;
+}
+
+.taste-home-concept .taste-timeline-list {
+  gap: 12px;
+  padding-left: 19px;
+}
+
+.taste-home-concept .taste-timeline-list::before { left: 5px; width: 1px; }
+.taste-home-concept .taste-timeline-entry::before { left: -14px; width: 14px; top: 29px; }
+.taste-home-concept .taste-timeline-entry::after { left: -18px; top: 25px; width: 9px; height: 9px; box-shadow: none; }
+
+.taste-home-concept .taste-timeline-card,
+.taste-home-concept .taste-timeline-system .taste-timeline-card {
+  border: 1px solid rgba(225, 162, 68, .24);
+  border-radius: 10px;
+  box-shadow: 0 5px 14px rgba(0, 0, 0, .20), inset 0 1px 0 rgba(255, 226, 171, .035);
+}
+
+.taste-home-concept .taste-timeline-card-header,
+.taste-home-concept .taste-timeline-system .taste-timeline-card-header {
+  padding: 10px 13px;
+  background: #21180f;
+  border-bottom-color: rgba(225, 162, 68, .12);
+}
+
+.taste-home-concept .taste-timeline-card-body,
+.taste-home-concept .taste-timeline-system .taste-timeline-card-body {
+  padding: 10px 14px 12px;
+  background: rgba(43, 28, 17, .72);
+}
+
+.taste-home-concept .taste-timeline-packaging {
+  flex-basis: 35px;
+  width: 35px;
+  height: 35px;
+  border-radius: 8px;
+}
+
+.taste-home-concept .taste-timeline-packaging svg { width: 21px; height: 21px; }
+.taste-home-concept .taste-timeline-nickname { font-size: 12px; padding: 2px 6px; }
+.taste-home-concept .taste-timeline-realname { font-size: 11px; }
+.taste-home-concept .taste-timeline-date { font-size: 11px; }
+.taste-home-concept .taste-timeline-beer-name { font-size: 15px; }
+.taste-home-concept .taste-timeline-brewery { margin-top: 3px; font-size: 12px; }
+.taste-home-concept .taste-timeline-details { margin-top: 5px; font-size: 11px; }
+.taste-home-concept .taste-timeline-note { margin-top: 6px; }
+
+@media (max-width: 639px) {
+  .taste-home-concept > .taste-page-hero .taste-page-hero-layout { min-height: 108px; }
+  .taste-home-concept .taste-hero-stat { min-height: 48px !important; }
+  .taste-home-concept > .grid > section#timeline { padding: 12px !important; }
+  .taste-home-concept .taste-timeline-list { padding-left: 19px; }
+  .taste-home-concept .taste-timeline-date { flex-basis: 100%; padding-left: 44px; }
+}
