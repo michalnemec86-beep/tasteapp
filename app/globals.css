@@ -1079,3 +1079,24 @@
     margin-left: auto;
   }
 }
+
+
+/* One consistent tile for logos from sources with different proportions and transparency. */
+.taste-brewery-logo-frame {
+  box-sizing: border-box;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: 10px;
+  background: #77716b;
+  padding: 7%;
+  box-shadow: 0 8px 24px rgba(0,0,0,.18);
+}
+.taste-brewery-logo-frame img {
+  display: block;
+  box-sizing: border-box;
+  min-width: 0;
+  min-height: 0;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}

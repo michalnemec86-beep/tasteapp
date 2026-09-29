@@ -324,6 +324,7 @@ export default function BreweryLogoManagerClient({
           }}
         >
           <div
+            className="taste-brewery-logo-frame"
             style={{
               width: "72px",
               height: "52px",
@@ -332,12 +333,7 @@ export default function BreweryLogoManagerClient({
               alignItems: "center",
               justifyContent:
                 "center",
-              border:
-                "1px solid var(--taste-border)",
-              borderRadius: "10px",
-              background:
-                "rgba(255,255,255,.025)",
-              overflow: "hidden",
+
             }}
           >
             {logoUrl ? (
@@ -348,7 +344,6 @@ export default function BreweryLogoManagerClient({
                   width: "100%",
                   height: "100%",
                   objectFit: "contain",
-                  padding: "5px",
                 }}
               />
             ) : (

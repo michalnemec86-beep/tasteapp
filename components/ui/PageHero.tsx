@@ -440,7 +440,7 @@ function getCountryNameFromHeroTitle(title: ReactNode) {
 function BreweryLogoVisual({ src, alt }: { src: string; alt: string }) {
   return (
     <div
-      className="taste-page-hero-brewery-logo"
+      className="taste-page-hero-brewery-logo taste-brewery-logo-frame"
       style={{
         position: "absolute",
         zIndex: 3,
@@ -463,7 +463,6 @@ function BreweryLogoVisual({ src, alt }: { src: string; alt: string }) {
           width: "100%",
           height: "100%",
           objectFit: "contain",
-          filter: "drop-shadow(0 10px 22px rgba(0,0,0,0.48))",
         }}
       />
     </div>
@@ -545,3 +544,4 @@ function FallbackMark({
     </div>
   );
 }
+
