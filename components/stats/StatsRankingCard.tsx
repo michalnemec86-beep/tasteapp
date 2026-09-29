@@ -29,7 +29,7 @@ const RANKING_CARD_SURFACES: Record<
     border:
       "1px solid rgba(208,126,54,.40)",
     background:
-      "radial-gradient(circle at 24% 0%, rgba(230,155,76,.13), transparent 42%), linear-gradient(0deg, #0b0806 0%, #120c08 48%, #472713 100%)",
+      "radial-gradient(circle at 24% 0%, rgba(239,163,78,.24), transparent 46%), linear-gradient(0deg, #090604 0%, #140d08 40%, #2c170d 67%, #603119 100%)",
     boxShadow:
       "0 8px 24px rgba(0,0,0,.28), 0 0 18px rgba(202,116,46,.10), inset 0 1px 0 rgba(255,212,142,.11)",
   },
@@ -37,7 +37,7 @@ const RANKING_CARD_SURFACES: Record<
     border:
       "1px solid rgba(184,126,66,.38)",
     background:
-      "radial-gradient(circle at 72% 0%, rgba(196,139,78,.11), transparent 44%), linear-gradient(0deg, #0b0806 0%, #120d09 50%, #3f2b19 100%)",
+      "radial-gradient(circle at 72% 0%, rgba(209,151,87,.22), transparent 47%), linear-gradient(0deg, #090705 0%, #150f09 42%, #2b1c11 69%, #5a3a20 100%)",
     boxShadow:
       "0 8px 24px rgba(0,0,0,.28), 0 0 17px rgba(171,109,54,.09), inset 0 1px 0 rgba(241,203,144,.10)",
   },
@@ -45,7 +45,7 @@ const RANKING_CARD_SURFACES: Record<
     border:
       "1px solid rgba(198,105,43,.38)",
     background:
-      "radial-gradient(circle at 35% 0%, rgba(219,127,55,.12), transparent 41%), linear-gradient(0deg, #0a0706 0%, #130c08 50%, #512716 100%)",
+      "radial-gradient(circle at 35% 0%, rgba(230,131,56,.24), transparent 45%), linear-gradient(0deg, #090604 0%, #160d08 41%, #32180d 67%, #6a2d17 100%)",
     boxShadow:
       "0 8px 24px rgba(0,0,0,.29), 0 0 18px rgba(194,89,34,.10), inset 0 1px 0 rgba(255,201,131,.10)",
   },
@@ -53,7 +53,7 @@ const RANKING_CARD_SURFACES: Record<
     border:
       "1px solid rgba(220,151,66,.40)",
     background:
-      "radial-gradient(circle at 64% 0%, rgba(238,176,83,.13), transparent 43%), linear-gradient(0deg, #0b0806 0%, #130e09 49%, #563316 100%)",
+      "radial-gradient(circle at 64% 0%, rgba(247,185,88,.26), transparent 47%), linear-gradient(0deg, #090604 0%, #160f09 40%, #34200e 67%, #70401a 100%)",
     boxShadow:
       "0 8px 24px rgba(0,0,0,.28), 0 0 19px rgba(223,145,55,.10), inset 0 1px 0 rgba(255,222,155,.12)",
   },
@@ -61,7 +61,7 @@ const RANKING_CARD_SURFACES: Record<
     border:
       "1px solid rgba(188,101,58,.38)",
     background:
-      "radial-gradient(circle at 18% 0%, rgba(203,116,70,.12), transparent 43%), linear-gradient(0deg, #0a0807 0%, #120c09 50%, #47261b 100%)",
+      "radial-gradient(circle at 18% 0%, rgba(214,126,77,.23), transparent 46%), linear-gradient(0deg, #090706 0%, #150d09 41%, #2e1912 68%, #5f2d20 100%)",
     boxShadow:
       "0 8px 24px rgba(0,0,0,.28), 0 0 18px rgba(174,83,47,.09), inset 0 1px 0 rgba(245,190,143,.10)",
   },
@@ -69,7 +69,7 @@ const RANKING_CARD_SURFACES: Record<
     border:
       "1px solid rgba(194,121,58,.39)",
     background:
-      "radial-gradient(circle at 82% 0%, rgba(222,145,70,.11), transparent 42%), linear-gradient(0deg, #0b0806 0%, #130d09 49%, #4c2c17 100%)",
+      "radial-gradient(circle at 82% 0%, rgba(234,153,73,.23), transparent 46%), linear-gradient(0deg, #090604 0%, #160e09 40%, #301b10 68%, #663519 100%)",
     boxShadow:
       "0 8px 24px rgba(0,0,0,.28), 0 0 18px rgba(194,112,44,.10), inset 0 1px 0 rgba(251,207,143,.10)",
   },
@@ -85,7 +85,7 @@ function getRankingCardSurface(
       border:
         "1px solid rgba(190,120,58,.34)",
       background:
-        "linear-gradient(0deg, #0b0806 0%, #120d09 52%, #3f2918 100%)",
+        "linear-gradient(0deg, #090604 0%, #150e09 42%, #2d1b10 68%, #58351d 100%)",
       boxShadow:
         "0 8px 24px rgba(0,0,0,.27), 0 0 16px rgba(181,109,49,.08), inset 0 1px 0 rgba(245,205,147,.08)",
     }
