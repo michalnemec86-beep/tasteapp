@@ -4,7 +4,6 @@ import { useEffect, useState, type FormEvent } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import AdminBadge from "@/components/ui/AdminBadge";
 
 const ADMIN_USER_ID = "17be5dc3-a3f9-4fd2-ae90-dee7692034fc";
 
@@ -128,9 +127,9 @@ export default function BreweryCreateModalClient({
                   style={{
                     marginTop: "16px",
                     padding: "14px",
-                    border: "1px solid rgba(214,91,66,0.30)",
+                    border: "1px solid var(--taste-border)",
                     borderRadius: "12px",
-                    background: "rgba(214,91,66,0.035)",
+                    background: "var(--taste-surface)",
                   }}
                 >
                   <div
@@ -142,7 +141,6 @@ export default function BreweryCreateModalClient({
                     }}
                   >
                     <div className="taste-label">Souřadnice pro mapu</div>
-                    <AdminBadge />
                   </div>
 
                   <div style={gridStyle}>

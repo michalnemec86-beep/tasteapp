@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 import type { BreweryLogoCandidate } from "./logo-actions";
-import AdminBadge from "@/components/ui/AdminBadge";
 
 type SaveLogoResult = {
   logoUrl: string | null;
@@ -378,7 +377,6 @@ export default function BreweryLogoManagerClient({
               <div className="taste-label">
                 Logo pivovaru
               </div>
-              <AdminBadge />
             </div>
             <div
               style={{
