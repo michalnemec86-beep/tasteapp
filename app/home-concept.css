@@ -160,9 +160,11 @@ body:has(.taste-home-concept) {
   height: 790px;
   border-radius: 0 0 14px 14px;
   background:
-    linear-gradient(180deg, rgba(10, 7, 5, .06) 0%, rgba(19, 11, 7, .60) 32%, rgba(16, 12, 9, .93) 57%, #100d0a 79%),
-    linear-gradient(90deg, rgba(12, 8, 6, .82), rgba(12, 8, 6, .18) 53%, rgba(12, 8, 6, .10)),
-    url("/images/heroes/home.jpg") center -85px / cover no-repeat;
+    radial-gradient(circle at 58% 15%, rgba(255, 191, 86, .12), transparent 25%),
+    linear-gradient(180deg, rgba(10, 7, 5, .03) 0%, rgba(19, 11, 7, .54) 32%, rgba(16, 12, 9, .91) 57%, #100d0a 79%),
+    linear-gradient(90deg, rgba(12, 8, 6, .82), rgba(12, 8, 6, .16) 53%, rgba(12, 8, 6, .08)),
+    url("/images/heroes/home.jpg") 56% -118px / cover no-repeat;
+  filter: saturate(1.09) contrast(1.055) brightness(1.015);
   pointer-events: none;
 }
 
@@ -218,7 +220,8 @@ body:has(.taste-home-concept) {
   .taste-app-shell:has(.taste-home-concept)::before {
     top: 58px;
     height: 540px;
-    background-position: center, center, 58% -28px;
+    background-position: center, center, center, 58% -48px;
+    filter: saturate(1.07) contrast(1.045) brightness(1.01);
   }
   .taste-home-concept .taste-page-hero-copy { transform: none; }
   .taste-app-shell:has(.taste-home-concept) > .taste-app-nav { border-radius: 0; }
