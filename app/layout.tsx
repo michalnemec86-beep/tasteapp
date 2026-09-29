@@ -101,9 +101,10 @@ export default async function RootLayout({
         <PivnikLaunchScreen />
         <AuthSessionSync />
         <BreweryListStatePersistence />
-        <AppNav currentUserId={user?.id ?? null} />
-
-        {children}
+        <div className="taste-app-shell">
+          <AppNav currentUserId={user?.id ?? null} />
+          {children}
+        </div>
       </body>
     </html>
   );
