@@ -342,6 +342,7 @@ export default function RankingCardClient({
                 <RankingHeader
                   title={title}
                   icon={icon}
+                  tone={cardTone}
                 />
 
                 <button
