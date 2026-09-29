@@ -700,6 +700,55 @@ body:has(.taste-stats-concept) {
     padding: 12px 12px 56px !important;
   }
 
+  .taste-stats-concept .taste-page-hero-layout {
+    min-height: 138px !important;
+  }
+
+  .taste-stats-concept .taste-page-hero-copy {
+    padding: 12px 14px 4px !important;
+  }
+
+  .taste-stats-concept .taste-page-hero-title {
+    max-width: 100% !important;
+    font-size: 21px !important;
+    line-height: 1.04 !important;
+    letter-spacing: -.028em !important;
+  }
+
+  .taste-stats-concept .taste-page-hero-subtitle {
+    display: none !important;
+  }
+
+  .taste-stats-concept .taste-page-hero-action-column {
+    min-height: 0 !important;
+    align-items: flex-start !important;
+    justify-content: flex-start !important;
+    padding: 0 14px 10px !important;
+  }
+
+  .taste-stats-concept .taste-page-hero-action {
+    width: auto !important;
+    max-width: none !important;
+    justify-content: flex-start !important;
+  }
+
+  .taste-stats-concept .taste-stats-hero-links {
+    width: auto;
+    display: flex;
+    grid-template-columns: none;
+    justify-content: flex-start;
+    gap: 6px;
+  }
+
+  .taste-stats-concept .taste-stats-hero-links .taste-button-secondary {
+    flex: 0 0 auto;
+    min-height: 30px;
+    padding: 5px 9px !important;
+    border-radius: 8px !important;
+    font-size: 10px !important;
+    line-height: 1;
+  }
+
   .taste-stats-concept .taste-hero-stat > div:first-child {
     width: 34px !important;
     height: 34px !important;
@@ -708,10 +757,6 @@ body:has(.taste-stats-concept) {
   .taste-stats-concept .taste-hero-stat > div:first-child svg {
     width: 28px;
     height: 28px;
-  }
-
-  .taste-stats-concept .taste-stats-hero-links {
-    grid-template-columns: 1fr;
   }
 
   .taste-stats-concept .taste-stats-sort-row {
