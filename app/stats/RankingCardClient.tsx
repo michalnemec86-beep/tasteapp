@@ -167,7 +167,6 @@ function getItemHref(
 
 export default function RankingCardClient({
   title,
-  subtitle,
   icon,
   items,
   itemHrefPrefix,
@@ -251,7 +250,6 @@ export default function RankingCardClient({
             items={previewItems}
             maximum={maximum}
             itemHrefPrefix={itemHrefPrefix}
-            tone={cardTone}
             disableItemLinks={disableItemLinks}
             personalItemIds={personalItemIds}
             comparisonItems={comparisonItems}
@@ -344,7 +342,6 @@ export default function RankingCardClient({
                 <RankingHeader
                   title={title}
                   icon={icon}
-                  tone={cardTone}
                 />
 
                 <button
@@ -553,7 +550,6 @@ function RankingList({
   items,
   maximum,
   itemHrefPrefix,
-  tone,
   disableItemLinks = false,
   personalItemIds,
   comparisonItems,
@@ -565,7 +561,6 @@ function RankingList({
   items: RankingItem[];
   maximum: number;
   itemHrefPrefix?: string;
-  tone: RankingToneStyle;
   disableItemLinks?: boolean;
   personalItemIds: Array<string | number>;
   comparisonItems: RankingItem[];
