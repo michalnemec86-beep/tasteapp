@@ -31,7 +31,6 @@ import BreweryOfDayCard from "@/components/home/BreweryOfDayCard";
 import PageHero from "@/components/ui/PageHero";
 import AppIcon from "@/components/ui/AppIcon";
 import HomeStatIcon from "@/components/home/HomeStatIcon";
-import { Medal } from "lucide-react";
 import { getCzechVocative } from "@/lib/czech-vocative";
 import { fetchAllRows } from "@/lib/fetch-all-rows";
 import { parsePositivePage } from "@/lib/pagination";
@@ -1275,7 +1274,6 @@ export default async function HomePage({
     timelinePage * timelinePageSize
   );
   const hasOlderTimeline = timelinePage < 5 && timeline.length > timelinePage * timelinePageSize;
-  const timelineAccents = buildTimelineAccentMap(timeline);
 
   function getProfile(
     userId: string
@@ -1566,7 +1564,6 @@ export default async function HomePage({
                     profile={
                       profile
                     }
-                    userAccent={timelineAccents.get(tasting.id) ?? TIMELINE_USER_ACCENTS[0]}
                     isOwn={
                       isOwn
                     }
@@ -1658,52 +1655,11 @@ export default async function HomePage({
 // KARTA OCHUTNÁVKY V TIMELINE
 // ==================================================
 
-const TIMELINE_USER_ACCENTS = [
-  "#f2b63f",
-  "#8ea34a",
-  "#f5c16d",
-  "#9cad47",
-  "#e88835",
-  "#cf8f29",
-] as const;
-
-function buildTimelineAccentMap(events: TimelineEvent[]) {
-  const userAccents = new Map<string, string>();
-  const tastingAccents = new Map<number, string>();
-  let previousUser: string | null = null;
-  let previousAccent: string | null = null;
-
-  for (const event of events) {
-    if (event.type !== "tasting") {
-      previousUser = null;
-      previousAccent = null;
-      continue;
-    }
-
-    const userId = event.tasting.user_id;
-    let accent = userAccents.get(userId) ??
-      TIMELINE_USER_ACCENTS[userAccents.size % TIMELINE_USER_ACCENTS.length];
-
-    // Při případném opakování palety mají sousední různí lidé vždy jinou barvu.
-    if (previousUser !== null && previousUser !== userId && accent === previousAccent) {
-      accent = TIMELINE_USER_ACCENTS.find((color) => color !== previousAccent) ?? accent;
-    }
-
-    if (!userAccents.has(userId)) userAccents.set(userId, accent);
-    tastingAccents.set(event.tasting.id, accent);
-    previousUser = userId;
-    previousAccent = accent;
-  }
-
-  return tastingAccents;
-}
-
 function TastingTimelineCard({
-  tasting, profile, userAccent, isOwn, beers, breweries, countries, styles, hops,
+  tasting, profile, isOwn, beers, breweries, countries, styles, hops,
 }: {
   tasting: TastingRow;
   profile: ProfileRow | null;
-  userAccent: string;
   isOwn: boolean;
   beers: CatalogBeerRow[];
   breweries: BreweryRow[];
@@ -1711,80 +1667,285 @@ function TastingTimelineCard({
   styles: BeerStyleRow[];
   hops: HopRow[];
 }) {
-  const packagingIcon =
+  const packagingKind =
     tasting.packaging === "bottle" ? "bottle" :
     tasting.packaging === "can" ? "can" :
     tasting.packaging === "pet" ? "pet" :
-    tasting.packaging === "draft" ? "beer" : "package";
-  const packagingLabel = getPackagingMeta(tasting.packaging)?.label ?? "Neurčený způsob podání";
-  const brewery = tasting.beer_versions?.breweries ?? tasting.beers?.breweries;
-  const collaborators = [...(tasting.beer_versions?.beer_version_collaborators ?? [])]
-    .sort((a, b) => a.display_order - b.display_order)
-    .map((item) => item.breweries)
-    .filter((item): item is BreweryRow => Boolean(item));
+    tasting.packaging === "draft" ? "mug" : "package";
+
+  const packagingLabel =
+    getPackagingMeta(
+      tasting.packaging
+    )?.label ??
+    "Neurčený způsob podání";
+
+  const brewery =
+    tasting.beer_versions?.breweries ??
+    tasting.beers?.breweries;
+
+  const collaborators = [
+    ...(
+      tasting.beer_versions
+        ?.beer_version_collaborators ??
+      []
+    ),
+  ]
+    .sort(
+      (a, b) =>
+        a.display_order -
+        b.display_order
+    )
+    .map(
+      (item) =>
+        item.breweries
+    )
+    .filter(
+      (
+        item
+      ): item is BreweryRow =>
+        Boolean(item)
+    );
+
   const details = [
-    tasting.beer_versions?.beer_styles?.name ?? tasting.beers?.beer_styles?.name,
-    tasting.plato != null ? String(tasting.plato).replace(".", ",") + "°" : null,
-    tasting.abv != null ? String(tasting.abv).replace(".", ",") + " %" : null,
-    tasting.ibu != null ? "IBU: " + tasting.ibu : null,
-  ].filter((value): value is string => Boolean(value));
-  const quantity = tasting.quantity ?? 1;
-  const nickname = profile?.display_name ?? "Neznámý uživatel";
-  const realName = profile?.real_name?.trim();
+    tasting.beer_versions
+      ?.beer_styles?.name ??
+      tasting.beers
+        ?.beer_styles?.name,
+    tasting.plato != null
+      ? String(
+          tasting.plato
+        ).replace(
+          ".",
+          ","
+        ) + "°"
+      : null,
+    tasting.abv != null
+      ? String(
+          tasting.abv
+        ).replace(
+          ".",
+          ","
+        ) + " %"
+      : null,
+    brewery?.country ??
+      null,
+  ].filter(
+    (
+      value
+    ): value is string =>
+      Boolean(value)
+  );
+
+  const quantity =
+    tasting.quantity ?? 1;
+
+  const nickname =
+    profile?.display_name ??
+    "Neznámý uživatel";
+
+  const realName =
+    profile?.real_name?.trim();
 
   return (
     <div className="taste-timeline-entry">
       <article className="taste-timeline-card">
         <header className="taste-timeline-card-header">
-          <span className="taste-timeline-packaging" title={packagingLabel} aria-label={packagingLabel}>
-            <AppIcon name={packagingIcon} size={26} strokeWidth={1.8} />
+          <span
+            className="taste-timeline-packaging taste-timeline-packaging-illustrated"
+            title={
+              packagingLabel
+            }
+            aria-label={
+              packagingLabel
+            }
+          >
+            <HomeStatIcon
+              kind={
+                packagingKind
+              }
+            />
           </span>
-          <div className="taste-timeline-person">
-            <Link href={"/profiles/" + tasting.user_id} className="taste-timeline-nickname"
-              style={{ backgroundColor: userAccent + "27", borderColor: userAccent + "66", color: userAccent }}>
+
+          <div className="taste-timeline-person-line">
+            <Link
+              href={
+                "/profiles/" +
+                tasting.user_id
+              }
+              className="taste-timeline-nickname-plain"
+            >
               {nickname}
             </Link>
-            {realName && realName !== nickname && <span className="taste-timeline-realname">{realName}</span>}
+
+            {realName &&
+              realName !==
+                nickname && (
+                <span className="taste-timeline-realname">
+                  {realName}
+                </span>
+              )}
           </div>
-          <time className="taste-timeline-date" dateTime={tasting.tasted_on}>
-            {formatTastingDate(tasting.tasted_on)}
+
+          <time
+            className="taste-timeline-date"
+            dateTime={
+              tasting.tasted_on
+            }
+          >
+            {formatTastingDate(
+              tasting.tasted_on
+            )}
           </time>
         </header>
+
         <div className="taste-timeline-card-body">
-          <div className="taste-timeline-beer-line">
-            <h3 className="taste-timeline-beer-name">
+          <div className="taste-timeline-main-line">
+            <h3 className="taste-timeline-beer-name taste-timeline-main-title">
               {tasting.beers?.id ? (
-                <Link href={"/beers/" + tasting.beers.id} className="taste-entity-link">
-                  {tasting.beers.name}
+                <Link
+                  href={
+                    "/beers/" +
+                    tasting.beers.id
+                  }
+                  className="taste-timeline-main-link"
+                >
+                  {
+                    tasting.beers
+                      .name
+                  }
                 </Link>
-              ) : "Neznámé pivo"}
+              ) : (
+                "Neznámé pivo"
+              )}
+
+              {brewery && (
+                <>
+                  <span className="taste-timeline-main-separator">
+                    {" "}–{" "}
+                  </span>
+                  <Link
+                    href={
+                      "/breweries/" +
+                      brewery.id
+                    }
+                    className="taste-timeline-main-link"
+                  >
+                    {
+                      brewery.name
+                    }
+                  </Link>
+                </>
+              )}
+
+              {collaborators.map(
+                (item) => (
+                  <span
+                    key={
+                      item.id
+                    }
+                  >
+                    {" + "}
+                    <Link
+                      href={
+                        "/breweries/" +
+                        item.id
+                      }
+                      className="taste-timeline-main-link"
+                    >
+                      {item.name}
+                    </Link>
+                  </span>
+                )
+              )}
             </h3>
-            {quantity > 1 && <span className="taste-timeline-quantity">{quantity}×</span>}
+
+            {quantity >
+              1 && (
+              <span className="taste-timeline-quantity">
+                {quantity}×
+              </span>
+            )}
           </div>
-          {(brewery || collaborators.length > 0) && (
-            <div className="taste-timeline-brewery">
-              {brewery && <Link href={"/breweries/" + brewery.id} className="taste-entity-link">{brewery.name}</Link>}
-              {collaborators.map((item) => (
-                <span key={item.id}> + <Link href={"/breweries/" + item.id} className="taste-entity-link">{item.name}</Link></span>
-              ))}
-              {brewery?.country && <span className="taste-timeline-country"> · {brewery.country}</span>}
+
+          {details.length >
+            0 && (
+            <div className="taste-timeline-details taste-timeline-details-compact">
+              {details.map(
+                (
+                  detail,
+                  index
+                ) => (
+                  <span
+                    key={
+                      index
+                    }
+                  >
+                    {detail}
+                  </span>
+                )
+              )}
             </div>
           )}
-          {details.length > 0 && <div className="taste-timeline-details">
-            {details.map((detail, index) => <span key={index}>{detail}</span>)}
-          </div>}
-          {(tasting.place || tasting.notes) && (
+
+          {(tasting.place ||
+            tasting.notes) && (
             <div className="taste-timeline-note">
-              {tasting.place && <span>📍 {tasting.place}</span>}
-              {tasting.place && tasting.notes && <span> · </span>}
-              {tasting.notes && <span>{tasting.notes}</span>}
+              {tasting.place && (
+                <span>
+                  📍{" "}
+                  {
+                    tasting.place
+                  }
+                </span>
+              )}
+
+              {tasting.place &&
+                tasting.notes && (
+                  <span>
+                    {" "}·{" "}
+                  </span>
+                )}
+
+              {tasting.notes && (
+                <span>
+                  {
+                    tasting.notes
+                  }
+                </span>
+              )}
             </div>
           )}
-          {isOwn && <div className="taste-timeline-edit">
-            <EditTastingModalClient tasting={tasting} beers={beers} breweries={breweries}
-              countries={countries} styles={styles} hops={hops}
-              updateTastingAction={updateTastingInModal} deleteTastingAction={deleteTastingInModal} />
-          </div>}
+
+          {isOwn && (
+            <div className="taste-timeline-edit">
+              <EditTastingModalClient
+                tasting={
+                  tasting
+                }
+                beers={
+                  beers
+                }
+                breweries={
+                  breweries
+                }
+                countries={
+                  countries
+                }
+                styles={
+                  styles
+                }
+                hops={
+                  hops
+                }
+                updateTastingAction={
+                  updateTastingInModal
+                }
+                deleteTastingAction={
+                  deleteTastingInModal
+                }
+              />
+            </div>
+          )}
         </div>
       </article>
     </div>
@@ -1819,38 +1980,222 @@ const SYSTEM_EVENT_VISUALS = {
   },
 } as const;
 
-function CatalogTimelineCard({ row, profile }: { row: CatalogEventRow; profile: ProfileRow | null }) {
-  const visual = SYSTEM_EVENT_VISUALS[row.event_type];
+function CatalogTimelineCard({
+  row,
+  profile,
+}: {
+  row: CatalogEventRow;
+  profile: ProfileRow | null;
+}) {
+  const nickname =
+    profile?.display_name ??
+    "Neznámý uživatel";
+
+  if (
+    row.event_type ===
+      "brewery_created" &&
+    row.breweries
+  ) {
+    return (
+      <div className="taste-timeline-entry taste-timeline-system">
+        <article className="taste-timeline-card taste-timeline-system-single-card">
+          <div className="taste-timeline-system-one-line">
+            <span
+              className="taste-timeline-packaging taste-timeline-packaging-illustrated"
+              aria-hidden="true"
+            >
+              <HomeStatIcon
+                kind="brewery"
+              />
+            </span>
+
+            <div className="taste-timeline-system-one-line-copy">
+              Uživatel{" "}
+              <Link
+                href={
+                  "/profiles/" +
+                  row.actor_user_id
+                }
+                className="taste-timeline-nickname-plain"
+              >
+                {nickname}
+              </Link>{" "}
+              vytvořil nový pivovar{" "}
+              <Link
+                href={
+                  "/breweries/" +
+                  row.breweries.id
+                }
+                className="taste-timeline-main-link"
+              >
+                {
+                  row.breweries
+                    .name
+                }
+              </Link>
+            </div>
+
+            <time
+              className="taste-timeline-date"
+              dateTime={
+                row.created_at
+              }
+            >
+              {new Intl.DateTimeFormat(
+                "cs-CZ",
+                {
+                  day:
+                    "numeric",
+                  month:
+                    "numeric",
+                  year:
+                    "numeric",
+                }
+              ).format(
+                new Date(
+                  row.created_at
+                )
+              )}
+            </time>
+          </div>
+        </article>
+      </div>
+    );
+  }
+
+  const visual =
+    SYSTEM_EVENT_VISUALS[
+      row.event_type
+    ];
+
   const entity =
-    row.event_type === "brand_created" && row.brands ? (
-      <Link href={"/brands/" + row.brands.id} className="taste-entity-link">{row.brands.name}</Link>
-    ) : row.event_type === "brewery_created" && row.breweries ? (
-      <Link href={"/breweries/" + row.breweries.id} className="taste-entity-link">{row.breweries.name}</Link>
-    ) : row.event_type === "hop_created" && row.hops ? row.hops.name
-    : row.beers ? <Link href={"/beers/" + row.beers.id} className="taste-entity-link">{row.beers.name}</Link>
-    : "Nový katalogový záznam";
+    row.event_type ===
+      "brand_created" &&
+    row.brands ? (
+      <Link
+        href={
+          "/brands/" +
+          row.brands.id
+        }
+        className="taste-entity-link"
+      >
+        {row.brands.name}
+      </Link>
+    ) : row.event_type ===
+        "hop_created" &&
+      row.hops ? (
+      row.hops.name
+    ) : row.beers ? (
+      <Link
+        href={
+          "/beers/" +
+          row.beers.id
+        }
+        className="taste-entity-link"
+      >
+        {row.beers.name}
+      </Link>
+    ) : (
+      "Nový katalogový záznam"
+    );
+
   return (
     <div className="taste-timeline-entry taste-timeline-system">
       <article className="taste-timeline-card">
         <header className="taste-timeline-card-header">
-          <span className="taste-timeline-packaging"><AppIcon name={visual.icon} size={24} /></span>
-          <div className="taste-timeline-person">
-            <strong className="taste-timeline-system-title">{visual.eyebrow}</strong>
-            <Link href={"/profiles/" + row.actor_user_id} className="taste-timeline-system-person">
-              {profile?.display_name ?? "Neznámý uživatel"}
+          <span className="taste-timeline-packaging">
+            <AppIcon
+              name={
+                visual.icon
+              }
+              size={
+                24
+              }
+            />
+          </span>
+
+          <div className="taste-timeline-person-line">
+            <Link
+              href={
+                "/profiles/" +
+                row.actor_user_id
+              }
+              className="taste-timeline-nickname-plain"
+            >
+              {nickname}
             </Link>
+            <span className="taste-timeline-realname">
+              {
+                visual.eyebrow
+              }
+            </span>
           </div>
-          <time className="taste-timeline-date" dateTime={row.created_at}>
-            {new Intl.DateTimeFormat("cs-CZ", { day: "numeric", month: "numeric", year: "numeric" }).format(new Date(row.created_at))}
+
+          <time
+            className="taste-timeline-date"
+            dateTime={
+              row.created_at
+            }
+          >
+            {new Intl.DateTimeFormat(
+              "cs-CZ",
+              {
+                day:
+                  "numeric",
+                month:
+                  "numeric",
+                year:
+                  "numeric",
+              }
+            ).format(
+              new Date(
+                row.created_at
+              )
+            )}
           </time>
         </header>
+
         <div className="taste-timeline-card-body">
-          <h3 className="taste-timeline-beer-name">{entity}</h3>
+          <h3 className="taste-timeline-beer-name">
+            {entity}
+          </h3>
+
           <div className="taste-timeline-system-description">
-            {profile?.display_name ?? "Uživatel"} {visual.action}
-            {row.event_type.startsWith("beer_") && row.beers?.brands && <span> · značka {row.beers.brands.name}</span>}
-            {row.event_type !== "brewery_created" && row.breweries &&
-              <span> · <Link href={"/breweries/" + row.breweries.id} className="taste-entity-link">{row.breweries.name}</Link></span>}
+            {nickname}{" "}
+            {visual.action}
+
+            {row.event_type.startsWith(
+              "beer_"
+            ) &&
+              row.beers
+                ?.brands && (
+                <span>
+                  {" "}· značka{" "}
+                  {
+                    row.beers
+                      .brands.name
+                  }
+                </span>
+              )}
+
+            {row.breweries && (
+              <span>
+                {" "}·{" "}
+                <Link
+                  href={
+                    "/breweries/" +
+                    row.breweries
+                      .id
+                  }
+                  className="taste-entity-link"
+                >
+                  {
+                    row.breweries
+                      .name
+                  }
+                </Link>
+              </span>
+            )}
           </div>
         </div>
       </article>
@@ -1859,44 +2204,129 @@ function CatalogTimelineCard({ row, profile }: { row: CatalogEventRow; profile: 
 }
 
 function AchievementTimelineCard({
-  row, profile, achievement,
+  row,
+  profile,
+  achievement,
 }: {
   row: AchievementRow;
   profile: ProfileRow | null;
   achievement: AchievementDefinition;
 }) {
+  const nickname =
+    profile?.display_name ??
+    "Neznámý uživatel";
+
+  const realName =
+    profile?.real_name?.trim();
+
   return (
-    <div className="taste-timeline-entry taste-timeline-system">
+    <div className="taste-timeline-entry taste-timeline-system taste-timeline-achievement">
       <article className="taste-timeline-card">
         <header className="taste-timeline-card-header">
-          <span className="taste-timeline-packaging" aria-hidden="true"><Medal size={23} strokeWidth={1.8} /></span>
-          <div className="taste-timeline-person">
-            <div className="taste-timeline-achievement-heading">
-              <Link href={"/profiles/" + row.user_id} className="taste-timeline-achievement-user">
-                {profile?.display_name ?? "Neznámý uživatel"}
-              </Link>
-              <span> – nové ocenění</span>
-            </div>
+          <span
+            className="taste-timeline-packaging taste-timeline-packaging-illustrated"
+            aria-hidden="true"
+          >
+            <HomeStatIcon
+              kind="medal"
+            />
+          </span>
+
+          <div className="taste-timeline-person-line">
+            <Link
+              href={
+                "/profiles/" +
+                row.user_id
+              }
+              className="taste-timeline-nickname-plain"
+            >
+              {nickname}
+            </Link>
+
+            {realName &&
+              realName !==
+                nickname && (
+                <span className="taste-timeline-realname">
+                  {realName}
+                </span>
+              )}
           </div>
-          <time className="taste-timeline-date" dateTime={row.unlocked_at}>
-            {formatAchievementDate(row.unlocked_at)}
+
+          <time
+            className="taste-timeline-date"
+            dateTime={
+              row.unlocked_at
+            }
+          >
+            {formatAchievementDate(
+              row.unlocked_at
+            )}
           </time>
         </header>
+
         <div className="taste-timeline-card-body">
-          <h3 className="taste-timeline-beer-name">{achievement.name}</h3>
-          {achievement.series && achievement.target > 1 && (
-            <div className="taste-timeline-achievement-progress">
-              <div className="taste-timeline-achievement-progress-label">
-                <span>Splněná meta</span>
-                <strong>{achievement.target} / {achievement.target}</strong>
+          <div className="taste-timeline-system-kicker">
+            Nové ocenění
+          </div>
+
+          <h3 className="taste-timeline-beer-name taste-timeline-main-title">
+            {achievement.name}
+          </h3>
+
+          <div className="taste-timeline-achievement-definition">
+            {
+              achievement.description
+            }
+          </div>
+
+          {achievement.series &&
+            achievement.target >
+              1 && (
+              <div className="taste-timeline-achievement-progress">
+                <div className="taste-timeline-achievement-progress-label">
+                  <span>
+                    Splněná meta
+                  </span>
+                  <strong>
+                    {
+                      achievement.target
+                    }{" "}
+                    /{" "}
+                    {
+                      achievement.target
+                    }
+                  </strong>
+                </div>
+
+                <div
+                  className="taste-timeline-achievement-progress-track"
+                  role="progressbar"
+                  aria-label={
+                    "Splněná meta: " +
+                    achievement.description
+                      .replace(
+                        /^Dosáhni\s+/,
+                        ""
+                      )
+                      .replace(
+                        /\.$/,
+                        ""
+                      )
+                  }
+                  aria-valuemin={
+                    0
+                  }
+                  aria-valuemax={
+                    achievement.target
+                  }
+                  aria-valuenow={
+                    achievement.target
+                  }
+                >
+                  <span />
+                </div>
               </div>
-              <div className="taste-timeline-achievement-progress-track" role="progressbar"
-                aria-label={"Splněná meta: " + achievement.description.replace(/^Dosáhni\s+/, "").replace(/\.$/, "")}
-                aria-valuemin={0} aria-valuemax={achievement.target} aria-valuenow={achievement.target}>
-                <span />
-              </div>
-            </div>
-          )}
+            )}
         </div>
       </article>
     </div>

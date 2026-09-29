@@ -1,5 +1,5 @@
 /** Small illustrated symbols for the six homepage counters. */
-type HomeStatKind = "barrel" | "mug" | "crest" | "brewery" | "hop" | "globe";
+type HomeStatKind = "barrel" | "mug" | "crest" | "brewery" | "hop" | "globe" | "bottle" | "can" | "pet" | "medal" | "package";
 
 export default function HomeStatIcon({ kind }: { kind: HomeStatKind }) {
   const wood = `home-${kind}-wood`;
@@ -57,6 +57,40 @@ export default function HomeStatIcon({ kind }: { kind: HomeStatKind }) {
         <path d="m14 11 7 1 3 4-2 4-5 1-2 5-5-3-2-6 6-6Zm16 0 8 5-1 5-5 1-3 5-5-1-1-5 4-3-1-4 4-3Zm-9 17 6 1 2 5-5 7-5-7 2-6Z" fill={`url(#${green})`} stroke="#415c31" strokeWidth=".8" />
         <path d="M7 23h34M24 5c-5 5-7 11-7 18s2 13 7 18M24 5c5 5 7 11 7 18s-2 13-7 18" stroke="#d3e4dd" strokeWidth=".8" opacity=".55" />
         <path d="M24 41v4m-9 0h18" stroke={`url(#${metal})`} strokeWidth="2" strokeLinecap="round" />
+      </>}
+      {kind === "bottle" && <>
+        <path d="M20 5h8v7l3 5v24c-4 2-10 2-14 0V17l3-5V5Z" fill={`url(#${beer})`} stroke={`url(#${metal})`} strokeWidth="1.8" />
+        <path d="M20 8h8M19 17h10" stroke="#ffe0a0" strokeWidth="1.3" opacity=".75" />
+        <rect x="18.7" y="23" width="10.6" height="9.5" rx="2" fill="#f3e3c0" stroke="#9a6835" strokeWidth="1.1" />
+        <path d="M21 10v7m1 3v17" stroke="white" strokeWidth="1.5" opacity=".35" />
+        <path d="M21 6h6" stroke="#f7d18a" strokeWidth="2.4" strokeLinecap="round" />
+      </>}
+      {kind === "can" && <>
+        <rect x="14" y="7" width="20" height="34" rx="5" fill={`url(#${metal})`} stroke="#f0c57d" strokeWidth="1.5" />
+        <path d="M16 12h16M16 36h16" stroke="#70451f" strokeWidth="1.4" opacity=".7" />
+        <rect x="16.5" y="14" width="15" height="19" rx="3" fill={`url(#${beer})`} stroke="#8a511c" strokeWidth="1" />
+        <path d="M18.5 15.5v15" stroke="white" strokeWidth="1.7" opacity=".35" />
+        <ellipse cx="24" cy="8.8" rx="5.3" ry="1.4" fill="#d8b16d" stroke="#6f4824" strokeWidth=".8" />
+        <path d="M22 8.5h4" stroke="#5c3a1f" strokeWidth="1.2" strokeLinecap="round" />
+      </>}
+      {kind === "pet" && <>
+        <path d="M20 5h8v5l2 3v4l4 5v16c-5 3-15 3-20 0V22l4-5v-4l2-3V5Z" fill="#8ea7a0" fillOpacity=".32" stroke="#d6ddd4" strokeWidth="1.6" />
+        <path d="M16 24h16v12c-4 2-12 2-16 0V24Z" fill={`url(#${beer})`} opacity=".9" />
+        <path d="M20 8h8M18 17h12" stroke="#eef4ed" strokeWidth="1.2" opacity=".75" />
+        <path d="M19 20c-1 5-1 11 0 16m5-17v18" stroke="white" strokeWidth="1.3" opacity=".35" />
+        <rect x="19" y="4" width="10" height="4" rx="1.5" fill="#d6902e" stroke="#764617" strokeWidth="1" />
+      </>}
+      {kind === "medal" && <>
+        <path d="M15 5h8l2 13-7 3-3-16Zm18 0h-8l-2 13 7 3 3-16Z" fill="#8f2d23" stroke="#d88c58" strokeWidth="1.2" />
+        <circle cx="24" cy="28" r="11" fill={`url(#${metal})`} stroke="#f0c983" strokeWidth="2" />
+        <circle cx="24" cy="28" r="7.2" fill="#8e521f" stroke="#f7d594" strokeWidth="1.2" />
+        <path d="m24 21.8 1.9 3.8 4.2.6-3 3 .7 4.2-3.8-2-3.8 2 .7-4.2-3-3 4.2-.6 1.9-3.8Z" fill="#f3c45c" stroke="#6e3b18" strokeWidth=".9" />
+        <path d="M20 19c2-1 6-1 8 0" stroke="#fff0b6" strokeWidth="1.2" opacity=".7" />
+      </>}
+      {kind === "package" && <>
+        <path d="m10 15 14-7 14 7-14 7-14-7Z" fill={`url(#${metal})`} stroke="#e8b86c" strokeWidth="1.4" />
+        <path d="M10 15v18l14 8V22L10 15Zm28 0v18l-14 8V22l14-7Z" fill={`url(#${wood})`} stroke="#5c351d" strokeWidth="1.4" />
+        <path d="M16 12 30 19m-6 3v19" stroke="#f6cf8b" strokeWidth="1.1" opacity=".65" />
       </>}
     </svg>
   );
