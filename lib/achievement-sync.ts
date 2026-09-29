@@ -18,7 +18,6 @@ type AchievementMetricsRow = {
   current_tastings: number | string | null;
   current_beers: number | string | null;
   current_breweries: number | string | null;
-  current_brewery_of_day: number | string | null;
   current_styles: number | string | null;
   current_countries: number | string | null;
   current_hops: number | string | null;
@@ -157,10 +156,6 @@ export async function syncUserAchievements(
       asNumber(
         row.current_breweries
       ),
-    brewery_of_day:
-      asNumber(
-        row.current_brewery_of_day
-      ),
     styles:
       asNumber(
         row.current_styles
@@ -189,7 +184,6 @@ export async function syncUserAchievements(
       asNumber(
         row.historical_breweries
       ),
-    brewery_of_day: 0,
     styles:
       asNumber(
         row.historical_styles
@@ -294,7 +288,6 @@ export async function syncUserAchievements(
     AchievementSeries[] = [
     "beers",
     "breweries",
-    "brewery_of_day",
     "styles",
     "countries",
     "hops",

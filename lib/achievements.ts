@@ -8,7 +8,6 @@ export type AchievementMetric =
   | "tastings"
   | "beers"
   | "breweries"
-  | "brewery_of_day"
   | "styles"
   | "countries"
   | "hops";
@@ -16,7 +15,6 @@ export type AchievementMetric =
 export type AchievementSeries =
   | "beers"
   | "breweries"
-  | "brewery_of_day"
   | "styles"
   | "countries"
   | "hops";
@@ -171,13 +169,6 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
   }),
 
   ...createSeries({
-    series: "brewery_of_day",
-    seriesName: "Lovec pivovarů dne",
-    targets: [1, 3, 5, 10, 20, 40, 75],
-    unit: "ochutnaných pivovarů dne",
-  }),
-
-  ...createSeries({
     series: "styles",
     seriesName: "Lovec stylů",
     targets: [5, 10, 20, 30, 50, 75, 100],
@@ -206,10 +197,7 @@ function isEligibleAchievementTasting(tasting: AchievementTasting) {
 }
 
 export function buildAchievementProgress(
-  tastings: AchievementTasting[],
-  context: {
-    breweryOfDayIds?: (string | number)[];
-  } = {}
+  tastings: AchievementTasting[]
 ): AchievementProgress[] {
   const eligibleTastings = tastings.filter(isEligibleAchievementTasting);
 
@@ -251,16 +239,10 @@ export function buildAchievementProgress(
     }
   }
 
-  const breweryOfDayIds = new Set(context.breweryOfDayIds ?? []);
-  const breweryOfDayCount = [...breweryIds].filter((breweryId) =>
-    breweryOfDayIds.has(breweryId)
-  ).length;
-
   const metricValues: Record<AchievementMetric, number> = {
     tastings: eligibleTastings.length,
     beers: beerIds.size,
     breweries: breweryIds.size,
-    brewery_of_day: breweryOfDayCount,
     styles: styleIds.size,
     countries: countries.size,
     hops: hopIds.size,
