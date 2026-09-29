@@ -26,7 +26,7 @@ body:has(.taste-stats-concept) {
   content: "";
   position: absolute;
   z-index: -1;
-  top: 64px;
+  top: 65px;
   left: 0;
   right: 0;
   height: 820px;
@@ -49,28 +49,32 @@ body:has(.taste-stats-concept) {
 }
 
 .taste-stats-concept {
+  position: relative;
+  z-index: 0;
   max-width: 1500px !important;
-  padding: 24px 24px 72px !important;
+  padding: 12px 24px 72px !important;
 }
 
 .taste-stats-concept > .taste-page-hero {
-  border-color: rgba(224,153,69,.52) !important;
-  border-radius: 14px !important;
-  background: rgba(21,16,12,.30) !important;
-  box-shadow:
-    0 15px 38px rgba(0,0,0,.36),
-    0 0 28px rgba(205,116,45,.10),
-    -2px -2px 15px rgba(255,209,144,.07),
-    inset 0 1px 0 rgba(255,226,168,.13) !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  overflow: visible !important;
 }
 
 .taste-stats-concept .taste-page-hero-layout > div:first-child {
   opacity: 0;
 }
 
+.taste-stats-concept .taste-page-hero-layout > div:nth-child(2) {
+  background: linear-gradient(90deg, rgba(10,7,5,.42), transparent 78%) !important;
+}
+
 .taste-stats-concept .taste-page-hero-stats {
-  border-top-color: rgba(225,157,68,.24) !important;
-  background: linear-gradient(180deg, rgba(54,31,15,.96), rgba(20,15,11,.98)) !important;
+  border: 0 !important;
+  border-radius: 12px;
+  background: rgba(13,10,8,.28) !important;
 }
 
 .taste-stats-concept .taste-hero-stat {
