@@ -747,6 +747,7 @@ body:has(.taste-stats-concept) {
     border-radius: 8px !important;
     font-size: 10px !important;
     line-height: 1;
+    white-space: nowrap;
   }
 
   .taste-stats-concept .taste-hero-stat > div:first-child {
