@@ -2,7 +2,6 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 import type { RankingItem } from "@/lib/stats";
-import AppIcon from "@/components/ui/AppIcon";
 
 type StatsRankingCardProps = {
   title: string;
@@ -40,17 +39,414 @@ export default function StatsRankingCard(
         {...props}
       />
 
-      <RankingCardView
-        title="Způsob podání"
-        subtitle="Čepované, lahvové a plechovky"
-        icon={<AppIcon name="package" size={20} />}
-        accent="#b77a36"
+      <PackagingRankingCardView
         items={props.packagingItems ?? []}
+        accent="#e7a62f"
         getItemHref={(item) =>
           `/stats/packaging/${item.id}`
         }
       />
     </>
+  );
+}
+
+function PackagingRankingCardView({
+  items,
+  accent,
+  getItemHref,
+}: {
+  items: RankingItem[];
+  accent: string;
+  getItemHref?: (
+    item: RankingItem
+  ) => string;
+}) {
+  const topItems =
+    items.slice(0, 5);
+
+  const maximum =
+    Math.max(
+      1,
+      ...topItems.map(
+        (item) =>
+          item.count
+      )
+    );
+
+  return (
+    <section
+      style={{
+        position:
+          "relative",
+        overflow:
+          "hidden",
+        padding:
+          "14px",
+        border:
+          "1px solid var(--taste-border)",
+        borderRadius:
+          "var(--taste-radius-lg)",
+        background: `
+          linear-gradient(
+            145deg,
+            rgba(231,166,47,0.035),
+            transparent 42%
+          ),
+          var(--taste-surface)
+        `,
+        boxShadow:
+          "var(--taste-shadow-soft)",
+      }}
+    >
+      <h3
+        style={{
+          margin: 0,
+          color:
+            "var(--taste-amber-bright)",
+          fontSize:
+            "14px",
+          lineHeight:
+            1.15,
+          fontWeight:
+            800,
+          letterSpacing:
+            "0.01em",
+        }}
+      >
+        Způsob podání
+      </h3>
+
+      {topItems.length ===
+        0 && (
+        <div
+          style={{
+            padding:
+              "18px 0 8px",
+            color:
+              "#fff",
+            fontSize:
+              "11px",
+          }}
+        >
+          Zatím nejsou žádná data.
+        </div>
+      )}
+
+      {topItems.length >
+        0 && (
+        <div
+          style={{
+            display:
+              "grid",
+            gridTemplateColumns:
+              "minmax(92px, .78fr) minmax(150px, 1.22fr)",
+            gap:
+              "14px",
+            alignItems:
+              "stretch",
+            marginTop:
+              "13px",
+          }}
+        >
+          <div
+            style={{
+              display:
+                "grid",
+              gap:
+                "9px",
+              alignContent:
+                "center",
+              minWidth:
+                0,
+            }}
+          >
+            {topItems.map(
+              (item) => {
+                const content = (
+                  <span
+                    style={{
+                      display:
+                        "grid",
+                      gap:
+                        "2px",
+                      minWidth:
+                        0,
+                    }}
+                  >
+                    <span
+                      title={
+                        item.name
+                      }
+                      style={{
+                        overflow:
+                          "hidden",
+                        textOverflow:
+                          "ellipsis",
+                        whiteSpace:
+                          "nowrap",
+                        color:
+                          "#fff",
+                        fontSize:
+                          "11.5px",
+                        lineHeight:
+                          1.18,
+                        fontWeight:
+                          700,
+                      }}
+                    >
+                      {item.name}
+                    </span>
+
+                    <span
+                      style={{
+                        color:
+                          accent,
+                        fontSize:
+                          "10px",
+                        lineHeight:
+                          1.2,
+                        fontWeight:
+                          800,
+                        fontVariantNumeric:
+                          "tabular-nums",
+                      }}
+                    >
+                      {item.count}×
+                    </span>
+                  </span>
+                );
+
+                return getItemHref ? (
+                  <Link
+                    key={
+                      item.id
+                    }
+                    href={
+                      getItemHref(
+                        item
+                      )
+                    }
+                    style={{
+                      color:
+                        "inherit",
+                      textDecoration:
+                        "none",
+                      minWidth:
+                        0,
+                    }}
+                  >
+                    {content}
+                  </Link>
+                ) : (
+                  <div
+                    key={
+                      item.id
+                    }
+                    style={{
+                      minWidth:
+                        0,
+                    }}
+                  >
+                    {content}
+                  </div>
+                );
+              }
+            )}
+          </div>
+
+          <div
+            aria-label="Sloupcový graf způsobu podání"
+            role="img"
+            style={{
+              position:
+                "relative",
+              minHeight:
+                "142px",
+              display:
+                "grid",
+              gridTemplateColumns:
+                `repeat(${topItems.length}, minmax(0, 1fr))`,
+              gap:
+                "8px",
+              alignItems:
+                "end",
+              padding:
+                "12px 8px 2px 10px",
+              borderLeft:
+                "1px solid rgba(231,166,47,.16)",
+              borderBottom:
+                "1px solid rgba(231,166,47,.18)",
+              background:
+                "repeating-linear-gradient(180deg, rgba(255,255,255,.035) 0 1px, transparent 1px 34px)",
+            }}
+          >
+            {topItems.map(
+              (item) => {
+                const height =
+                  Math.max(
+                    10,
+                    (
+                      item.count /
+                      maximum
+                    ) *
+                      100
+                  );
+
+                const bar = (
+                  <span
+                    style={{
+                      position:
+                        "relative",
+                      display:
+                        "block",
+                      width:
+                        "100%",
+                      height:
+                        `${height}%`,
+                      minHeight:
+                        "10px",
+                      overflow:
+                        "hidden",
+                      border:
+                        "1px solid rgba(255,218,139,.28)",
+                      borderRadius:
+                        "7px 7px 3px 3px",
+                      background:
+                        "linear-gradient(180deg, #ffe6a4 0%, #f4bd4b 14%, #dc8b27 48%, #a65319 78%, #703315 100%)",
+                      boxShadow:
+                        "inset 1px 0 rgba(255,246,211,.35), inset -1px 0 rgba(84,39,13,.32), inset 0 -8px 14px rgba(68,27,10,.20), 0 0 12px rgba(231,166,47,.20), 0 6px 10px rgba(0,0,0,.28)",
+                    }}
+                  >
+                    <span
+                      aria-hidden="true"
+                      style={{
+                        position:
+                          "absolute",
+                        left:
+                          "12%",
+                        right:
+                          "12%",
+                        top:
+                          "2px",
+                        height:
+                          "28%",
+                        borderRadius:
+                          "6px 6px 50% 50%",
+                        background:
+                          "linear-gradient(180deg, rgba(255,255,255,.48), rgba(255,255,255,.06))",
+                        opacity:
+                          .72,
+                      }}
+                    />
+
+                    <span
+                      aria-hidden="true"
+                      style={{
+                        position:
+                          "absolute",
+                        top:
+                          "8%",
+                        bottom:
+                          "12%",
+                        left:
+                          "14%",
+                        width:
+                          "14%",
+                        borderRadius:
+                          "999px",
+                        background:
+                          "linear-gradient(180deg, rgba(255,255,255,.48), rgba(255,255,255,0))",
+                        opacity:
+                          .48,
+                      }}
+                    />
+                  </span>
+                );
+
+                return (
+                  <span
+                    key={
+                      item.id
+                    }
+                    title={
+                      `${item.name}: ${item.count}×`
+                    }
+                    style={{
+                      height:
+                        "100%",
+                      display:
+                        "flex",
+                      alignItems:
+                        "flex-end",
+                      justifyContent:
+                        "center",
+                      minWidth:
+                        0,
+                    }}
+                  >
+                    {getItemHref ? (
+                      <Link
+                        href={
+                          getItemHref(
+                            item
+                          )
+                        }
+                        aria-label={
+                          `${item.name}: ${item.count}×`
+                        }
+                        style={{
+                          width:
+                            "100%",
+                          height:
+                            "100%",
+                          display:
+                            "flex",
+                          alignItems:
+                            "flex-end",
+                          textDecoration:
+                            "none",
+                        }}
+                      >
+                        {bar}
+                      </Link>
+                    ) : (
+                      bar
+                    )}
+                  </span>
+                );
+              }
+            )}
+          </div>
+        </div>
+      )}
+
+      <div
+        style={{
+          marginTop:
+            "14px",
+          paddingTop:
+            "9px",
+          borderTop:
+            "1px solid rgba(231,166,47,0.11)",
+        }}
+      >
+        <Link
+          href="/stats"
+          style={{
+            color:
+              "#fff",
+            textDecoration:
+              "none",
+            fontSize:
+              "10.5px",
+            fontWeight:
+              650,
+          }}
+        >
+          Zobrazit všechny
+        </Link>
+      </div>
+    </section>
   );
 }
 
