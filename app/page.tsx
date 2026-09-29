@@ -910,6 +910,18 @@ export default async function HomePage({
 
   // "Nejčastější pivovary" na domovské stránce ukazují skutečný
   // počet ochutnávek (řádků), nikoli součet vypitých kusů.
+  // Logo a název bereme z kanonického záznamu pivovaru v evidenci,
+  // aby se vždy propsaly i ke starším ochutnávkám a historickým verzím piv.
+  const canonicalBreweriesById =
+    new Map(
+      allBreweries.map(
+        (brewery) => [
+          brewery.id,
+          brewery,
+        ]
+      )
+    );
+
   const breweryTastingMap = new Map<
     number,
     {
@@ -921,44 +933,61 @@ export default async function HomePage({
   >();
 
   for (const tasting of allTastings) {
-    const brewery =
+    const tastingBrewery =
       tasting.beer_versions?.breweries ??
       tasting.beers?.breweries ??
       null;
 
-    if (!brewery) {
+    if (!tastingBrewery) {
       continue;
     }
 
+    const canonicalBrewery =
+      canonicalBreweriesById.get(
+        tastingBrewery.id
+      );
+
+    const breweryName =
+      canonicalBrewery?.name ??
+      tastingBrewery.name;
+
+    const breweryLogoUrl =
+      canonicalBrewery?.logo_url ??
+      tastingBrewery.logo_url ??
+      undefined;
+
     const existing =
       breweryTastingMap.get(
-        brewery.id
+        tastingBrewery.id
       );
 
     if (existing) {
       existing.count += 1;
 
-      if (
-        !existing.logoUrl &&
-        brewery.logo_url
-      ) {
+      // Kanonická data z evidence mají přednost před daty uloženými u ochutnávky.
+      existing.name =
+        breweryName;
+
+      if (breweryLogoUrl) {
         existing.logoUrl =
-          brewery.logo_url;
+          breweryLogoUrl;
       }
 
       continue;
     }
 
     breweryTastingMap.set(
-      brewery.id,
+      tastingBrewery.id,
       {
-        id: brewery.id,
-        name: brewery.name,
+        id:
+          tastingBrewery.id,
+        name:
+          breweryName,
         count: 1,
-        ...(brewery.logo_url
+        ...(breweryLogoUrl
           ? {
               logoUrl:
-                brewery.logo_url,
+                breweryLogoUrl,
             }
           : {}),
       }
