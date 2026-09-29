@@ -126,6 +126,7 @@ export default function TastingForm({
   const [countryOpen, setCountryOpen] = useState(false);
   const [styleOpen, setStyleOpen] = useState(false);
   const [hopOpen, setHopOpen] = useState(false);
+  const [validationError, setValidationError] = useState("");
 
   const normalizedBrewery = normalizeText(breweryName);
   const activeBrewery =
@@ -428,6 +429,14 @@ export default function TastingForm({
   return (
     <form
       action={saveTastingAction}
+      onSubmit={(event) => {
+        if (!existingBeerId && !plato.trim() && !abv.trim()) {
+          event.preventDefault();
+          setValidationError("U nového piva vyplň stupňovitost nebo alkohol.");
+        } else {
+          setValidationError("");
+        }
+      }}
       onKeyDown={(event) => {
         if (event.key === "Enter" && event.target instanceof HTMLInputElement) {
           event.preventDefault();
@@ -680,7 +689,7 @@ export default function TastingForm({
 
       {/* ZEMĚ */}
       <div style={fieldStyle}>
-        <label style={labelStyle}>Země původu pivovaru</label>
+        <label style={labelStyle}>Země původu pivovaru{!existingBeerId && !activeBrewery ? " *" : ""}</label>
         <div style={{ position: "relative" }}>
           <input
             name="breweryCountry"
@@ -696,6 +705,7 @@ export default function TastingForm({
             placeholder="Např. Česko"
             autoComplete="off"
             readOnly={Boolean(existingBeerId)}
+            required={!existingBeerId && !activeBrewery}
             style={{
               ...inputStyle,
               opacity: existingBeerId ? 0.72 : 1,
@@ -1002,6 +1012,7 @@ export default function TastingForm({
       >
         🍺 Uložit ochutnávku
       </button>
+      {validationError && <p role="alert" style={{ color: "var(--taste-amber-bright)", marginTop: 10 }}>{validationError}</p>}
     </form>
   );
 }
