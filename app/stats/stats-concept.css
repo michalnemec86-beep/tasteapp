@@ -559,8 +559,11 @@ body:has(.taste-stats-concept) {
   height: 24px !important;
   border-radius: 50% !important;
   padding: 2px !important;
-  background: rgba(255,255,255,.92) !important;
   border-color: rgba(231,166,47,.38) !important;
+}
+
+.taste-stats-concept .taste-ranking-card .taste-brewery-logo-frame:not(.taste-auto-logo-frame) {
+  background: rgba(255,255,255,.92) !important;
 }
 
 /* Packaging */
