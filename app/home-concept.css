@@ -4,6 +4,11 @@
   --home-line: rgba(225, 162, 68, .25);
 }
 
+.taste-home-concept .taste-page-hero-mobile-inline-action,
+.taste-home-mobile-stats-wrap {
+  display: none;
+}
+
 .taste-home-concept > .taste-page-hero {
   border-color: rgba(233, 169, 68, .48) !important;
   border-radius: 13px !important;
@@ -441,4 +446,174 @@ body:has(.taste-home-concept) {
   .taste-home-concept > .taste-page-hero .taste-page-hero-layout { min-height: 108px !important; }
   .taste-home-concept .taste-hero-stat > div:first-child { width: 32px !important; height: 32px !important; }
   .taste-home-concept .taste-hero-stat > div:first-child svg { width: 27px; height: 27px; }
+}
+
+/* Mobile homepage refinement: compact greeting, inline brewery of the day,
+   five timeline posts per view, and a looping stats carousel. */
+@media (max-width: 760px) {
+  .taste-home-concept .taste-page-hero-mobile-compact h1 {
+    font-size: 21px !important;
+    line-height: 1.03 !important;
+    letter-spacing: -.025em !important;
+  }
+
+  .taste-home-concept .taste-page-hero-mobile-compact .taste-page-hero-copy {
+    padding: 11px 15px 8px !important;
+  }
+
+  .taste-home-concept .taste-page-hero-mobile-inline-action {
+    display: block;
+    width: 100%;
+    margin-top: 7px;
+  }
+
+  .taste-home-concept .taste-page-hero-mobile-inline-action .taste-brewery-of-day {
+    width: 100% !important;
+    min-height: 31px;
+    display: flex !important;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 9px !important;
+    border-radius: 9px !important;
+    box-shadow:
+      0 5px 14px rgba(0,0,0,.22),
+      inset 0 1px rgba(255,226,168,.055) !important;
+  }
+
+  .taste-home-concept .taste-page-hero-mobile-inline-action .taste-brewery-of-day > div:first-child {
+    flex: 0 0 auto;
+    margin-bottom: 0 !important;
+    justify-content: flex-start !important;
+    gap: 0 !important;
+  }
+
+  .taste-home-concept .taste-page-hero-mobile-inline-action .taste-brewery-of-day > div:first-child > span:first-child {
+    font-size: 8.5px !important;
+    letter-spacing: .085em !important;
+    white-space: nowrap;
+  }
+
+  .taste-home-concept .taste-page-hero-mobile-inline-action .taste-brewery-of-day > div:first-child > span:last-child {
+    display: none;
+  }
+
+  .taste-home-concept .taste-page-hero-mobile-inline-action .taste-brewery-of-day > div:last-child {
+    min-width: 0;
+    flex: 1 1 auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 12px !important;
+    line-height: 1.1 !important;
+    font-weight: 760 !important;
+  }
+
+  .taste-home-concept .taste-page-hero-mobile-inline-action .taste-brewery-of-day::after {
+    content: "→";
+    flex: 0 0 auto;
+    color: rgba(255,255,255,.54);
+    font-size: 10px;
+  }
+
+  .taste-home-concept .taste-page-hero-layout {
+    min-height: 124px !important;
+  }
+
+  .taste-home-desktop-stats-column {
+    display: none !important;
+  }
+
+  .taste-home-mobile-stats-wrap {
+    display: block;
+    min-width: 0;
+  }
+
+  .taste-home-mobile-stats-carousel {
+    position: relative;
+    display: grid;
+    grid-template-columns: 30px minmax(0,1fr) 30px;
+    align-items: center;
+    gap: 6px;
+    padding-bottom: 23px;
+  }
+
+  .taste-home-mobile-stats-viewport {
+    min-width: 0;
+    overflow: hidden;
+    border-radius: 12px;
+    touch-action: pan-y;
+  }
+
+  .taste-home-mobile-stats-slide {
+    min-width: 0;
+    animation: taste-home-mobile-card-in .18s ease-out;
+  }
+
+  .taste-home-mobile-stats-slide > section {
+    width: 100%;
+  }
+
+  .taste-home-mobile-stats-arrow {
+    width: 30px;
+    min-height: 72px;
+    border: 1px solid rgba(224,151,69,.38);
+    border-radius: 9px;
+    background:
+      radial-gradient(circle at 50% 17%, rgba(255,220,164,.09), transparent 35%),
+      linear-gradient(180deg, rgba(88,49,22,.58), rgba(28,20,14,.96));
+    color: #f2b63f;
+    font-size: 25px;
+    line-height: 1;
+    cursor: pointer;
+    box-shadow:
+      inset 0 1px rgba(255,227,174,.10),
+      0 4px 11px rgba(0,0,0,.23);
+  }
+
+  .taste-home-mobile-stats-arrow:active {
+    transform: translateY(1px);
+    color: #ffd36d;
+  }
+
+  .taste-home-mobile-stats-counter {
+    position: absolute;
+    left: 36px;
+    right: 36px;
+    bottom: 3px;
+    text-align: center;
+    color: rgba(255,255,255,.48);
+    font-size: 9px;
+    font-weight: 650;
+    letter-spacing: .04em;
+  }
+
+  .taste-home-concept .taste-timeline-pagination {
+    gap: 6px !important;
+    padding-top: 12px !important;
+  }
+
+  .taste-home-concept .taste-timeline-pagination .taste-button-secondary {
+    min-width: 0;
+    padding: 7px 8px !important;
+    font-size: 9px !important;
+    line-height: 1.15;
+    white-space: normal;
+  }
+
+  .taste-home-concept .taste-timeline-page {
+    flex: 0 0 auto;
+    font-size: 9px;
+  }
+}
+
+@keyframes taste-home-mobile-card-in {
+  from {
+    opacity: .72;
+    transform: translateX(7px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }

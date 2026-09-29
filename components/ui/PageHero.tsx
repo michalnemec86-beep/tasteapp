@@ -22,6 +22,7 @@ type PageHeroProps = {
   title: ReactNode;
   subtitle: string;
   action?: ReactNode;
+  mobileInlineAction?: ReactNode;
   stats?: HeroStat[];
   statsScrollable?: boolean;
   imageUrl?: string;
@@ -39,6 +40,7 @@ export default function PageHero({
   title,
   subtitle,
   action,
+  mobileInlineAction,
   stats = [],
   statsScrollable = false,
   imageUrl,
@@ -348,6 +350,12 @@ export default function PageHero({
           >
             {subtitle}
           </p>}
+
+          {mobileInlineAction && (
+            <div className="taste-page-hero-mobile-inline-action">
+              {mobileInlineAction}
+            </div>
+          )}
 
           {isBreweryDetailHero && action && (
             <div

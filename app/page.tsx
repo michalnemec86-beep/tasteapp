@@ -26,11 +26,13 @@ import {
 import TastingModal from "./TastingModal";
 import EditTastingModalClient from "./EditTastingModalClient";
 
-import StatsRankingCard from "@/components/stats/StatsRankingCard";
+import StatsRankingCard, { StatsPackagingCard } from "@/components/stats/StatsRankingCard";
 import BreweryOfDayCard from "@/components/home/BreweryOfDayCard";
 import PageHero from "@/components/ui/PageHero";
 import AppIcon from "@/components/ui/AppIcon";
 import HomeStatIcon from "@/components/home/HomeStatIcon";
+import MobileHomeStatsCarousel from "@/components/home/MobileHomeStatsCarousel";
+import ResponsiveTimelinePager from "@/components/home/ResponsiveTimelinePager";
 import { getCzechVocative } from "@/lib/czech-vocative";
 import { fetchAllRows } from "@/lib/fetch-all-rows";
 import { parsePositivePage } from "@/lib/pagination";
@@ -1329,6 +1331,9 @@ export default async function HomePage({
             <BreweryOfDayCard brewery={breweryOfDay} />
           </div>
         }
+        mobileInlineAction={
+          <BreweryOfDayCard brewery={breweryOfDay} />
+        }
         stats={[
           {
             icon: (
@@ -1387,10 +1392,6 @@ export default async function HomePage({
         ]}
       />
 
-      <div className="taste-mobile-brewery-of-day">
-        <BreweryOfDayCard brewery={breweryOfDay} />
-      </div>
-
       {/* ==================================================
           DASHBOARD
       ================================================== */}
@@ -1399,7 +1400,7 @@ export default async function HomePage({
 
         {/* LEVÁ STRANA */}
 
-        <aside className="order-2 grid self-start content-start gap-4 md:grid-cols-2 xl:order-1 xl:col-span-3 xl:grid-cols-1">
+        <aside className="taste-home-desktop-stats-column order-2 grid self-start content-start gap-4 md:grid-cols-2 xl:order-1 xl:col-span-3 xl:grid-cols-1">
 
           <StatsRankingCard
             title="Nejčastější pivovary"
@@ -1485,7 +1486,14 @@ export default async function HomePage({
             </div>
           )}
 
-          <div className="taste-timeline-list">
+          <ResponsiveTimelinePager
+            serverPage={timelinePage}
+            hasOlderServerPage={hasOlderTimeline}
+            totalEntries={Math.min(
+              timeline.length,
+              5 * timelinePageSize
+            )}
+          >
             {visibleTimeline.map(
               (event) => {
                 // ==========================================
@@ -1584,25 +1592,69 @@ export default async function HomePage({
                 );
               }
             )}
-          </div>
-          <nav aria-label="Stránkování časové osy" className="flex items-center justify-between gap-4 pt-5">
-            {timelinePage > 1 ? (
-              <Link href={`/?timelinePage=${timelinePage - 1}#timeline`} className="taste-button-secondary">
-                ← Novější příspěvky
-              </Link>
-            ) : <span />}
-            {visibleTimeline.length > 0 && <span className="taste-timeline-page">{timelinePage} / {Math.min(5, Math.ceil(timeline.length / timelinePageSize))}</span>}
-            {hasOlderTimeline && (
-              <Link href={`/?timelinePage=${timelinePage + 1}#timeline`} className="taste-button-secondary">
-                Starší příspěvky →
-              </Link>
-            )}
-          </nav>
+          </ResponsiveTimelinePager>
         </section>
+
+        <div className="taste-home-mobile-stats-wrap order-2">
+          <MobileHomeStatsCarousel>
+            <StatsRankingCard
+              title="Nejčastější pivovary"
+              subtitle="Podle počtu vypitých piv"
+              icon={<AppIcon name="brewery" size={20} />}
+              accent="#e88835"
+              items={breweryTastingRanking}
+              getItemHref={(item) => `/breweries/${item.id}`}
+            />
+
+            <StatsRankingCard
+              title="Pivní styly"
+              subtitle="Nejčastější styly"
+              icon={<AppIcon name="hop" size={20} />}
+              accent="#9cad47"
+              items={globalStats.styles}
+              packagingItems={globalStats.packaging}
+              showPackaging={false}
+              getItemHref={(item) => `/styles/${item.id}`}
+            />
+
+            <StatsPackagingCard
+              items={globalStats.packaging}
+            />
+
+            <StatsRankingCard
+              title="Nejčastější piva"
+              subtitle="Konkrétní piva"
+              icon={<AppIcon name="label" size={20} />}
+              accent="#e7a62f"
+              items={globalStats.beers}
+              getItemHref={(item) => `/beers/${item.id}`}
+            />
+
+            <StatsRankingCard
+              title="Státy"
+              subtitle="Země původu pivovarů"
+              icon={<AppIcon name="globe" size={20} />}
+              accent="#d37f43"
+              items={globalStats.countries}
+              getItemHref={(item) =>
+                `/breweries?focus=1&country=${encodeURIComponent(item.name)}`
+              }
+            />
+
+            <StatsRankingCard
+              title="Značky"
+              subtitle="Nejčastější produktové značky"
+              icon={<AppIcon name="label" size={20} />}
+              accent="#d98a43"
+              items={brandRanking}
+              getItemHref={(item) => `/brands/${item.id}`}
+            />
+          </MobileHomeStatsCarousel>
+        </div>
 
         {/* PRAVÁ STRANA */}
 
-        <aside className="order-3 grid self-start content-start gap-4 md:grid-cols-2 xl:col-span-3 xl:grid-cols-1">
+        <aside className="taste-home-desktop-stats-column order-3 grid self-start content-start gap-4 md:grid-cols-2 xl:col-span-3 xl:grid-cols-1">
 
           <StatsRankingCard
             title="Nejčastější piva"
