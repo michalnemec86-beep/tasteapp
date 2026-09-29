@@ -19,6 +19,17 @@ type StatsRankingCardProps = {
 export default function StatsRankingCard(
   props: StatsRankingCardProps
 ) {
+  if (
+    props.title ===
+    "Nejčastější pivovary"
+  ) {
+    return (
+      <BreweryRankingCardView
+        {...props}
+      />
+    );
+  }
+
   if (props.title !== "Pivní styly") {
     return <RankingCardView {...props} />;
   }
@@ -38,6 +49,258 @@ export default function StatsRankingCard(
         }
       />
     </>
+  );
+}
+
+function BreweryRankingCardView({
+  title,
+  items,
+  getItemHref,
+}: StatsRankingCardProps) {
+  const topItems =
+    items.slice(0, 5);
+
+  const tastingLabel = (
+    count: number
+  ) => {
+    if (count === 1) {
+      return "1 ochutnávka";
+    }
+
+    if (
+      count >= 2 &&
+      count <= 4
+    ) {
+      return `${count} ochutnávky`;
+    }
+
+    return `${count} ochutnávek`;
+  };
+
+  return (
+    <section
+      style={{
+        position: "relative",
+        overflow: "hidden",
+        padding: "14px",
+        border:
+          "1px solid var(--taste-border)",
+        borderRadius:
+          "var(--taste-radius-lg)",
+        background: `
+          linear-gradient(
+            145deg,
+            rgba(231,166,47,0.035),
+            transparent 42%
+          ),
+          var(--taste-surface)
+        `,
+        boxShadow:
+          "var(--taste-shadow-soft)",
+      }}
+    >
+      <h3
+        style={{
+          margin: 0,
+          color:
+            "var(--taste-amber-bright)",
+          fontSize: "14px",
+          lineHeight: 1.15,
+          fontWeight: 800,
+          letterSpacing:
+            "0.01em",
+        }}
+      >
+        {title}
+      </h3>
+
+      {topItems.length ===
+        0 && (
+        <div
+          style={{
+            padding:
+              "18px 0 8px",
+            color: "#fff",
+            fontSize: "11px",
+          }}
+        >
+          Zatím nejsou žádná data.
+        </div>
+      )}
+
+      <div
+        style={{
+          display: "grid",
+          gap: "10px",
+          marginTop: "13px",
+        }}
+      >
+        {topItems.map(
+          (item) => {
+            const content = (
+              <>
+                <span
+                  className="taste-brewery-logo-frame"
+                  style={{
+                    width: "42px",
+                    height: "42px",
+                    flexShrink: 0,
+                    display:
+                      "inline-flex",
+                    alignItems:
+                      "center",
+                    justifyContent:
+                      "center",
+                    overflow:
+                      "hidden",
+                    borderRadius:
+                      "50%",
+                    border:
+                      "1px solid rgba(235,174,75,.45)",
+                    background:
+                      item.logoUrl
+                        ? "rgba(255,255,255,.94)"
+                        : "rgba(255,255,255,.035)",
+                    boxShadow:
+                      "0 3px 10px rgba(0,0,0,.28), inset 0 0 0 1px rgba(255,255,255,.04)",
+                  }}
+                >
+                  {item.logoUrl ? (
+                    <img
+                      src={
+                        item.logoUrl
+                      }
+                      alt=""
+                      aria-hidden="true"
+                      style={{
+                        width: "100%",
+                        height:
+                          "100%",
+                        objectFit:
+                          "contain",
+                        padding: "4px",
+                      }}
+                    />
+                  ) : null}
+                </span>
+
+                <span
+                  style={{
+                    minWidth: 0,
+                    display:
+                      "grid",
+                    gap: "2px",
+                  }}
+                >
+                  <span
+                    title={
+                      item.name
+                    }
+                    style={{
+                      overflow:
+                        "hidden",
+                      textOverflow:
+                        "ellipsis",
+                      whiteSpace:
+                        "nowrap",
+                      color:
+                        "#fff",
+                      fontSize:
+                        "13px",
+                      lineHeight:
+                        1.2,
+                      fontWeight:
+                        750,
+                    }}
+                  >
+                    {item.name}
+                  </span>
+
+                  <span
+                    style={{
+                      color:
+                        "#fff",
+                      fontSize:
+                        "10.5px",
+                      lineHeight:
+                        1.25,
+                      fontWeight:
+                        500,
+                      opacity:
+                        0.82,
+                    }}
+                  >
+                    {tastingLabel(
+                      item.count
+                    )}
+                  </span>
+                </span>
+              </>
+            );
+
+            return getItemHref ? (
+              <Link
+                key={item.id}
+                href={getItemHref(
+                  item
+                )}
+                style={{
+                  display:
+                    "flex",
+                  alignItems:
+                    "center",
+                  gap: "10px",
+                  minWidth: 0,
+                  color:
+                    "inherit",
+                  textDecoration:
+                    "none",
+                }}
+              >
+                {content}
+              </Link>
+            ) : (
+              <div
+                key={item.id}
+                style={{
+                  display:
+                    "flex",
+                  alignItems:
+                    "center",
+                  gap: "10px",
+                  minWidth: 0,
+                }}
+              >
+                {content}
+              </div>
+            );
+          }
+        )}
+      </div>
+
+      <div
+        style={{
+          marginTop: "14px",
+          paddingTop: "9px",
+          borderTop:
+            "1px solid rgba(231,166,47,0.11)",
+        }}
+      >
+        <Link
+          href="/stats#pivovary"
+          aria-label="Zobrazit všechny pivovary ve statistikách"
+          style={{
+            color: "#fff",
+            textDecoration:
+              "none",
+            fontSize: "10.5px",
+            fontWeight: 650,
+          }}
+        >
+          Zobrazit všechny
+        </Link>
+      </div>
+    </section>
   );
 }
 
