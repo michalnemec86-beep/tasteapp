@@ -810,11 +810,12 @@ export default function EditTastingModalClient({
 
               <div style={fieldStyle}>
                 <label style={labelStyle}>
-                  Podání / obal
+                  Podání / obal *
                 </label>
 
                 <select
                   name="packaging"
+                  required
                   defaultValue={
                     tasting.packaging ??
                     ""

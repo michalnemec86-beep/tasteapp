@@ -13,11 +13,13 @@ import { isAdminView, isCatalogAdminUser } from "@/lib/adminView";
 import AdminBadge from "@/components/ui/AdminBadge";
 import BreweryCzechMapClient from "../BreweryCzechMapClient";
 import BreweryEditModalClient from "../BreweryEditModalClient";
+import BreweryBrandAddClient from "../BreweryBrandAddClient";
 import BreweryLogoManagerClient from "../BreweryLogoManagerClient";
 import BreweryNameHistoryItemClient from "../BreweryNameHistoryItemClient";
 import CatalogBeerCreateModalClient from "../CatalogBeerCreateModalClient";
 import CatalogBeerEditModalClient from "../CatalogBeerEditModalClient";
 import {
+  addBreweryBrand,
   deleteBreweryNameHistory,
   updateBrewery,
   updateBreweryNameHistory,
@@ -641,6 +643,7 @@ export default async function BreweryDetailPage({ params, searchParams }: Props)
                         }}
                         styles={styles}
                         hops={hops}
+                        allowBrandAssignment={isCatalogAdmin}
                         updateBeerAction={updateCatalogBeer.bind(null, brewery.id, beer.id)}
                         deleteBeerAction={deleteCatalogBeer.bind(null, brewery.id, beer.id)}
                       />
@@ -665,7 +668,6 @@ export default async function BreweryDetailPage({ params, searchParams }: Props)
           )}
         </div>
 
-        {linkedBrands.length > 0 && (
           <div style={{ marginTop: "22px", paddingTop: "18px", borderTop: "1px solid var(--taste-border)" }}>
             <div className="taste-label taste-brewery-section-title" style={{ marginBottom: "9px" }}>Značky pivovaru</div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: "7px" }}>
@@ -675,8 +677,8 @@ export default async function BreweryDetailPage({ params, searchParams }: Props)
                 </Link>
               ))}
             </div>
+            <BreweryBrandAddClient action={addBreweryBrand.bind(null, brewery.id)} />
           </div>
-        )}
 
         {collaborations.length > 0 && (
           <div style={{ marginTop: "24px", paddingTop: "18px", borderTop: "1px solid var(--taste-border)" }}>

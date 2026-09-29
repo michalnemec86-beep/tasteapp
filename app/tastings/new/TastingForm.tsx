@@ -579,7 +579,7 @@ export default function TastingForm({
 
       {/* ZNAČKA */}
       <div style={fieldStyle}>
-        <label style={labelStyle}>Značka *</label>
+        <label style={labelStyle}>Značka (volitelné u nového piva)</label>
         <div style={{ position: "relative" }}>
           <input
             name="brandName"
@@ -589,7 +589,6 @@ export default function TastingForm({
             onBlur={() => setTimeout(() => setBrandOpen(false), 150)}
             placeholder={activeBrewery ? "Vyber značku pivovaru nebo napiš novou" : "Napiš alespoň 3 písmena značky"}
             autoComplete="off"
-            required
             style={inputStyle}
           />
           {brandOpen && brandSuggestions.length > 0 && (
@@ -768,7 +767,7 @@ export default function TastingForm({
           {styleOpen && styleName.trim().length >= 3 && styleSuggestions.length === 0 && (
             <div style={dropdownStyle}>
               <div style={{ padding: "10px 12px", color: "var(--taste-text-muted)" }}>
-                Tento styl není v katalogu.
+                Nový styl „{styleName.trim()}“ se přidá při uložení ochutnávky.
               </div>
             </div>
           )}
@@ -898,7 +897,7 @@ export default function TastingForm({
             onKeyDown={(event) => {
               if (event.key === "Enter" && hopValue.trim()) {
                 event.preventDefault();
-                if (hopSuggestions.length > 0) addHop(hopSuggestions[0].name);
+                addHop(hopSuggestions.length > 0 ? hopSuggestions[0].name : hopValue);
               }
             }}
             placeholder={existingBeerId ? "Chmely jsou převzaté z katalogu" : "Např. Citra"}
@@ -929,9 +928,9 @@ export default function TastingForm({
 
           {hopOpen && hopValue.trim().length >= 3 && hopSuggestions.length === 0 && (
             <div style={dropdownStyle}>
-              <div style={{ padding: "10px 12px", color: "var(--taste-text-muted)" }}>
-                Tento chmel není v katalogu.
-              </div>
+              <button type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => addHop(hopValue)} style={suggestionButtonStyle}>
+                Přidat nový chmel „{hopValue.trim()}“
+              </button>
             </div>
           )}
         </div>
@@ -953,9 +952,9 @@ export default function TastingForm({
       </div>
 
       <div style={fieldStyle}>
-        <label style={labelStyle}>Podání / obal</label>
-        <select name="packaging" defaultValue="" style={inputStyle}>
-          <option value="">Nezadáno</option>
+        <label style={labelStyle}>Podání / obal *</label>
+        <select name="packaging" defaultValue="" required style={inputStyle}>
+          <option value="" disabled>Vyber způsob podání</option>
           {PACKAGING_OPTIONS.map((option) => (
             <option key={option.value} value={option.value}>
               {option.icon} {option.label}

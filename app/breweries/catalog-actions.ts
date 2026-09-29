@@ -252,12 +252,6 @@ function readBeerValues(formData: FormData) {
   const brandName = String(formData.get("brandName") ?? "").trim();
 
   if (!name) throw new Error("Název piva je povinný.");
-  if (!brandName) {
-    throw new Error(
-      "Značka je povinná. Pivovar, značka a konkrétní pivo se v TasteAppu evidují samostatně."
-    );
-  }
-
   return {
     name,
     brandName,
@@ -280,6 +274,7 @@ export async function createCatalogBeer(breweryId: number, formData: FormData) {
   if (!Number.isInteger(breweryId) || breweryId < 1) throw new Error("Neplatné ID pivovaru.");
 
   const values = readBeerValues(formData);
+  if (!values.brandName) throw new Error("Katalogové pivo musí mít značku.");
 
   if (!values.styleName || (values.plato == null && values.abv == null)) {
     throw new Error(
@@ -384,7 +379,7 @@ export async function updateCatalogBeer(
   beerId: number,
   formData: FormData
 ) {
-  const { supabase } = await requireUser();
+  const { supabase, user } = await requireUser();
   if (!Number.isInteger(breweryId) || breweryId < 1) throw new Error("Neplatné ID pivovaru.");
   if (!Number.isInteger(beerId) || beerId < 1) throw new Error("Neplatné ID piva.");
 
@@ -405,9 +400,11 @@ export async function updateCatalogBeer(
   if (beerError || !beer) throw new Error(beerError?.message || "Pivo nebylo nalezeno u tohoto pivovaru.");
 
   const brandRelation = Array.isArray(beer.brands) ? beer.brands[0] : beer.brands;
+  const assigningMissingBrand = !beer.brand_id && Boolean(values.brandName);
   if (
     normalizeText(values.name) !== normalizeText(beer.name) ||
-    normalizeText(values.brandName) !== normalizeText(brandRelation?.name ?? "")
+    (assigningMissingBrand && user.id !== "17be5dc3-a3f9-4fd2-ae90-dee7692034fc") ||
+    (!assigningMissingBrand && normalizeText(values.brandName) !== normalizeText(brandRelation?.name ?? ""))
   ) {
     throw new Error("Pivovar, značka a název tvoří pevnou identitu piva a při běžné editaci je nelze změnit.");
   }
@@ -439,6 +436,13 @@ export async function updateCatalogBeer(
     .eq("id", beerId)
     .eq("brewery_id", breweryId);
   if (portfolioError) throw new Error(portfolioError.message);
+
+  if (assigningMissingBrand) {
+    const brandId = await resolveBrandId(supabase, values.brandName, breweryId, user.id);
+    const { error: brandError } = await supabase
+      .from("beers").update({ brand_id: brandId }).eq("id", beerId).eq("brewery_id", breweryId);
+    if (brandError) throw new Error(brandError.message);
+  }
 
   revalidateCatalog(breweryId, beerId);
   return { success: true, beerId };
