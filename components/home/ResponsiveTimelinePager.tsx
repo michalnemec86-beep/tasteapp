@@ -41,7 +41,7 @@ export default function ResponsiveTimelinePager({
   const [
     isMobile,
     setIsMobile,
-  ] = useState(false);
+  ] = useState(true);
 
   const [
     localPage,
