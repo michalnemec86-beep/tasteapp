@@ -440,14 +440,14 @@ function getCountryNameFromHeroTitle(title: ReactNode) {
 function BreweryLogoVisual({ src, alt }: { src: string; alt: string }) {
   return (
     <div
-      className="taste-page-hero-brewery-logo taste-brewery-logo-frame"
+      className="taste-page-hero-brewery-logo taste-brewery-logo-coaster"
       style={{
         position: "absolute",
         zIndex: 3,
         top: "50%",
         right: "clamp(18px, 4vw, 58px)",
-        width: "clamp(96px, 15vw, 170px)",
-        height: "clamp(76px, 11vw, 124px)",
+        width: "clamp(112px, 15vw, 160px)",
+        height: "clamp(112px, 15vw, 160px)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
