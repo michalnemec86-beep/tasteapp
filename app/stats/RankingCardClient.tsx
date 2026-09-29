@@ -8,6 +8,7 @@ import {
   useState,
 } from "react";
 import { createPortal } from "react-dom";
+import AutoLogoFrame from "@/components/ui/AutoLogoFrame";
 import { getCountryEvidenceHref } from "@/lib/country-flags";
 
 type RankingItem = {
@@ -506,29 +507,11 @@ function RankingItemLabel({
           </span>
         </span>
       ) : item.logoUrl ? (
-        <span
-          className="taste-brewery-logo-frame"
-          style={{
-            width: "24px",
-            height: "24px",
-            flexShrink: 0,
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            overflow: "hidden",
-          }}
-        >
-          <img
-            src={item.logoUrl}
-            alt=""
-            aria-hidden="true"
-            style={{
-              width: "100%",
-              height: "100%",
-              objectFit: "contain",
-            }}
-          />
-        </span>
+        <AutoLogoFrame
+          src={item.logoUrl}
+          size={24}
+          padding={2}
+        />
       ) : null}
 
       <span
