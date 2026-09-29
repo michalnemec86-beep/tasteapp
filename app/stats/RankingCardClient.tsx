@@ -376,7 +376,6 @@ export default function RankingCardClient({
                   items={items}
                   maximum={maximum}
                   itemHrefPrefix={itemHrefPrefix}
-                  tone={cardTone}
                   disableItemLinks={disableItemLinks}
                   personalItemIds={personalItemIds}
                   comparisonItems={comparisonItems}
