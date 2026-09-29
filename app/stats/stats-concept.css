@@ -33,9 +33,9 @@ body:has(.taste-stats-concept) {
   border-radius: 0 0 14px 14px;
   background:
     radial-gradient(circle at 59% 13%, rgba(255,191,86,.12), transparent 24%),
-    linear-gradient(180deg, rgba(10,7,5,.04) 0%, rgba(18,11,7,.46) 29%, rgba(16,12,9,.84) 55%, #100d0a 82%),
-    linear-gradient(90deg, rgba(12,8,6,.77), rgba(12,8,6,.18) 55%, rgba(12,8,6,.08)),
-    url("/images/heroes/stats.jpg") 56% -105px / cover no-repeat;
+    linear-gradient(180deg, rgba(10,7,5,.03) 0%, rgba(18,11,7,.40) 27%, rgba(16,12,9,.82) 54%, #100d0a 82%),
+    linear-gradient(90deg, rgba(12,8,6,.73), rgba(12,8,6,.15) 55%, rgba(12,8,6,.06)),
+    url("/images/heroes/stats.jpg") 50% -18px / 100% auto no-repeat;
   filter: saturate(1.08) contrast(1.05) brightness(1.01);
   pointer-events: none;
 }
@@ -108,62 +108,25 @@ body:has(.taste-stats-concept) {
   height: 34px;
 }
 
-.taste-stats-concept .taste-hero-stat-scroller {
-  display: grid;
-  grid-template-columns: 32px minmax(0, 1fr) 32px;
-  align-items: stretch;
-  gap: 7px;
+.taste-stats-concept .taste-page-hero-stats .taste-hero-stat-scroller {
+  display: block;
 }
 
-.taste-stats-concept .taste-hero-stat-scroll-track {
+.taste-stats-concept .taste-page-hero-stats .taste-hero-stat-scroll-track {
   min-width: 0;
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
   gap: 7px;
-  overflow-x: auto;
-  overscroll-behavior-inline: contain;
-  scroll-behavior: smooth;
-  scroll-snap-type: x mandatory;
-  scrollbar-width: none;
+  overflow: visible;
+  scroll-snap-type: none;
 }
 
-.taste-stats-concept .taste-hero-stat-scroll-track::-webkit-scrollbar {
+.taste-stats-concept .taste-page-hero-stats .taste-hero-stat-scroll-track > .taste-hero-stat {
+  min-width: 0;
+}
+
+.taste-stats-concept .taste-page-hero-stats .taste-hero-stat-scroll-button {
   display: none;
-}
-
-.taste-stats-concept .taste-hero-stat-scroll-track > .taste-hero-stat {
-  flex: 0 0 220px;
-  scroll-snap-align: start;
-}
-
-.taste-stats-concept .taste-hero-stat-scroll-button {
-  width: 32px;
-  min-height: 68px;
-  border: 1px solid rgba(229,166,78,.34);
-  border-radius: 9px;
-  background:
-    linear-gradient(145deg, rgba(102,57,24,.42), rgba(28,20,14,.94));
-  color: #f2b63f;
-  font-size: 27px;
-  line-height: 1;
-  cursor: pointer;
-  box-shadow:
-    inset 0 1px rgba(255,226,171,.10),
-    0 3px 10px rgba(0,0,0,.24);
-}
-
-.taste-stats-concept .taste-hero-stat-scroll-button:hover:not(:disabled) {
-  border-color: rgba(244,187,94,.60);
-  color: #ffd36d;
-  background:
-    linear-gradient(145deg, rgba(126,70,27,.50), rgba(36,24,15,.96));
-  box-shadow:
-    0 0 15px rgba(231,166,47,.12),
-    inset 0 1px rgba(255,232,181,.13);
-}
-
-.taste-stats-concept .taste-hero-stat-scroll-button:disabled {
-  opacity: .25;
-  cursor: default;
 }
 
 .taste-stats-concept .taste-stats-hero-links {
@@ -381,6 +344,73 @@ body:has(.taste-stats-concept) {
   text-shadow: 0 2px 14px rgba(0,0,0,.38);
 }
 
+.taste-stats-concept .taste-ranking-scroller {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) 36px;
+  align-items: stretch;
+  gap: 9px;
+}
+
+.taste-stats-concept .taste-ranking-scroll-track {
+  min-width: 0;
+  display: flex;
+  gap: 16px;
+  align-items: stretch;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+.taste-stats-concept .taste-ranking-scroll-track::-webkit-scrollbar {
+  display: none;
+}
+
+.taste-stats-concept .taste-ranking-scroll-track > .taste-ranking-card {
+  flex: 0 0 min(430px, calc(100vw - 150px));
+  scroll-snap-align: start;
+}
+
+.taste-stats-concept .taste-ranking-scroll-button {
+  width: 36px;
+  min-height: 100%;
+  border: 1px solid rgba(224,151,69,.36);
+  border-radius: 10px;
+  background:
+    radial-gradient(circle at 50% 16%, rgba(255,220,164,.10), transparent 34%),
+    linear-gradient(180deg, rgba(86,48,22,.58), rgba(28,20,14,.96));
+  color: #f2b63f;
+  font-size: 30px;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow:
+    inset 0 1px rgba(255,227,174,.11),
+    0 5px 13px rgba(0,0,0,.24);
+}
+
+.taste-stats-concept .taste-ranking-scroll-button:hover:not(:disabled) {
+  border-color: rgba(244,187,94,.62);
+  color: #ffd36d;
+  background:
+    radial-gradient(circle at 50% 16%, rgba(255,225,171,.14), transparent 36%),
+    linear-gradient(180deg, rgba(106,59,24,.66), rgba(33,22,14,.98));
+  box-shadow:
+    0 0 17px rgba(231,166,47,.12),
+    inset 0 1px rgba(255,234,188,.15);
+}
+
+.taste-stats-concept .taste-ranking-scroll-button:disabled {
+  opacity: .22;
+  cursor: default;
+}
+
+.taste-stats-concept .taste-stats-ranking-grid-single {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+}
+
 .taste-stats-concept .taste-ranking-card {
   border-color: rgba(208,136,72,.48) !important;
   background:
@@ -594,7 +624,11 @@ body:has(.taste-stats-concept) {
     top: 58px;
     height: 590px;
     border-radius: 0;
-    background-position: center, center, center, 58% -42px;
+    background:
+      radial-gradient(circle at 59% 13%, rgba(255,191,86,.10), transparent 24%),
+      linear-gradient(180deg, rgba(10,7,5,.03) 0%, rgba(18,11,7,.42) 28%, rgba(16,12,9,.84) 56%, #100d0a 84%),
+      linear-gradient(90deg, rgba(12,8,6,.73), rgba(12,8,6,.17) 55%, rgba(12,8,6,.08)),
+      url("/images/heroes/stats.jpg") 61% -8px / auto 390px no-repeat;
   }
 
   .taste-app-shell:has(.taste-stats-concept) > .taste-app-nav {
@@ -630,19 +664,70 @@ body:has(.taste-stats-concept) {
     max-width: none;
   }
 
-  .taste-stats-concept .taste-hero-stat-scroller {
+  .taste-stats-concept .taste-page-hero-stats .taste-hero-stat-scroller {
+    display: grid;
     grid-template-columns: 29px minmax(0, 1fr) 29px;
+    align-items: stretch;
     gap: 5px;
   }
 
-  .taste-stats-concept .taste-hero-stat-scroll-track > .taste-hero-stat {
-    flex-basis: 190px;
+  .taste-stats-concept .taste-page-hero-stats .taste-hero-stat-scroll-track {
+    display: flex;
+    gap: 7px;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scroll-behavior: smooth;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
   }
 
-  .taste-stats-concept .taste-hero-stat-scroll-button {
+  .taste-stats-concept .taste-page-hero-stats .taste-hero-stat-scroll-track::-webkit-scrollbar {
+    display: none;
+  }
+
+  .taste-stats-concept .taste-page-hero-stats .taste-hero-stat-scroll-track > .taste-hero-stat {
+    flex: 0 0 190px;
+    scroll-snap-align: start;
+  }
+
+  .taste-stats-concept .taste-page-hero-stats .taste-hero-stat-scroll-button {
+    display: block;
     width: 29px;
     min-height: 60px;
+    border: 1px solid rgba(229,166,78,.34);
+    border-radius: 9px;
+    background:
+      linear-gradient(145deg, rgba(102,57,24,.42), rgba(28,20,14,.94));
+    color: #f2b63f;
     font-size: 23px;
+    line-height: 1;
+    cursor: pointer;
+    box-shadow:
+      inset 0 1px rgba(255,226,171,.10),
+      0 3px 10px rgba(0,0,0,.24);
+  }
+
+  .taste-stats-concept .taste-page-hero-stats .taste-hero-stat-scroll-button:disabled {
+    opacity: .25;
+    cursor: default;
+  }
+
+  .taste-stats-concept .taste-ranking-scroller {
+    grid-template-columns: 30px minmax(0, 1fr) 30px;
+    gap: 6px;
+  }
+
+  .taste-stats-concept .taste-ranking-scroll-track {
+    gap: 12px;
+  }
+
+  .taste-stats-concept .taste-ranking-scroll-track > .taste-ranking-card {
+    flex-basis: calc(100vw - 92px);
+  }
+
+  .taste-stats-concept .taste-ranking-scroll-button {
+    width: 30px;
+    font-size: 24px;
   }
 
   .taste-stats-concept .taste-ranking-card {
