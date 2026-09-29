@@ -78,8 +78,30 @@
 
 .taste-home-concept .taste-timeline-actions .taste-button-primary {
   min-height: 43px !important;
+  border: 1px solid rgba(183, 199, 93, .72) !important;
   border-radius: 9px !important;
-  box-shadow: 0 5px 14px rgba(197, 118, 28, .19) !important;
+  background:
+    linear-gradient(180deg, rgba(190, 211, 98, .24), transparent 34%),
+    linear-gradient(145deg, #8a9e36 0%, #6f842e 48%, #556a28 100%) !important;
+  color: #fff7df !important;
+  text-shadow: 0 1px 0 rgba(35, 48, 17, .55);
+  box-shadow:
+    inset 0 1px 0 rgba(242, 250, 193, .28),
+    inset 0 -5px 10px rgba(47, 65, 22, .20),
+    0 5px 15px rgba(84, 112, 39, .34),
+    0 0 17px rgba(138, 158, 54, .18) !important;
+}
+
+.taste-home-concept .taste-timeline-actions .taste-button-primary:hover {
+  border-color: rgba(205, 220, 119, .90) !important;
+  background:
+    linear-gradient(180deg, rgba(218, 232, 139, .30), transparent 35%),
+    linear-gradient(145deg, #9cad47 0%, #7f9536 48%, #60782b 100%) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(248, 255, 205, .34),
+    inset 0 -5px 10px rgba(47, 65, 22, .18),
+    0 6px 17px rgba(101, 132, 47, .38),
+    0 0 21px rgba(156, 173, 71, .23) !important;
 }
 
 .taste-home-concept .taste-timeline-list {
