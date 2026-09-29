@@ -74,7 +74,7 @@ export default function PageHero({
   const usesContainedVisual = isBreweryHero || hasCountryHero;
 
   const statCards =
-    {stats.map((stat, index) => (
+    stats.map((stat, index) => (
               <a
                 key={stat.label}
                 href={stat.href}
@@ -166,7 +166,7 @@ export default function PageHero({
                   </div>
                 </div>
               </a>
-            ))};
+            ));
 
   return (
     <section
