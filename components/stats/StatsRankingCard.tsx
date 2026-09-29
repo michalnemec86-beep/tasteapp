@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import AutoLogoFrame from "@/components/ui/AutoLogoFrame";
 import type { RankingItem } from "@/lib/stats";
 
 type StatsRankingCardProps = {
@@ -557,67 +558,34 @@ function BrandRankingCardView({
 
             const row = (
               <>
-                <span
-                  className="taste-brewery-logo-frame"
-                  aria-hidden="true"
-                  style={{
-                    width:
-                      "28px",
-                    height:
-                      "28px",
-                    flexShrink:
-                      0,
-                    display:
-                      "inline-flex",
-                    alignItems:
-                      "center",
-                    justifyContent:
-                      "center",
-                    overflow:
-                      "hidden",
-                    borderRadius:
-                      "50%",
-                    border:
-                      "1px solid rgba(235,174,75,.42)",
-                    background:
-                      item.logoUrl
-                        ? "rgba(255,255,255,.94)"
-                        : "rgba(255,255,255,.035)",
-                    boxShadow:
-                      "0 2px 7px rgba(0,0,0,.27), inset 0 0 0 1px rgba(255,255,255,.04)",
-                    boxSizing:
-                      "border-box",
-                    padding:
-                      "2px",
-                  }}
-                >
-                  {item.logoUrl ? (
-                    <img
-                      src={
-                        item.logoUrl
-                      }
-                      alt=""
-                      style={{
-                        display:
-                          "block",
-                        width:
-                          "100%",
-                        height:
-                          "100%",
-                        minWidth: 0,
-                        minHeight: 0,
-                        maxWidth:
-                          "100%",
-                        maxHeight:
-                          "100%",
-                        objectFit:
-                          "contain",
-                        borderRadius:
-                          "50%",
-                      }}
-                    />
-                  ) : null}
-                </span>
+                {item.logoUrl ? (
+                  <AutoLogoFrame
+                    src={item.logoUrl}
+                    size={28}
+                    padding={2}
+                  />
+                ) : (
+                  <span
+                    className="taste-brewery-logo-frame"
+                    aria-hidden="true"
+                    style={{
+                      width:
+                        "28px",
+                      height:
+                        "28px",
+                      flexShrink:
+                        0,
+                      display:
+                        "inline-flex",
+                      borderRadius:
+                        "50%",
+                      border:
+                        "1px solid rgba(235,174,75,.42)",
+                      background:
+                        "rgba(255,255,255,.035)",
+                    }}
+                  />
+                )}
 
                 <span
                   title={
@@ -2252,64 +2220,37 @@ function BreweryRankingCardView({
           (item) => {
             const content = (
               <>
-                <span
-                  className="taste-brewery-logo-frame"
-                  style={{
-                    width: "42px",
-                    height: "42px",
-                    flexShrink: 0,
-                    display:
-                      "inline-flex",
-                    alignItems:
-                      "center",
-                    justifyContent:
-                      "center",
-                    overflow:
-                      "hidden",
-                    borderRadius:
-                      "50%",
-                    border:
-                      "1px solid rgba(235,174,75,.45)",
-                    background:
-                      item.logoUrl
-                        ? "rgba(255,255,255,.94)"
-                        : "rgba(255,255,255,.035)",
-                    boxShadow:
-                      "0 3px 10px rgba(0,0,0,.28), inset 0 0 0 1px rgba(255,255,255,.04)",
-                    boxSizing:
-                      "border-box",
-                    // Přepisuje globální procentní padding logových dlaždic.
-                    // U malého kruhu by 7 % rodiče prakticky sežralo celý obsah.
-                    padding: "3px",
-                  }}
-                >
-                  {item.logoUrl ? (
-                    <img
-                      src={
-                        item.logoUrl
-                      }
-                      alt=""
-                      aria-hidden="true"
-                      style={{
-                        display:
-                          "block",
-                        width: "100%",
-                        height:
-                          "100%",
-                        minWidth: 0,
-                        minHeight: 0,
-                        maxWidth:
-                          "100%",
-                        maxHeight:
-                          "100%",
-                        objectFit:
-                          "contain",
-                        borderRadius:
-                          "50%",
-                      }}
-                    />
-                  ) : null}
-                </span>
+                {item.logoUrl ? (
+                  <AutoLogoFrame
+                    src={item.logoUrl}
+                    size={42}
+                    padding={3}
+                    style={{
+                      border:
+                        "1px solid rgba(235,174,75,.45)",
+                      boxShadow:
+                        "0 3px 10px rgba(0,0,0,.28), inset 0 0 0 1px rgba(255,255,255,.04)",
+                    }}
+                  />
+                ) : (
+                  <span
+                    className="taste-brewery-logo-frame"
+                    aria-hidden="true"
+                    style={{
+                      width: "42px",
+                      height: "42px",
+                      flexShrink: 0,
+                      display:
+                        "inline-flex",
+                      borderRadius:
+                        "50%",
+                      border:
+                        "1px solid rgba(235,174,75,.45)",
+                      background:
+                        "rgba(255,255,255,.035)",
+                    }}
+                  />
+                )}
 
                 <span
                   style={{

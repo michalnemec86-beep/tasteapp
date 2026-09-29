@@ -728,10 +728,18 @@ export default async function StatsPage({
         }
         action={!selectedProfile ? (
           <div className="taste-stats-hero-links">
-            <Link href="/stats?focus=hops" className="taste-button-secondary" aria-current={selectedFocus === "hops" ? "page" : undefined}>
+            <Link
+              href="/stats?focus=hops"
+              className="taste-button-secondary taste-stats-hero-link-hops"
+              aria-current={selectedFocus === "hops" ? "page" : undefined}
+            >
               Chmely
             </Link>
-            <Link href="/stats?focus=styles" className="taste-button-secondary" aria-current={selectedFocus === "styles" ? "page" : undefined}>
+            <Link
+              href="/stats?focus=styles"
+              className="taste-button-secondary taste-stats-hero-link-styles"
+              aria-current={selectedFocus === "styles" ? "page" : undefined}
+            >
               Pivní styly
             </Link>
           </div>
