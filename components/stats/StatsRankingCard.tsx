@@ -431,7 +431,7 @@ function PackagingRankingCardView({
         }}
       >
         <Link
-          href="/stats#podani"
+          href="/stats"
           style={{
             color:
               "#fff",
