@@ -60,6 +60,14 @@
 
 .taste-home-concept > .grid > section#timeline {
   padding: 15px !important;
+  border-color: rgba(226, 157, 67, .52) !important;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(225, 145, 58, .20), transparent 30%),
+    linear-gradient(158deg, #3b220e 0%, #26170d 28%, #17120e 62%, #100e0c 100%) !important;
+  box-shadow:
+    0 14px 36px rgba(0, 0, 0, .34),
+    0 0 28px rgba(209, 123, 42, .15),
+    inset 0 1px 0 rgba(255, 221, 158, .13) !important;
 }
 
 .taste-home-concept #timeline > .taste-label {
@@ -75,7 +83,7 @@
 }
 
 .taste-home-concept .taste-timeline-list {
-  gap: 12px;
+  gap: 7px;
   padding-left: 19px;
 }
 
@@ -85,22 +93,31 @@
 
 .taste-home-concept .taste-timeline-card,
 .taste-home-concept .taste-timeline-system .taste-timeline-card {
-  border: 1px solid rgba(225, 162, 68, .24);
+  border: 1px solid rgba(225, 162, 68, .30);
   border-radius: 10px;
-  box-shadow: 0 5px 14px rgba(0, 0, 0, .20), inset 0 1px 0 rgba(255, 226, 171, .035);
+  overflow: hidden;
+  background: #17110d;
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, .24),
+    inset 0 1px 0 rgba(255, 226, 171, .05);
 }
 
 .taste-home-concept .taste-timeline-card-header,
 .taste-home-concept .taste-timeline-system .taste-timeline-card-header {
-  padding: 10px 13px;
-  background: #21180f;
-  border-bottom-color: rgba(225, 162, 68, .12);
+  display: grid;
+  grid-template-columns: 39px minmax(0, 1fr) auto;
+  gap: 9px;
+  align-items: center;
+  padding: 8px 11px;
+  background: linear-gradient(100deg, #2b1b0f, #21160e 62%, #1b130e);
+  border-bottom-color: rgba(225, 162, 68, .16);
 }
 
 .taste-home-concept .taste-timeline-card-body,
 .taste-home-concept .taste-timeline-system .taste-timeline-card-body {
-  padding: 10px 14px 12px;
-  background: rgba(43, 28, 17, .72);
+  padding: 8px 12px 10px;
+  background:
+    linear-gradient(155deg, rgba(67, 38, 19, .76), rgba(26, 19, 14, .94) 58%, rgba(19, 16, 13, .98));
 }
 
 .taste-home-concept .taste-timeline-packaging {
@@ -110,21 +127,181 @@
   border-radius: 8px;
 }
 
-.taste-home-concept .taste-timeline-packaging svg { width: 21px; height: 21px; }
-.taste-home-concept .taste-timeline-nickname { font-size: 12px; padding: 2px 6px; }
-.taste-home-concept .taste-timeline-realname { font-size: 11px; }
-.taste-home-concept .taste-timeline-date { font-size: 11px; }
-.taste-home-concept .taste-timeline-beer-name { font-size: 15px; }
-.taste-home-concept .taste-timeline-brewery { margin-top: 3px; font-size: 12px; }
-.taste-home-concept .taste-timeline-details { margin-top: 5px; font-size: 11px; }
-.taste-home-concept .taste-timeline-note { margin-top: 6px; }
+.taste-home-concept .taste-timeline-packaging-illustrated {
+  width: 39px;
+  height: 39px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(233, 174, 82, .30);
+  border-radius: 9px;
+  background: linear-gradient(145deg, rgba(232, 168, 65, .16), rgba(70, 37, 18, .38));
+  box-shadow: inset 0 1px rgba(255, 230, 170, .13), 0 3px 8px rgba(0, 0, 0, .28);
+}
+
+.taste-home-concept .taste-timeline-packaging-illustrated svg {
+  width: 31px;
+  height: 31px;
+}
+
+.taste-home-concept .taste-timeline-person-line {
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.taste-home-concept .taste-timeline-nickname-plain {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #f2b63f;
+  font-size: 12px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.taste-home-concept .taste-timeline-realname {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: rgba(255, 255, 255, .90);
+  font-size: 11px;
+}
+
+.taste-home-concept .taste-timeline-date {
+  color: rgba(255, 255, 255, .90);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.taste-home-concept .taste-timeline-main-line {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+}
+
+.taste-home-concept .taste-timeline-beer-name {
+  font-size: 15px;
+}
+
+.taste-home-concept .taste-timeline-main-title {
+  min-width: 0;
+  margin: 0;
+  color: #f2b63f;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.taste-home-concept .taste-timeline-main-link {
+  color: #f2b63f;
+  text-decoration: none;
+}
+
+.taste-home-concept .taste-timeline-main-link:hover {
+  color: #ffd36d;
+}
+
+.taste-home-concept .taste-timeline-main-separator {
+  color: #d99a3d;
+}
+
+.taste-home-concept .taste-timeline-quantity {
+  flex-shrink: 0;
+  color: #f2b63f;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.taste-home-concept .taste-timeline-details {
+  margin-top: 4px;
+  font-size: 10.5px;
+}
+
+.taste-home-concept .taste-timeline-details-compact {
+  color: rgba(255, 255, 255, .72);
+}
+
+.taste-home-concept .taste-timeline-details-compact > span + span::before {
+  content: " · ";
+  color: rgba(237, 201, 139, .52);
+}
+
+.taste-home-concept .taste-timeline-note {
+  margin-top: 5px;
+}
+
+.taste-home-concept .taste-timeline-system-kicker {
+  margin-bottom: 2px;
+  color: rgba(255, 255, 255, .66);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+.taste-home-concept .taste-timeline-achievement-definition {
+  margin-top: 4px;
+  color: rgba(255, 255, 255, .76);
+  font-size: 10.5px;
+  line-height: 1.35;
+}
+
+.taste-home-concept .taste-timeline-system-single-card {
+  background:
+    linear-gradient(145deg, rgba(83, 47, 22, .70), rgba(25, 18, 13, .96));
+}
+
+.taste-home-concept .taste-timeline-system-one-line {
+  display: grid;
+  grid-template-columns: 39px minmax(0, 1fr) auto;
+  gap: 9px;
+  align-items: center;
+  padding: 8px 11px;
+}
+
+.taste-home-concept .taste-timeline-system-one-line-copy {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #fff;
+  font-size: 11.5px;
+  font-weight: 650;
+}
 
 @media (max-width: 639px) {
   .taste-home-concept > .taste-page-hero .taste-page-hero-layout { min-height: 108px; }
   .taste-home-concept .taste-hero-stat { min-height: 48px !important; }
   .taste-home-concept > .grid > section#timeline { padding: 12px !important; }
   .taste-home-concept .taste-timeline-list { padding-left: 19px; }
-  .taste-home-concept .taste-timeline-date { flex-basis: 100%; padding-left: 44px; }
+  .taste-home-concept .taste-timeline-card-header,
+  .taste-home-concept .taste-timeline-system-one-line {
+    grid-template-columns: 35px minmax(0, 1fr) auto;
+    gap: 7px;
+    padding-left: 9px;
+    padding-right: 9px;
+  }
+  .taste-home-concept .taste-timeline-packaging-illustrated {
+    width: 35px;
+    height: 35px;
+  }
+  .taste-home-concept .taste-timeline-packaging-illustrated svg {
+    width: 28px;
+    height: 28px;
+  }
+  .taste-home-concept .taste-timeline-realname {
+    font-size: 10px;
+  }
+  .taste-home-concept .taste-timeline-date {
+    flex-basis: auto;
+    padding-left: 0;
+    font-size: 10px;
+  }
 }
 
 /* The homepage lives in a single metal-edged panel on a black canvas. */
