@@ -231,7 +231,6 @@ export default function RankingCardClient({
       >
         <RankingHeader
           title={title}
-          subtitle={subtitle}
           icon={icon}
           tone={cardTone}
         />
@@ -344,7 +343,6 @@ export default function RankingCardClient({
               >
                 <RankingHeader
                   title={title}
-                  subtitle={`${subtitle} · ${items.length} položek`}
                   icon={icon}
                   tone={cardTone}
                 />
@@ -400,75 +398,68 @@ export default function RankingCardClient({
 
 function RankingHeader({
   title,
-  subtitle,
   icon,
   tone,
 }: {
   title: string;
-  subtitle: string;
   icon: ReactNode;
   tone: RankingToneStyle;
 }) {
   return (
-    <div>
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: "10px",
+        marginBottom: "16px",
+      }}
+    >
       <div
+        className="taste-ranking-header-icon"
         style={{
+          width: "34px",
+          height: "34px",
           display: "flex",
           alignItems: "center",
-          gap: "10px",
-          marginBottom: "3px",
+          justifyContent: "center",
+          flexShrink: 0,
+          border: `1px solid ${tone.softBorder}`,
+          borderRadius: "10px",
+          background: tone.tint,
+          color: tone.accent,
+          fontSize: "15px",
+          boxShadow: `inset 0 1px 0 ${tone.softBorder}`,
         }}
       >
-        <div
-          className="taste-ranking-header-icon"
-          style={{
-            width: "34px",
-            height: "34px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            flexShrink: 0,
-            border: `1px solid ${tone.softBorder}`,
-            borderRadius: "10px",
-            background: tone.tint,
-            color: tone.accent,
-            fontSize: "15px",
-            boxShadow: `inset 0 1px 0 ${tone.softBorder}`,
-          }}
-        >
-          {icon}
-        </div>
-
-        <h3
-          className="taste-ranking-title"
-          style={{
-            margin: 0,
-            color: tone.accent,
-            fontSize: "17px",
-            fontWeight: 750,
-            letterSpacing: "-0.015em",
-          }}
-        >
-          {title}
-        </h3>
+        {icon}
       </div>
 
-      <div
-        className="taste-ranking-subtitle"
+      <h3
+        className="taste-ranking-title"
         style={{
-          marginLeft: "44px",
-          marginBottom: "18px",
-          color: "var(--taste-text-muted)",
-          fontSize: "10px",
+          margin: 0,
+          color: tone.accent,
+          fontSize: "17px",
+          fontWeight: 750,
+          letterSpacing: "-0.015em",
         }}
       >
-        {subtitle}
-      </div>
+        {title}
+      </h3>
     </div>
   );
 }
 
-function RankingItemLabel({ item }: { item: RankingItem }) {
+function RankingItemLabel({
+  item,
+  title,
+}: {
+  item: RankingItem;
+  title: string;
+}) {
+  const isCountry =
+    title === "Státy";
+
   return (
     <span
       style={{
@@ -476,21 +467,58 @@ function RankingItemLabel({ item }: { item: RankingItem }) {
         maxWidth: "100%",
         display: "inline-flex",
         alignItems: "center",
-        gap: "7px",
+        gap: isCountry
+          ? "9px"
+          : "7px",
       }}
     >
-      {item.logoUrl ? (
+      {isCountry ? (
         <span
-          className="taste-brewery-logo-frame"
+          aria-hidden="true"
+          className="taste-ranking-country-flag"
           style={{
-            width: "24px",
-            height: "18px",
+            width: "30px",
+            height: "30px",
             flexShrink: 0,
             display: "inline-flex",
             alignItems: "center",
             justifyContent: "center",
             overflow: "hidden",
-
+            borderRadius: "50%",
+            border:
+              "1px solid rgba(235,174,75,.42)",
+            background:
+              "rgba(255,255,255,.04)",
+            boxShadow:
+              "0 2px 7px rgba(0,0,0,.27), inset 0 0 0 1px rgba(255,255,255,.04)",
+          }}
+        >
+          <span
+            style={{
+              display: "block",
+              fontSize: "28px",
+              lineHeight: 1,
+              transform:
+                "scale(1.34)",
+              transformOrigin:
+                "center",
+            }}
+          >
+            {item.flag ??
+              "🌍"}
+          </span>
+        </span>
+      ) : item.logoUrl ? (
+        <span
+          className="taste-brewery-logo-frame"
+          style={{
+            width: "24px",
+            height: "24px",
+            flexShrink: 0,
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            overflow: "hidden",
           }}
         >
           <img
@@ -504,8 +532,6 @@ function RankingItemLabel({ item }: { item: RankingItem }) {
             }}
           />
         </span>
-      ) : item.flag ? (
-        <span style={{ flexShrink: 0 }}>{item.flag}</span>
       ) : null}
 
       <span
@@ -547,170 +573,275 @@ function RankingList({
   lockedContext: boolean;
   currentQuery: string;
 }) {
-  const personalIds = new Set(personalItemIds.map(String));
-  const comparisonCounts = new Map(
-    comparisonItems.map((item) => [String(item.id), item.count])
-  );
+  const personalIds =
+    new Set(
+      personalItemIds.map(
+        String
+      )
+    );
+
+  const comparisonCounts =
+    new Map(
+      comparisonItems.map(
+        (item) => [
+          String(
+            item.id
+          ),
+          item.count,
+        ]
+      )
+    );
 
   return (
     <div
       className="taste-ranking-list"
       style={{
         display: "grid",
-        gap: "13px",
+        gap: "11px",
       }}
     >
-      {items.map((item, index) => {
-        const isPersonal = personalIds.has(String(item.id));
-        const percentage =
-          maximum > 0
-            ? Math.max(
-                5,
-                (item.count / maximum) * 100
+      {items.map(
+        (item) => {
+          const isPersonal =
+            personalIds.has(
+              String(
+                item.id
               )
-            : 0;
-
-        const href = disableItemLinks
-          ? null
-          : getItemHref(
-              title,
-              item,
-              itemHrefPrefix,
-              lockedContext,
-              currentQuery
             );
-        const comparisonCount =
-          comparisonCounts.get(String(item.id)) ?? 0;
 
-        const nameStyle = {
-          minWidth: 0,
-          overflow: "hidden",
-          textOverflow: "ellipsis",
-          whiteSpace: "nowrap" as const,
-          color:
-            isPersonal
-              ? tone.accent
-              : index === 0
-              ? "var(--taste-text)"
-              : "var(--taste-text-soft)",
-          fontSize: "12px",
-          fontWeight: isPersonal ? 800 : index === 0 ? 700 : 550,
-        };
+          const percentage =
+            maximum > 0
+              ? Math.max(
+                  8,
+                  (item.count /
+                    maximum) *
+                    100
+                )
+              : 0;
 
-        return (
-          <div key={item.id}>
-            <div
+          const href =
+            disableItemLinks
+              ? null
+              : getItemHref(
+                  title,
+                  item,
+                  itemHrefPrefix,
+                  lockedContext,
+                  currentQuery
+                );
+
+          const comparisonCount =
+            comparisonCounts.get(
+              String(
+                item.id
+              )
+            ) ?? 0;
+
+          const label = (
+            <span
+              className="taste-ranking-name"
+              title={
+                item.name
+              }
               style={{
-                display: "grid",
-                gridTemplateColumns:
-                  "25px minmax(0,1fr) 20px minmax(max-content,auto)",
-                alignItems: "center",
-                gap: "8px",
-                marginBottom: "6px",
+                minWidth: 0,
+                overflow:
+                  "hidden",
+                textOverflow:
+                  "ellipsis",
+                whiteSpace:
+                  "nowrap",
+                color: "#fff",
+                fontSize:
+                  "12px",
+                lineHeight:
+                  1.2,
+                fontWeight:
+                  700,
               }}
             >
-              <div
-                style={{
-                  color:
-                    index === 0
-                      ? tone.accent
-                      : "var(--taste-text-muted)",
-                  fontSize: "10px",
-                  fontWeight: 700,
-                }}
-              >
-                {index + 1}.
-              </div>
+              <RankingItemLabel
+                item={
+                  item
+                }
+                title={
+                  title
+                }
+              />
+            </span>
+          );
 
+          return (
+            <div
+              key={
+                item.id
+              }
+              className="taste-ranking-row"
+              style={{
+                display:
+                  "grid",
+                gridTemplateColumns:
+                  "minmax(0,auto) 18px minmax(38px,1fr) max-content",
+                alignItems:
+                  "center",
+                gap: "8px",
+                minWidth: 0,
+              }}
+            >
               {href ? (
                 <Link
-                  className="taste-ranking-name"
-                  href={href}
-                  title={item.name}
+                  href={
+                    href
+                  }
                   style={{
-                    ...nameStyle,
-                    textDecoration: "none",
-                    width: "fit-content",
-                    maxWidth: "100%",
+                    minWidth:
+                      0,
+                    color:
+                      "inherit",
+                    textDecoration:
+                      "none",
                   }}
                 >
-                  <RankingItemLabel item={item} />
+                  {label}
                 </Link>
               ) : (
-                <div className="taste-ranking-name" title={item.name} style={nameStyle}>
-                  <RankingItemLabel item={item} />
-                </div>
+                label
               )}
 
               <span
-                title={isPersonal ? "Máš ve své evidenci" : undefined}
-                aria-label={isPersonal ? "Máš ve své evidenci" : undefined}
-                aria-hidden={isPersonal ? undefined : true}
+                title={
+                  isPersonal
+                    ? "Máš ve své evidenci"
+                    : undefined
+                }
+                aria-label={
+                  isPersonal
+                    ? "Máš ve své evidenci"
+                    : undefined
+                }
+                aria-hidden={
+                  isPersonal
+                    ? undefined
+                    : true
+                }
+                className="taste-ranking-personal-mark"
                 style={{
-                  color: tone.accent,
-                  fontSize: "13px",
-                  lineHeight: 1,
-                  textAlign: "center",
-                  filter: "saturate(0.88)",
+                  color:
+                    "#f2b63f",
+                  fontSize:
+                    "13px",
+                  lineHeight:
+                    1,
+                  textAlign:
+                    "center",
+                  filter:
+                    "saturate(.88)",
                 }}
               >
-                {isPersonal ? "🍺" : ""}
+                {isPersonal
+                  ? "🍺"
+                  : ""}
               </span>
 
-              <div
-                className="taste-ranking-count"
+              <span
+                aria-hidden="true"
+                className="taste-ranking-progress-track"
                 style={{
-                  display: "inline-flex",
-                  alignItems: "baseline",
-                  justifyContent: "flex-end",
-                  gap: "4px",
-                  whiteSpace: "nowrap",
-                  color: tone.accent,
-                  fontSize: "11px",
-                  fontWeight: 750,
+                  position:
+                    "relative",
+                  height:
+                    "4px",
+                  minWidth:
+                    "38px",
+                  overflow:
+                    "hidden",
+                  borderRadius:
+                    "999px",
+                  background:
+                    "rgba(255,255,255,.045)",
+                  boxShadow:
+                    "inset 0 1px 1px rgba(0,0,0,.45)",
                 }}
               >
-                <span>{item.count}×</span>
+                <span
+                  className="taste-ranking-progress-fill"
+                  style={{
+                    position:
+                      "absolute",
+                    inset:
+                      "0 auto 0 0",
+                    width:
+                      `${percentage}%`,
+                    borderRadius:
+                      "999px",
+                    background:
+                      "linear-gradient(90deg, rgba(181,111,28,.72), #f2b63f 58%, #ffe075 100%)",
+                    boxShadow:
+                      "0 0 9px rgba(242,182,63,.45), inset 0 1px rgba(255,255,255,.32)",
+                  }}
+                />
+              </span>
+
+              <span
+                className="taste-ranking-count"
+                style={{
+                  display:
+                    "inline-flex",
+                  alignItems:
+                    "baseline",
+                  justifyContent:
+                    "flex-end",
+                  gap: "5px",
+                  whiteSpace:
+                    "nowrap",
+                  fontVariantNumeric:
+                    "tabular-nums",
+                }}
+              >
+                <strong
+                  style={{
+                    color:
+                      "#f2b63f",
+                    fontSize:
+                      "11px",
+                    lineHeight:
+                      1,
+                    fontWeight:
+                      800,
+                  }}
+                >
+                  {item.count}×
+                </strong>
+
                 <span
                   className="taste-ranking-comparison"
                   style={{
-                    color: "var(--taste-text-muted)",
-                    fontSize: "9px",
-                    fontWeight: 600,
+                    color:
+                      "#fff",
+                    fontSize:
+                      "9px",
+                    lineHeight:
+                      1,
+                    fontWeight:
+                      400,
+                    opacity:
+                      .88,
                   }}
                 >
-                  ({comparisonLabel} {comparisonCount}×)
+                  (
+                  {
+                    comparisonLabel
+                  }{" "}
+                  {
+                    comparisonCount
+                  }
+                  ×)
                 </span>
-              </div>
+              </span>
             </div>
-
-            <div
-              className="taste-ranking-progress-track"
-              style={{
-                marginLeft: "33px",
-                height: "4px",
-                overflow: "hidden",
-                borderRadius: "999px",
-                background: "rgba(255,255,255,0.045)",
-              }}
-            >
-              <div
-                className="taste-ranking-progress-fill"
-                style={{
-                  width: `${percentage}%`,
-                  height: "100%",
-                  borderRadius: "999px",
-                  background:
-                    index === 0
-                      ? tone.accent
-                      : tone.bar,
-                }}
-              />
-            </div>
-          </div>
-        );
-      })}
+          );
+        }
+      )}
     </div>
   );
 }
-
