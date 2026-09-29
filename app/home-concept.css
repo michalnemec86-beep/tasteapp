@@ -224,3 +224,19 @@ body:has(.taste-home-concept) {
   .taste-app-shell:has(.taste-home-concept) > .taste-app-nav { border-radius: 0; }
   .taste-app-shell:has(.taste-home-concept) .taste-home-concept { padding-top: 12px !important; }
 }
+
+/* Bring the dashboard closer to the greeting and give illustrated icons room. */
+.taste-home-concept .taste-page-hero-layout { min-height: 165px !important; }
+.taste-home-concept .taste-hero-stat > div:first-child {
+  width: 42px !important;
+  height: 42px !important;
+  border-radius: 10px !important;
+  border-color: rgba(236, 178, 89, .38) !important;
+  background: linear-gradient(145deg, rgba(232, 168, 65, .18), rgba(70, 37, 18, .42)) !important;
+  box-shadow: inset 0 1px rgba(255, 230, 170, .15), 0 3px 9px rgba(0, 0, 0, .32) !important;
+}
+@media (max-width: 760px) {
+  .taste-home-concept > .taste-page-hero .taste-page-hero-layout { min-height: 108px !important; }
+  .taste-home-concept .taste-hero-stat > div:first-child { width: 32px !important; height: 32px !important; }
+  .taste-home-concept .taste-hero-stat > div:first-child svg { width: 27px; height: 27px; }
+}

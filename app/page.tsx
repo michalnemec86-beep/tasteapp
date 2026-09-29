@@ -30,6 +30,7 @@ import StatsRankingCard from "@/components/stats/StatsRankingCard";
 import BreweryOfDayCard from "@/components/home/BreweryOfDayCard";
 import PageHero from "@/components/ui/PageHero";
 import AppIcon from "@/components/ui/AppIcon";
+import HomeStatIcon from "@/components/home/HomeStatIcon";
 import { Medal } from "lucide-react";
 import { getCzechVocative } from "@/lib/czech-vocative";
 import { fetchAllRows } from "@/lib/fetch-all-rows";
@@ -1060,10 +1061,7 @@ export default async function HomePage({
         stats={[
           {
             icon: (
-              <AppIcon
-                name="beer"
-                size={18}
-              />
+              <HomeStatIcon kind="barrel" />
             ),
             accent: "#f2b63f",
             value: totalTastings,
@@ -1072,10 +1070,7 @@ export default async function HomePage({
           },
           {
             icon: (
-              <AppIcon
-                name="label"
-                size={18}
-              />
+              <HomeStatIcon kind="mug" />
             ),
             accent: "#d98a43",
             value: totalBeers,
@@ -1084,10 +1079,7 @@ export default async function HomePage({
           },
           {
             icon: (
-              <AppIcon
-                name="label"
-                size={18}
-              />
+              <HomeStatIcon kind="crest" />
             ),
             accent: "#c46f38",
             value: totalBrands,
@@ -1096,10 +1088,7 @@ export default async function HomePage({
           },
           {
             icon: (
-              <AppIcon
-                name="brewery"
-                size={18}
-              />
+              <HomeStatIcon kind="brewery" />
             ),
             accent: "#e88835",
             value: totalBreweries,
@@ -1108,10 +1097,7 @@ export default async function HomePage({
           },
           {
             icon: (
-              <AppIcon
-                name="hop"
-                size={18}
-              />
+              <HomeStatIcon kind="hop" />
             ),
             accent: "#9cad47",
             value: totalStyles,
@@ -1120,10 +1106,7 @@ export default async function HomePage({
           },
           {
             icon: (
-              <AppIcon
-                name="globe"
-                size={18}
-              />
+              <HomeStatIcon kind="globe" />
             ),
             accent: "#d65b42",
             value: totalCountries,
