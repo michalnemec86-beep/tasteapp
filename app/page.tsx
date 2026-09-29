@@ -922,6 +922,174 @@ export default async function HomePage({
       )
     );
 
+  const brandBreweryUsage =
+    new Map<
+      number,
+      Map<number, number>
+    >();
+
+  for (const tasting of allTastings) {
+    const brand =
+      tasting.beers?.brands ??
+      null;
+
+    const tastingBrewery =
+      tasting.beer_versions?.breweries ??
+      tasting.beers?.breweries ??
+      null;
+
+    if (!brand || !tastingBrewery) {
+      continue;
+    }
+
+    const usage =
+      brandBreweryUsage.get(
+        brand.id
+      ) ??
+      new Map<
+        number,
+        number
+      >();
+
+    usage.set(
+      tastingBrewery.id,
+      (
+        usage.get(
+          tastingBrewery.id
+        ) ?? 0
+      ) +
+        (
+          tasting.quantity ??
+          1
+        )
+    );
+
+    brandBreweryUsage.set(
+      brand.id,
+      usage
+    );
+  }
+
+  const linkedBreweryIdsByBrand =
+    new Map<
+      number,
+      number[]
+    >();
+
+  for (const link of brandsByBrewery) {
+    const current =
+      linkedBreweryIdsByBrand.get(
+        link.brand.id
+      ) ?? [];
+
+    if (
+      !current.includes(
+        link.breweryId
+      )
+    ) {
+      current.push(
+        link.breweryId
+      );
+    }
+
+    linkedBreweryIdsByBrand.set(
+      link.brand.id,
+      current
+    );
+  }
+
+  const brandRanking =
+    globalStats.brands.map(
+      (item) => {
+        const brandId =
+          Number(item.id);
+
+        const usage =
+          brandBreweryUsage.get(
+            brandId
+          );
+
+        const rankedBreweryIds =
+          usage
+            ? Array.from(
+                usage.entries()
+              )
+                .sort(
+                  (
+                    [aId, aCount],
+                    [bId, bCount]
+                  ) => {
+                    if (
+                      bCount !==
+                      aCount
+                    ) {
+                      return (
+                        bCount -
+                        aCount
+                      );
+                    }
+
+                    return (
+                      canonicalBreweriesById
+                        .get(aId)
+                        ?.name ??
+                      ""
+                    ).localeCompare(
+                      canonicalBreweriesById
+                        .get(bId)
+                        ?.name ??
+                        "",
+                      "cs"
+                    );
+                  }
+                )
+                .map(
+                  ([
+                    breweryId,
+                  ]) =>
+                    breweryId
+                )
+            : [];
+
+        const fallbackIds =
+          linkedBreweryIdsByBrand.get(
+            brandId
+          ) ?? [];
+
+        const logoBreweryId =
+          [
+            ...rankedBreweryIds,
+            ...fallbackIds,
+          ].find(
+            (breweryId) =>
+              Boolean(
+                canonicalBreweriesById.get(
+                  breweryId
+                )?.logo_url
+              )
+          ) ??
+          rankedBreweryIds[0] ??
+          fallbackIds[0];
+
+        const logoUrl =
+          logoBreweryId != null
+            ? canonicalBreweriesById.get(
+                logoBreweryId
+              )?.logo_url ??
+              undefined
+            : undefined;
+
+        return {
+          ...item,
+          ...(logoUrl
+            ? {
+                logoUrl,
+              }
+            : {}),
+        };
+      }
+    );
+
   const breweryTastingMap = new Map<
     number,
     {
@@ -1456,15 +1624,6 @@ export default async function HomePage({
           />
 
           <StatsRankingCard
-            title="Značky"
-            subtitle="Nejčastější produktové značky"
-            icon={<AppIcon name="label" size={20} />}
-            accent="#d98a43"
-            items={globalStats.brands}
-            getItemHref={(item) => `/brands/${item.id}`}
-          />
-
-          <StatsRankingCard
             title="Státy"
             subtitle="Země původu pivovarů"
             icon={
@@ -1478,6 +1637,15 @@ export default async function HomePage({
               globalStats.countries
             }
             getItemHref={(item) => `/breweries?focus=1&country=${encodeURIComponent(item.name)}`}
+          />
+
+          <StatsRankingCard
+            title="Značky"
+            subtitle="Nejčastější produktové značky"
+            icon={<AppIcon name="label" size={20} />}
+            accent="#d98a43"
+            items={brandRanking}
+            getItemHref={(item) => `/brands/${item.id}`}
           />
 
         </aside>
