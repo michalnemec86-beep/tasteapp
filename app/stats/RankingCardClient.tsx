@@ -298,6 +298,7 @@ export default function RankingCardClient({
         createPortal(
           <div
             role="dialog"
+            className="taste-ranking-modal-overlay"
             aria-modal="true"
             aria-label={`${title} – celý žebříček`}
             onMouseDown={(event) => {
@@ -318,6 +319,7 @@ export default function RankingCardClient({
             }}
           >
             <section
+              className="taste-ranking-modal-panel"
               style={{
                 width: "min(760px, 100%)",
                 maxHeight: "calc(100vh - 36px)",
@@ -418,6 +420,7 @@ function RankingHeader({
         }}
       >
         <div
+          className="taste-ranking-header-icon"
           style={{
             width: "34px",
             height: "34px",
@@ -682,6 +685,7 @@ function RankingList({
             </div>
 
             <div
+              className="taste-ranking-progress-track"
               style={{
                 marginLeft: "33px",
                 height: "4px",
@@ -691,6 +695,7 @@ function RankingList({
               }}
             >
               <div
+                className="taste-ranking-progress-fill"
                 style={{
                   width: `${percentage}%`,
                   height: "100%",

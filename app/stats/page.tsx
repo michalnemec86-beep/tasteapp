@@ -14,7 +14,8 @@ import BeerWorldMap from "./BeerWorldMap";
 import RankingCardClient from "./RankingCardClient";
 import PackagingSummaryCard from "./PackagingSummaryCard";
 import PageHero from "@/components/ui/PageHero";
-import AppIcon from "@/components/ui/AppIcon";
+import HomeStatIcon from "@/components/home/HomeStatIcon";
+import "./stats-concept.css";
 import ContextStatValue from "@/components/stats/ContextStatValue";
 
 type SortMode =
@@ -575,7 +576,7 @@ export default async function StatsPage({
             requestedMetric === "quantity"
               ? comparisonTotalTastings
               : comparisonTotalBeers,
-          icon: <AppIcon name="label" size={18} />,
+          icon: <HomeStatIcon kind="mug" />,
           accent: "#e88835",
         },
         brands: {
@@ -584,7 +585,7 @@ export default async function StatsPage({
           label: "Značek",
           value: totalBrands,
           comparisonValue: comparisonTotalBrands,
-          icon: <AppIcon name="label" size={18} />,
+          icon: <HomeStatIcon kind="crest" />,
           accent: "#d98a43",
         },
         breweries: {
@@ -593,7 +594,7 @@ export default async function StatsPage({
           label: "Pivovarů",
           value: totalBreweries,
           comparisonValue: comparisonTotalBreweries,
-          icon: <AppIcon name="brewery" size={18} />,
+          icon: <HomeStatIcon kind="brewery" />,
           accent: "#d65b42",
         },
         styles: {
@@ -602,7 +603,7 @@ export default async function StatsPage({
           label: "Stylů",
           value: totalStyles,
           comparisonValue: comparisonTotalStyles,
-          icon: <AppIcon name="hop" size={18} />,
+          icon: <HomeStatIcon kind="hop" />,
           accent: "#9cad47",
         },
         countries: {
@@ -611,7 +612,7 @@ export default async function StatsPage({
           label: "Států",
           value: totalCountries,
           comparisonValue: comparisonTotalCountries,
-          icon: <AppIcon name="globe" size={18} />,
+          icon: <HomeStatIcon kind="globe" />,
           accent: "#b77a36",
         },
         hops: {
@@ -620,7 +621,7 @@ export default async function StatsPage({
           label: "Chmelů",
           value: stats.hops.length,
           comparisonValue: comparisonStats.hops.length,
-          icon: <AppIcon name="hop" size={18} />,
+          icon: <HomeStatIcon kind="hop" />,
           accent: "#879a43",
         },
       }[selectedFocus]
@@ -628,6 +629,7 @@ export default async function StatsPage({
 
   return (
     <main
+      className="taste-stats-concept"
       style={{
         maxWidth: "1400px",
         margin: "0 auto",
@@ -684,7 +686,7 @@ export default async function StatsPage({
               ]
             : [
                 {
-                  icon: <AppIcon name="beer" size={18} />,
+                  icon: <HomeStatIcon kind="barrel" />,
                   accent: "#f2b63f",
                   value: (
                     <ContextStatValue
@@ -696,7 +698,7 @@ export default async function StatsPage({
                   label: "Vypitých piv",
                 },
                 {
-                  icon: <AppIcon name="label" size={18} />,
+                  icon: <HomeStatIcon kind="mug" />,
                   accent: "#e88835",
                   value: (
                     <ContextStatValue
@@ -708,7 +710,7 @@ export default async function StatsPage({
                   label: "Různých piv",
                 },
                 {
-                  icon: <AppIcon name="label" size={18} />,
+                  icon: <HomeStatIcon kind="crest" />,
                   accent: "#d98a43",
                   value: (
                     <ContextStatValue
@@ -720,7 +722,7 @@ export default async function StatsPage({
                   label: "Značek",
                 },
                 {
-                  icon: <AppIcon name="brewery" size={18} />,
+                  icon: <HomeStatIcon kind="brewery" />,
                   accent: "#d65b42",
                   value: (
                     <ContextStatValue
@@ -732,7 +734,7 @@ export default async function StatsPage({
                   label: "Pivovarů",
                 },
                 {
-                  icon: "◐",
+                  icon: <HomeStatIcon kind="hop" />,
                   accent: "#9cad47",
                   value: (
                     <ContextStatValue
@@ -744,7 +746,7 @@ export default async function StatsPage({
                   label: "Stylů",
                 },
                 {
-                  icon: <AppIcon name="globe" size={18} />,
+                  icon: <HomeStatIcon kind="globe" />,
                   accent: "#b77a36",
                   value: (
                     <ContextStatValue
@@ -788,8 +790,8 @@ export default async function StatsPage({
         </div>
       )}
 
-      <section>
-        <div style={{ marginBottom: "15px" }}>
+      <section className="taste-stats-rankings">
+        <div className="taste-stats-section-heading" style={{ marginBottom: "15px" }}>
           <div
             className="taste-label"
             style={{ marginBottom: "5px" }}
@@ -810,6 +812,7 @@ export default async function StatsPage({
         </div>
 
         <div
+          className="taste-stats-ranking-grid"
           style={{
             display: "grid",
             gridTemplateColumns:
@@ -824,7 +827,7 @@ export default async function StatsPage({
               title="Piva"
               tone="gold"
               subtitle="Konkrétní ochutnaná piva"
-              icon={<AppIcon name="label" size={20} />}
+              icon={<HomeStatIcon kind="mug" />}
               items={stats.beers}
               comparisonItems={comparisonStats.beers}
               comparisonLabel={comparisonLabel}
@@ -840,7 +843,7 @@ export default async function StatsPage({
               title="Značky"
               tone="honey"
               subtitle="Produktové značky napříč pivovary a historií"
-              icon={<AppIcon name="label" size={20} />}
+              icon={<HomeStatIcon kind="crest" />}
               items={stats.brands}
               comparisonItems={comparisonStats.brands}
               comparisonLabel={comparisonLabel}
@@ -857,7 +860,7 @@ export default async function StatsPage({
               title="Pivovary"
               tone="honey"
               subtitle="Podle počtu vypitých piv"
-              icon={<AppIcon name="brewery" size={20} />}
+              icon={<HomeStatIcon kind="brewery" />}
               items={stats.breweries}
               comparisonItems={comparisonStats.breweries}
               comparisonLabel={comparisonLabel}
@@ -874,7 +877,7 @@ export default async function StatsPage({
               title="Pivní styly"
               tone="amber"
               subtitle="Nejčastěji zastoupené styly"
-              icon={<AppIcon name="hop" size={20} />}
+              icon={<HomeStatIcon kind="hop" />}
               items={stats.styles}
               comparisonItems={comparisonStats.styles}
               comparisonLabel={comparisonLabel}
@@ -890,7 +893,7 @@ export default async function StatsPage({
               title="Státy"
               tone="copper"
               subtitle="Země původu pivovarů"
-              icon={<AppIcon name="globe" size={20} />}
+              icon={<HomeStatIcon kind="globe" />}
               items={stats.countries}
               comparisonItems={comparisonStats.countries}
               comparisonLabel={comparisonLabel}
@@ -906,7 +909,7 @@ export default async function StatsPage({
               title="Chmely"
               tone="malt"
               subtitle="Chmely použitých piv"
-              icon={<AppIcon name="hop" size={20} />}
+              icon={<HomeStatIcon kind="hop" />}
               items={stats.hops}
               comparisonItems={comparisonStats.hops}
               comparisonLabel={comparisonLabel}

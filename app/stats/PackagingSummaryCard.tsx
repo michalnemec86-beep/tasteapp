@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import AppIcon from "@/components/ui/AppIcon";
+import HomeStatIcon from "@/components/home/HomeStatIcon";
 import type { RankingItem } from "@/lib/stats";
 
 type PackagingSummaryCardProps = {
@@ -11,7 +11,7 @@ type PackagingSummaryCardProps = {
 };
 
 type PackagingTone = {
-  icon: "beer" | "bottle" | "can" | "pet" | "package";
+  icon: "mug" | "bottle" | "can" | "pet" | "package";
   accent: string;
   border: string;
   wash: string;
@@ -19,7 +19,7 @@ type PackagingTone = {
 
 const PACKAGING_TONES: Record<string, PackagingTone> = {
   draft: {
-    icon: "beer",
+    icon: "mug",
     accent: "#f2b63f",
     border: "rgba(242,182,63,0.38)",
     wash: "rgba(242,182,63,0.10)",
@@ -67,7 +67,7 @@ export default function PackagingSummaryCard({
   );
 
   return (
-    <section style={{ marginBottom: "28px" }}>
+    <section className="taste-packaging-summary" style={{ marginBottom: "28px" }}>
       <div style={{ marginBottom: "14px" }}>
         <h2
           style={{
@@ -83,7 +83,7 @@ export default function PackagingSummaryCard({
       </div>
 
       <article
-        className="taste-card"
+        className="taste-card taste-packaging-summary-card"
         style={{
           padding: "18px",
           border: "1px solid rgba(183,122,54,0.34)",
@@ -131,6 +131,7 @@ export default function PackagingSummaryCard({
               return (
                 <Link
                   key={item.id}
+                  className="taste-packaging-summary-tile"
                   href={`/stats?${params.toString()}`}
                   style={{
                     display: "block",
@@ -159,6 +160,7 @@ export default function PackagingSummaryCard({
                       }}
                     >
                       <span
+                        className="taste-packaging-summary-icon"
                         style={{
                           width: "34px",
                           height: "34px",
@@ -172,7 +174,7 @@ export default function PackagingSummaryCard({
                           color: tone.accent,
                         }}
                       >
-                        <AppIcon name={tone.icon} size={19} />
+                        <HomeStatIcon kind={tone.icon} />
                       </span>
 
                       <div style={{ minWidth: 0 }}>
