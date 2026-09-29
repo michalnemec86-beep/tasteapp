@@ -1,0 +1,489 @@
+/* Pivní lístek visual system aligned with homepage and global stats. */
+
+body:has(.taste-beer-menu-concept) {
+  background: #080807;
+}
+
+.taste-app-shell:has(.taste-beer-menu-concept) {
+  position: relative;
+  isolation: isolate;
+  box-sizing: border-box;
+  width: min(1500px, calc(100% - 48px));
+  margin: 28px auto 42px;
+  border: 2px solid transparent;
+  border-radius: 17px;
+  background:
+    linear-gradient(#100d0a, #0c0a08) padding-box,
+    linear-gradient(125deg, #e5af61 0%, #69411f 13%, #f1cb89 29%, #50331e 48%, #b77d3f 74%, #ead2a2 100%) border-box;
+  box-shadow:
+    0 0 0 1px #302012,
+    0 0 0 5px rgba(9,7,5,.95),
+    0 23px 65px rgba(0,0,0,.60),
+    inset 0 0 0 1px rgba(255,225,164,.13);
+}
+
+.taste-app-shell:has(.taste-beer-menu-concept)::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: 64px;
+  left: 0;
+  right: 0;
+  height: 760px;
+  border-radius: 0 0 14px 14px;
+  background:
+    radial-gradient(circle at 64% 13%, rgba(255,190,84,.11), transparent 24%),
+    linear-gradient(180deg, rgba(10,7,5,.03) 0%, rgba(18,11,7,.40) 27%, rgba(16,12,9,.83) 55%, #100d0a 84%),
+    linear-gradient(90deg, rgba(12,8,6,.75), rgba(12,8,6,.16) 57%, rgba(12,8,6,.07)),
+    url("/images/heroes/catalog.jpg") 50% -54px / 100% auto no-repeat;
+  filter: saturate(1.08) contrast(1.05) brightness(1.01);
+  pointer-events: none;
+}
+
+.taste-app-shell:has(.taste-beer-menu-concept) > .taste-app-nav {
+  top: 0;
+  border-radius: 15px 15px 0 0;
+  border-bottom-color: rgba(236,177,88,.31) !important;
+  background:
+    linear-gradient(180deg, rgba(23,18,14,.97), rgba(18,13,10,.94)) !important;
+  box-shadow: inset 0 1px rgba(255,226,166,.055);
+}
+
+.taste-beer-menu-concept {
+  max-width: 1500px !important;
+  padding: 24px 24px 72px !important;
+}
+
+/* Hero */
+.taste-beer-menu-concept > .taste-page-hero {
+  border-color: rgba(224,153,69,.52) !important;
+  border-radius: 14px !important;
+  background: rgba(21,16,12,.30) !important;
+  box-shadow:
+    0 15px 38px rgba(0,0,0,.36),
+    0 0 28px rgba(205,116,45,.10),
+    -2px -2px 15px rgba(255,209,144,.07),
+    inset 0 1px 0 rgba(255,226,168,.13) !important;
+}
+
+.taste-beer-menu-concept .taste-page-hero-layout > div:first-child {
+  opacity: 0;
+}
+
+.taste-beer-menu-concept .taste-page-hero-copy {
+  text-shadow: 0 4px 22px rgba(0,0,0,.34);
+}
+
+.taste-beer-menu-concept .taste-page-hero-stats {
+  border-top-color: rgba(225,157,68,.24) !important;
+  background:
+    linear-gradient(180deg, rgba(54,31,15,.96), rgba(20,15,11,.98)) !important;
+}
+
+.taste-beer-menu-concept .taste-hero-stat {
+  min-height: 68px !important;
+  border-color: rgba(232,170,78,.25) !important;
+  border-radius: 10px !important;
+  background:
+    radial-gradient(circle at 18% 0%, rgba(237,176,84,.13), transparent 42%),
+    linear-gradient(145deg, rgba(76,43,20,.44), rgba(22,16,12,.87)) !important;
+  box-shadow:
+    inset 0 1px rgba(255,230,174,.07),
+    0 4px 12px rgba(0,0,0,.22) !important;
+}
+
+.taste-beer-menu-concept .taste-hero-stat > div:first-child {
+  width: 42px !important;
+  height: 42px !important;
+  border-radius: 10px !important;
+  border-color: rgba(236,178,89,.38) !important;
+  background:
+    linear-gradient(145deg, rgba(232,168,65,.18), rgba(70,37,18,.42)) !important;
+  box-shadow:
+    inset 0 1px rgba(255,230,170,.15),
+    0 3px 9px rgba(0,0,0,.32) !important;
+}
+
+.taste-beer-menu-concept .taste-hero-stat > div:first-child svg {
+  width: 34px;
+  height: 34px;
+}
+
+.taste-beer-menu-concept .taste-page-hero-stats .taste-hero-stat-scroller {
+  display: block;
+}
+
+.taste-beer-menu-concept .taste-page-hero-stats .taste-hero-stat-scroll-track {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0,1fr));
+  gap: 7px;
+  overflow: visible;
+}
+
+.taste-beer-menu-concept .taste-page-hero-stats .taste-hero-stat-scroll-button {
+  display: none;
+}
+
+/* Toolbar */
+.taste-beer-menu-concept .taste-beer-catalog-toolbar {
+  margin-top: 18px;
+  margin-bottom: 16px;
+  padding: 14px 16px !important;
+  border: 1px solid rgba(203,132,62,.36) !important;
+  border-radius: 12px !important;
+  background:
+    radial-gradient(circle at 13% 0%, rgba(229,155,73,.10), transparent 34%),
+    linear-gradient(154deg, #2f1c0d 0%, #21170e 48%, #14110e 100%) !important;
+  box-shadow:
+    0 8px 22px rgba(0,0,0,.27),
+    0 0 18px rgba(194,111,45,.07),
+    inset 0 1px rgba(255,225,171,.08) !important;
+}
+
+.taste-beer-menu-concept .taste-beer-catalog-scope-buttons,
+.taste-beer-menu-concept .taste-tasting-sort-buttons {
+  gap: 7px !important;
+}
+
+.taste-beer-menu-concept .taste-beer-catalog-toolbar .taste-button-secondary {
+  min-height: 38px;
+  border-color: rgba(207,139,70,.25) !important;
+  border-radius: 9px !important;
+  background:
+    linear-gradient(145deg, rgba(74,43,21,.26), rgba(24,18,13,.82)) !important;
+  color: rgba(255,255,255,.78) !important;
+  box-shadow:
+    inset 0 1px rgba(255,225,171,.05),
+    0 2px 7px rgba(0,0,0,.16);
+}
+
+.taste-beer-menu-concept .taste-beer-catalog-toolbar .taste-button-secondary:hover {
+  border-color: rgba(238,177,86,.46) !important;
+  color: #fff1db !important;
+}
+
+.taste-beer-menu-concept .taste-beer-catalog-toolbar .taste-button-secondary[aria-pressed="true"] {
+  border-color: rgba(242,182,63,.62) !important;
+  background:
+    linear-gradient(145deg, rgba(113,66,25,.48), rgba(38,25,15,.94)) !important;
+  color: #f2b63f !important;
+  box-shadow:
+    0 0 14px rgba(242,182,63,.09),
+    inset 0 1px rgba(255,232,182,.10) !important;
+}
+
+.taste-beer-menu-concept .taste-tasting-search {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.taste-beer-menu-concept .taste-tasting-search input {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 12px;
+  border: 1px solid rgba(209,140,67,.34) !important;
+  border-radius: 9px !important;
+  outline: none;
+  background: rgba(18,15,12,.86) !important;
+  color: #f5ead8 !important;
+  box-shadow:
+    inset 0 1px rgba(255,225,168,.055),
+    0 2px 8px rgba(0,0,0,.18);
+}
+
+.taste-beer-menu-concept .taste-tasting-search input:focus {
+  border-color: rgba(242,182,63,.58) !important;
+  box-shadow:
+    0 0 15px rgba(231,166,47,.09),
+    inset 0 1px rgba(255,230,176,.08);
+}
+
+.taste-beer-menu-concept .taste-tasting-search input::placeholder {
+  color: rgba(255,255,255,.42);
+}
+
+.taste-beer-menu-concept .taste-tasting-letters {
+  padding-top: 10px;
+  border-top: 1px solid rgba(231,166,47,.11);
+}
+
+.taste-beer-menu-concept .taste-tasting-country-select {
+  color: #e8be79;
+}
+
+.taste-beer-menu-concept .taste-tasting-country-select select {
+  min-height: 38px;
+  border: 1px solid rgba(204,137,67,.34) !important;
+  border-radius: 9px !important;
+  background: #15120f !important;
+  color: #f5ead8 !important;
+  color-scheme: dark;
+}
+
+.taste-beer-menu-concept .taste-beer-catalog-count {
+  color: rgba(255,255,255,.62) !important;
+}
+
+/* Beer cards */
+.taste-beer-menu-concept .taste-beer-catalog-grid {
+  gap: 16px !important;
+}
+
+.taste-beer-menu-concept .taste-beer-catalog-card {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(205,133,62,.42) !important;
+  border-radius: 12px !important;
+  background:
+    radial-gradient(circle at 18% 4%, rgba(255,213,149,.11), transparent 19%),
+    radial-gradient(circle at 22% 8%, rgba(218,139,70,.20), transparent 35%),
+    linear-gradient(161deg, #311d0b 0%, #28180c 29%, #20170f 58%, #171410 81%, #12110e 100%) !important;
+  box-shadow:
+    0 9px 24px rgba(0,0,0,.30),
+    0 0 19px rgba(195,111,45,.09),
+    -1px -2px 12px rgba(255,207,140,.055),
+    inset 0 1px rgba(255,229,177,.12) !important;
+}
+
+.taste-beer-menu-concept .taste-beer-catalog-grid > .taste-beer-catalog-card:nth-child(3n+2) {
+  background:
+    radial-gradient(circle at 78% 5%, rgba(255,220,164,.10), transparent 19%),
+    radial-gradient(circle at 76% 9%, rgba(207,146,78,.20), transparent 36%),
+    linear-gradient(154deg, #311d0b 0%, #2a190c 29%, #21180f 58%, #171410 81%, #12110e 100%) !important;
+}
+
+.taste-beer-menu-concept .taste-beer-catalog-grid > .taste-beer-catalog-card:nth-child(3n) {
+  background:
+    radial-gradient(circle at 36% 4%, rgba(255,209,150,.10), transparent 18%),
+    radial-gradient(circle at 34% 8%, rgba(224,128,59,.20), transparent 35%),
+    linear-gradient(170deg, #311d0b 0%, #2c190b 28%, #22170e 56%, #17130f 80%, #12110e 100%) !important;
+}
+
+.taste-beer-menu-concept .taste-beer-catalog-card-mine {
+  border-color: rgba(151,168,75,.46) !important;
+  box-shadow:
+    0 9px 24px rgba(0,0,0,.30),
+    0 0 16px rgba(131,151,65,.10),
+    inset 0 1px rgba(229,239,184,.08) !important;
+}
+
+.taste-beer-menu-concept .taste-beer-catalog-name {
+  color: #fff !important;
+  font-weight: 850 !important;
+  text-shadow: 0 2px 12px rgba(0,0,0,.25);
+}
+
+.taste-beer-menu-concept .taste-beer-catalog-name:hover,
+.taste-beer-menu-concept .taste-beer-catalog-brand .taste-entity-link,
+.taste-beer-menu-concept .taste-beer-catalog-brewery .taste-entity-link {
+  color: #f2b63f !important;
+}
+
+.taste-beer-menu-concept .taste-beer-catalog-brand {
+  color: #e8bd79 !important;
+}
+
+.taste-beer-menu-concept .taste-beer-catalog-total {
+  color: #f2b63f !important;
+  text-shadow: 0 0 10px rgba(242,182,63,.16);
+}
+
+.taste-beer-menu-concept .taste-beer-catalog-total-label {
+  color: rgba(255,255,255,.48) !important;
+}
+
+.taste-beer-menu-concept .taste-beer-catalog-mine {
+  color: #c7d48f !important;
+}
+
+.taste-beer-menu-concept .taste-beer-catalog-brewery {
+  color: rgba(255,255,255,.72) !important;
+}
+
+.taste-beer-menu-concept .taste-beer-catalog-chip {
+  border-color: rgba(231,166,47,.21) !important;
+  background:
+    linear-gradient(145deg, rgba(104,59,24,.30), rgba(40,27,17,.72)) !important;
+  color: #e8d7bd !important;
+  box-shadow: inset 0 1px rgba(255,229,180,.045);
+}
+
+.taste-beer-menu-concept .taste-beer-catalog-hops {
+  color: rgba(255,255,255,.58) !important;
+}
+
+/* Primary action follows the hop-green action language from homepage. */
+.taste-beer-menu-concept .taste-beer-catalog-action {
+  border: 1px solid rgba(170,187,88,.54) !important;
+  border-radius: 8px !important;
+  background:
+    linear-gradient(180deg, rgba(201,218,117,.15), transparent 35%),
+    linear-gradient(145deg, #788c34 0%, #63772e 50%, #4e6127 100%) !important;
+  color: #f8f6dc !important;
+  text-shadow: 0 1px rgba(35,48,17,.50);
+  box-shadow:
+    inset 0 1px rgba(239,248,190,.20),
+    0 4px 12px rgba(83,108,40,.24),
+    0 0 14px rgba(133,153,61,.10) !important;
+}
+
+.taste-beer-menu-concept .taste-beer-catalog-action:hover {
+  border-color: rgba(192,207,109,.68) !important;
+  background:
+    linear-gradient(180deg, rgba(218,230,145,.18), transparent 35%),
+    linear-gradient(145deg, #879b3c 0%, #6e8332 50%, #566c29 100%) !important;
+  color: #fffbe6 !important;
+}
+
+.taste-beer-menu-concept > .taste-card {
+  border-color: rgba(205,133,62,.36) !important;
+  background:
+    linear-gradient(145deg, rgba(80,46,21,.28), rgba(20,16,12,.90)) !important;
+}
+
+.taste-beer-menu-concept > .taste-button-secondary {
+  border-color: rgba(214,145,72,.36) !important;
+  background:
+    linear-gradient(145deg, rgba(104,59,24,.34), rgba(31,22,15,.90)) !important;
+  color: #f0c782 !important;
+}
+
+@media (min-width: 1024px) and (prefers-reduced-motion: no-preference) {
+  .taste-beer-menu-concept .taste-beer-catalog-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(230,164,79,.55) !important;
+    box-shadow:
+      0 14px 31px rgba(0,0,0,.34),
+      0 0 22px rgba(209,126,51,.12),
+      inset 0 1px rgba(255,229,177,.14) !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .taste-app-shell:has(.taste-beer-menu-concept) {
+    width: 100%;
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .taste-app-shell:has(.taste-beer-menu-concept)::before {
+    top: 58px;
+    height: 590px;
+    border-radius: 0;
+    background:
+      radial-gradient(circle at 62% 12%, rgba(255,191,86,.09), transparent 24%),
+      linear-gradient(180deg, rgba(10,7,5,.03) 0%, rgba(18,11,7,.44) 28%, rgba(16,12,9,.85) 56%, #100d0a 84%),
+      linear-gradient(90deg, rgba(12,8,6,.74), rgba(12,8,6,.18) 55%, rgba(12,8,6,.08)),
+      url("/images/heroes/catalog.jpg") 59% -24px / auto 390px no-repeat;
+  }
+
+  .taste-app-shell:has(.taste-beer-menu-concept) > .taste-app-nav {
+    border-radius: 0;
+  }
+
+  .taste-beer-menu-concept {
+    padding: 12px 12px 56px !important;
+  }
+
+  .taste-beer-menu-concept .taste-page-hero-stats .taste-hero-stat-scroller {
+    display: grid;
+    grid-template-columns: 29px minmax(0,1fr) 29px;
+    align-items: stretch;
+    gap: 5px;
+  }
+
+  .taste-beer-menu-concept .taste-page-hero-stats .taste-hero-stat-scroll-track {
+    display: flex;
+    gap: 7px;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scroll-behavior: smooth;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+
+  .taste-beer-menu-concept .taste-page-hero-stats .taste-hero-stat-scroll-track::-webkit-scrollbar {
+    display: none;
+  }
+
+  .taste-beer-menu-concept .taste-page-hero-stats .taste-hero-stat-scroll-track > .taste-hero-stat {
+    flex: 0 0 190px;
+    scroll-snap-align: start;
+  }
+
+  .taste-beer-menu-concept .taste-page-hero-stats .taste-hero-stat-scroll-button {
+    display: block;
+    width: 29px;
+    min-height: 60px;
+    border: 1px solid rgba(229,166,78,.34);
+    border-radius: 9px;
+    background:
+      linear-gradient(145deg, rgba(102,57,24,.42), rgba(28,20,14,.94));
+    color: #f2b63f;
+    font-size: 23px;
+    line-height: 1;
+    cursor: pointer;
+    box-shadow:
+      inset 0 1px rgba(255,226,171,.10),
+      0 3px 10px rgba(0,0,0,.24);
+  }
+
+  .taste-beer-menu-concept .taste-page-hero-stats .taste-hero-stat-scroll-button:disabled {
+    opacity: .25;
+  }
+
+  .taste-beer-menu-concept .taste-hero-stat > div:first-child {
+    width: 34px !important;
+    height: 34px !important;
+  }
+
+  .taste-beer-menu-concept .taste-hero-stat > div:first-child svg {
+    width: 28px;
+    height: 28px;
+  }
+
+  .taste-beer-menu-concept .taste-beer-catalog-toolbar {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+    padding: 11px !important;
+  }
+
+  .taste-beer-menu-concept .taste-beer-catalog-toolbar .taste-tasting-search,
+  .taste-beer-menu-concept .taste-beer-catalog-toolbar .taste-tasting-sort-buttons,
+  .taste-beer-menu-concept .taste-beer-catalog-toolbar .taste-tasting-letters,
+  .taste-beer-menu-concept .taste-beer-catalog-toolbar .taste-tasting-country-select {
+    grid-column: 1 !important;
+    grid-row: auto !important;
+  }
+
+  .taste-beer-menu-concept .taste-tasting-search {
+    width: 100%;
+  }
+
+  .taste-beer-menu-concept .taste-tasting-search input {
+    min-width: 0 !important;
+    font-size: 16px !important;
+  }
+
+  .taste-beer-menu-concept .taste-beer-catalog-grid {
+    gap: 10px !important;
+  }
+
+  .taste-beer-menu-concept .taste-beer-catalog-card {
+    padding: 14px !important;
+    border-radius: 10px !important;
+  }
+
+  .taste-beer-menu-concept .taste-beer-catalog-name {
+    font-size: 17px !important;
+  }
+
+  .taste-beer-menu-concept .taste-beer-catalog-action {
+    width: 100%;
+    justify-content: center;
+  }
+}
