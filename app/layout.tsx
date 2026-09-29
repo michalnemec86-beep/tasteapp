@@ -16,6 +16,7 @@ import "./modal-responsive.css";
 import "./app-nav.css";
 import "./mobile-ux.css";
 import "./desktop-polish.css";
+import "./home-concept.css";
 
 const defaultUrl =
   process.env.VERCEL_URL
@@ -107,3 +108,4 @@ export default async function RootLayout({
     </html>
   );
 }
+
