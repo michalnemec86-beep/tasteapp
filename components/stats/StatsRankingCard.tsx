@@ -116,29 +116,191 @@ function BeerStyleGlassIcon({
       styleName
     );
 
+  const id =
+    `beer-style-${kind}`;
+
+  const beerPalette = {
+    pilsner: [
+      "#ffe99b",
+      "#e8a82e",
+      "#a45b13",
+    ],
+    tulip: [
+      "#ffd36a",
+      "#d9791b",
+      "#7a3412",
+    ],
+    pint: [
+      "#8d4a21",
+      "#3a1b13",
+      "#160d0b",
+    ],
+    weizen: [
+      "#ffe59a",
+      "#e7a33a",
+      "#b3631f",
+    ],
+    goblet: [
+      "#ffd977",
+      "#d88722",
+      "#8e4314",
+    ],
+    snifter: [
+      "#ffc65a",
+      "#c96918",
+      "#6c2e12",
+    ],
+  }[kind];
+
+  const foamTop =
+    kind === "pint"
+      ? "#ead1ae"
+      : "#fff6dc";
+
+  const foamBottom =
+    kind === "pint"
+      ? "#b9875d"
+      : "#e9d5a7";
+
   const common = {
-    width: 24,
-    height: 24,
+    width: 30,
+    height: 30,
     viewBox:
-      "0 0 24 24",
+      "0 0 48 48",
     fill: "none",
-    stroke:
-      "currentColor",
-    strokeWidth: 1.55,
-    strokeLinecap:
-      "round" as const,
-    strokeLinejoin:
-      "round" as const,
     "aria-hidden":
       true as const,
+    style: {
+      filter:
+        "drop-shadow(0 2px 2px rgba(0,0,0,.58))",
+    },
   };
+
+  const defs = (
+    <defs>
+      <linearGradient
+        id={`${id}-beer`}
+        x1="13"
+        y1="8"
+        x2="34"
+        y2="42"
+        gradientUnits="userSpaceOnUse"
+      >
+        <stop
+          stopColor={
+            beerPalette[0]
+          }
+        />
+        <stop
+          offset=".48"
+          stopColor={
+            beerPalette[1]
+          }
+        />
+        <stop
+          offset="1"
+          stopColor={
+            beerPalette[2]
+          }
+        />
+      </linearGradient>
+
+      <linearGradient
+        id={`${id}-glass`}
+        x1="10"
+        y1="5"
+        x2="37"
+        y2="43"
+        gradientUnits="userSpaceOnUse"
+      >
+        <stop
+          stopColor="#fff4cf"
+          stopOpacity=".92"
+        />
+        <stop
+          offset=".28"
+          stopColor="#d7b278"
+          stopOpacity=".58"
+        />
+        <stop
+          offset=".7"
+          stopColor="#a86b32"
+          stopOpacity=".54"
+        />
+        <stop
+          offset="1"
+          stopColor="#5f321c"
+          stopOpacity=".9"
+        />
+      </linearGradient>
+
+      <linearGradient
+        id={`${id}-foam`}
+        x1="14"
+        y1="8"
+        x2="31"
+        y2="18"
+        gradientUnits="userSpaceOnUse"
+      >
+        <stop
+          stopColor={
+            foamTop
+          }
+        />
+        <stop
+          offset="1"
+          stopColor={
+            foamBottom
+          }
+        />
+      </linearGradient>
+
+      <linearGradient
+        id={`${id}-shine`}
+        x1="0"
+        y1="0"
+        x2="1"
+        y2="0"
+      >
+        <stop
+          stopColor="white"
+          stopOpacity=".82"
+        />
+        <stop
+          offset="1"
+          stopColor="white"
+          stopOpacity="0"
+        />
+      </linearGradient>
+    </defs>
+  );
 
   if (kind === "pilsner") {
     return (
       <svg {...common}>
-        <path d="M8 3h8l-1.1 15.5A2.7 2.7 0 0 1 12.2 21h-.4a2.7 2.7 0 0 1-2.7-2.5L8 3Z" />
-        <path d="M9.3 8.2h5.4" />
-        <path d="M9 5.5h6" />
+        {defs}
+        <path
+          d="M14 7h20l-2.7 33.2A4 4 0 0 1 27.3 44h-6.6a4 4 0 0 1-4-3.8L14 7Z"
+          fill={`url(#${id}-beer)`}
+          stroke={`url(#${id}-glass)`}
+          strokeWidth="1.7"
+        />
+        <path
+          d="M14.6 11c1.2-3.1 4.4-4.8 7.2-3.3 2.2-2.3 6.3-1.3 7 1 3.1-.6 5.4.7 5.6 3.1-3.4 1.7-15.9 1.8-19.8-.8Z"
+          fill={`url(#${id}-foam)`}
+          stroke="#f5e7c9"
+          strokeWidth=".8"
+        />
+        <path
+          d="M18 15.5 20.1 38"
+          stroke={`url(#${id}-shine)`}
+          strokeWidth="2.2"
+          strokeLinecap="round"
+          opacity=".72"
+        />
+        <circle cx="27.5" cy="25" r="1" fill="#ffe8a1" opacity=".8" />
+        <circle cx="24.5" cy="31" r=".7" fill="#fff3c6" opacity=".7" />
+        <circle cx="29.2" cy="35" r=".6" fill="#ffe7a0" opacity=".66" />
       </svg>
     );
   }
@@ -146,10 +308,39 @@ function BeerStyleGlassIcon({
   if (kind === "tulip") {
     return (
       <svg {...common}>
-        <path d="M7.7 3.5h8.6c.2 2.7-.3 5-1.4 6.5-.8 1.1-1.8 1.7-2.9 1.7s-2.1-.6-2.9-1.7c-1.1-1.5-1.6-3.8-1.4-6.5Z" />
-        <path d="M12 11.7v5.5" />
-        <path d="M9.2 20.5h5.6" />
-        <path d="M10.2 17.2h3.6" />
+        {defs}
+        <path
+          d="M12.5 8.5h23c.2 7.8-2 14.2-6.6 17.1-1.6 1-3.2 1.5-4.9 1.5s-3.3-.5-4.9-1.5c-4.6-2.9-6.8-9.3-6.6-17.1Z"
+          fill={`url(#${id}-beer)`}
+          stroke={`url(#${id}-glass)`}
+          strokeWidth="1.7"
+        />
+        <path
+          d="M13.3 12c1.7-3.7 4.4-4.7 7.2-3.1 2.5-2.4 6-1.7 7.4.7 3-.9 5.7.5 6.5 2.7-4.1 1.9-16.7 2-21.1-.3Z"
+          fill={`url(#${id}-foam)`}
+          stroke="#f5e7c9"
+          strokeWidth=".8"
+        />
+        <path
+          d="M24 27.1v10"
+          stroke={`url(#${id}-glass)`}
+          strokeWidth="2"
+        />
+        <path
+          d="M17.8 42h12.4M20.5 37.2h7"
+          stroke={`url(#${id}-glass)`}
+          strokeWidth="2"
+          strokeLinecap="round"
+        />
+        <path
+          d="M17.2 14.2c.7 5.8 2.2 8.6 4.4 10.1"
+          stroke={`url(#${id}-shine)`}
+          strokeWidth="2"
+          strokeLinecap="round"
+          opacity=".65"
+        />
+        <circle cx="28" cy="18.5" r=".9" fill="#ffe49a" opacity=".75" />
+        <circle cx="25.8" cy="22.4" r=".6" fill="#fff1bd" opacity=".7" />
       </svg>
     );
   }
@@ -157,9 +348,32 @@ function BeerStyleGlassIcon({
   if (kind === "pint") {
     return (
       <svg {...common}>
-        <path d="M7.4 3.5h9.2l-.8 15.1A2.6 2.6 0 0 1 13.2 21h-2.4a2.6 2.6 0 0 1-2.6-2.4L7.4 3.5Z" />
-        <path d="M8.1 8.7h7.8" />
-        <path d="M8.5 14.5h7" />
+        {defs}
+        <path
+          d="M11.5 7.5h25l-2.1 31.2A5 5 0 0 1 29.4 43h-10.8a5 5 0 0 1-5-4.3L11.5 7.5Z"
+          fill={`url(#${id}-beer)`}
+          stroke={`url(#${id}-glass)`}
+          strokeWidth="1.8"
+        />
+        <path
+          d="M12 12c1.3-3.4 4.2-4.5 7.2-2.8 2.4-2.8 6.5-1.7 7.4.7 3-1.3 7 .3 9 2.8-4.7 2-18.8 2-23.6-.7Z"
+          fill={`url(#${id}-foam)`}
+          stroke="#d7b38d"
+          strokeWidth=".9"
+        />
+        <path
+          d="M15.8 17.2 18 36.5"
+          stroke={`url(#${id}-shine)`}
+          strokeWidth="2.3"
+          strokeLinecap="round"
+          opacity=".52"
+        />
+        <path
+          d="M14.5 28.5h19"
+          stroke="#a86937"
+          strokeWidth=".75"
+          opacity=".45"
+        />
       </svg>
     );
   }
@@ -167,9 +381,29 @@ function BeerStyleGlassIcon({
   if (kind === "weizen") {
     return (
       <svg {...common}>
-        <path d="M8.6 3h6.8l.8 4.5-.9 10.8A2.8 2.8 0 0 1 12.5 21h-1A2.8 2.8 0 0 1 8.7 18.3L7.8 7.5 8.6 3Z" />
-        <path d="M8.2 7.5h7.6" />
-        <path d="M9.1 14.5h5.8" />
+        {defs}
+        <path
+          d="M16 6.5h16l2 8-1.5 24.1A5 5 0 0 1 27.5 43h-7a5 5 0 0 1-5-4.4L14 14.5l2-8Z"
+          fill={`url(#${id}-beer)`}
+          stroke={`url(#${id}-glass)`}
+          strokeWidth="1.8"
+        />
+        <path
+          d="M15.8 11.5c1.5-3.5 4.6-4.7 7.4-2.8 2.2-2.5 6.2-1.5 7.2.8 2.7-.7 4.8.9 4.4 3.1-4.6 1.7-14.8 1.8-19-.1Z"
+          fill={`url(#${id}-foam)`}
+          stroke="#f5e6c5"
+          strokeWidth=".8"
+        />
+        <path
+          d="M19 15.5 20.8 38"
+          stroke={`url(#${id}-shine)`}
+          strokeWidth="2.4"
+          strokeLinecap="round"
+          opacity=".68"
+        />
+        <circle cx="27.7" cy="22" r=".8" fill="#fff2ba" opacity=".75" />
+        <circle cx="25.5" cy="28.5" r=".7" fill="#fff3c4" opacity=".72" />
+        <circle cx="29" cy="34" r=".55" fill="#ffe6a1" opacity=".7" />
       </svg>
     );
   }
@@ -177,20 +411,75 @@ function BeerStyleGlassIcon({
   if (kind === "goblet") {
     return (
       <svg {...common}>
-        <path d="M6.8 4h10.4c-.1 4.9-2 7.7-5.2 7.7S6.9 8.9 6.8 4Z" />
-        <path d="M12 11.7v5.2" />
-        <path d="M8.8 20.5h6.4" />
-        <path d="M9.7 16.9h4.6" />
+        {defs}
+        <path
+          d="M10.5 8h27c-.3 9.5-5.2 16.8-13.5 16.8S10.8 17.5 10.5 8Z"
+          fill={`url(#${id}-beer)`}
+          stroke={`url(#${id}-glass)`}
+          strokeWidth="1.8"
+        />
+        <path
+          d="M11.2 12.2c1.6-3.4 4.3-4.4 7.3-2.8 2.4-2.4 6.2-1.7 7.5.6 3.4-1 7.7.5 9.8 2.6-5.5 2.3-19.4 2.3-24.6-.4Z"
+          fill={`url(#${id}-foam)`}
+          stroke="#f1dfba"
+          strokeWidth=".8"
+        />
+        <path
+          d="M24 24.8v11.4"
+          stroke={`url(#${id}-glass)`}
+          strokeWidth="2"
+        />
+        <path
+          d="M16.5 42h15M20 36.4h8"
+          stroke={`url(#${id}-glass)`}
+          strokeWidth="2"
+          strokeLinecap="round"
+        />
+        <path
+          d="M15.2 13.8c.7 4.5 2.1 7 4.2 8.5"
+          stroke={`url(#${id}-shine)`}
+          strokeWidth="2"
+          strokeLinecap="round"
+          opacity=".62"
+        />
       </svg>
     );
   }
 
   return (
     <svg {...common}>
-      <path d="M7 4h10c-.4 4.1-1.7 6.5-5 7.5-3.3-1-4.6-3.4-5-7.5Z" />
-      <path d="M12 11.5v5.2" />
-      <path d="M9 20.5h6" />
-      <path d="M10 16.7h4" />
+      {defs}
+      <path
+        d="M11.5 9h25c-.4 8.6-4.5 14.7-12.5 17-8-2.3-12.1-8.4-12.5-17Z"
+        fill={`url(#${id}-beer)`}
+        stroke={`url(#${id}-glass)`}
+        strokeWidth="1.8"
+      />
+      <path
+        d="M12.4 13c1.6-3.4 4.6-4.2 7.2-2.7 2.4-2.2 5.9-1.7 7.2.4 3.2-1 6.5.5 8.5 2.6-5.2 2-18.2 2-22.9-.3Z"
+        fill={`url(#${id}-foam)`}
+        stroke="#f0dfbc"
+        strokeWidth=".8"
+      />
+      <path
+        d="M24 26v10.2"
+        stroke={`url(#${id}-glass)`}
+        strokeWidth="2"
+      />
+      <path
+        d="M17 42h14M20 36.5h8"
+        stroke={`url(#${id}-glass)`}
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+      <path
+        d="M16.3 14.2c.7 4.2 2.1 7 4.1 8.7"
+        stroke={`url(#${id}-shine)`}
+        strokeWidth="2"
+        strokeLinecap="round"
+        opacity=".64"
+      />
+      <circle cx="28.2" cy="18.4" r=".8" fill="#ffe8a4" opacity=".72" />
     </svg>
   );
 }
@@ -294,9 +583,9 @@ function BeerStyleRankingCardView({
                 <span
                   style={{
                     width:
-                      "30px",
+                      "34px",
                     height:
-                      "30px",
+                      "34px",
                     flexShrink:
                       0,
                     display:
@@ -306,15 +595,15 @@ function BeerStyleRankingCardView({
                     justifyContent:
                       "center",
                     borderRadius:
-                      "8px",
+                      "9px",
                     color:
                       "#f2b63f",
                     background:
-                      "linear-gradient(145deg, rgba(242,182,63,.12), rgba(78,45,20,.18))",
+                      "radial-gradient(circle at 35% 24%, rgba(255,220,148,.13), transparent 52%), linear-gradient(145deg, rgba(242,182,63,.10), rgba(62,35,18,.24))",
                     border:
-                      "1px solid rgba(242,182,63,.20)",
+                      "1px solid rgba(242,182,63,.24)",
                     boxShadow:
-                      "inset 0 1px rgba(255,235,190,.08), 0 3px 9px rgba(0,0,0,.18)",
+                      "inset 0 1px rgba(255,235,190,.11), inset 0 -7px 12px rgba(35,18,9,.18), 0 3px 9px rgba(0,0,0,.24)",
                   }}
                 >
                   <BeerStyleGlassIcon
