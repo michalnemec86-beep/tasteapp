@@ -6,6 +6,7 @@ import { isPackaging, type Packaging } from "@/lib/packaging";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { isBeerAvailableForTasting } from "@/lib/beerPortfolio";
+import { inferBrandFromEvidence, type BrandEvidence } from "@/lib/brandInference";
 
 type SupabaseClient = Awaited<ReturnType<typeof createClient>>;
 
@@ -13,6 +14,7 @@ type TastingFormValues = {
   existingBeerId: string;
   beerName: string;
   brandName: string;
+  skipBrandInference: boolean;
   breweryName: string;
   breweryCountry: string;
   styleName: string;
@@ -41,6 +43,7 @@ function readTastingFormData(formData: FormData): TastingFormValues {
   const existingBeerId = String(formData.get("existingBeerId") || "").trim();
   const beerName = String(formData.get("beerName") || "").trim();
   const brandName = String(formData.get("brandName") || "").trim();
+  const skipBrandInference = formData.get("skipBrandInference") === "on";
   const breweryName = String(formData.get("brewery") || "").trim();
   const breweryCountry = String(formData.get("breweryCountry") || "").trim();
   const styleName = String(formData.get("style") || "").trim();
@@ -100,6 +103,7 @@ function readTastingFormData(formData: FormData): TastingFormValues {
     existingBeerId,
     beerName,
     brandName,
+    skipBrandInference,
     breweryName,
     breweryCountry,
     styleName,
@@ -455,25 +459,51 @@ async function resolveBeer(
     return { beerId: selectedBeer.id, isNewBeer: false };
   }
 
-  const brandId = await resolveBrandId(
-    supabase,
-    values.brandName,
-    breweryId,
-    userId
-  );
-
-  let breweryBeersQuery = supabase
-    .from("beers")
-    .select("id, name, brand_id, portfolio_status")
-    .eq("brewery_id", breweryId);
-  breweryBeersQuery = brandId === null
-    ? breweryBeersQuery.is("brand_id", null)
-    : breweryBeersQuery.eq("brand_id", brandId);
-  const { data: breweryBeers, error: breweryBeersError } = await breweryBeersQuery;
+  const [beersResult, linksResult] = await Promise.all([
+    supabase.from("beers")
+      .select("id, name, brand_id, portfolio_status, brands ( id, name )")
+      .eq("brewery_id", breweryId),
+    supabase.from("brewery_brands")
+      .select("brand_id, brands ( id, name )")
+      .eq("brewery_id", breweryId),
+  ]);
+  const { data: breweryBeers, error: breweryBeersError } = beersResult;
   if (breweryBeersError) throw new Error(breweryBeersError.message);
+  if (linksResult.error) throw new Error(linksResult.error.message);
+
+  const candidates = new Map<number, BrandEvidence>();
+  for (const row of linksResult.data ?? []) {
+    const brand = Array.isArray(row.brands) ? row.brands[0] : row.brands;
+    if (brand) candidates.set(brand.id, brand);
+  }
+  for (const beer of breweryBeers ?? []) {
+    const brand = Array.isArray(beer.brands) ? beer.brands[0] : beer.brands;
+    if (brand) candidates.set(brand.id, brand);
+  }
+
+  const inferredBrand = !values.brandName && !values.skipBrandInference
+    ? inferBrandFromEvidence(
+        values.beerName,
+        [...candidates.values()],
+        (breweryBeers ?? []).map((beer) => ({ name: beer.name, brandId: beer.brand_id }))
+      )
+    : null;
+  const namedCandidates = values.brandName
+    ? [...candidates.values()].filter(
+        (brand) => normalizeText(brand.name) === normalizeText(values.brandName)
+      )
+    : [];
+  if (namedCandidates.length > 1) {
+    throw new Error("U tohoto pivovaru je více značek se stejným názvem. Vyberte konkrétní pivo z našeptávače.");
+  }
+  const brandId = values.brandName
+    ? namedCandidates.length === 1
+      ? namedCandidates[0].id
+      : await resolveBrandId(supabase, values.brandName, breweryId, userId)
+    : inferredBrand?.id ?? null;
 
   const existingBeer = breweryBeers?.find(
-    (beer) => normalizeText(beer.name) === normalizeText(values.beerName)
+    (beer) => beer.brand_id === brandId && normalizeText(beer.name) === normalizeText(values.beerName)
   );
 
   if (existingBeer) {
@@ -485,6 +515,12 @@ async function resolveBeer(
       );
     }
     return { beerId: existingBeer.id, isNewBeer: false };
+  }
+
+  if (brandId === null && breweryBeers?.some(
+    (beer) => normalizeText(beer.name) === normalizeText(values.beerName)
+  )) {
+    throw new Error("Pivo tohoto názvu už u pivovaru evidujeme. Vyberte ho z našeptávače, případně doplňte značku.");
   }
 
   const { data: newBeer, error: beerError } = await supabase

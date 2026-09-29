@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { PACKAGING_OPTIONS } from "@/lib/packaging";
+import { inferBrandFromEvidence } from "@/lib/brandInference";
 
 type Brewery = {
   id: number;
@@ -101,6 +102,8 @@ export default function TastingForm({
   const [beerName, setBeerName] = useState(initialBeer?.name ?? "");
   const [existingBeerId, setExistingBeerId] = useState(initialBeer ? String(initialBeer.id) : "");
   const [brandName, setBrandName] = useState(initialBeer?.brands?.name ?? "");
+  const [brandManuallyEdited, setBrandManuallyEdited] = useState(false);
+  const [brandWasAuto, setBrandWasAuto] = useState(false);
   const [breweryName, setBreweryName] = useState(initialBeer?.breweries?.name ?? "");
   const [selectedBreweryId, setSelectedBreweryId] = useState<number | null>(initialBeer?.breweries?.id ?? null);
   const [selectedBrandId, setSelectedBrandId] = useState<number | null>(initialBeer?.brands?.id ?? null);
@@ -217,6 +220,8 @@ export default function TastingForm({
     setExistingBeerId(String(beer.id));
     setBeerName(beer.name);
     setBrandName(beer.brands?.name ?? "");
+    setBrandManuallyEdited(false);
+    setBrandWasAuto(false);
     setSelectedBrandId(beer.brands?.id ?? null);
     setBreweryName(beer.breweries?.name ?? "");
     setSelectedBreweryId(beer.breweries?.id ?? null);
@@ -262,6 +267,19 @@ export default function TastingForm({
   function changeBeerName(value: string) {
     if (existingBeerId) clearBeerDetails();
     setBeerName(value);
+    if (!brandManuallyEdited && (brandWasAuto || !brandName.trim())) {
+      const inferred = activeBreweryId
+        ? inferBrandFromEvidence(
+            value,
+            brandOptions,
+            beers.filter((beer) => beer.breweries?.id === activeBreweryId)
+              .map((beer) => ({ name: beer.name, brandId: beer.brands?.id ?? null }))
+          )
+        : null;
+      setBrandName(inferred?.name ?? "");
+      setSelectedBrandId(inferred?.id ?? null);
+      setBrandWasAuto(Boolean(inferred));
+    }
     setBeerOpen(true);
   }
 
@@ -285,6 +303,8 @@ export default function TastingForm({
     if (activeBrewery?.id !== brewery.id) {
       clearBeerDetails();
       setBrandName("");
+      setBrandManuallyEdited(false);
+      setBrandWasAuto(false);
       setSelectedBrandId(null);
       setBrandOpen(false);
     }
@@ -298,6 +318,8 @@ export default function TastingForm({
     if (value !== breweryName) {
       clearBeerDetails();
       setBrandName("");
+      setBrandManuallyEdited(false);
+      setBrandWasAuto(false);
       setSelectedBrandId(null);
       setSelectedBreweryId(null);
       setBreweryCountry("");
@@ -314,6 +336,8 @@ export default function TastingForm({
     setBreweryCountry(brewery.country ?? "");
     setSelectedBrandId(brand.id);
     setBrandName(brand.name);
+    setBrandManuallyEdited(true);
+    setBrandWasAuto(false);
     setBrandOpen(false);
     setBreweryOpen(false);
   }
@@ -324,6 +348,8 @@ export default function TastingForm({
       setSelectedBrandId(null);
     }
     setBrandName(value);
+    setBrandManuallyEdited(true);
+    setBrandWasAuto(false);
     setBrandOpen(true);
   }
 
@@ -444,6 +470,7 @@ export default function TastingForm({
       }}
     >
       <input type="hidden" name="existingBeerId" value={existingBeerId} />
+      <input type="hidden" name="skipBrandInference" value={brandManuallyEdited && !brandName.trim() ? "on" : ""} />
 
       {/* PIVOVAR */}
       <div style={fieldStyle}>
@@ -622,6 +649,7 @@ export default function TastingForm({
           )}
         </div>
         <div style={{ marginTop: "5px", color: "var(--taste-text-muted)", fontSize: "10px", lineHeight: 1.4 }}>
+          {brandWasAuto && <span>Značka doplněna z evidence. Můžeš ji změnit. </span>}
           {activeBrewery
             ? "Značky v nabídce patří vybranému pivovaru. Novou značku můžeš napsat ručně."
             : "Po třech písmenech nabídneme značky z katalogu. Výběr doplní i pivovar."}
