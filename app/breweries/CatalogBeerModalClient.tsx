@@ -286,7 +286,7 @@ export default function CatalogBeerModalClient({
             onClick={(event) => event.stopPropagation()}
             style={{ width: "100%", maxWidth: "720px", maxHeight: "90vh", overflowY: "auto", border: "1px solid var(--taste-border-strong)", borderRadius: "var(--taste-radius-lg)", background: "var(--taste-surface-raised)", color: "var(--taste-text)", boxShadow: "0 30px 90px rgba(0,0,0,.68)" }}
           >
-            <div style={{ position: "relative", padding: "18px 20px 16px", borderBottom: "1px solid var(--taste-border)" }}>
+            <div className="taste-modal-header" style={{ position: "relative", padding: "18px 20px 16px", borderBottom: "1px solid var(--taste-border)" }}>
               <div className="taste-label" style={{ marginBottom: "5px", fontSize: "9px" }}>Katalog piva</div>
               <h2 id={`catalog-beer-${id}`} style={{ margin: 0, paddingRight: "45px", fontSize: "23px" }}>
                 {mode === "create" ? "Přidat sortiment" : "Upravit verzi piva"}

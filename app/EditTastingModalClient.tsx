@@ -501,6 +501,9 @@ export default function EditTastingModalClient({
 
       {open && (
         <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby={`edit-tasting-title-${tasting.id}`}
           style={overlayStyle}
         >
           <div
@@ -514,6 +517,7 @@ export default function EditTastingModalClient({
             ================================================== */}
 
             <div
+              className="taste-modal-header"
               style={{
                 position:
                   "relative",
@@ -536,6 +540,7 @@ export default function EditTastingModalClient({
               </div>
 
               <h2
+                id={`edit-tasting-title-${tasting.id}`}
                 style={{
                   margin: 0,
                   paddingRight:

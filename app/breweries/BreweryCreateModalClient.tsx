@@ -93,7 +93,7 @@ export default function BreweryCreateModalClient({
             onClick={(event) => event.stopPropagation()}
             style={{ width: "100%", maxWidth: "640px", maxHeight: "88vh", overflowY: "auto", border: "1px solid var(--taste-border-strong)", borderRadius: "var(--taste-radius-lg)", background: "var(--taste-surface-raised)", color: "var(--taste-text)", boxShadow: "0 30px 90px rgba(0,0,0,.68)" }}
           >
-            <div style={{ position: "relative", padding: "18px 20px 16px", borderBottom: "1px solid var(--taste-border)" }}>
+            <div className="taste-modal-header" style={{ position: "relative", padding: "18px 20px 16px", borderBottom: "1px solid var(--taste-border)" }}>
               <div className="taste-label" style={{ marginBottom: "5px", fontSize: "9px" }}>Katalog pivovarů</div>
               <h2 id="new-brewery-title" style={{ margin: 0, fontSize: "22px" }}>Přidat pivovar</h2>
               <button type="button" aria-label="Zavřít" disabled={saving} onClick={() => setOpen(false)} style={{ position: "absolute", top: "15px", right: "16px", width: "34px", height: "34px", border: "1px solid var(--taste-border)", borderRadius: "9px", background: "transparent", color: "var(--taste-text-muted)", fontSize: "20px", cursor: "pointer" }}>×</button>

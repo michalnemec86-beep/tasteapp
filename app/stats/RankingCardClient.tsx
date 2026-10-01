@@ -332,6 +332,7 @@ export default function RankingCardClient({
               }}
             >
               <div
+                className="taste-modal-header"
                 style={{
                   display: "flex",
                   justifyContent: "space-between",

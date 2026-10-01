@@ -286,6 +286,7 @@ export default function TastingModalClient({
             ================================================== */}
 
             <div
+              className="taste-modal-header"
               style={{
                 position:
                   "relative",

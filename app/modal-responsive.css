@@ -6,6 +6,25 @@ div[style*="position: fixed"][style*="z-index: 1000"] {
   overscroll-behavior: contain;
 }
 
+/* An opaque header keeps the title and close button visible above scrolled fields. */
+.taste-modal-header {
+  position: sticky !important;
+  top: 0;
+  z-index: 100;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  min-height: 60px;
+  background:
+    radial-gradient(ellipse at 18% 0%, rgba(255,210,139,.10), transparent 65%),
+    linear-gradient(115deg, #452e1c, #302116 65%, #281c13);
+  border-bottom: 1px solid rgba(222,164,86,.35) !important;
+  box-shadow: 0 5px 14px rgba(0,0,0,.22), inset 0 1px rgba(255,228,182,.08);
+}
+
+.taste-modal-header button[aria-label="Zavřít"] {
+  flex-shrink: 0;
+}
+
 /* Secondary explanatory copy in modal headers is intentionally omitted.
    Labels and field names carry the necessary meaning. */
 [role="dialog"][aria-modal="true"] h1 + p,

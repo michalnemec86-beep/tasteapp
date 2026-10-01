@@ -1396,6 +1396,7 @@ function BreweryBrandsModal({
         }}
       >
         <div
+          className="taste-modal-header"
           style={{
             display: "flex",
             justifyContent:

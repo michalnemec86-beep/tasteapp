@@ -205,6 +205,7 @@ export default function BreweryEditModalClient({
               }}
             >
               <div
+                className="taste-modal-header"
                 style={{
                   display: "flex",
                   justifyContent: "space-between",
