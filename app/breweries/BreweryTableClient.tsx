@@ -3,7 +3,6 @@
 import {
   useEffect,
   useMemo,
-  useRef,
   useState,
 } from "react";
 import { createPortal } from "react-dom";
@@ -238,7 +237,6 @@ export default function BreweryTableClient({
 
   const [search, setSearch] =
     useState("");
-  const searchInputRef = useRef<HTMLInputElement>(null);
 
   const [selectedUserId, setSelectedUserId] =
     useState("");
@@ -555,7 +553,6 @@ export default function BreweryTableClient({
       >
         <div className="taste-brewery-catalog-search">
         <input
-          ref={searchInputRef}
           type="search"
           value={search}
           onChange={(event) => {
@@ -687,27 +684,7 @@ export default function BreweryTableClient({
         </div>
       </div>
 
-      {!hasCatalogSelection ? (
-        <div className="taste-card taste-brewery-catalog-empty-state">
-          <button
-            type="button"
-            className="taste-brewery-catalog-empty-mark"
-            aria-label="Přejít na hledání pivovarů"
-            title="Hledat pivovar"
-            onClick={() => searchInputRef.current?.focus()}
-          >
-            ⌕
-          </button>
-
-          <div className="taste-brewery-catalog-empty-copy">
-            <strong>Vyber filtr nebo začni hledat</strong>
-            <span>
-              V evidenci je {rows.length} {rows.length === 1 ? "pivovar" : "pivovarů"}. Výpis zobrazíme až podle tvého výběru.
-            </span>
-          </div>
-
-        </div>
-      ) : (
+      {hasCatalogSelection && (
         <>
           <div className="taste-brewery-catalog-result-meta">
             <div>

@@ -75,7 +75,7 @@ export default function BreweryCreateModalClient({
       <button
         type="button"
         onClick={prepareOpen}
-        className="taste-button-primary"
+        className="taste-button-primary taste-brewery-create-trigger"
         style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "7px", fontSize: "12px", fontWeight: 700, whiteSpace: "nowrap" }}
       >
         <span aria-hidden="true" style={{ fontSize: "17px", lineHeight: 1 }}>+</span>

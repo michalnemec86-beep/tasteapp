@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getBreweryReferenceStatus } from "@/lib/referenceStatus";
 import PageHero from "@/components/ui/PageHero";
 import { isAdminView } from "@/lib/adminView";
-import AppIcon from "@/components/ui/AppIcon";
+import HomeStatIcon from "@/components/home/HomeStatIcon";
 import BeerWorldMap from "../stats/BeerWorldMap";
 import BreweryCzechMapClient from "./BreweryCzechMapClient";
 import BreweryTableClient, {
@@ -449,7 +449,7 @@ export default async function BreweriesPage({
         }
         stats={[
           {
-            icon: <AppIcon name="brewery" size={18} />,
+            icon: <HomeStatIcon kind="brewery" />,
             accent: "#f2b63f",
             value: isFocusedDrilldown
               ? visibleTableRows.length
@@ -457,7 +457,7 @@ export default async function BreweriesPage({
             label: "Pivovarů",
           },
           {
-            icon: "●",
+            icon: <HomeStatIcon kind="brewery" />,
             accent: "#9cad47",
             value: isFocusedDrilldown
               ? visibleActiveBreweryCount
@@ -465,7 +465,7 @@ export default async function BreweriesPage({
             label: "Aktivních",
           },
           {
-            icon: <AppIcon name="beer" size={18} />,
+            icon: <HomeStatIcon kind="mug" />,
             accent: "#e88835",
             value: isFocusedDrilldown
               ? visibleTastedBeerCount
@@ -475,7 +475,7 @@ export default async function BreweriesPage({
               : "Zaznamenaných piv",
           },
           {
-            icon: isFocusedDrilldown ? "◆" : <AppIcon name="globe" size={18} />,
+            icon: <HomeStatIcon kind={isFocusedDrilldown ? "crest" : "globe"} />,
             accent: "#d65b42",
             value: isFocusedDrilldown ? visibleBrandCount : countryCount,
             label: isFocusedDrilldown ? "Značek" : "Států",
