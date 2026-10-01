@@ -2404,30 +2404,14 @@ function RankingItemLabel({ item }: { item: RankingItem }) {
       }}
     >
       {item.logoUrl ? (
-        <span
-          className="taste-brewery-logo-frame"
+        <AutoLogoFrame
+          src={item.logoUrl}
+          size={22}
+          padding={1}
           style={{
-            width: "22px",
-            height: "16px",
-            flexShrink: 0,
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            overflow: "hidden",
-
+            borderRadius: "7px",
           }}
-        >
-          <img
-            src={item.logoUrl}
-            alt=""
-            aria-hidden="true"
-            style={{
-              width: "100%",
-              height: "100%",
-              objectFit: "contain",
-            }}
-          />
-        </span>
+        />
       ) : item.flag ? (
         <span style={{ flexShrink: 0 }}>{item.flag}</span>
       ) : null}
