@@ -12,6 +12,7 @@ type ProfileTastingControlsProps = {
   query: string;
   letter: string;
   letters: string[];
+  showAll: boolean;
 };
 
 export default function ProfileTastingControls({
@@ -21,6 +22,7 @@ export default function ProfileTastingControls({
   query,
   letter,
   letters,
+  showAll,
 }: ProfileTastingControlsProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -38,15 +40,24 @@ export default function ProfileTastingControls({
     nextCountry = country,
     nextLetter = letter,
     nextQuery = query,
+    nextShowAll = false,
   }: {
     nextSort?: TastingSort;
     nextCountry?: string;
     nextLetter?: string;
     nextQuery?: string;
+    nextShowAll?: boolean;
   }) {
     const params = new URLSearchParams(searchParams.toString());
     params.set("view", "beers");
-    params.set("sort", nextSort);
+
+    if (nextShowAll) {
+      params.set("all", "1");
+      params.delete("sort");
+    } else {
+      params.delete("all");
+      params.set("sort", nextSort);
+    }
 
     if (nextCountry) {
       params.set("country", nextCountry);
@@ -98,7 +109,14 @@ export default function ProfileTastingControls({
             className="taste-button-secondary"
             onClick={() => {
               setSearchValue("");
-              navigate({ nextQuery: "" });
+              const params = new URLSearchParams(searchParams.toString());
+              params.set("view", "beers");
+              params.delete("q");
+              params.delete("sort");
+              params.delete("country");
+              params.delete("letter");
+              params.delete("all");
+              router.replace(`${pathname}?${params.toString()}`, { scroll: false });
             }}
           >
             Zrušit
@@ -107,6 +125,26 @@ export default function ProfileTastingControls({
       </form>
 
       <div className="taste-tasting-sort-buttons">
+        <button
+          type="button"
+          className="taste-button-secondary"
+          aria-pressed={showAll}
+          onClick={() => {
+            setShowLetters(false);
+            setShowCountries(false);
+            setSearchValue("");
+            navigate({
+              nextSort: "newest",
+              nextCountry: "",
+              nextLetter: "",
+              nextQuery: "",
+              nextShowAll: true,
+            });
+          }}
+        >
+          Vše
+        </button>
+
         <button
           type="button"
           className="taste-button-secondary"
