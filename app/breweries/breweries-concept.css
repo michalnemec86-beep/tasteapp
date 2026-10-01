@@ -1,0 +1,370 @@
+/* Katalog pivovarů: stejný tmavý měděný jazyk jako Pivní lístek,
+   bez zásahu do mapových komponent. */
+
+body:has(.taste-brewery-catalog-concept) {
+  background: #080807;
+}
+
+.taste-app-shell:has(.taste-brewery-catalog-concept) {
+  position: relative;
+  isolation: isolate;
+  box-sizing: border-box;
+  width: min(1500px, calc(100% - 48px));
+  margin: 28px auto 42px;
+  border: 2px solid transparent;
+  border-radius: 17px;
+  background:
+    linear-gradient(#100d0a, #0c0a08) padding-box,
+    linear-gradient(
+      125deg,
+      #e5af61 0%,
+      #69411f 13%,
+      #f1cb89 29%,
+      #50331e 48%,
+      #b77d3f 74%,
+      #ead2a2 100%
+    ) border-box;
+  box-shadow:
+    0 0 0 1px #302012,
+    0 0 0 5px rgba(9,7,5,.95),
+    0 23px 65px rgba(0,0,0,.60),
+    inset 0 0 0 1px rgba(255,225,164,.13);
+}
+
+.taste-app-shell:has(.taste-brewery-catalog-concept)::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: 65px;
+  left: 0;
+  right: 0;
+  height: 760px;
+  border-radius: 0 0 14px 14px;
+  background:
+    radial-gradient(circle at 67% 12%, rgba(255,190,84,.10), transparent 24%),
+    linear-gradient(180deg, rgba(10,7,5,.03) 0%, rgba(18,11,7,.40) 28%, rgba(16,12,9,.84) 57%, #100d0a 84%),
+    linear-gradient(90deg, rgba(12,8,6,.76), rgba(12,8,6,.18) 57%, rgba(12,8,6,.08)),
+    url("/images/heroes/breweries.jpg") 55% -36px / 100% auto no-repeat;
+  filter: saturate(1.06) contrast(1.04);
+  pointer-events: none;
+}
+
+.taste-app-shell:has(.taste-brewery-catalog-concept) > .taste-app-nav {
+  top: 0;
+  border-radius: 15px 15px 0 0;
+  border-bottom-color: rgba(236,177,88,.31) !important;
+  background:
+    linear-gradient(180deg, rgba(23,18,14,.97), rgba(18,13,10,.94)) !important;
+  box-shadow: inset 0 1px rgba(255,226,166,.055);
+}
+
+.taste-brewery-catalog-concept {
+  position: relative;
+  z-index: 0;
+  max-width: 1500px !important;
+  padding: 12px 24px 72px !important;
+}
+
+.taste-brewery-catalog-concept > .taste-page-hero {
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+}
+
+.taste-brewery-catalog-concept .taste-page-hero-layout > div:first-child {
+  opacity: 0;
+}
+
+.taste-brewery-catalog-concept .taste-page-hero-copy {
+  text-shadow: 0 4px 22px rgba(0,0,0,.34);
+}
+
+.taste-brewery-catalog-concept .taste-page-hero-stats {
+  border: 0 !important;
+  border-radius: 12px;
+  background: rgba(13,10,8,.29) !important;
+}
+
+.taste-brewery-catalog-concept .taste-hero-stat {
+  min-height: 62px !important;
+  border-color: rgba(232,170,78,.24) !important;
+  border-radius: 10px !important;
+  background:
+    radial-gradient(circle at 18% 0%, rgba(237,176,84,.12), transparent 42%),
+    linear-gradient(145deg, rgba(76,43,20,.42), rgba(22,16,12,.87)) !important;
+  box-shadow:
+    inset 0 1px rgba(255,230,174,.06),
+    0 4px 12px rgba(0,0,0,.20) !important;
+}
+
+/* Filter-first katalog */
+.taste-brewery-catalog-toolbar {
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) auto;
+  gap: 9px;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 13px 14px;
+  border: 1px solid rgba(203,132,62,.36);
+  border-radius: 12px;
+  background:
+    radial-gradient(circle at 13% 0%, rgba(229,155,73,.10), transparent 34%),
+    linear-gradient(154deg, #2f1c0d 0%, #21170e 48%, #14110e 100%);
+  box-shadow:
+    0 8px 22px rgba(0,0,0,.27),
+    0 0 18px rgba(194,111,45,.07),
+    inset 0 1px rgba(255,225,171,.08);
+}
+
+.taste-brewery-catalog-search {
+  min-width: 0;
+}
+
+.taste-brewery-catalog-search input {
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 40px;
+  border-color: rgba(209,140,67,.34) !important;
+  background: rgba(18,15,12,.86) !important;
+  color: #f5ead8 !important;
+  box-shadow:
+    inset 0 1px rgba(255,225,168,.055),
+    0 2px 8px rgba(0,0,0,.18);
+}
+
+.taste-brewery-catalog-search input:focus {
+  border-color: rgba(242,182,63,.58) !important;
+  box-shadow:
+    0 0 15px rgba(231,166,47,.09),
+    inset 0 1px rgba(255,230,176,.08);
+}
+
+.taste-brewery-catalog-filter-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(145px, 1fr)) auto;
+  gap: 7px;
+  align-items: center;
+}
+
+.taste-brewery-catalog-filter-grid select {
+  width: 100%;
+  min-width: 0 !important;
+  border-color: rgba(204,137,67,.34) !important;
+  background: #15120f !important;
+  color: #f5ead8 !important;
+  color-scheme: dark;
+}
+
+.taste-brewery-catalog-clear {
+  min-height: 38px !important;
+  padding: 7px 10px !important;
+  white-space: nowrap;
+  font-size: 10px !important;
+}
+
+.taste-brewery-catalog-empty-state {
+  display: grid;
+  grid-template-columns: auto minmax(0,1fr) auto;
+  align-items: center;
+  gap: 14px;
+  min-height: 94px;
+  margin-bottom: 18px;
+  padding: 16px 18px !important;
+  border-color: rgba(205,133,62,.30) !important;
+  background:
+    radial-gradient(circle at 10% 15%, rgba(231,166,47,.08), transparent 34%),
+    linear-gradient(145deg, rgba(63,39,21,.34), rgba(18,15,12,.90)) !important;
+  box-shadow:
+    inset 0 1px rgba(255,225,171,.055),
+    0 7px 20px rgba(0,0,0,.22) !important;
+}
+
+.taste-brewery-catalog-empty-mark {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(232,170,78,.32);
+  border-radius: 11px;
+  background:
+    linear-gradient(145deg, rgba(104,59,24,.36), rgba(37,25,17,.82));
+  color: #f2b63f;
+  font-size: 23px;
+  line-height: 1;
+  box-shadow:
+    inset 0 1px rgba(255,229,180,.08),
+    0 3px 10px rgba(0,0,0,.22);
+}
+
+.taste-brewery-catalog-empty-copy {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.taste-brewery-catalog-empty-copy strong {
+  color: #f2b63f;
+  font-size: 13px;
+}
+
+.taste-brewery-catalog-empty-copy span {
+  color: rgba(255,255,255,.52);
+  font-size: 10.5px;
+  line-height: 1.45;
+}
+
+.taste-brewery-catalog-result-meta {
+  min-height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+  color: rgba(255,255,255,.55);
+  font-size: 10px;
+}
+
+.taste-brewery-catalog-reset {
+  min-height: 30px !important;
+  padding: 5px 9px !important;
+  font-size: 9px !important;
+}
+
+.taste-brewery-table-shell {
+  border-color: rgba(205,133,62,.34) !important;
+  background:
+    linear-gradient(160deg, rgba(53,31,16,.72), rgba(18,15,12,.94)) !important;
+}
+
+@media (max-width: 760px) {
+  .taste-app-shell:has(.taste-brewery-catalog-concept) {
+    width: 100%;
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .taste-app-shell:has(.taste-brewery-catalog-concept)::before {
+    top: 58px;
+    height: 590px;
+    border-radius: 0;
+    background:
+      radial-gradient(circle at 62% 12%, rgba(255,191,86,.09), transparent 24%),
+      linear-gradient(180deg, rgba(10,7,5,.03) 0%, rgba(18,11,7,.44) 28%, rgba(16,12,9,.86) 57%, #100d0a 84%),
+      linear-gradient(90deg, rgba(12,8,6,.75), rgba(12,8,6,.20) 55%, rgba(12,8,6,.09)),
+      url("/images/heroes/breweries.jpg") 58% -18px / auto 390px no-repeat;
+  }
+
+  .taste-app-shell:has(.taste-brewery-catalog-concept) > .taste-app-nav {
+    border-radius: 0;
+  }
+
+  .taste-brewery-catalog-concept {
+    padding: 12px 12px 56px !important;
+  }
+
+  .taste-brewery-catalog-concept .taste-page-hero-layout {
+    min-height: 124px !important;
+  }
+
+  .taste-brewery-catalog-concept .taste-page-hero-copy {
+    padding: 6px 14px 4px !important;
+    transform: translateY(-8px);
+  }
+
+  .taste-brewery-catalog-concept .taste-page-hero-title {
+    font-size: 19px !important;
+    line-height: 1.02 !important;
+    letter-spacing: -.025em !important;
+  }
+
+  .taste-brewery-catalog-concept .taste-page-hero-subtitle {
+    max-width: 86% !important;
+    margin-top: 5px !important;
+    font-size: 9.5px !important;
+    line-height: 1.35 !important;
+  }
+
+  .taste-brewery-catalog-concept .taste-page-hero-stats {
+    padding: 6px !important;
+  }
+
+  .taste-brewery-catalog-concept .taste-page-hero-stats > div {
+    grid-template-columns: repeat(2, minmax(0,1fr)) !important;
+  }
+
+  .taste-brewery-catalog-concept .taste-hero-stat {
+    min-height: 48px !important;
+    padding: 6px 8px !important;
+  }
+
+  .taste-brewery-catalog-concept .taste-hero-stat > div:first-child {
+    width: 28px !important;
+    height: 28px !important;
+  }
+
+  .taste-brewery-catalog-concept .taste-hero-stat-value {
+    font-size: 16px !important;
+  }
+
+  .taste-brewery-catalog-toolbar {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    padding: 10px;
+  }
+
+  .taste-brewery-catalog-search input {
+    min-height: 42px;
+    font-size: 16px !important;
+  }
+
+  .taste-brewery-catalog-filter-grid {
+    grid-template-columns: repeat(2, minmax(0,1fr));
+    gap: 7px;
+  }
+
+  .taste-brewery-catalog-filter-grid select:first-child {
+    grid-column: 1 / -1;
+  }
+
+  .taste-brewery-catalog-clear {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .taste-brewery-catalog-empty-state {
+    grid-template-columns: 38px minmax(0,1fr);
+    gap: 10px;
+    min-height: 0;
+    padding: 12px !important;
+  }
+
+  .taste-brewery-catalog-empty-mark {
+    width: 38px;
+    height: 38px;
+    font-size: 20px;
+  }
+
+  .taste-brewery-catalog-empty-copy strong {
+    font-size: 11px;
+  }
+
+  .taste-brewery-catalog-empty-copy span {
+    font-size: 9px;
+  }
+
+  .taste-brewery-catalog-show-all {
+    grid-column: 1 / -1;
+    width: 100%;
+    min-height: 34px !important;
+    padding: 7px 10px !important;
+    font-size: 10px !important;
+  }
+
+  .taste-brewery-catalog-result-meta {
+    margin-bottom: 7px;
+  }
+}
