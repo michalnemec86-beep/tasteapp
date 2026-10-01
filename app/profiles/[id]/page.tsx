@@ -9,6 +9,7 @@ import {
   createClient,
 } from "@/lib/supabase/server";
 import { fetchAllRows } from "@/lib/fetch-all-rows";
+import { isBeerAvailableForTasting } from "@/lib/beerPortfolio";
 
 import {
   getPackagingMeta,
@@ -33,6 +34,7 @@ import PageHero from "@/components/ui/PageHero";
 import HomeStatIcon from "@/components/home/HomeStatIcon";
 import "./profile-concept.css";
 import EditTastingModalClient from "@/app/EditTastingModalClient";
+import TastingModal from "@/app/TastingModal";
 import ProfileActivityCard from "./ProfileActivityCard";
 import ProfileBeerDnaCard from "./ProfileBeerDnaCard";
 import ProfileTechnicalCard from "./ProfileTechnicalCard";
@@ -264,6 +266,8 @@ export default async function ProfilePage({
         abv,
         ibu,
         is_catalog,
+        portfolio_status,
+        is_non_alcoholic,
         brands (
           id,
           name
@@ -272,7 +276,8 @@ export default async function ProfilePage({
           id,
           name,
           country,
-          logo_url
+          logo_url,
+          closed_year
         ),
         beer_styles (
           id,
@@ -287,9 +292,19 @@ export default async function ProfilePage({
   const breweriesPromise =
     supabase
       .from("breweries")
-      .select(
-        "id, name, country, logo_url"
-      )
+      .select(`
+        id,
+        name,
+        country,
+        logo_url,
+        closed_year,
+        brewery_name_history (
+          previous_name
+        ),
+        brewery_brands (
+          brands (id, name)
+        )
+      `)
       .order("name");
 
   const countriesPromise =
@@ -506,6 +521,64 @@ export default async function ProfilePage({
           ),
       })
     );
+
+  const availableBeers =
+    normalizedBeers.filter(
+      (beer) =>
+        isBeerAvailableForTasting(
+          beer.portfolio_status,
+          beer.breweries?.closed_year
+        ) &&
+        Boolean(
+          beer.brands &&
+          beer.breweries
+        )
+    );
+
+  const availableBreweries =
+    (breweries ?? [])
+      .filter(
+        (brewery) =>
+          brewery.closed_year == null
+      )
+      .map((brewery) => ({
+        id: brewery.id,
+        name: brewery.name,
+        aliases:
+          (
+            brewery.brewery_name_history ??
+            []
+          )
+            .map(
+              (item) =>
+                item.previous_name
+            )
+            .filter(Boolean),
+      }));
+
+  const brandsByBrewery =
+    (breweries ?? [])
+      .flatMap((brewery) =>
+        (
+          brewery.brewery_brands ??
+          []
+        ).flatMap((link) => {
+          const brand =
+            singleRelation(
+              link.brands
+            );
+
+          return brand
+            ? [
+                {
+                  breweryId:
+                    brewery.id,
+                  brand,
+                },
+              ]
+            : [];
+        })
+      );
 
   const tastingCountries = Array.from(
     new Set(
@@ -1002,6 +1075,18 @@ export default async function ProfilePage({
         }
         statsScrollable
         statsLoop
+        statsAction={
+          isMe ? (
+            <TastingModal
+              beers={availableBeers}
+              breweries={availableBreweries}
+              brandsByBrewery={brandsByBrewery}
+              countries={countries ?? []}
+              styles={styles ?? []}
+              hops={hops ?? []}
+            />
+          ) : undefined
+        }
         stats={[
           {
             icon: <HomeStatIcon kind="barrel" />,
@@ -1052,19 +1137,6 @@ export default async function ProfilePage({
             label: "Chmelů",
             href: `/stats?user=${profile.id}&locked=1&focus=hops`,
           },
-          ...(isMe
-            ? [
-                {
-                  icon: <HomeStatIcon kind="mug" />,
-                  accent: "#8a9e36",
-                  value: "+",
-                  label: "Zapsat ochutnávku",
-                  href: "/tastings/new",
-                  mobileOnly: true,
-                  action: true,
-                },
-              ]
-            : []),
         ]}
       />
       <nav
