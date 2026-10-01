@@ -997,6 +997,7 @@ export default async function ProfilePage({
           />
         }
         statsScrollable
+        statsLoop
         stats={[
           {
             icon: <HomeStatIcon kind="barrel" />,
@@ -1047,6 +1048,19 @@ export default async function ProfilePage({
             label: "Chmelů",
             href: `/stats?user=${profile.id}&locked=1&focus=hops`,
           },
+          ...(isMe
+            ? [
+                {
+                  icon: <HomeStatIcon kind="mug" />,
+                  accent: "#8a9e36",
+                  value: "+",
+                  label: "Zapsat ochutnávku",
+                  href: "/tastings/new",
+                  mobileOnly: true,
+                  action: true,
+                },
+              ]
+            : []),
         ]}
       />
       <nav
@@ -1071,7 +1085,7 @@ export default async function ProfilePage({
             <Link
               key={item.key}
               href={item.href}
-              className="taste-button-secondary"
+              className={`taste-button-secondary taste-profile-tab taste-profile-tab-${item.key}`}
               aria-current={active ? "page" : undefined}
               style={{
                 background: active
@@ -1216,7 +1230,8 @@ export default async function ProfilePage({
         </div>
       </section>
 
-      <ProfileActivityCard
+      <div className="taste-profile-activity-desktop">
+        <ProfileActivityCard
         monthlyActivity={
           profileStats.monthlyActivity
         }
@@ -1230,6 +1245,7 @@ export default async function ProfilePage({
           profileStats.averagePerMonth
         }
       />
+      </div>
 
       <ProfileBeerDnaCard
         styles={
@@ -1261,21 +1277,27 @@ export default async function ProfilePage({
         }
       />
 
-      <ProfileBrandsCard
-        items={tasteStats.brands}
-        profileId={
-          profile.id
-        }
-      />
+      <div className="taste-profile-preference-order">
+        <div className="taste-profile-preference-brands">
+          <ProfileBrandsCard
+            items={tasteStats.brands}
+            profileId={
+              profile.id
+            }
+          />
+        </div>
 
-      <ProfileBreweriesCard
-        items={
-          tasteStats.breweries
-        }
-        profileId={
-          profile.id
-        }
-      />
+        <div className="taste-profile-preference-breweries">
+          <ProfileBreweriesCard
+            items={
+              tasteStats.breweries
+            }
+            profileId={
+              profile.id
+            }
+          />
+        </div>
+      </div>
 
       <ProfileWorldCard
         items={
@@ -1339,6 +1361,22 @@ export default async function ProfilePage({
       ================================================== */}
 
       {view === "beers" && <section>
+        <div className="taste-profile-activity-mobile">
+          <ProfileActivityCard
+            monthlyActivity={
+              profileStats.monthlyActivity
+            }
+            mostActiveMonth={
+              profileStats.mostActiveMonth
+            }
+            mostActiveYear={
+              profileStats.mostActiveYear
+            }
+            averagePerMonth={
+              profileStats.averagePerMonth
+            }
+          />
+        </div>
         <div
           style={{
             display:

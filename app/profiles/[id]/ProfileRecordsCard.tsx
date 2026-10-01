@@ -15,6 +15,7 @@ import type {
 import {
   loadProfileTechnicalStats,
 } from "@/lib/profileTechnicalStatsClient";
+import ProfileLoopCarousel from "./ProfileLoopCarousel";
 
 type ProfileRecordsCardProps = {
   strongestBeer: ProfileBeerRecord | null;
@@ -109,6 +110,7 @@ function BeerRecordCard({
 }: BeerRecordCardProps) {
   return (
     <div
+      className="taste-profile-record-card"
       style={{
         position: "relative",
         minHeight: "220px",
@@ -317,6 +319,7 @@ export default function ProfileRecordsCard({
 
   return (
     <section
+      className="taste-profile-section taste-profile-records-section"
       style={{
         marginBottom: "38px",
       }}
@@ -346,6 +349,7 @@ export default function ProfileRecordsCard({
         </h2>
 
         <p
+          className="taste-profile-section-description"
           style={{
             maxWidth: "680px",
             margin: "6px 0 0",
@@ -385,14 +389,7 @@ export default function ProfileRecordsCard({
             "inset 0 1px 0 rgba(255,235,205,0.035)",
         }}
       >
-        <div
-          className="
-            grid
-            grid-cols-1
-            gap-3
-            lg:grid-cols-3
-          "
-        >
+        <ProfileLoopCarousel className="taste-profile-records-carousel">
           <BeerRecordCard
             eyebrow="Silák"
             title="Nejvyšší obsah alkoholu"
@@ -434,15 +431,10 @@ export default function ProfileRecordsCard({
             wash="rgba(239,180,65,0.15)"
             glow="rgba(239,180,65,0.10)"
           />
-        </div>
+        </ProfileLoopCarousel>
 
         <div
-          className="
-            grid
-            grid-cols-1
-            gap-3
-            md:grid-cols-3
-          "
+          className="taste-profile-records-mini-grid grid grid-cols-1 gap-3 md:grid-cols-3"
           style={{
             marginTop: "14px",
           }}

@@ -14,6 +14,7 @@ import type {
 import {
   loadProfileTechnicalStats,
 } from "@/lib/profileTechnicalStatsClient";
+import ProfileLoopCarousel from "./ProfileLoopCarousel";
 
 type ProfileTechnicalCardProps = {
   plato: ProfileNumericSummary;
@@ -130,6 +131,7 @@ function TechnicalGauge({
 
   return (
     <article
+      className="taste-profile-technical-gauge"
       style={{
         position:
           "relative",
@@ -513,6 +515,7 @@ export default function ProfileTechnicalCard({
 
   return (
     <section
+      className="taste-profile-section taste-profile-technical-section"
       style={{
         marginBottom:
           "38px",
@@ -547,6 +550,7 @@ export default function ProfileTechnicalCard({
         </h2>
 
         <p
+          className="taste-profile-section-description"
           style={{
             maxWidth:
               "650px",
@@ -567,14 +571,7 @@ export default function ProfileTechnicalCard({
         </p>
       </div>
 
-      <div
-        className="
-          grid
-          grid-cols-1
-          gap-3
-          md:grid-cols-3
-        "
-      >
+      <ProfileLoopCarousel className="taste-profile-technical-carousel">
         <TechnicalGauge
           label="Stupňovitost"
           subtitle="Sladový profil"
@@ -610,7 +607,7 @@ export default function ProfileTechnicalCard({
           decimals={0}
           tone="green"
         />
-      </div>
+      </ProfileLoopCarousel>
     </section>
   );
 }
