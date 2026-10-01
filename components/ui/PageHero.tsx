@@ -23,6 +23,7 @@ type PageHeroProps = {
   subtitle: string;
   action?: ReactNode;
   stats?: HeroStat[];
+  statsLabel?: ReactNode;
   statsScrollable?: boolean;
   imageUrl?: string;
   imagePosition?: string;
@@ -40,6 +41,7 @@ export default function PageHero({
   subtitle,
   action,
   stats = [],
+  statsLabel,
   statsScrollable = false,
   imageUrl,
   imagePosition = "center",
@@ -404,6 +406,12 @@ export default function PageHero({
             `,
           }}
         >
+          {statsLabel && (
+            <div className="taste-page-hero-stats-label">
+              {statsLabel}
+            </div>
+          )}
+
           {statsScrollable ? (
             <HorizontalStatScroller>
               {statCards}
