@@ -9,6 +9,7 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import AutoLogoFrame from "@/components/ui/AutoLogoFrame";
+import HomeStatIcon from "@/components/home/HomeStatIcon";
 import { getCountryEvidenceHref } from "@/lib/country-flags";
 
 type RankingItem = {
@@ -460,6 +461,7 @@ function RankingItemLabel({
 
   return (
     <span
+      className="taste-ranking-item-label"
       style={{
         minWidth: 0,
         maxWidth: "100%",
@@ -509,12 +511,18 @@ function RankingItemLabel({
       ) : item.logoUrl ? (
         <AutoLogoFrame
           src={item.logoUrl}
+          alt={`Logo ${item.name}`}
           size={24}
           padding={2}
         />
+      ) : title === "Značky" || title === "Pivovary" ? (
+        <span className="taste-ranking-logo-placeholder" aria-hidden="true">
+          <HomeStatIcon kind={title === "Značky" ? "crest" : "brewery"} />
+        </span>
       ) : null}
 
       <span
+        className="taste-ranking-item-text"
         style={{
           minWidth: 0,
           overflow: "hidden",
@@ -716,9 +724,7 @@ function RankingList({
                     "saturate(.88)",
                 }}
               >
-                {isPersonal
-                  ? "🍺"
-                  : ""}
+                {isPersonal && <HomeStatIcon kind="mug" />}
               </span>
 
               <span

@@ -105,6 +105,7 @@ export default function PackagingSummaryCard({
           </div>
         ) : (
           <div
+            className="taste-packaging-summary-grid"
             style={{
               display: "grid",
               gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))",
@@ -144,6 +145,7 @@ export default function PackagingSummaryCard({
                   }}
                 >
                   <div
+                    className="taste-packaging-summary-row"
                     style={{
                       display: "flex",
                       alignItems: "center",
@@ -179,6 +181,7 @@ export default function PackagingSummaryCard({
 
                       <div style={{ minWidth: 0 }}>
                         <div
+                          className="taste-packaging-summary-name"
                           style={{
                             color: "var(--taste-text)",
                             fontSize: "13px",
@@ -191,6 +194,7 @@ export default function PackagingSummaryCard({
                           {item.name}
                         </div>
                         <div
+                          className="taste-packaging-summary-share"
                           style={{
                             marginTop: "2px",
                             color: "var(--taste-text-muted)",
@@ -206,6 +210,7 @@ export default function PackagingSummaryCard({
                     </div>
 
                     <div
+                      className="taste-packaging-summary-count"
                       style={{
                         display: "flex",
                         alignItems: "baseline",

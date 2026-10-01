@@ -40,8 +40,9 @@ export default function HorizontalRankingScroller({
       firstCard?.getBoundingClientRect()
         .width ?? 390;
 
-    const step =
-      cardWidth + 16;
+    const gap =
+      Number.parseFloat(getComputedStyle(track).columnGap) || 0;
+    const step = cardWidth + gap;
 
     const atStart =
       track.scrollLeft <= 4;
