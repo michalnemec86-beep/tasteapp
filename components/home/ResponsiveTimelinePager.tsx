@@ -20,11 +20,13 @@ export default function ResponsiveTimelinePager({
   serverPage,
   hasOlderServerPage,
   totalEntries,
+  basePath = "/",
 }: {
   children: ReactNode;
   serverPage: number;
   hasOlderServerPage: boolean;
   totalEntries: number;
+  basePath?: string;
 }) {
   const router = useRouter();
   const searchParams =
@@ -212,7 +214,7 @@ export default function ResponsiveTimelinePager({
       params.toString();
 
     router.push(
-      `/${query ? `?${query}` : ""}#timeline`
+      `${basePath}${query ? `?${query}` : ""}#timeline`
     );
   }
 

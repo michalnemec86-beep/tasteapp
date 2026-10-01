@@ -333,7 +333,7 @@ export default async function ProfilesPage() {
         subtitle=""
         action={
           <Link
-            href="/"
+            href="/activity"
             className="taste-button-secondary"
             style={{
               fontSize: "12px",
