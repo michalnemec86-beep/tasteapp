@@ -32,7 +32,6 @@ import AppIcon from "@/components/ui/AppIcon";
 import HomeStatIcon from "@/components/home/HomeStatIcon";
 import MobileHomeStatsCarousel from "@/components/home/MobileHomeStatsCarousel";
 import ResponsiveTimelinePager from "@/components/home/ResponsiveTimelinePager";
-import { getCzechVocative } from "@/lib/czech-vocative";
 import { fetchAllRows } from "@/lib/fetch-all-rows";
 import { parsePositivePage } from "@/lib/pagination";
 import { isBeerAvailableForTasting } from "@/lib/beerPortfolio";
@@ -683,13 +682,6 @@ export default async function ActivityPage({
   const allHops =
     (hops ??
       []) as HopRow[];
-
-  const currentProfile =
-    allProfiles.find(
-      (profile) =>
-        profile.id ===
-        user.id
-    );
 
   const newlyUnlockedAchievements =
     await syncUserAchievements(
