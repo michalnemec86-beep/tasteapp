@@ -209,6 +209,9 @@ export default function AutoLogoFrame({
   const lightBackground =
     "rgba(255,255,255,.94)";
 
+  const neutralBackground =
+    "radial-gradient(circle at 32% 24%, rgba(255,255,255,.14), transparent 42%), linear-gradient(145deg, #8a857f 0%, #6b6660 58%, #57524d 100%)";
+
   return (
     <span
       className={
@@ -247,12 +250,18 @@ export default function AutoLogoFrame({
           tone ===
           "light"
             ? darkBackground
-            : lightBackground,
+            : tone ===
+                "dark"
+              ? lightBackground
+              : neutralBackground,
         boxShadow:
           tone ===
           "light"
             ? "0 2px 8px rgba(0,0,0,.36), inset 0 1px rgba(255,221,162,.08)"
-            : "0 2px 7px rgba(0,0,0,.27), inset 0 0 0 1px rgba(255,255,255,.04)",
+            : tone ===
+                "dark"
+              ? "0 2px 7px rgba(0,0,0,.27), inset 0 0 0 1px rgba(255,255,255,.04)"
+              : "0 2px 8px rgba(0,0,0,.30), inset 0 1px rgba(255,255,255,.13)",
         boxSizing:
           "border-box",
         padding,
@@ -281,8 +290,13 @@ export default function AutoLogoFrame({
             "100%",
           objectFit:
             "contain",
-          borderRadius:
-            "50%",
+          objectPosition:
+            "center",
+          filter:
+            tone ===
+            "unknown"
+              ? "drop-shadow(0 1px 1px rgba(0,0,0,.55)) drop-shadow(0 0 1px rgba(255,255,255,.28))"
+              : undefined,
         }}
       />
     </span>
