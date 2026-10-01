@@ -38,8 +38,6 @@ export default function ModalBehaviorManager() {
         body.style.right,
       bodyWidth:
         body.style.width,
-      bodyOverflow:
-        body.style.overflow,
       htmlOverflow:
         html.style.overflow,
       htmlOverscroll:
@@ -64,9 +62,6 @@ export default function ModalBehaviorManager() {
       body.style.right = "0";
       body.style.width =
         "100%";
-      body.style.overflow =
-        "hidden";
-
       html.style.overflow =
         "hidden";
       html.style.overscrollBehavior =
@@ -93,9 +88,6 @@ export default function ModalBehaviorManager() {
         previous.bodyRight;
       body.style.width =
         previous.bodyWidth;
-      body.style.overflow =
-        previous.bodyOverflow;
-
       html.style.overflow =
         previous.htmlOverflow;
       html.style.overscrollBehavior =
