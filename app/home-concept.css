@@ -170,6 +170,29 @@
   height: 31px;
 }
 
+.taste-home-concept .taste-timeline-catalog-icon {
+  position: relative;
+}
+
+.taste-home-concept .taste-timeline-new-badge {
+  position: absolute;
+  right: 1px;
+  bottom: 1px;
+  z-index: 1;
+  padding: 1px 3px;
+  border: 1px solid rgba(190, 235, 145, .65);
+  border-radius: 3px;
+  background: linear-gradient(155deg, #72a63d, #32571f);
+  box-shadow: inset 0 1px rgba(239, 255, 212, .24), 0 1px 3px rgba(0, 0, 0, .55);
+  color: #f4ffe8;
+  font-size: 7px;
+  font-weight: 900;
+  line-height: 9px;
+  letter-spacing: .4px;
+  text-shadow: 0 1px rgba(18, 45, 11, .65);
+  pointer-events: none;
+}
+
 .taste-home-concept .taste-timeline-person-line {
   min-width: 0;
   display: flex;

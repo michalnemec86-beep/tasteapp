@@ -1800,17 +1800,17 @@ function TastingTimelineCard({
 
 const SYSTEM_EVENT_VISUALS = {
   beer_created: {
-    icon: "beer",
+    icon: "mug",
     eyebrow: "Systém · nové pivo",
     action: "přidal nové pivo do sortimentu",
   },
   beer_version_created: {
-    icon: "beer",
+    icon: "mug",
     eyebrow: "Systém · nová verze",
     action: "vytvořil novou aktuální verzi piva",
   },
   brand_created: {
-    icon: "label",
+    icon: "crest",
     eyebrow: "Systém · nová značka",
     action: "zapsal novou značku",
   },
@@ -1825,6 +1825,22 @@ const SYSTEM_EVENT_VISUALS = {
     action: "zapsal nový chmel",
   },
 } as const;
+
+function CatalogTimelineIcon({
+  kind,
+}: {
+  kind: (typeof SYSTEM_EVENT_VISUALS)[CatalogEventRow["event_type"]]["icon"];
+}) {
+  return (
+    <span
+      className="taste-timeline-packaging taste-timeline-packaging-illustrated taste-timeline-catalog-icon"
+      aria-hidden="true"
+    >
+      <HomeStatIcon kind={kind} />
+      <span className="taste-timeline-new-badge">NEW</span>
+    </span>
+  );
+}
 
 function CatalogTimelineCard({
   row,
@@ -1846,14 +1862,7 @@ function CatalogTimelineCard({
       <div className="taste-timeline-entry taste-timeline-system">
         <article className="taste-timeline-card taste-timeline-system-single-card">
           <div className="taste-timeline-system-one-line">
-            <span
-              className="taste-timeline-packaging taste-timeline-packaging-illustrated"
-              aria-hidden="true"
-            >
-              <HomeStatIcon
-                kind="brewery"
-              />
-            </span>
+            <CatalogTimelineIcon kind="brewery" />
 
             <div className="taste-timeline-system-one-line-copy">
               Uživatel{" "}
@@ -1949,16 +1958,7 @@ function CatalogTimelineCard({
     <div className="taste-timeline-entry taste-timeline-system">
       <article className="taste-timeline-card">
         <header className="taste-timeline-card-header">
-          <span className="taste-timeline-packaging">
-            <AppIcon
-              name={
-                visual.icon
-              }
-              size={
-                24
-              }
-            />
-          </span>
+          <CatalogTimelineIcon kind={visual.icon} />
 
           <div className="taste-timeline-person-line">
             <Link
@@ -2473,4 +2473,3 @@ function formatAchievementDate(
     date
   );
 }
-
