@@ -1234,6 +1234,7 @@ export default async function ProfilePage({
         </div>
       </section>
 
+      <div className="taste-profile-stat-sections">
       <div className="taste-profile-stat-slot taste-profile-stat-slot-activity taste-profile-activity-desktop">
         <ProfileActivityCard
         monthlyActivity={
@@ -1360,6 +1361,7 @@ export default async function ProfilePage({
           profileStats.firstTasting
         }
       />
+      </div>
       </div>
       </>}
 
