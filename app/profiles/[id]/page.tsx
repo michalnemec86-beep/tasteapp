@@ -553,7 +553,12 @@ export default async function ProfilePage({
               (item) =>
                 item.previous_name
             )
-            .filter(Boolean),
+            .filter(
+              (
+                alias
+              ): alias is string =>
+                Boolean(alias)
+            ),
       }));
 
   const brandsByBrewery =
