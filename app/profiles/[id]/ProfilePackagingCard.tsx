@@ -107,6 +107,7 @@ export default function ProfilePackagingCard({
 
   return (
     <section
+      className="taste-profile-section taste-profile-packaging-section"
       style={{
         marginBottom:
           "38px",
@@ -141,6 +142,7 @@ export default function ProfilePackagingCard({
         </h2>
 
         <p
+          className="taste-profile-section-description"
           style={{
             maxWidth:
               "650px",
@@ -161,12 +163,7 @@ export default function ProfilePackagingCard({
       </div>
 
       <article
-        className="
-          grid
-          grid-cols-1
-          gap-6
-          lg:grid-cols-[360px_minmax(0,1fr)]
-        "
+        className="taste-profile-packaging-card grid grid-cols-1 gap-6 lg:grid-cols-[360px_minmax(0,1fr)]"
         style={{
           padding:
             "22px",
@@ -197,6 +194,7 @@ export default function ProfilePackagingCard({
         }}
       >
         <div
+          className="taste-profile-packaging-chart"
           style={{
             minHeight:
               "330px",
@@ -210,6 +208,7 @@ export default function ProfilePackagingCard({
         >
           {total > 0 ? (
             <div
+              className="taste-profile-packaging-donut"
               style={{
                 position:
                   "relative",
@@ -328,6 +327,7 @@ export default function ProfilePackagingCard({
         </div>
 
         <div
+          className="taste-profile-packaging-details"
           style={{
             display:
               "flex",
