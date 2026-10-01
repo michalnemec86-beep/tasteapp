@@ -12,5 +12,5 @@ export default async function MyProfilePage() {
     redirect("/auth/login");
   }
 
-  redirect(`/profiles/${user.id}`);
+  redirect("/");
 }
