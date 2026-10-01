@@ -321,3 +321,660 @@ body:has(.taste-profile-concept) {
     padding: 12px !important;
   }
 }
+
+/* Profile mobile-only structures stay inert on desktop. */
+.taste-profile-activity-mobile,
+.taste-profile-mobile-ranking-logo,
+.taste-profile-hops-mobile-count,
+.taste-profile-concept .taste-hero-stat-mobile-only {
+  display: none !important;
+}
+
+.taste-profile-preference-order {
+  display: contents;
+}
+
+.taste-profile-loop-carousel {
+  position: relative;
+}
+
+.taste-profile-loop-carousel-track {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.taste-profile-loop-carousel-arrow,
+.taste-profile-loop-carousel-hint {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  /* Hero carousel */
+  .taste-profile-concept .taste-hero-stat-mobile-only {
+    display: flex !important;
+  }
+
+  .taste-profile-concept .taste-hero-stat-action {
+    border-color: rgba(170,187,88,.56) !important;
+    background:
+      linear-gradient(180deg, rgba(207,223,124,.15), transparent 36%),
+      linear-gradient(145deg, #7c9137 0%, #62772e 52%, #4d6027 100%) !important;
+    color: #f8f6dc !important;
+    box-shadow:
+      inset 0 1px rgba(239,248,190,.20),
+      0 4px 12px rgba(83,108,40,.24),
+      0 0 14px rgba(133,153,61,.12) !important;
+  }
+
+  .taste-profile-concept .taste-hero-stat-action .taste-hero-stat-value,
+  .taste-profile-concept .taste-hero-stat-action .taste-hero-stat-label {
+    color: #f8f6dc !important;
+  }
+
+  .taste-profile-concept .taste-hero-stat-action > div:first-child {
+    border-color: rgba(202,219,117,.42) !important;
+    background:
+      radial-gradient(circle at 32% 24%, rgba(239,248,190,.17), transparent 46%),
+      linear-gradient(145deg, rgba(126,149,56,.56), rgba(61,78,31,.78)) !important;
+  }
+
+  /* Four diary tabs: active one disappears, the remaining three fill one row. */
+  .taste-profile-tabs {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 5px !important;
+  }
+
+  .taste-profile-tabs .taste-profile-tab {
+    width: 100%;
+    min-width: 0;
+    min-height: 32px;
+    padding: 6px 4px !important;
+    justify-content: center;
+    text-align: center;
+    font-size: 8.5px !important;
+    line-height: 1.1;
+    white-space: normal;
+  }
+
+  .taste-profile-tabs .taste-profile-tab[aria-current="page"] {
+    display: none !important;
+  }
+
+  .taste-profile-tab-stats {
+    border-color: rgba(242,182,63,.52) !important;
+    color: #f0c36b !important;
+    background:
+      linear-gradient(145deg, rgba(115,70,29,.48), rgba(39,27,17,.94)) !important;
+  }
+
+  .taste-profile-tab-beers {
+    border-color: rgba(224,124,55,.52) !important;
+    color: #e8a060 !important;
+    background:
+      linear-gradient(145deg, rgba(120,58,27,.46), rgba(43,25,17,.94)) !important;
+  }
+
+  .taste-profile-tab-breweries {
+    border-color: rgba(141,163,72,.50) !important;
+    color: #c6d386 !important;
+    background:
+      linear-gradient(145deg, rgba(76,91,40,.46), rgba(31,38,24,.94)) !important;
+  }
+
+  .taste-profile-tab-medals {
+    border-color: rgba(190,91,61,.50) !important;
+    color: #e6a06d !important;
+    background:
+      linear-gradient(145deg, rgba(104,47,31,.46), rgba(42,23,18,.94)) !important;
+  }
+
+  /* Mobile-only content placement. */
+  .taste-profile-activity-desktop {
+    display: none !important;
+  }
+
+  .taste-profile-activity-mobile {
+    display: block !important;
+    margin-bottom: 20px;
+  }
+
+  .taste-profile-activity-mobile h2 {
+    color: #f2b63f !important;
+  }
+
+  .taste-profile-preference-order {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .taste-profile-preference-breweries {
+    order: 1;
+  }
+
+  .taste-profile-preference-brands {
+    order: 2;
+  }
+
+  /* All statistic names follow the amber section-title language. */
+  .taste-profile-section h2 {
+    color: #f2b63f !important;
+  }
+
+  .taste-profile-section-description {
+    display: none !important;
+  }
+
+  /* Quick profile cards: individual surfaces instead of one repeated gradient. */
+  .taste-profile-quick-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .taste-profile-quick-grid .taste-profile-quick-card:nth-child(1) {
+    background:
+      radial-gradient(circle at 82% 5%, rgba(255,216,139,.16), transparent 44%),
+      linear-gradient(150deg, #3a240f 0%, #24180e 56%, #15120f 100%) !important;
+  }
+
+  .taste-profile-quick-grid .taste-profile-quick-card:nth-child(2) {
+    background:
+      radial-gradient(circle at 78% 4%, rgba(217,138,67,.18), transparent 42%),
+      linear-gradient(150deg, #352014 0%, #251711 54%, #15120f 100%) !important;
+  }
+
+  .taste-profile-quick-grid .taste-profile-quick-card:nth-child(3) {
+    background:
+      radial-gradient(circle at 78% 5%, rgba(223,127,50,.19), transparent 42%),
+      linear-gradient(150deg, #3a1f0e 0%, #27170d 55%, #15120f 100%) !important;
+  }
+
+  /* Pivní DNA: list at left, smaller silhouette at right. */
+  .taste-profile-dna-card {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) 112px !important;
+    gap: 10px !important;
+    align-items: center;
+    padding: 13px !important;
+  }
+
+  .taste-profile-dna-silhouette {
+    grid-column: 2;
+    grid-row: 1;
+    min-height: 248px !important;
+  }
+
+  .taste-profile-dna-silhouette > div[role="img"] {
+    width: 102px !important;
+    height: 236px !important;
+  }
+
+  .taste-profile-dna-details {
+    grid-column: 1;
+    grid-row: 1;
+    min-width: 0;
+  }
+
+  .taste-profile-dna-dominant {
+    margin-bottom: 8px !important;
+    padding: 10px !important;
+    border-width: 1px !important;
+    box-shadow:
+      inset 0 1px rgba(255,235,190,.08),
+      0 0 14px rgba(242,182,63,.08);
+  }
+
+  .taste-profile-dna-dominant > div:nth-child(2) {
+    margin-top: 4px !important;
+    font-size: 14px !important;
+  }
+
+  .taste-profile-dna-dominant > div:nth-child(3) {
+    margin-top: 3px !important;
+    font-size: 8.5px !important;
+  }
+
+  .taste-profile-dna-segments {
+    gap: 5px !important;
+  }
+
+  .taste-profile-dna-segments > div {
+    grid-template-columns: 8px minmax(0,1fr) auto !important;
+    gap: 6px !important;
+    padding: 6px 7px !important;
+    border-radius: 8px !important;
+  }
+
+  .taste-profile-dna-segments > div > div:first-child {
+    width: 6px !important;
+    height: 6px !important;
+  }
+
+  .taste-profile-dna-segments a,
+  .taste-profile-dna-segments > div > div:nth-child(2) > div:first-child {
+    font-size: 9.5px !important;
+  }
+
+  .taste-profile-dna-segments > div > div:nth-child(2) > div:last-child {
+    display: none;
+  }
+
+  .taste-profile-dna-segments > div > div:last-child {
+    font-size: 9.5px !important;
+  }
+
+  /* Reusable cyclic card carousel for technical profile and record hall. */
+  .taste-profile-loop-carousel {
+    display: grid;
+    grid-template-columns: 29px minmax(0, 1fr) 29px;
+    align-items: stretch;
+    gap: 6px;
+    padding-bottom: 17px;
+  }
+
+  .taste-profile-loop-carousel-track {
+    display: flex;
+    gap: 8px;
+    min-width: 0;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scroll-behavior: smooth;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+
+  .taste-profile-loop-carousel-track::-webkit-scrollbar {
+    display: none;
+  }
+
+  .taste-profile-loop-carousel-track > * {
+    flex: 0 0 calc(100% - 2px);
+    min-width: 0;
+    scroll-snap-align: start;
+  }
+
+  .taste-profile-loop-carousel-arrow {
+    display: block;
+    width: 29px;
+    min-height: 64px;
+    border: 1px solid rgba(229,166,78,.34);
+    border-radius: 9px;
+    background:
+      linear-gradient(145deg, rgba(102,57,24,.42), rgba(28,20,14,.94));
+    color: #f2b63f;
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+    box-shadow:
+      inset 0 1px rgba(255,226,171,.10),
+      0 3px 10px rgba(0,0,0,.24);
+  }
+
+  .taste-profile-loop-carousel-hint {
+    display: block;
+    position: absolute;
+    left: 35px;
+    right: 35px;
+    bottom: 1px;
+    color: rgba(255,255,255,.30);
+    font-size: 8px;
+    letter-spacing: .06em;
+    text-align: center;
+    text-transform: uppercase;
+  }
+
+  .taste-profile-technical-gauge {
+    min-height: 235px !important;
+    padding: 14px !important;
+  }
+
+  /* Packaging donut: smaller, dimensional, graph left and labels right. */
+  .taste-profile-packaging-card {
+    display: grid !important;
+    grid-template-columns: 132px minmax(0,1fr) !important;
+    gap: 10px !important;
+    align-items: center;
+    padding: 13px !important;
+  }
+
+  .taste-profile-packaging-chart {
+    min-height: 150px !important;
+  }
+
+  .taste-profile-packaging-donut {
+    width: 126px !important;
+    height: 126px !important;
+    box-shadow:
+      0 12px 25px rgba(0,0,0,.34),
+      0 0 22px rgba(228,127,50,.12),
+      inset 4px 5px 13px rgba(255,225,158,.08),
+      inset -7px -8px 16px rgba(0,0,0,.22) !important;
+    filter: saturate(1.08) contrast(1.03);
+  }
+
+  .taste-profile-packaging-donut::after {
+    content: "";
+    position: absolute;
+    inset: 7px;
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 31% 24%, rgba(255,255,255,.18), transparent 26%),
+      radial-gradient(circle at 72% 76%, rgba(0,0,0,.22), transparent 38%);
+    pointer-events: none;
+    mix-blend-mode: soft-light;
+  }
+
+  .taste-profile-packaging-donut > div {
+    inset: 21px !important;
+  }
+
+  .taste-profile-packaging-donut > div > div:first-child {
+    font-size: 7px !important;
+  }
+
+  .taste-profile-packaging-donut > div > div:nth-child(2) {
+    margin-top: 3px !important;
+    font-size: 22px !important;
+  }
+
+  .taste-profile-packaging-donut > div > div:last-child {
+    display: none;
+  }
+
+  .taste-profile-packaging-details {
+    min-width: 0;
+  }
+
+  .taste-profile-packaging-details > div:first-child {
+    margin-bottom: 7px !important;
+    padding: 9px !important;
+    border-radius: 9px !important;
+  }
+
+  .taste-profile-packaging-details > div:first-child > div:nth-child(2) {
+    font-size: 14px !important;
+  }
+
+  .taste-profile-packaging-details > div:first-child > div:nth-child(3) {
+    font-size: 8px !important;
+  }
+
+  .taste-profile-packaging-details > div:last-child {
+    gap: 5px !important;
+  }
+
+  .taste-profile-packaging-details > div:last-child > div {
+    grid-template-columns: 7px minmax(0,1fr) auto !important;
+    gap: 5px !important;
+    padding: 6px 7px !important;
+    border-radius: 8px !important;
+  }
+
+  .taste-profile-packaging-details > div:last-child a {
+    font-size: 9px !important;
+  }
+
+  .taste-profile-packaging-details > div:last-child > div > div:nth-child(2) > div:last-child {
+    display: none;
+  }
+
+  .taste-profile-packaging-details > div:last-child > div > div:last-child {
+    font-size: 9px !important;
+  }
+
+  /* Brand and brewery rankings: logo-led rows, no ordinal numbers. */
+  .taste-profile-mobile-ranking-logo {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .taste-profile-ranking-logo-placeholder {
+    display: block;
+    width: 26px;
+    height: 26px;
+    border: 1px solid rgba(231,166,47,.25);
+    border-radius: 50%;
+    background: rgba(255,255,255,.06);
+  }
+
+  .taste-profile-mobile-ranking-logo-large .taste-profile-ranking-logo-placeholder {
+    width: 34px;
+    height: 34px;
+  }
+
+  .taste-profile-ranking-number {
+    display: none !important;
+  }
+
+  .taste-profile-brand-row .taste-profile-ranking-row-main {
+    grid-template-columns: 28px minmax(0,1fr) auto !important;
+    gap: 8px !important;
+  }
+
+  .taste-profile-brewery-row .taste-profile-ranking-row-main {
+    grid-template-columns: 36px minmax(0,1fr) auto !important;
+    gap: 9px !important;
+  }
+
+  .taste-profile-brand-row,
+  .taste-profile-brewery-row {
+    padding: 9px 10px !important;
+  }
+
+  .taste-profile-value-track {
+    height: 4px !important;
+    margin: 7px 0 0 36px !important;
+    background: rgba(255,255,255,.045) !important;
+  }
+
+  .taste-profile-brand-row .taste-profile-value-track {
+    margin-left: 36px !important;
+  }
+
+  .taste-profile-brewery-row .taste-profile-value-track {
+    margin-left: 45px !important;
+  }
+
+  .taste-profile-value-fill {
+    min-width: 8%;
+    background:
+      linear-gradient(90deg, rgba(181,111,28,.72), #f2b63f 58%, #ffe075 100%) !important;
+    box-shadow:
+      0 0 9px rgba(242,182,63,.45),
+      inset 0 1px rgba(255,255,255,.32) !important;
+  }
+
+  /* World profile: cleaner map header, one-line country count. */
+  .taste-profile-world-section .taste-world-map-title {
+    display: none !important;
+  }
+
+  .taste-profile-world-section .taste-world-map-header {
+    justify-content: flex-end !important;
+    margin-bottom: 2px !important;
+  }
+
+  .taste-profile-world-section .taste-world-map-count {
+    display: flex;
+    align-items: baseline;
+    gap: 5px;
+    text-align: left !important;
+  }
+
+  .taste-profile-world-section .taste-world-map-count-label {
+    margin-top: 0 !important;
+    white-space: nowrap;
+  }
+
+  .taste-profile-world-section .taste-world-map {
+    padding: 12px 12px 8px !important;
+  }
+
+  .taste-profile-world-section .taste-world-map-stage {
+    min-height: 235px !important;
+  }
+
+  .taste-profile-country-count {
+    display: none !important;
+  }
+
+  .taste-profile-country-ranking-header {
+    margin-bottom: 9px !important;
+  }
+
+  .taste-profile-country-row {
+    padding: 8px 9px !important;
+  }
+
+  .taste-profile-country-value-track {
+    height: 4px !important;
+    margin-left: 0 !important;
+  }
+
+  .taste-profile-country-value-track .taste-profile-value-fill {
+    min-width: 5%;
+  }
+
+  /* Hop profile: 1 / 2 / 3 / 3 / 3 circular rows. */
+  .taste-profile-hops-card {
+    display: flex !important;
+    flex-direction: column;
+    gap: 10px !important;
+    padding: 13px !important;
+  }
+
+  .taste-profile-hops-mobile-count {
+    display: flex !important;
+    align-items: center;
+    gap: 9px;
+    color: rgba(255,255,255,.68);
+    font-size: 10px;
+  }
+
+  .taste-profile-hops-mobile-count-circle {
+    width: 38px;
+    height: 38px;
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+    border: 1px solid rgba(156,173,71,.52);
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 33% 25%, rgba(226,238,152,.18), transparent 38%),
+      linear-gradient(145deg, rgba(110,132,54,.40), rgba(35,44,23,.90));
+    color: #d3df91;
+    font-size: 15px;
+    font-weight: 900;
+    box-shadow: 0 0 15px rgba(156,173,71,.10);
+  }
+
+  .taste-profile-hops-cloud {
+    min-height: 0 !important;
+    display: grid !important;
+    grid-template-columns: repeat(6, minmax(0,1fr)) !important;
+    align-items: center !important;
+    align-content: start !important;
+    gap: 7px !important;
+    padding: 0 !important;
+  }
+
+  .taste-profile-hop-bubble {
+    width: 66px !important;
+    height: 66px !important;
+    justify-self: center;
+    padding: 6px !important;
+  }
+
+  .taste-profile-hop-bubble:nth-child(1) {
+    grid-column: span 6;
+    width: 82px !important;
+    height: 82px !important;
+  }
+
+  .taste-profile-hop-bubble:nth-child(2),
+  .taste-profile-hop-bubble:nth-child(3) {
+    grid-column: span 3;
+    width: 74px !important;
+    height: 74px !important;
+  }
+
+  .taste-profile-hop-bubble:nth-child(n+4) {
+    grid-column: span 2;
+  }
+
+  .taste-profile-hop-bubble a {
+    font-size: 9px !important;
+  }
+
+  .taste-profile-hop-bubble > div:last-child {
+    margin-top: 3px !important;
+    font-size: 8px !important;
+  }
+
+  .taste-profile-hops-summary {
+    gap: 7px !important;
+  }
+
+  .taste-profile-hops-dominant {
+    padding: 10px 11px !important;
+    border-radius: 10px !important;
+  }
+
+  .taste-profile-hops-dominant > div:nth-child(2) {
+    margin-top: 4px !important;
+    font-size: 15px !important;
+  }
+
+  .taste-profile-hops-dominant > div:nth-child(3) {
+    margin-top: 3px !important;
+    font-size: 8px !important;
+  }
+
+  .taste-profile-hops-metrics,
+  .taste-profile-hops-total-mentions,
+  .taste-profile-hops-note {
+    display: none !important;
+  }
+
+  /* Record hall: compact cyclic top cards and three mini records in one row. */
+  .taste-profile-records-section > article {
+    padding: 12px !important;
+  }
+
+  .taste-profile-record-card {
+    min-height: 168px !important;
+    padding: 13px !important;
+  }
+
+  .taste-profile-records-mini-grid {
+    grid-template-columns: repeat(3, minmax(0,1fr)) !important;
+    gap: 6px !important;
+    margin-top: 9px !important;
+  }
+
+  .taste-profile-records-mini-grid > div {
+    min-width: 0;
+    padding: 8px 7px !important;
+    border-radius: 9px !important;
+  }
+
+  .taste-profile-records-mini-grid > div > div:first-child {
+    font-size: 6.5px !important;
+    line-height: 1.15;
+    letter-spacing: .035em !important;
+  }
+
+  .taste-profile-records-mini-grid > div > div:nth-child(2) {
+    margin-top: 5px !important;
+    font-size: 11px !important;
+    line-height: 1.08 !important;
+    overflow-wrap: anywhere;
+  }
+
+  .taste-profile-records-mini-grid > div > div:last-child {
+    margin-top: 3px !important;
+    font-size: 7px !important;
+    line-height: 1.2;
+  }
+}
