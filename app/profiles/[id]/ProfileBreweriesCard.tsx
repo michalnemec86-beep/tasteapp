@@ -3,6 +3,7 @@ import Link from "next/link";
 import type {
   RankingItem,
 } from "@/lib/stats";
+import AutoLogoFrame from "@/components/ui/AutoLogoFrame";
 
 type ProfileBreweriesCardProps = {
   items: RankingItem[];
@@ -58,6 +59,7 @@ export default function ProfileBreweriesCard({
 
   return (
     <section
+      className="taste-profile-section taste-profile-breweries-section"
       style={{
         marginBottom:
           "38px",
@@ -92,6 +94,7 @@ export default function ProfileBreweriesCard({
         </h2>
 
         <p
+          className="taste-profile-section-description"
           style={{
             maxWidth:
               "650px",
@@ -146,6 +149,7 @@ export default function ProfileBreweriesCard({
                     key={
                       item.id
                     }
+                    className="taste-profile-ranking-row taste-profile-brewery-row"
                     style={{
                       padding:
                         "11px 12px",
@@ -164,6 +168,7 @@ export default function ProfileBreweriesCard({
                     }}
                   >
                     <div
+                      className="taste-profile-ranking-row-main"
                       style={{
                         display:
                           "grid",
@@ -176,6 +181,7 @@ export default function ProfileBreweriesCard({
                       }}
                     >
                       <div
+                        className="taste-profile-ranking-number"
                         style={{
                           color:
                             tone.accent,
@@ -194,6 +200,18 @@ export default function ProfileBreweriesCard({
                           "0"
                         )}
                       </div>
+
+                      <span className="taste-profile-mobile-ranking-logo taste-profile-mobile-ranking-logo-large">
+                        {item.logoUrl ? (
+                          <AutoLogoFrame
+                            src={item.logoUrl}
+                            size={34}
+                            padding={3}
+                          />
+                        ) : (
+                          <span className="taste-profile-ranking-logo-placeholder" />
+                        )}
+                      </span>
 
                       <Link
                         href={`/stats?user=${profileId}&locked=1&brewery=${item.id}`}
@@ -232,6 +250,7 @@ export default function ProfileBreweriesCard({
                     </div>
 
                     <div
+                      className="taste-profile-value-track"
                       style={{
                         height:
                           "5px",
@@ -246,6 +265,7 @@ export default function ProfileBreweriesCard({
                       }}
                     >
                       <div
+                        className="taste-profile-value-fill"
                         style={{
                           width:
                             `${Math.max(
