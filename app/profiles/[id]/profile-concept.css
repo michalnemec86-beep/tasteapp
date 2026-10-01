@@ -77,6 +77,10 @@ body:has(.taste-profile-concept) {
   background: rgba(13,10,8,.29) !important;
 }
 
+.taste-profile-concept .taste-page-hero-stats-action {
+  display: none;
+}
+
 .taste-profile-concept .taste-hero-stat {
   min-height: 68px !important;
   border-color: rgba(232,170,78,.25) !important;
@@ -225,18 +229,19 @@ body:has(.taste-profile-concept) {
   }
 
   .taste-profile-concept .taste-page-hero-layout {
-    min-height: 142px !important;
+    min-height: 128px !important;
   }
 
   .taste-profile-concept .taste-page-hero-copy {
-    padding: 13px 14px 7px !important;
+    padding: 7px 14px 4px !important;
+    transform: translateY(-7px);
   }
 
   .taste-profile-concept .taste-page-hero-title {
     max-width: 100% !important;
-    font-size: 22px !important;
-    line-height: 1.04 !important;
-    letter-spacing: -.028em !important;
+    font-size: 18px !important;
+    line-height: 1.02 !important;
+    letter-spacing: -.025em !important;
   }
 
   .taste-profile-concept .taste-page-hero-subtitle {
@@ -244,6 +249,20 @@ body:has(.taste-profile-concept) {
     margin-top: 6px !important;
     font-size: 10px !important;
     line-height: 1.38 !important;
+  }
+
+  .taste-profile-concept .taste-page-hero-stats-action {
+    display: block;
+    margin: 0 0 7px;
+  }
+
+  .taste-profile-concept .taste-page-hero-stats-action .taste-button-primary {
+    width: 100% !important;
+    min-height: 50px !important;
+    padding: 11px 17px !important;
+    font-size: 14px !important;
+    font-weight: 800 !important;
+    letter-spacing: -.01em !important;
   }
 
   .taste-profile-concept .taste-page-hero-stats .taste-hero-stat-scroller {
