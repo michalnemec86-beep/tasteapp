@@ -5,6 +5,8 @@ import AppNav from "./AppNav";
 import AuthSessionSync from "./AuthSessionSync";
 import BreweryListStatePersistence from "./BreweryListStatePersistence";
 import PivnikLaunchScreen from "./PivnikLaunchScreen";
+import NavigationFeedback from "./NavigationFeedback";
+import ModalBehaviorManager from "./ModalBehaviorManager";
 import { createClient } from "@/lib/supabase/server";
 
 import "leaflet/dist/leaflet.css";
@@ -99,6 +101,8 @@ export default async function RootLayout({
         className={`${geistSans.className} antialiased`}
       >
         <PivnikLaunchScreen />
+        <NavigationFeedback />
+        <ModalBehaviorManager />
         <AuthSessionSync />
         <BreweryListStatePersistence />
         <div className="taste-app-shell">
