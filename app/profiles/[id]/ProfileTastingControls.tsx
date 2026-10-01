@@ -27,6 +27,7 @@ export default function ProfileTastingControls({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const hasExplicitSort = searchParams.has("sort");
   const [showCountries, setShowCountries] = useState(
     sort === "country" || Boolean(country)
   );
@@ -149,7 +150,7 @@ export default function ProfileTastingControls({
           type="button"
           className="taste-button-secondary"
           aria-expanded={showLetters}
-          aria-pressed={sort === "alpha" || Boolean(letter)}
+          aria-pressed={hasExplicitSort && (sort === "alpha" || Boolean(letter))}
           onClick={() => {
             const nextVisible = !showLetters;
             setShowLetters(nextVisible);
@@ -167,7 +168,7 @@ export default function ProfileTastingControls({
             key={option.key}
             type="button"
             className="taste-button-secondary"
-            aria-pressed={sort === option.key && !country && !letter}
+            aria-pressed={hasExplicitSort && sort === option.key && !country && !letter}
             onClick={() => {
               setShowLetters(false);
               setShowCountries(false);
@@ -182,7 +183,7 @@ export default function ProfileTastingControls({
           type="button"
           className="taste-button-secondary"
           aria-expanded={showCountries}
-          aria-pressed={sort === "country" || Boolean(country)}
+          aria-pressed={hasExplicitSort && (sort === "country" || Boolean(country))}
           onClick={() => {
             const nextVisible = !showCountries;
             setShowCountries(nextVisible);
