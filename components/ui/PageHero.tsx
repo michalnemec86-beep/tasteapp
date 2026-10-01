@@ -9,6 +9,8 @@ type HeroStat = {
   label: string;
   accent?: string;
   href?: string;
+  mobileOnly?: boolean;
+  action?: boolean;
 };
 
 type HeroVisualVariant =
@@ -25,6 +27,7 @@ type PageHeroProps = {
   stats?: HeroStat[];
   statsLabel?: ReactNode;
   statsScrollable?: boolean;
+  statsLoop?: boolean;
   imageUrl?: string;
   imagePosition?: string;
   visualVariant?: HeroVisualVariant;
@@ -43,6 +46,7 @@ export default function PageHero({
   stats = [],
   statsLabel,
   statsScrollable = false,
+  statsLoop = false,
   imageUrl,
   imagePosition = "center",
   visualVariant = "beer",
@@ -81,7 +85,17 @@ export default function PageHero({
                 key={stat.label}
                 href={stat.href}
                 aria-label={stat.href ? `${stat.label}: ${stat.value}` : undefined}
-                className="taste-hero-stat"
+                className={[
+                  "taste-hero-stat",
+                  stat.mobileOnly
+                    ? "taste-hero-stat-mobile-only"
+                    : "",
+                  stat.action
+                    ? "taste-hero-stat-action"
+                    : "",
+                ]
+                  .filter(Boolean)
+                  .join(" ")}
                 style={{
                   textDecoration: "none",
                   cursor: stat.href ? "pointer" : "default",
@@ -413,7 +427,7 @@ export default function PageHero({
           )}
 
           {statsScrollable ? (
-            <HorizontalStatScroller>
+            <HorizontalStatScroller loop={statsLoop}>
               {statCards}
             </HorizontalStatScroller>
           ) : (
