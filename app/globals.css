@@ -915,7 +915,7 @@
   }
 
   .taste-page-hero-brewery-title {
-    max-width: calc(100% - 104px) !important;
+    max-width: calc(100% - 126px) !important;
     font-size: clamp(22px, 6.7vw, 26px) !important;
     line-height: 1.05 !important;
     letter-spacing: -0.035em !important;
@@ -923,10 +923,8 @@
   }
 
   .taste-page-hero-brewery-logo {
-    top: 16px !important;
-    right: 16px !important;
-    width: clamp(72px, 20vw, 84px) !important;
-    height: clamp(72px, 20vw, 84px) !important;
+    top: 12px !important;
+    right: 12px !important;
     transform: none !important;
   }
 }
@@ -1124,5 +1122,34 @@
 }
 
 @media (max-width: 639px) {
-  .taste-brewery-logo-coaster { padding: 12px; border-width: 3px; }
+  /*
+   * Brewery logos come in very different proportions. On mobile the old
+   * 72–84 px circular coaster left only ~45 px for the actual artwork,
+   * which made square/wordmark SVGs look clipped or effectively broken.
+   * Give the logo a wider plaque and let the image keep its intrinsic ratio.
+   */
+  .taste-page-hero-brewery-logo.taste-brewery-logo-coaster {
+    width: clamp(96px, 27vw, 108px) !important;
+    height: clamp(82px, 23vw, 94px) !important;
+    padding: 6px !important;
+    border-width: 2px !important;
+    border-radius: 16px !important;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at 28% 22%, rgba(255,255,255,.16), transparent 38%),
+      linear-gradient(145deg, #8a837a 0%, #6f6962 100%) !important;
+    box-shadow:
+      0 0 0 1px rgba(58,34,15,.78),
+      inset 0 0 0 2px rgba(224,193,140,.56),
+      0 8px 20px rgba(0,0,0,.42) !important;
+  }
+
+  .taste-page-hero-brewery-logo.taste-brewery-logo-coaster img {
+    width: auto !important;
+    height: auto !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+    object-fit: contain !important;
+    object-position: center !important;
+  }
 }
