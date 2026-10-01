@@ -79,6 +79,7 @@ export default function ProfileHopsCard({
 
   return (
     <section
+      className="taste-profile-section taste-profile-hops-section"
       style={{
         marginBottom:
           "38px",
@@ -113,6 +114,7 @@ export default function ProfileHopsCard({
         </h2>
 
         <p
+          className="taste-profile-section-description"
           style={{
             maxWidth:
               "650px",
@@ -135,12 +137,7 @@ export default function ProfileHopsCard({
       </div>
 
       <article
-        className="
-          grid
-          grid-cols-1
-          gap-4
-          lg:grid-cols-[minmax(0,1fr)_270px]
-        "
+        className="taste-profile-hops-card grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_270px]"
         style={{
           padding:
             "20px",
@@ -170,7 +167,17 @@ export default function ProfileHopsCard({
             "inset 0 1px 0 rgba(240,255,210,0.03)",
         }}
       >
+        <div className="taste-profile-hops-mobile-count">
+          <div className="taste-profile-hops-mobile-count-circle">
+            {items.length}
+          </div>
+          <div>
+            <strong>{items.length}</strong> odrůd chmele
+          </div>
+        </div>
+
         <div
+          className="taste-profile-hops-cloud"
           style={{
             minHeight:
               "390px",
@@ -221,6 +228,7 @@ export default function ProfileHopsCard({
                     key={
                       item.id
                     }
+                    className="taste-profile-hop-bubble"
                     title={`${item.name}: ${item.count}×`}
                     style={{
                       width:
@@ -318,6 +326,7 @@ export default function ProfileHopsCard({
         </div>
 
         <div
+          className="taste-profile-hops-summary"
           style={{
             display:
               "grid",
@@ -328,6 +337,7 @@ export default function ProfileHopsCard({
           }}
         >
           <div
+            className="taste-profile-hops-dominant"
             style={{
               padding:
                 "17px",
@@ -405,6 +415,7 @@ export default function ProfileHopsCard({
           </div>
 
           <div
+            className="taste-profile-hops-metrics"
             style={{
               display:
                 "grid",
@@ -415,6 +426,7 @@ export default function ProfileHopsCard({
             }}
           >
             <div
+              className="taste-profile-hops-count-metric"
               style={{
                 padding:
                   "14px",
@@ -459,6 +471,7 @@ export default function ProfileHopsCard({
             </div>
 
             <div
+              className="taste-profile-hops-total-mentions"
               style={{
                 padding:
                   "14px",
@@ -504,6 +517,7 @@ export default function ProfileHopsCard({
           </div>
 
           <div
+            className="taste-profile-hops-note"
             style={{
               padding:
                 "12px 13px",
