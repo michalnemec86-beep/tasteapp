@@ -2,12 +2,14 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import AutoLogoFrame from "@/components/ui/AutoLogoFrame";
 
 export type ProfileBreweryItem = {
   id: number | string;
   name: string;
   count: number;
   country: string | null;
+  logoUrl?: string;
 };
 
 type BrewerySort = "alpha" | "most" | "least" | "country";
@@ -105,15 +107,6 @@ export default function ProfileBreweriesView({
 
   return (
     <section style={{ marginBottom: "38px" }}>
-      <div style={{ marginBottom: "14px" }}>
-        <div className="taste-label" style={{ marginBottom: "5px" }}>
-          Pivovarská evidence
-        </div>
-        <h2 style={{ margin: 0, fontSize: "24px", letterSpacing: "-0.025em" }}>
-          Moje pivovary
-        </h2>
-      </div>
-
       <div className="taste-tasting-sort" aria-label="Filtrování pivovarů">
         <div className="taste-tasting-search">
           <input
@@ -234,26 +227,39 @@ export default function ProfileBreweriesView({
         <div className="taste-profile-brewery-grid">
           {visibleItems.map((item) => (
             <article key={item.id} className="taste-card taste-profile-brewery-item">
-              <div style={{ minWidth: 0 }}>
+              <div className="taste-profile-brewery-item-logo" aria-hidden="true">
+                {item.logoUrl ? (
+                  <AutoLogoFrame
+                    src={item.logoUrl}
+                    size={58}
+                    padding={4}
+                  />
+                ) : (
+                  <span className="taste-profile-brewery-item-logo-placeholder">
+                    🍺
+                  </span>
+                )}
+              </div>
+
+              <div className="taste-profile-brewery-item-main">
                 <Link
                   href={`/stats?user=${encodeURIComponent(profileId)}&locked=1&brewery=${encodeURIComponent(String(item.id))}`}
-                  className="taste-entity-link"
-                  style={{ color: "var(--taste-text)", fontSize: "16px", fontWeight: 850 }}
+                  className="taste-entity-link taste-profile-brewery-item-name"
                 >
                   {item.name}
                 </Link>
-                <div style={{ marginTop: "5px", color: "var(--taste-text-muted)", fontSize: "10px" }}>
+                <span className="taste-profile-brewery-item-country">
                   {item.country ?? "Země neuvedena"}
-                </div>
+                </span>
               </div>
 
-              <div style={{ flexShrink: 0, textAlign: "right" }}>
-                <strong style={{ color: "var(--taste-amber-bright)", fontSize: "20px" }}>
+              <div className="taste-profile-brewery-item-count">
+                <strong>
                   {item.count}×
                 </strong>
-                <div style={{ marginTop: "2px", color: "var(--taste-text-muted)", fontSize: "9px" }}>
+                <span>
                   v deníku
-                </div>
+                </span>
               </div>
             </article>
           ))}

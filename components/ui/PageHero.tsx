@@ -405,7 +405,7 @@ export default function PageHero({
         )}
       </div>
 
-      {stats.length > 0 && (
+      {(stats.length > 0 || statsAction) && (
         <div
           className="taste-page-hero-stats"
           style={{
@@ -434,21 +434,23 @@ export default function PageHero({
             </div>
           )}
 
-          {statsScrollable ? (
-            <HorizontalStatScroller loop={statsLoop}>
-              {statCards}
-            </HorizontalStatScroller>
-          ) : (
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns:
-                  "repeat(auto-fit, minmax(135px, 1fr))",
-                gap: "7px",
-              }}
-            >
-              {statCards}
-            </div>
+          {stats.length > 0 && (
+            statsScrollable ? (
+              <HorizontalStatScroller loop={statsLoop}>
+                {statCards}
+              </HorizontalStatScroller>
+            ) : (
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns:
+                    "repeat(auto-fit, minmax(135px, 1fr))",
+                  gap: "7px",
+                }}
+              >
+                {statCards}
+              </div>
+            )
           )}
         </div>
       )}

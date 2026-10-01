@@ -35,6 +35,8 @@ import HomeStatIcon from "@/components/home/HomeStatIcon";
 import "./profile-concept.css";
 import EditTastingModalClient from "@/app/EditTastingModalClient";
 import TastingModal from "@/app/TastingModal";
+import BreweryCreateModalClient from "@/app/breweries/BreweryCreateModalClient";
+import { createBrewery } from "@/app/breweries/actions";
 import ProfileActivityCard from "./ProfileActivityCard";
 import ProfileBeerDnaCard from "./ProfileBeerDnaCard";
 import ProfileTechnicalCard from "./ProfileTechnicalCard";
@@ -1050,14 +1052,20 @@ export default async function ProfilePage({
             .toUpperCase()
         }
         title={
-          <>
-            {profile.display_name}
-          </>
+          view === "breweries"
+            ? (isMe ? "Moje pivovary" : "Pivovary")
+            : (
+              <>
+                {profile.display_name}
+              </>
+            )
         }
         subtitle={
-          isMe
-            ? "Tvoje pivní cesta v Pivníku. Ochutnávky, objevené pivovary, nové styly a odznaky na jednom místě."
-            : `Pivní cesta uživatele ${profile.display_name}. Ochutnávky, objevené pivovary, styly a získané odznaky.`
+          view === "breweries"
+            ? ""
+            : isMe
+              ? "Tvoje pivní cesta v Pivníku. Ochutnávky, objevené pivovary, nové styly a odznaky na jednom místě."
+              : `Pivní cesta uživatele ${profile.display_name}. Ochutnávky, objevené pivovary, styly a získané odznaky.`
         }
         action={
           <ProfileHeroIdentity
@@ -1082,17 +1090,24 @@ export default async function ProfilePage({
         statsLoop
         statsAction={
           isMe ? (
-            <TastingModal
-              beers={availableBeers}
-              breweries={availableBreweries}
-              brandsByBrewery={brandsByBrewery}
-              countries={countries ?? []}
-              styles={styles ?? []}
-              hops={hops ?? []}
-            />
+            view === "breweries" ? (
+              <BreweryCreateModalClient
+                countries={countries ?? []}
+                createBreweryAction={createBrewery}
+              />
+            ) : (
+              <TastingModal
+                beers={availableBeers}
+                breweries={availableBreweries}
+                brandsByBrewery={brandsByBrewery}
+                countries={countries ?? []}
+                styles={styles ?? []}
+                hops={hops ?? []}
+              />
+            )
           ) : undefined
         }
-        stats={[
+        stats={view === "breweries" ? [] : [
           {
             icon: <HomeStatIcon kind="barrel" />,
             accent: "#f3b43f",
