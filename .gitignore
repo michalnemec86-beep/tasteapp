@@ -48,3 +48,6 @@ next-env.d.ts
 
 # Local working backups
 *.achievement-v1-backup
+
+# Supabase CLI local state
+/supabase/.temp/

@@ -24,6 +24,8 @@ import {
 } from "@/lib/achievement-sync";
 
 import TastingModal from "../TastingModal";
+import RatingStars from "@/components/ui/RatingStars";
+import { isRating } from "@/lib/ratings";
 import EditTastingModalClient from "../EditTastingModalClient";
 
 import StatsRankingCard, { StatsPackagingCard } from "@/components/stats/StatsRankingCard";
@@ -136,6 +138,7 @@ type TastingBeerRow = {
 };
 
 type TastingRow = {
+  rating: number | null;
   id: number;
   user_id: string;
   show_in_timeline: boolean;
@@ -297,6 +300,7 @@ export default async function ActivityPage({
         show_in_timeline,
         tasted_at,
         tasted_on,
+        rating,
         packaging,
         quantity,
         plato,
@@ -1755,6 +1759,7 @@ function TastingTimelineCard({
             </div>
           )}
 
+          <div className="taste-timeline-footer">
           {isOwn && (
             <div className="taste-timeline-edit">
               <EditTastingModalClient
@@ -1785,6 +1790,8 @@ function TastingTimelineCard({
               />
             </div>
           )}
+            {isRating(tasting.rating) && <Link className="taste-timeline-rating" href={`/ratings?beer=${tasting.beers?.id}`}><RatingStars rating={tasting.rating} compact /></Link>}
+          </div>
         </div>
       </article>
     </div>

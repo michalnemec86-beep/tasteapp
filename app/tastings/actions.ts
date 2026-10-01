@@ -1,5 +1,6 @@
 "use server";
 
+import { parseRating } from "@/lib/ratings";
 import { createClient } from "@/lib/supabase/server";
 import { syncUserAchievements } from "@/lib/achievement-sync";
 import { isPackaging, type Packaging } from "@/lib/packaging";
@@ -25,6 +26,7 @@ type TastingFormValues = {
   tastedOn: string;
   packaging: Packaging | null;
   quantity: number;
+  rating: number | null;
   place: string;
   notes: string;
   hopNames: string[];
@@ -54,6 +56,7 @@ function readTastingFormData(formData: FormData): TastingFormValues {
   const tastedOn = String(formData.get("tastedOn") || "").trim();
   const packagingValue = String(formData.get("packaging") || "").trim();
   const quantityValue = String(formData.get("quantity") ?? "").trim();
+  const rating = parseRating(formData.get("rating"));
   const place = String(formData.get("place") || "").trim();
   const notes = String(formData.get("notes") || "").trim();
 
@@ -114,6 +117,7 @@ function readTastingFormData(formData: FormData): TastingFormValues {
     tastedOn,
     packaging,
     quantity,
+    rating,
     place,
     notes,
     hopNames,
@@ -705,6 +709,8 @@ function revalidateTastingPages(userId: string) {
   revalidatePath("/beers");
   revalidatePath("/breweries");
   revalidatePath("/stats");
+  revalidatePath("/ratings");
+  revalidatePath("/activity");
   revalidatePath("/tastings");
   revalidatePath("/profiles");
   revalidatePath(`/profiles/${userId}`);
@@ -732,6 +738,7 @@ async function saveTastingCore(formData: FormData) {
       tasted_on: values.tastedOn,
       packaging: values.packaging,
       quantity: values.quantity,
+      rating: values.rating,
       plato: values.platoValue ? Number(values.platoValue) : null,
       abv: values.abvValue ? Number(values.abvValue) : null,
       ibu: values.ibuValue ? Number(values.ibuValue) : null,
@@ -814,6 +821,7 @@ export async function updateTastingInModal(formData: FormData) {
       tasted_on: values.tastedOn,
       packaging: values.packaging,
       quantity: values.quantity,
+      rating: values.rating,
       plato: values.platoValue ? Number(values.platoValue) : null,
       abv: values.abvValue ? Number(values.abvValue) : null,
       ibu: values.ibuValue ? Number(values.ibuValue) : null,

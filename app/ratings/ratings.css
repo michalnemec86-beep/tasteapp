@@ -1,0 +1,95 @@
+.taste-ratings-concept { min-width: 0; }
+.taste-ratings-filters { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; margin: 0 0 20px; padding: 16px; border: 1px solid var(--taste-panel-border); border-radius: 12px; background: var(--taste-panel-background); box-shadow: var(--taste-panel-shadow); }
+.taste-ratings-filters label { display: grid; gap: 6px; flex: 1 1 180px; min-width: 0; color: var(--taste-text-soft); font-size: var(--taste-font-caption); font-weight: 600; }
+.taste-ratings-filters select { width: 100%; min-width: 0; padding: 11px 30px 11px 10px; border: 1px solid #b77d3f66; border-radius: 8px; color: var(--taste-text); background: #17110b; font-size: var(--taste-font-control); }
+.taste-ratings-reset, .taste-rating-toggle, .taste-ratings-pagination button { border: 1px solid #bc8b5266; border-radius: 8px; padding: 10px 12px; background: linear-gradient(#49301b66, #17110b); color: var(--taste-amber-bright); font-size: var(--taste-font-control); cursor: pointer; }
+.taste-ratings-selected-beer { flex-basis: 100%; color: var(--taste-text-soft); font-size: var(--taste-font-body); }
+.taste-ratings-selected-beer button { margin-left: 8px; background: transparent; color: var(--taste-amber-bright); border: 0; font-size: 22px; cursor: pointer; }
+.taste-ratings-carousel { min-width: 0; }
+.taste-ratings-carousel-track { display: grid; gap: 18px; align-items: start; grid-template-columns: repeat(2, minmax(0,1fr)); }
+.taste-ratings-carousel-categories .taste-ratings-carousel-track { grid-template-columns: repeat(3, minmax(0,1fr)); }
+.taste-ratings-carousel-tabs { display: none; }
+.taste-rating-card { min-width: 0; border: 1px solid var(--taste-panel-border); border-radius: 14px; padding: 18px; background: var(--taste-panel-background); box-shadow: var(--taste-panel-shadow); }
+.taste-rating-main-card { border-color: #dfab5980; }
+.taste-rating-card header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; padding-bottom: 14px; border-bottom: 1px solid #e7a62f22; }
+.taste-rating-card header > svg { flex-shrink: 0; width: 40px; height: 40px; }
+.taste-rating-card header > div { min-width: 0; flex: 1; }
+.taste-rating-card h2 { margin: 0; }
+.taste-rating-card header p { margin: 5px 0 0; color: var(--taste-text-muted); font-size: var(--taste-font-caption); line-height: 1.4; }
+.taste-rating-ranking-list { list-style: none; padding: 0; margin: 0; }
+.taste-rating-ranking-list li { display: flex; align-items: center; gap: 9px; padding: 12px 0; border-bottom: 1px solid #e7a62f15; min-width: 0; }
+.taste-rating-ranking-list li:last-child { border: 0; }
+.taste-rating-position { flex: 0 0 20px; text-align: center; color: var(--taste-text-muted); font-size: var(--taste-font-control); font-variant-numeric: tabular-nums; }
+.taste-rating-main-card .taste-rating-ranking-list li:first-child .taste-rating-position { border: 1px solid #dfab5977; border-radius: 50%; line-height: 24px; color: var(--taste-amber-bright); background: #f4b74818; }
+.taste-rating-beer-icon { width: 34px; height: 34px; flex-shrink: 0; }
+.taste-rating-rank-name { min-width: 0; flex: 1; display: grid; gap: 4px; }
+.taste-rating-rank-name a, .taste-rating-category-name { color: var(--taste-text); font-size: var(--taste-font-body); line-height: 1.4; font-weight: 600; text-decoration: none; overflow-wrap: anywhere; }
+.taste-rating-rank-name a:hover, .taste-rating-category-name:hover { color: var(--taste-amber-bright); }
+.taste-rating-rank-name > span { font-size: var(--taste-font-caption); color: var(--taste-text-muted); line-height: 1.4; overflow-wrap: anywhere; }
+.taste-rating-rank-score { display: grid; gap: 3px; text-align: right; flex-shrink: 0; }
+.taste-rating-rank-score > span:first-child { display: flex; justify-content: flex-end; align-items: center; gap: 3px; font-size: var(--taste-font-value); color: var(--taste-amber-bright); font-variant-numeric: tabular-nums; }
+.taste-rating-rank-score small { font-size: var(--taste-font-caption); color: var(--taste-text-muted); }
+.taste-rating-rank-score > span:last-child { font-size: var(--taste-font-caption); color: var(--taste-text-muted); }
+.taste-rating-rank-score .taste-rating-star { width: 20px; height: 20px; }
+.taste-rating-category-card { padding: 16px; }
+.taste-app-shell.taste-app-shell .taste-rating-category-card h2 { font-size: var(--taste-font-card) !important; }
+.taste-rating-category-card header { flex-wrap: wrap; }
+.taste-rating-toggle { padding: 8px; }
+.taste-rating-category-name { text-align: left; flex: 1; padding: 0; min-width: 0; border: 0; background: transparent; cursor: pointer; }
+.taste-rating-category-card .taste-rating-ranking-list li > svg { flex-shrink: 0; width: 28px; height: 28px; }
+.taste-ratings-section-heading { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin: 32px 0 14px; }
+.taste-ratings-section-heading h2 { margin: 0; }
+.taste-ratings-section-heading p { color: var(--taste-text-muted); font-size: var(--taste-font-caption); margin: 0; }
+.taste-ratings-review-count { color: var(--taste-text-muted); font-size: var(--taste-font-caption); }
+.taste-rating-review-list { display: grid; gap: 10px; }
+.taste-rating-review { display: flex; gap: 14px; align-items: center; padding: 16px; border: 1px solid var(--taste-panel-border); border-radius: 12px; background: var(--taste-panel-background); box-shadow: var(--taste-panel-shadow); }
+.taste-rating-avatar { flex-shrink: 0; width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; border: 1px solid #bc8b5266; border-radius: 50%; background: #17110b; overflow: hidden; }
+.taste-rating-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.taste-rating-review-content { min-width: 0; flex: 1; }
+.taste-rating-review-sentence { color: var(--taste-text-soft); font-size: var(--taste-font-body); line-height: 1.6; overflow-wrap: anywhere; }
+.taste-rating-review-sentence a { font-weight: 650; text-decoration: none; }
+.taste-rating-user { color: var(--taste-amber-bright); }
+.taste-rating-beer { color: var(--taste-text); }
+.taste-rating-review-meta { color: var(--taste-text-muted); font-size: var(--taste-font-caption); line-height: 1.5; margin-top: 4px; overflow-wrap: anywhere; }
+.taste-rating-review-meta time { display: inline-block; margin-left: 12px; }
+.taste-ratings-pagination { display: flex; justify-content: center; align-items: center; gap: 18px; margin-top: 20px; font-size: var(--taste-font-control); color: var(--taste-text-soft); }
+.taste-ratings-pagination button:disabled { opacity: .4; cursor: default; }
+.taste-ratings-empty { color: var(--taste-text-muted); font-size: var(--taste-font-body); line-height: 1.6; margin: 18px 0; }
+.taste-ratings-empty-state { padding: 36px 20px; text-align: center; border: 1px solid var(--taste-panel-border); border-radius: 14px; background: var(--taste-panel-background); }
+.taste-ratings-empty-state > svg { width: 48px; height: 48px; }
+.taste-ratings-empty-state h3 { color: var(--taste-amber-bright); font-size: var(--taste-font-card); margin: 14px 0 8px; }
+.taste-ratings-empty-state p { color: var(--taste-text-soft); font-size: var(--taste-font-body); line-height: 1.6; }
+.taste-ratings-empty-state a { color: var(--taste-amber-bright); font-size: var(--taste-font-control); }
+@media (max-width: 1100px) and (min-width: 769px) {
+  .taste-ratings-carousel-categories .taste-ratings-carousel-track { grid-template-columns: repeat(2, minmax(0,1fr)); }
+}
+@media(max-width: 768px) {
+  .taste-ratings-concept .taste-hero-stat { display: grid !important; grid-template-columns: 24px minmax(0,1fr); gap: 5px !important; }
+  .taste-ratings-concept .taste-hero-stat > div:first-child { width: 24px !important; height: 24px !important; }
+  .taste-ratings-concept .taste-hero-stat > div:first-child svg { width: 24px !important; height: 24px !important; }
+  .taste-ratings-concept .taste-hero-stat > div:last-child { display: contents; }
+  .taste-ratings-concept .taste-hero-stat-value { grid-column: 2; }
+  .taste-ratings-concept .taste-hero-stat-label { grid-column: 1 / -1; overflow-wrap: anywhere; }
+  .taste-ratings-filters { padding: 12px; gap: 10px; margin-bottom: 16px; }
+  .taste-ratings-filters label { flex-basis: calc(50% - 10px); }
+  .taste-ratings-filters label:last-of-type { flex-basis: 100%; }
+  .taste-ratings-carousel-tabs { display: flex; gap: 6px; margin: 0 0 10px; }
+  .taste-ratings-carousel-tabs button { flex: 1; min-width: 0; border: 1px solid #bc8b5244; border-radius: 8px; padding: 10px 5px; color: var(--taste-text-soft); background: #17110bb3; font-size: var(--taste-font-control); cursor: pointer; }
+  .taste-ratings-carousel-tabs button[aria-pressed="true"] { border-color: #e7a62f99; color: var(--taste-amber-bright); background: linear-gradient(#503017aa,#25170dcc); }
+  .taste-ratings-carousel-track, .taste-ratings-carousel-categories .taste-ratings-carousel-track { position: relative; display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; padding-bottom: 4px; align-items: flex-start; }
+  .taste-ratings-carousel-track::-webkit-scrollbar { display: none; }
+  .taste-ratings-carousel-track > article { flex: 0 0 100%; box-sizing: border-box; scroll-snap-align: start; scroll-snap-stop: always; }
+  .taste-rating-card { padding: 14px 12px; border-radius: 12px; }
+  .taste-rating-card header { gap: 8px; padding-bottom: 12px; margin-bottom: 6px; }
+  .taste-rating-card header > svg { width: 34px; height: 34px; }
+  .taste-rating-ranking-list li { gap: 6px; padding: 11px 0; }
+  .taste-rating-position { flex-basis: 18px; }
+  .taste-rating-rank-score > span:first-child { font-size: var(--taste-font-value); }
+  .taste-rating-rank-score .taste-rating-star { width: 17px; height: 17px; }
+  .taste-ratings-section-heading { margin-top: 24px; }
+  .taste-rating-review { display: grid; grid-template-columns: 36px minmax(0,1fr); gap: 8px 10px; padding: 12px; }
+  .taste-rating-avatar { width: 36px; height: 36px; align-self: start; }
+  .taste-rating-review > .taste-rating-display { grid-column: 2; justify-self: end; }
+  .taste-rating-review .taste-rating-star { width: 22px; height: 22px; }
+  .taste-rating-review-meta time { display: block; margin-left: 0; margin-top: 3px; }
+}

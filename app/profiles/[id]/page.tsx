@@ -33,6 +33,8 @@ import {
 import PageHero from "@/components/ui/PageHero";
 import HomeStatIcon from "@/components/home/HomeStatIcon";
 import "./profile-concept.css";
+import RatingStars from "@/components/ui/RatingStars";
+import { isRating } from "@/lib/ratings";
 import EditTastingModalClient from "@/app/EditTastingModalClient";
 import TastingModal from "@/app/TastingModal";
 import BreweryCreateModalClient from "@/app/breweries/BreweryCreateModalClient";
@@ -193,6 +195,7 @@ export default async function ProfilePage({
         user_id,
         tasted_at,
         tasted_on,
+        rating,
         packaging,
         quantity,
         plato,
@@ -1856,6 +1859,8 @@ export default async function ProfilePage({
                       />
                     )}
                   </div>
+
+                  {isRating(tasting.rating) && <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 10 }}><Link href={`/ratings?beer=${tasting.beers?.id}`}><RatingStars rating={tasting.rating} compact /></Link></div>}
 
                   {(packaging ||
                     tasting.plato !==

@@ -1,0 +1,19 @@
+.taste-rating-star { width: 26px; height: 26px; flex-shrink: 0; filter: drop-shadow(0 2px 2px #0008); }
+.taste-rating-display, .taste-rating-star-row { display: inline-flex; align-items: center; gap: 4px; }
+.taste-rating-display { gap: 8px; color: var(--taste-amber-bright); font-size: var(--taste-font-control); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.taste-rating-display-compact .taste-rating-star { width: 23px; height: 23px; }
+.taste-rating-input { min-width: 0; margin: 22px 0; padding: 16px; border: 1px solid var(--taste-panel-border); border-radius: 12px; background: var(--taste-panel-background); }
+.taste-rating-input legend { padding: 0 6px; color: var(--taste-amber-bright); font-size: var(--taste-font-body); font-weight: 700; }
+.taste-rating-input-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 14px; }
+.taste-rating-input-stars { display: flex; gap: 2px; }
+.taste-rating-input-choice { position: relative; display: flex; align-items: center; justify-content: center; width: 42px; height: 44px; border-radius: 7px; cursor: pointer; }
+.taste-rating-input-choice input { position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; padding: 0; margin: 0; opacity: 0; cursor: pointer; }
+.taste-rating-input-choice .taste-rating-star { width: 35px; height: 35px; }
+.taste-rating-input-choice:has(input:focus-visible) { outline: 2px solid var(--taste-amber-bright); outline-offset: 2px; }
+.taste-rating-input-choice:hover { background: #ffc05212; }
+.taste-rating-input-value { color: var(--taste-text-soft); font-size: var(--taste-font-body); }
+.taste-rating-input button { border: 0; border-bottom: 1px solid #a7957c66; background: transparent; color: var(--taste-text-soft); padding: 8px 0; font-size: var(--taste-font-caption); cursor: pointer; }
+.taste-rating-input p { margin: 9px 0 0; color: var(--taste-text-muted); font-size: var(--taste-font-caption); line-height: 1.5; }
+.taste-timeline-footer { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
+.taste-timeline-rating { margin-left: auto; padding-top: 8px; text-decoration: none; }
+@media(max-width: 380px) { .taste-rating-input { padding: 12px; } .taste-rating-input-controls { gap: 6px; } .taste-rating-input-value { font-size: var(--taste-font-caption); } }

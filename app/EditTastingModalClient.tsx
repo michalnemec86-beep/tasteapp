@@ -1,5 +1,7 @@
 "use client";
 
+import StarRatingInput from "@/components/ui/StarRatingInput";
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -51,6 +53,7 @@ type Beer = {
 };
 
 type Tasting = {
+  rating?: number | null;
   id: number;
   user_id: string;
   tasted_on: string;
@@ -862,6 +865,8 @@ export default function EditTastingModalClient({
                   style={inputStyle}
                 />
               </div>
+
+              <StarRatingInput defaultValue={tasting.rating} />
 
       <button
                 type="submit"

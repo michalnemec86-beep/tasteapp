@@ -110,6 +110,7 @@ export default function AppNav({
         >
           <NavLink href="/activity" active={isActive("/activity")}>Aktivita v hospodě</NavLink>
           <NavLink href="/stats" active={isActive("/stats")}>Co a jak pijeme</NavLink>
+          <NavLink href="/ratings" active={isActive("/ratings")}>Hodnocení</NavLink>
           <NavLink href="/beers" active={isActive("/beers")}>Pivní lístek</NavLink>
           <NavLink href="/breweries" active={isActive("/breweries")}>Pivovary</NavLink>
           <NavLink href="/profiles" active={isActive("/profiles")}>Štamgasti</NavLink>
@@ -200,6 +201,7 @@ export default function AppNav({
         <div className="taste-mobile-menu">
           <MobileNavLink href="/activity" active={isActive("/activity")}>Aktivita v hospodě</MobileNavLink>
           <MobileNavLink href="/stats" active={isActive("/stats")}>Co a jak pijeme</MobileNavLink>
+          <MobileNavLink href="/ratings" active={isActive("/ratings")}>Hodnocení</MobileNavLink>
           <MobileNavLink href="/beers" active={isActive("/beers")}>Pivní lístek</MobileNavLink>
           <MobileNavLink href="/breweries" active={isActive("/breweries")}>Pivovary</MobileNavLink>
           <MobileNavLink href="/profiles" active={isActive("/profiles")}>Štamgasti</MobileNavLink>

@@ -21,6 +21,7 @@ import "./mobile-ux.css";
 import "./desktop-polish.css";
 import "./home-concept.css";
 import "./visual-system.css";
+import "./rating-controls.css";
 
 const defaultUrl =
   process.env.VERCEL_URL

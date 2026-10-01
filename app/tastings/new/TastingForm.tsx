@@ -1,5 +1,7 @@
 "use client";
 
+import StarRatingInput from "@/components/ui/StarRatingInput";
+
 import { useMemo, useState } from "react";
 import { PACKAGING_OPTIONS } from "@/lib/packaging";
 import { inferBrandFromEvidence } from "@/lib/brandInference";
@@ -1022,6 +1024,8 @@ export default function TastingForm({
           style={inputStyle}
         />
       </div>
+
+      <StarRatingInput />
 
       <button
         type="submit"
