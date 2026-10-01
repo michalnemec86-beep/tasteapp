@@ -135,6 +135,7 @@ type BreweryTableClientProps = {
   countries: CountryOption[];
   currentUserId: string;
   adminView: boolean;
+  initiallyVisible?: boolean;
   updateBreweryAction: (
     breweryId: number,
     formData: FormData
@@ -198,6 +199,7 @@ export default function BreweryTableClient({
   countries,
   currentUserId,
   adminView,
+  initiallyVisible = false,
   updateBreweryAction,
 }: BreweryTableClientProps) {
   const router = useRouter();
@@ -236,9 +238,6 @@ export default function BreweryTableClient({
   const [search, setSearch] =
     useState("");
 
-  const [filtersOpen, setFiltersOpen] =
-    useState(false);
-
   const [selectedUserId, setSelectedUserId] =
     useState("");
 
@@ -247,6 +246,9 @@ export default function BreweryTableClient({
 
   const [selectedCity, setSelectedCity] =
     useState("");
+
+  const [showAll, setShowAll] =
+    useState(initiallyVisible);
 
   const [
     brandListBrewery,
@@ -273,6 +275,7 @@ export default function BreweryTableClient({
 
   function handleUserChange(userId: string) {
     setPageInUrl(1);
+    setShowAll(false);
     setSelectedUserId(userId);
     setSelectedCountry("");
     setSelectedCity("");
@@ -280,6 +283,7 @@ export default function BreweryTableClient({
 
   function handleCountryChange(country: string) {
     setPageInUrl(1);
+    setShowAll(false);
     setSelectedCountry(country);
     setSelectedCity("");
   }
@@ -290,6 +294,7 @@ export default function BreweryTableClient({
     setSelectedUserId("");
     setSelectedCountry("");
     setSelectedCity("");
+    setShowAll(false);
   }
 
   const userFilteredRows = useMemo(() => {
@@ -527,35 +532,17 @@ export default function BreweryTableClient({
     Boolean(selectedCountry) ||
     Boolean(selectedCity);
 
+  const hasCatalogSelection =
+    showAll ||
+    hasActiveFilters;
+
   return (
     <>
-      <details
-        className="taste-collapsible-filters"
-        open={filtersOpen || hasActiveFilters}
-        onToggle={(event) => setFiltersOpen(event.currentTarget.open)}
-        style={{ marginBottom: "12px" }}
+      <div
+        className="taste-brewery-catalog-toolbar"
+        aria-label="Hledání a filtrování pivovarů"
       >
-        <summary className="taste-filter-toggle">
-          <span>Hledání a filtry</span>
-          {hasActiveFilters && (
-            <span className="taste-filter-count">Aktivní</span>
-          )}
-          <span className="taste-filter-chevron" aria-hidden="true">⌄</span>
-        </summary>
-
-        <div
-          style={{
-            display: "flex",
-            flexWrap: "wrap",
-            gap: "8px",
-            alignItems: "center",
-            marginTop: "8px",
-            padding: "12px",
-            border: "1px solid var(--taste-border)",
-            borderRadius: "var(--taste-radius-lg)",
-            background: "var(--taste-surface)",
-          }}
-        >
+        <div className="taste-brewery-catalog-search">
         <input
           type="search"
           value={search}
@@ -583,7 +570,9 @@ export default function BreweryTableClient({
             outline: "none",
           }}
         />
+        </div>
 
+        <div className="taste-brewery-catalog-filter-grid">
         <select
           value={selectedUserId}
           onChange={(event) =>
@@ -643,6 +632,7 @@ export default function BreweryTableClient({
             setSelectedCity(
               event.target.value
             );
+            setShowAll(false);
             setPageInUrl(1);
           }}
           aria-label="Filtrovat podle města"
@@ -668,55 +658,68 @@ export default function BreweryTableClient({
           <button
             type="button"
             onClick={clearFilters}
-            style={{
-              height: "38px",
-              padding: "0 11px",
-              border:
-                "1px solid var(--taste-border)",
-              borderRadius: "10px",
-              background:
-                "transparent",
-              color:
-                "var(--taste-text-muted)",
-              fontSize: "11px",
-              fontWeight: 650,
-              cursor: "pointer",
-              whiteSpace: "nowrap",
-            }}
+            className="taste-button-secondary taste-brewery-catalog-clear"
           >
             Zrušit filtry
           </button>
         )}
         </div>
-      </details>
-
-      <div
-        style={{
-          display: "flex",
-          justifyContent:
-            "flex-end",
-          marginBottom: "7px",
-          color:
-            "var(--taste-text-muted)",
-          fontSize: "10px",
-        }}
-      >
-        {hasActiveFilters ? (
-          <>
-            Zobrazeno {pageStart}–{pageEnd} z{" "}
-            {filteredAndSortedRows.length} výsledků
-            {" · "}
-            celkem {rows.length} pivovarů
-          </>
-        ) : (
-          <>
-            Zobrazeno {pageStart}–{pageEnd} z{" "}
-            {rows.length} pivovarů
-          </>
-        )}
       </div>
 
+      {!hasCatalogSelection ? (
+        <div className="taste-card taste-brewery-catalog-empty-state">
+          <div className="taste-brewery-catalog-empty-mark" aria-hidden="true">
+            ⌕
+          </div>
+
+          <div className="taste-brewery-catalog-empty-copy">
+            <strong>Vyber filtr nebo začni hledat</strong>
+            <span>
+              V evidenci je {rows.length} {rows.length === 1 ? "pivovar" : "pivovarů"}. Výpis zobrazíme až podle tvého výběru.
+            </span>
+          </div>
+
+          <button
+            type="button"
+            className="taste-button-secondary taste-brewery-catalog-show-all"
+            onClick={() => {
+              setShowAll(true);
+              setPageInUrl(1);
+            }}
+          >
+            Zobrazit celý katalog
+          </button>
+        </div>
+      ) : (
+        <>
+          <div className="taste-brewery-catalog-result-meta">
+            <div>
+              {hasActiveFilters ? (
+                <>
+                  Zobrazeno {pageStart}–{pageEnd} z{" "}
+                  {filteredAndSortedRows.length} výsledků
+                  {" · "}
+                  celkem {rows.length} pivovarů
+                </>
+              ) : (
+                <>
+                  Zobrazeno {pageStart}–{pageEnd} z{" "}
+                  {rows.length} pivovarů
+                </>
+              )}
+            </div>
+
+            <button
+              type="button"
+              className="taste-button-secondary taste-brewery-catalog-reset"
+              onClick={clearFilters}
+            >
+              Vyčistit výběr
+            </button>
+          </div>
+
       <div
+        className="taste-brewery-table-shell"
         style={{
           overflowX: "auto",
           border:
@@ -1247,6 +1250,8 @@ export default function BreweryTableClient({
             </button>
           </div>
         )}
+        </>
+      )}
 
       {brandListBrewery && (
         <BreweryBrandsModal
