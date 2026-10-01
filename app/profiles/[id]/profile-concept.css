@@ -22,6 +22,13 @@ body:has(.taste-profile-concept) {
     inset 0 0 0 1px rgba(255,225,164,.13);
 }
 
+.taste-app-shell:has(.taste-profile-medals-concept) {
+  --taste-profile-hero-image: url("/images/heroes/achievements-pub-table.webp");
+  --taste-profile-hero-position: 50% -40px;
+  --taste-profile-hero-mobile-position: 77% -18px;
+  --taste-profile-hero-mobile-size: auto 350px;
+}
+
 .taste-app-shell:has(.taste-profile-concept)::before {
   content: "";
   position: absolute;
@@ -35,7 +42,7 @@ body:has(.taste-profile-concept) {
     radial-gradient(circle at 58% 14%, rgba(255,191,86,.11), transparent 24%),
     linear-gradient(180deg, rgba(10,7,5,.03) 0%, rgba(18,11,7,.42) 28%, rgba(16,12,9,.84) 56%, #100d0a 84%),
     linear-gradient(90deg, rgba(12,8,6,.76), rgba(12,8,6,.16) 56%, rgba(12,8,6,.07)),
-    url("/images/heroes/profile.jpg") 50% -72px / 100% auto no-repeat;
+    var(--taste-profile-hero-image, url("/images/heroes/profile.jpg")) var(--taste-profile-hero-position, 50% -72px) / 100% auto no-repeat;
   filter: saturate(1.08) contrast(1.05) brightness(1.01);
   pointer-events: none;
 }
@@ -232,7 +239,7 @@ body:has(.taste-profile-concept) {
       radial-gradient(circle at 59% 13%, rgba(255,191,86,.10), transparent 24%),
       linear-gradient(180deg, rgba(10,7,5,.03) 0%, rgba(18,11,7,.42) 28%, rgba(16,12,9,.84) 56%, #100d0a 84%),
       linear-gradient(90deg, rgba(12,8,6,.73), rgba(12,8,6,.17) 55%, rgba(12,8,6,.08)),
-      url("/images/heroes/profile.jpg") 60% -30px / auto 390px no-repeat;
+      var(--taste-profile-hero-image, url("/images/heroes/profile.jpg")) var(--taste-profile-hero-mobile-position, 60% -30px) / var(--taste-profile-hero-mobile-size, auto 390px) no-repeat;
   }
 
   .taste-app-shell:has(.taste-profile-concept) > .taste-app-nav {

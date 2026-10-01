@@ -1040,7 +1040,7 @@ export default async function ProfilePage({
 
   return (
     <main
-      className="taste-profile-concept"
+      className={`taste-profile-concept${view === "medals" ? " taste-profile-medals-concept" : ""}`}
       style={{
         maxWidth:
           "1500px",
@@ -1063,7 +1063,7 @@ export default async function ProfilePage({
             : "Pivní profil"
         }
         visualVariant="profile"
-        imageUrl="/images/heroes/profile.jpg"
+        imageUrl={view === "medals" ? "/images/heroes/achievements-pub-table.webp" : "/images/heroes/profile.jpg"}
         visualText={
           profile.display_name
             .charAt(0)
