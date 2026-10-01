@@ -32,7 +32,7 @@ export default function RatingsClient({ rows, initialBeer = "" }: { rows: RatedT
 
   return <>
     <PageHero eyebrow="Jak nám chutná" title="Hodnocení" subtitle="Piva očima štamgastů. Každá hodnocená ochutnávka má jeden hlas."
-      imageUrl="/images/heroes/stats.jpg" visualVariant="stats" hideRightContent mobileCompact
+      imageUrl="/images/heroes/ratings-tasting.webp" visualVariant="stats" hideRightContent mobileCompact
       stats={[
         { icon: <HomeStatIcon kind="mug"/>, value: best.length, label: "Hodnocených piv" },
         { icon: <RatingStar/>, value: filtered.length, label: "Hodnocení" },
