@@ -1053,7 +1053,7 @@ export default async function ProfilePage({
         }
         title={
           view === "breweries"
-            ? "Moje pivovary"
+            ? (isMe ? "Moje pivovary" : "Pivovary")
             : (
               <>
                 {profile.display_name}
