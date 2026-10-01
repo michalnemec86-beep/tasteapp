@@ -114,6 +114,16 @@ export function buildTasteStats(
 ): TasteStats {
   const beerMap = new Map<number, RankingItem>();
   const brandMap = new Map<number, RankingItem>();
+  const brandBreweryLogoUsage = new Map<
+    number,
+    Map<
+      number,
+      {
+        count: number;
+        logoUrl: string;
+      }
+    >
+  >();
   const breweryMap = new Map<number, RankingItem>();
   const styleMap = new Map<number, RankingItem>();
   const countryMap = new Map<string, RankingItem>();
@@ -145,6 +155,10 @@ export function buildTasteStats(
 
     addToRanking(beerMap, beer.id, beer.name, quantity);
 
+    // Kanonický výrobce patří konkrétní historické / současné
+    // verzi piva. beer.brewery_id je pouze kompatibilní fallback.
+    const brewery = getTastingBrewery(tasting);
+
     if (beer.brands) {
       addToRanking(
         brandMap,
@@ -152,11 +166,51 @@ export function buildTasteStats(
         beer.brands.name,
         quantity
       );
-    }
 
-    // Kanonický výrobce patří konkrétní historické / současné
-    // verzi piva. beer.brewery_id je pouze kompatibilní fallback.
-    const brewery = getTastingBrewery(tasting);
+      // Značka nemá vlastní logo. Pro její vizuální identitu používáme
+      // logo nejčastějšího výrobního pivovaru v daném statistickém kontextu.
+      // Díky tomu fungují loga stejně na profilu, globálních statistikách
+      // i homepage a nepřisuzujeme značce náhodný první nalezený pivovar.
+      if (
+        brewery?.logo_url
+      ) {
+        const breweryUsage =
+          brandBreweryLogoUsage.get(
+            beer.brands.id
+          ) ??
+          new Map<
+            number,
+            {
+              count: number;
+              logoUrl: string;
+            }
+          >();
+
+        const existing =
+          breweryUsage.get(
+            brewery.id
+          );
+
+        breweryUsage.set(
+          brewery.id,
+          {
+            count:
+              (
+                existing?.count ??
+                0
+              ) +
+              quantity,
+            logoUrl:
+              brewery.logo_url,
+          }
+        );
+
+        brandBreweryLogoUsage.set(
+          beer.brands.id,
+          breweryUsage
+        );
+      }
+    }
 
     if (brewery) {
       addToRanking(
@@ -205,9 +259,51 @@ export function buildTasteStats(
     }
   }
 
+  const brands =
+    sortRanking(
+      brandMap
+    ).map(
+      (brand) => {
+        const breweryUsage =
+          brandBreweryLogoUsage.get(
+            Number(
+              brand.id
+            )
+          );
+
+        if (
+          !breweryUsage ||
+          breweryUsage.size ===
+            0
+        ) {
+          return brand;
+        }
+
+        const bestLogo =
+          Array.from(
+            breweryUsage.values()
+          ).sort(
+            (
+              a,
+              b
+            ) =>
+              b.count -
+              a.count
+          )[0]?.logoUrl;
+
+        return bestLogo
+          ? {
+              ...brand,
+              logoUrl:
+                bestLogo,
+            }
+          : brand;
+      }
+    );
+
   return {
     beers: sortRanking(beerMap),
-    brands: sortRanking(brandMap),
+    brands,
     breweries: sortRanking(breweryMap),
     styles: sortRanking(styleMap),
     countries: sortRanking(countryMap),
