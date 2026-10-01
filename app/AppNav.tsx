@@ -172,10 +172,6 @@ export default function AppNav({
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <Link href="/" className="taste-mobile-profile" aria-current={isActive("/me") ? "page" : undefined}>
-            <span className="taste-mobile-profile-full">Můj pivní deník</span>
-            <span className="taste-mobile-profile-compact">Deník</span>
-          </Link>
           <Link
             href="/settings"
             className="taste-settings-link"
@@ -199,13 +195,13 @@ export default function AppNav({
 
       {mobileOpen && (
         <div className="taste-mobile-menu">
+          <MobileNavLink href="/" active={isActive("/me")}>Můj pivní deník</MobileNavLink>
           <MobileNavLink href="/activity" active={isActive("/activity")}>Aktivita v hospodě</MobileNavLink>
           <MobileNavLink href="/stats" active={isActive("/stats")}>Co a jak pijeme</MobileNavLink>
           <MobileNavLink href="/ratings" active={isActive("/ratings")}>Hodnocení</MobileNavLink>
           <MobileNavLink href="/beers" active={isActive("/beers")}>Pivní lístek</MobileNavLink>
           <MobileNavLink href="/breweries" active={isActive("/breweries")}>Pivovary</MobileNavLink>
           <MobileNavLink href="/profiles" active={isActive("/profiles")}>Štamgasti</MobileNavLink>
-          <MobileNavLink href="/" active={isActive("/me")}>Můj pivní deník</MobileNavLink>
           <MobileNavLink href="/settings" active={isActive("/settings")}>Nastavení</MobileNavLink>
           <button type="button" onClick={handleLogout} className="taste-mobile-menu-logout">
             Odhlásit
