@@ -174,6 +174,7 @@ export default function ProfileWorldCard({
           }}
         >
           <div
+            className="taste-profile-country-ranking-header"
             style={{
               display:
                 "flex",
@@ -392,7 +393,7 @@ export default function ProfileWorldCard({
                         }}
                       >
                         <div
-                          className="taste-profile-value-fill"
+                          className="taste-profile-country-fill"
                           style={{
                             width:
                               `${Math.max(
