@@ -3,6 +3,7 @@
 import {
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { createPortal } from "react-dom";
@@ -237,6 +238,7 @@ export default function BreweryTableClient({
 
   const [search, setSearch] =
     useState("");
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   const [selectedUserId, setSelectedUserId] =
     useState("");
@@ -295,6 +297,15 @@ export default function BreweryTableClient({
     setSelectedCountry("");
     setSelectedCity("");
     setShowAll(false);
+  }
+
+  function showWholeCatalog() {
+    setSearch("");
+    setSelectedUserId("");
+    setSelectedCountry("");
+    setSelectedCity("");
+    setShowAll(true);
+    setPageInUrl(1);
   }
 
   const userFilteredRows = useMemo(() => {
@@ -544,6 +555,7 @@ export default function BreweryTableClient({
       >
         <div className="taste-brewery-catalog-search">
         <input
+          ref={searchInputRef}
           type="search"
           value={search}
           onChange={(event) => {
@@ -654,6 +666,15 @@ export default function BreweryTableClient({
           )}
         </select>
 
+        <button
+          type="button"
+          className="taste-button-secondary taste-brewery-catalog-show-all"
+          aria-pressed={showAll && !hasActiveFilters}
+          onClick={showWholeCatalog}
+        >
+          Zobrazit celý katalog
+        </button>
+
         {hasActiveFilters && (
           <button
             type="button"
@@ -668,9 +689,15 @@ export default function BreweryTableClient({
 
       {!hasCatalogSelection ? (
         <div className="taste-card taste-brewery-catalog-empty-state">
-          <div className="taste-brewery-catalog-empty-mark" aria-hidden="true">
+          <button
+            type="button"
+            className="taste-brewery-catalog-empty-mark"
+            aria-label="Přejít na hledání pivovarů"
+            title="Hledat pivovar"
+            onClick={() => searchInputRef.current?.focus()}
+          >
             ⌕
-          </div>
+          </button>
 
           <div className="taste-brewery-catalog-empty-copy">
             <strong>Vyber filtr nebo začni hledat</strong>
@@ -679,16 +706,6 @@ export default function BreweryTableClient({
             </span>
           </div>
 
-          <button
-            type="button"
-            className="taste-button-secondary taste-brewery-catalog-show-all"
-            onClick={() => {
-              setShowAll(true);
-              setPageInUrl(1);
-            }}
-          >
-            Zobrazit celý katalog
-          </button>
         </div>
       ) : (
         <>

@@ -25,11 +25,11 @@ export default function BreweryBrandAddClient({ action }: { action: (formData: F
   }
 
   return (
-    <form onSubmit={submit} style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 12 }}>
+    <form className="taste-brewery-brand-form" onSubmit={submit} style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 12 }}>
       <input name="brandName" aria-label="Název nové značky" placeholder="Název značky" required maxLength={120}
         value={name} onChange={(event) => setName(event.target.value)}
         style={{ minHeight: 36, padding: "6px 10px", border: "1px solid var(--taste-border)", borderRadius: 8, background: "var(--taste-surface)", color: "var(--taste-text)" }} />
-      <button type="submit" disabled={busy} className="taste-button-secondary">{busy ? "Přidávám…" : "Přidat značku"}</button>
+      <button type="submit" disabled={busy} className="taste-button-primary taste-brewery-add-brand">{busy ? "Přidávám…" : "Přidat značku"}</button>
       {error && <span role="alert" style={{ width: "100%", color: "var(--taste-amber-bright)" }}>{error}</span>}
     </form>
   );

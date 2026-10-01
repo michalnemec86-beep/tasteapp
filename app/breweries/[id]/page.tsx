@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+import "./brewery-detail.css";
 
 import { createClient } from "@/lib/supabase/server";
 import { getBeerReferenceStatus, getBreweryReferenceStatus } from "@/lib/referenceStatus";
@@ -370,7 +371,7 @@ export default async function BreweryDetailPage({ params, searchParams }: Props)
   ].sort((a: any, b: any) => a.beer.name.localeCompare(b.beer.name, "cs", { sensitivity: "base" }));
 
   return (
-    <main style={{ maxWidth: "1250px", margin: "0 auto", padding: "34px 24px 80px" }}>
+    <main className="taste-brewery-detail-concept" style={{ maxWidth: "1250px", margin: "0 auto", padding: "34px 24px 80px" }}>
       <PageHero
         eyebrow="Detail pivovaru"
         imageUrl="/images/heroes/catalog.jpg"
@@ -380,9 +381,8 @@ export default async function BreweryDetailPage({ params, searchParams }: Props)
         title={brewery.name}
         subtitle={[brewery.city, brewery.country].filter(Boolean).join(" · ")}
         action={
-          <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+          <div className="taste-brewery-hero-actions" style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
             {adminView && !breweryReferenceStatus.ready && <ReferenceWarning missing={breweryReferenceStatus.missing} />}
-            <Link href="/breweries" className="taste-button-secondary" style={{ fontSize: "12px", fontWeight: 650 }}>← Katalog pivovarů</Link>
             <BreweryEditModalClient
               brewery={{
                 id: brewery.id,
@@ -398,7 +398,7 @@ export default async function BreweryDetailPage({ params, searchParams }: Props)
                 longitude: brewery.longitude,
               }}
               updateBreweryAction={updateBrewery}
-              variant="primary"
+              variant="secondary"
               isAdmin={isCatalogAdmin && adminView}
             />
           </div>
@@ -433,7 +433,7 @@ export default async function BreweryDetailPage({ params, searchParams }: Props)
           </details>
         )}
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: "18px" }}>
+        <div className="taste-brewery-contact-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: "18px" }}>
           <DetailItem label="Město" value={brewery.city} />
           <DetailItem
             label="Stát"
@@ -768,9 +768,9 @@ function formatBrandCount(count: number) {
 
 function DetailItem({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <div>
+    <div className="taste-brewery-contact-item">
       <div className="taste-label" style={{ marginBottom: "5px" }}>{label}</div>
-      <div style={{ color: value != null && value !== "" ? "var(--taste-text)" : "var(--taste-text-muted)", fontSize: "14px" }}>{value ?? "—"}</div>
+      <div className="taste-brewery-contact-value" style={{ color: value != null && value !== "" ? "var(--taste-text)" : "var(--taste-text-muted)", fontSize: "14px" }}>{value ?? "—"}</div>
     </div>
   );
 }

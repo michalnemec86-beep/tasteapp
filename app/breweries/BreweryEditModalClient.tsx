@@ -25,7 +25,7 @@ type BreweryEditModalClientProps = {
     breweryId: number,
     formData: FormData
   ) => Promise<void>;
-  variant?: "subtle" | "primary";
+  variant?: "subtle" | "primary" | "secondary";
   isAdmin?: boolean;
 };
 
@@ -132,10 +132,12 @@ export default function BreweryEditModalClient({
         className={
           variant === "primary"
             ? "taste-button-primary"
-            : "brewery-edit-trigger"
+            : variant === "secondary"
+              ? "taste-button-secondary taste-brewery-edit-button"
+              : "brewery-edit-trigger"
         }
         style={
-          variant === "primary"
+          variant !== "subtle"
             ? {
                 display: "inline-flex",
                 alignItems: "center",
@@ -160,7 +162,7 @@ export default function BreweryEditModalClient({
               }
         }
       >
-        {variant === "primary" ? "Upravit pivovar" : "Upravit"}
+        {variant !== "subtle" ? "Upravit pivovar" : "Upravit"}
       </button>
 
       {open &&
