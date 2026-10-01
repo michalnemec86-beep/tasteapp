@@ -30,7 +30,8 @@ import {
 } from "@/lib/achievements";
 
 import PageHero from "@/components/ui/PageHero";
-import AppIcon from "@/components/ui/AppIcon";
+import HomeStatIcon from "@/components/home/HomeStatIcon";
+import "./profile-concept.css";
 import EditTastingModalClient from "@/app/EditTastingModalClient";
 import ProfileActivityCard from "./ProfileActivityCard";
 import ProfileBeerDnaCard from "./ProfileBeerDnaCard";
@@ -937,15 +938,16 @@ export default async function ProfilePage({
 
   return (
     <main
+      className="taste-profile-concept"
       style={{
         maxWidth:
-          "1250px",
+          "1500px",
 
         margin:
           "0 auto",
 
         padding:
-          "34px 24px 80px",
+          "12px 24px 72px",
       }}
     >
       {/* ==================================================
@@ -994,81 +996,52 @@ export default async function ProfilePage({
             }
           />
         }
+        statsScrollable
         stats={[
           {
-            icon: (
-              <AppIcon
-                name="beer"
-                size={18}
-              />
-            ),
+            icon: <HomeStatIcon kind="barrel" />,
             accent: "#f3b43f",
             value: profileStats.totalQuantity,
             label: "Vypitých piv",
             href: `/stats?user=${profile.id}&locked=1&focus=beers&metric=quantity`,
           },
           {
-            icon: (
-              <AppIcon
-                name="label"
-                size={18}
-              />
-            ),
+            icon: <HomeStatIcon kind="mug" />,
             accent: "#d98945",
             value: profileStats.uniqueBeers,
             label: "Různých piv",
             href: `/stats?user=${profile.id}&locked=1&focus=beers`,
           },
           {
-            icon: (
-              <AppIcon
-                name="label"
-                size={18}
-              />
-            ),
+            icon: <HomeStatIcon kind="crest" />,
             accent: "#d98945",
             value: profileStats.uniqueBrands,
             label: "Značek",
             href: `/stats?user=${profile.id}&locked=1&focus=brands`,
           },
           {
-            icon: (
-              <AppIcon
-                name="brewery"
-                size={18}
-              />
-            ),
+            icon: <HomeStatIcon kind="brewery" />,
             accent: "#d5a13c",
             value: profileStats.uniqueBreweries,
             label: "Pivovarů",
             href: `/stats?user=${profile.id}&locked=1&focus=breweries`,
           },
           {
-            icon: "◐",
+            icon: <HomeStatIcon kind="hop" />,
             accent: "#8ea348",
             value: profileStats.uniqueStyles,
             label: "Pivních stylů",
             href: `/stats?user=${profile.id}&locked=1&focus=styles`,
           },
           {
-            icon: (
-              <AppIcon
-                name="globe"
-                size={18}
-              />
-            ),
+            icon: <HomeStatIcon kind="globe" />,
             accent: "#d37f43",
             value: profileStats.uniqueCountries,
             label: "Států",
             href: `/stats?user=${profile.id}&locked=1&focus=countries`,
           },
           {
-            icon: (
-              <AppIcon
-                name="hop"
-                size={18}
-              />
-            ),
+            icon: <HomeStatIcon kind="hop" />,
             accent: "#879a43",
             value: profileStats.uniqueHops,
             label: "Chmelů",
@@ -1077,6 +1050,7 @@ export default async function ProfilePage({
         ]}
       />
       <nav
+        className="taste-profile-tabs"
         aria-label="Části pivního deníku"
         style={{
           display: "flex",
@@ -1126,6 +1100,7 @@ export default async function ProfilePage({
         }}
       >
         <div
+          className="taste-profile-quick-grid"
           style={{
             display: "grid",
             gridTemplateColumns:
@@ -1138,6 +1113,7 @@ export default async function ProfilePage({
               <Link
                 key={item.label}
                 href={item.href}
+                className="taste-profile-quick-card"
                 style={{
                   display: "block",
                   color: "inherit",
