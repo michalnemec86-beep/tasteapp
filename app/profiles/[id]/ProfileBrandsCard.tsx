@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import type { RankingItem } from "@/lib/stats";
+import AutoLogoFrame from "@/components/ui/AutoLogoFrame";
 
 type Props = {
   items: RankingItem[];
@@ -21,7 +22,7 @@ export default function ProfileBrandsCard({
   const visible = items.slice(0, 8);
   const max = visible[0]?.count ?? 1;
   return (
-    <section style={{ marginBottom: "38px" }}>
+    <section className="taste-profile-section taste-profile-brands-section" style={{ marginBottom: "38px" }}>
       <div style={{ marginBottom: "14px" }}>
         <div className="taste-label" style={{ marginBottom: "5px" }}>
           Značkové preference
@@ -29,7 +30,7 @@ export default function ProfileBrandsCard({
         <h2 style={{ margin: 0, fontSize: "24px", letterSpacing: "-0.025em" }}>
           Nejčastější značky
         </h2>
-        <p style={{ maxWidth: "650px", margin: "6px 0 0", color: "var(--taste-text-muted)", fontSize: "11px", lineHeight: 1.55 }}>
+        <p className="taste-profile-section-description" style={{ maxWidth: "650px", margin: "6px 0 0", color: "var(--taste-text-muted)", fontSize: "11px", lineHeight: 1.55 }}>
           Značky jsou vedené odděleně od výrobních pivovarů a zůstávají
           souvislé i při historické změně výrobce.
         </p>
@@ -47,10 +48,22 @@ export default function ProfileBrandsCard({
               const width = max > 0 ? Math.max(4, (item.count / max) * 100) : 0;
 
               return (
-                <div key={item.id} style={{ padding: "11px 12px", border: `1px solid ${border}`, borderRadius: "12px", background: `linear-gradient(90deg, ${wash}, transparent 74%), rgba(18,12,8,0.22)` }}>
-                  <div style={{ display: "grid", gridTemplateColumns: "26px minmax(0,1fr) auto", gap: "8px", alignItems: "center" }}>
-                    <span style={{ color: accent, fontSize: "10px", fontWeight: 850 }}>
+                <div key={item.id} className="taste-profile-ranking-row taste-profile-brand-row" style={{ padding: "11px 12px", border: `1px solid ${border}`, borderRadius: "12px", background: `linear-gradient(90deg, ${wash}, transparent 74%), rgba(18,12,8,0.22)` }}>
+                  <div className="taste-profile-ranking-row-main" style={{ display: "grid", gridTemplateColumns: "26px minmax(0,1fr) auto", gap: "8px", alignItems: "center" }}>
+                    <span className="taste-profile-ranking-number" style={{ color: accent, fontSize: "10px", fontWeight: 850 }}>
                       {String(index + 1).padStart(2, "0")}
+                    </span>
+
+                    <span className="taste-profile-mobile-ranking-logo">
+                      {item.logoUrl ? (
+                        <AutoLogoFrame
+                          src={item.logoUrl}
+                          size={26}
+                          padding={2}
+                        />
+                      ) : (
+                        <span className="taste-profile-ranking-logo-placeholder" />
+                      )}
                     </span>
                     <Link href={`/stats?user=${profileId}&locked=1&brand=${item.id}`} className="taste-entity-link" style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "var(--taste-text)", fontSize: "12px", fontWeight: 750 }}>
                       {item.name}
@@ -59,8 +72,8 @@ export default function ProfileBrandsCard({
                       {item.count}×
                     </span>
                   </div>
-                  <div style={{ height: "4px", margin: "7px 0 0 34px", overflow: "hidden", borderRadius: "999px", background: "rgba(255,255,255,0.045)" }}>
-                    <div style={{ width: `${width}%`, height: "100%", borderRadius: "999px", background: accent, boxShadow: `0 0 12px ${accent}44` }} />
+                  <div className="taste-profile-value-track" style={{ height: "4px", margin: "7px 0 0 34px", overflow: "hidden", borderRadius: "999px", background: "rgba(255,255,255,0.045)" }}>
+                    <div className="taste-profile-value-fill" style={{ width: `${width}%`, height: "100%", borderRadius: "999px", background: accent, boxShadow: `0 0 12px ${accent}44` }} />
                   </div>
                 </div>
               );
