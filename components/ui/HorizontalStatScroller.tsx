@@ -9,8 +9,10 @@ import {
 
 export default function HorizontalStatScroller({
   children,
+  loop = false,
 }: {
   children: ReactNode;
+  loop?: boolean;
 }) {
   const trackRef =
     useRef<HTMLDivElement>(null);
@@ -69,6 +71,35 @@ export default function HorizontalStatScroller({
         )
       );
 
+    const maxScroll =
+      track.scrollWidth -
+      track.clientWidth;
+
+    if (
+      loop &&
+      direction < 0 &&
+      track.scrollLeft <= 4
+    ) {
+      track.scrollTo({
+        left: maxScroll,
+        behavior: "smooth",
+      });
+      return;
+    }
+
+    if (
+      loop &&
+      direction > 0 &&
+      track.scrollLeft >=
+        maxScroll - 4
+    ) {
+      track.scrollTo({
+        left: 0,
+        behavior: "smooth",
+      });
+      return;
+    }
+
     track.scrollBy({
       left:
         amount *
@@ -121,6 +152,7 @@ export default function HorizontalStatScroller({
         className="taste-hero-stat-scroll-button taste-hero-stat-scroll-button-left"
         aria-label="Posunout statistiky doleva"
         disabled={
+          !loop &&
           !canScrollLeft
         }
         onClick={() =>
@@ -135,6 +167,95 @@ export default function HorizontalStatScroller({
           trackRef
         }
         className="taste-hero-stat-scroll-track"
+        onTouchStart={(event) => {
+          const track =
+            trackRef.current;
+
+          if (!loop || !track) {
+            return;
+          }
+
+          track.dataset.touchStartX =
+            String(
+              event.touches[0]
+                ?.clientX ?? 0
+            );
+
+          track.dataset.touchStartScroll =
+            String(
+              track.scrollLeft
+            );
+        }}
+        onTouchEnd={(event) => {
+          const track =
+            trackRef.current;
+
+          if (!loop || !track) {
+            return;
+          }
+
+          const startX =
+            Number(
+              track.dataset
+                .touchStartX ?? 0
+            );
+
+          const startScroll =
+            Number(
+              track.dataset
+                .touchStartScroll ?? 0
+            );
+
+          delete track.dataset
+            .touchStartX;
+
+          delete track.dataset
+            .touchStartScroll;
+
+          const endX =
+            event.changedTouches[0]
+              ?.clientX;
+
+          if (endX == null) {
+            return;
+          }
+
+          const delta =
+            endX - startX;
+
+          if (
+            Math.abs(delta) <
+            42
+          ) {
+            return;
+          }
+
+          const maxScroll =
+            track.scrollWidth -
+            track.clientWidth;
+
+          if (
+            startScroll <= 4 &&
+            delta > 0
+          ) {
+            track.scrollTo({
+              left: maxScroll,
+              behavior: "smooth",
+            });
+            return;
+          }
+
+          if (
+            startScroll >=
+              maxScroll - 4 &&
+            delta < 0
+          ) {
+            track.scrollTo({
+              left: 0,
+              behavior: "smooth",
+            });
+          }
+        }}
       >
         {children}
       </div>
@@ -144,6 +265,7 @@ export default function HorizontalStatScroller({
         className="taste-hero-stat-scroll-button taste-hero-stat-scroll-button-right"
         aria-label="Posunout statistiky doprava"
         disabled={
+          !loop &&
           !canScrollRight
         }
         onClick={() =>
