@@ -957,7 +957,7 @@ export default async function ProfilePage({
       <PageHero
         eyebrow={
           isMe
-            ? "Můj pivní profil"
+            ? "Můj pivní deník"
             : "Pivní profil"
         }
         visualVariant="profile"
@@ -1060,10 +1060,10 @@ export default async function ProfilePage({
         }}
       >
         {[
-          { key: "stats", label: "Moje statistiky", href: `/profiles/${profile.id}` },
-          { key: "beers", label: "Co jsem vypil", href: `/profiles/${profile.id}?view=beers` },
-          { key: "breweries", label: "Moje pivovary", href: `/profiles/${profile.id}?view=breweries` },
-          { key: "medals", label: "Hospodské ocenění", href: `/profiles/${profile.id}?view=medals` },
+          { key: "stats", label: "Moje statistiky", href: isMe ? "/" : `/profiles/${profile.id}` },
+          { key: "beers", label: "Co jsem vypil", href: isMe ? "/?view=beers" : `/profiles/${profile.id}?view=beers` },
+          { key: "breweries", label: "Moje pivovary", href: isMe ? "/?view=breweries" : `/profiles/${profile.id}?view=breweries` },
+          { key: "medals", label: "Hospodské ocenění", href: isMe ? "/?view=medals" : `/profiles/${profile.id}?view=medals` },
         ].map((item) => {
           const active = view === item.key;
 
