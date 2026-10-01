@@ -55,6 +55,7 @@ export default function BeerCatalogClient({
   const [letter, setLetter] = useState("");
   const [showLetters, setShowLetters] = useState(false);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const [showAll, setShowAll] = useState(false);
 
   const letters = useMemo(
     () =>
@@ -133,13 +134,23 @@ export default function BeerCatalogClient({
       });
   }, [beers, country, filter, letter, search, sort]);
 
+  const hasCatalogSelection =
+    showAll ||
+    filter !== "all" ||
+    Boolean(search.trim()) ||
+    Boolean(country) ||
+    Boolean(letter) ||
+    sort !== "default";
+
   function selectFilter(next: FilterMode) {
     setFilter(next);
+    setShowAll(next === "all");
     setVisibleCount(PAGE_SIZE);
   }
 
   function selectSort(next: SortMode) {
     setSort(next);
+    setShowAll(true);
     setVisibleCount(PAGE_SIZE);
 
     if (next !== "country") {
@@ -168,12 +179,25 @@ export default function BeerCatalogClient({
               key={key}
               type="button"
               onClick={() => selectFilter(key)}
-              aria-pressed={filter === key}
+              aria-pressed={
+                key === "all"
+                  ? filter === "all" && showAll
+                  : filter === key
+              }
               className="taste-button-secondary"
               style={{
-                borderColor: filter === key ? "rgba(245,184,63,0.55)" : undefined,
-                background: filter === key ? "rgba(231,166,47,0.14)" : undefined,
-                color: filter === key ? "var(--taste-amber-bright)" : undefined,
+                borderColor:
+                  (key === "all" ? filter === "all" && showAll : filter === key)
+                    ? "rgba(245,184,63,0.55)"
+                    : undefined,
+                background:
+                  (key === "all" ? filter === "all" && showAll : filter === key)
+                    ? "rgba(231,166,47,0.14)"
+                    : undefined,
+                color:
+                  (key === "all" ? filter === "all" && showAll : filter === key)
+                    ? "var(--taste-amber-bright)"
+                    : undefined,
                 fontSize: "12px",
                 fontWeight: 750,
                 cursor: "pointer",
@@ -222,6 +246,7 @@ export default function BeerCatalogClient({
 
               if (nextVisible) {
                 setSort("alpha");
+                setShowAll(true);
                 setCountry("");
                 setShowCountries(false);
               }
@@ -260,6 +285,7 @@ export default function BeerCatalogClient({
 
               if (nextVisible) {
                 setSort("country");
+                setShowAll(true);
                 setLetter("");
                 setShowLetters(false);
               }
@@ -321,15 +347,64 @@ export default function BeerCatalogClient({
         )}
       </div>
 
-      <div className="taste-beer-catalog-count" style={{ marginBottom: "12px", color: "var(--taste-text-muted)", fontSize: "12px" }}>
-        {filtered.length} {filtered.length === 1 ? "pivo" : "piv"}
-      </div>
-
-      {filtered.length === 0 ? (
-        <div className="taste-card" style={{ padding: "32px", textAlign: "center", color: "var(--taste-text-muted)" }}>
-          Tomuto výběru neodpovídá žádné pivo.
+      {!hasCatalogSelection ? (
+        <div className="taste-card taste-beer-catalog-empty-state">
+          <div className="taste-beer-catalog-empty-mark" aria-hidden="true">
+            ⌕
+          </div>
+          <div className="taste-beer-catalog-empty-copy">
+            <strong>Vyber filtr nebo začni hledat</strong>
+            <span>
+              V evidenci je {beers.length} {beers.length === 1 ? "pivo" : "piv"}. Výpis zobrazíme až podle tvého výběru.
+            </span>
+          </div>
+          <button
+            type="button"
+            className="taste-button-secondary taste-beer-catalog-show-all"
+            onClick={() => {
+              setFilter("all");
+              setSort("default");
+              setCountry("");
+              setLetter("");
+              setShowCountries(false);
+              setShowLetters(false);
+              setShowAll(true);
+              setVisibleCount(PAGE_SIZE);
+            }}
+          >
+            Zobrazit celý lístek
+          </button>
         </div>
       ) : (
+        <>
+          <div className="taste-beer-catalog-result-meta">
+            <div className="taste-beer-catalog-count" style={{ color: "var(--taste-text-muted)", fontSize: "12px" }}>
+              {filtered.length} {filtered.length === 1 ? "pivo" : "piv"}
+            </div>
+            <button
+              type="button"
+              className="taste-button-secondary taste-beer-catalog-reset"
+              onClick={() => {
+                setFilter("all");
+                setSort("default");
+                setSearch("");
+                setCountry("");
+                setLetter("");
+                setShowCountries(false);
+                setShowLetters(false);
+                setShowAll(false);
+                setVisibleCount(PAGE_SIZE);
+              }}
+            >
+              Vyčistit výběr
+            </button>
+          </div>
+
+          {filtered.length === 0 ? (
+            <div className="taste-card taste-beer-catalog-no-results">
+              Tomuto výběru neodpovídá žádné pivo.
+            </div>
+          ) : (
         <div className="taste-beer-catalog-grid">
           {filtered.slice(0, visibleCount).map((beer) => (
             <article
@@ -422,6 +497,8 @@ export default function BeerCatalogClient({
         >
           Zobrazit další piva
         </button>
+          )}
+        </>
       )}
     </section>
   );
