@@ -1,6 +1,7 @@
 import type {
   ProfileActivityPoint,
 } from "@/lib/profileStats";
+import ProfileLoopCarousel from "./ProfileLoopCarousel";
 
 type ProfileActivityCardProps = {
   monthlyActivity:
@@ -69,6 +70,7 @@ export default function ProfileActivityCard({
 
   return (
     <section
+      className="taste-profile-activity-section"
       style={{
         marginBottom:
           "38px",
@@ -103,6 +105,7 @@ export default function ProfileActivityCard({
         </h2>
 
         <p
+          className="taste-profile-activity-description"
           style={{
             maxWidth:
               "620px",
@@ -117,26 +120,16 @@ export default function ProfileActivityCard({
           }}
         >
           Posledních 12 měsíců
-          ochutnávek. Výška a
-          intenzita sloupce
-          odpovídají aktivitě.
+          ochutnávek.
         </p>
       </div>
 
-      <div
-        className="
-          grid
-          grid-cols-1
-          gap-3
-          lg:grid-cols-[minmax(0,1fr)_250px]
-        "
-      >
+      <div className="taste-profile-activity-layout">
         <article
+          className="taste-profile-activity-chart-card"
           style={{
-            minHeight:
-              "310px",
             padding:
-              "20px 18px 16px",
+              "16px 16px 12px",
             border:
               "1px solid rgba(223,127,50,0.34)",
             borderRadius:
@@ -144,12 +137,12 @@ export default function ProfileActivityCard({
             background: `
               radial-gradient(
                 circle at 82% 0%,
-                rgba(223,127,50,0.18),
+                rgba(223,127,50,0.16),
                 transparent 20rem
               ),
               linear-gradient(
                 145deg,
-                rgba(194,85,63,0.075),
+                rgba(194,85,63,0.065),
                 transparent 70%
               ),
               var(--taste-surface)
@@ -161,9 +154,8 @@ export default function ProfileActivityCard({
           {visibleMonths.length >
           0 ? (
             <div
+              className="taste-profile-activity-chart"
               style={{
-                height:
-                  "250px",
                 display:
                   "grid",
                 gridTemplateColumns:
@@ -171,7 +163,7 @@ export default function ProfileActivityCard({
                 alignItems:
                   "end",
                 gap:
-                  "8px",
+                  "7px",
               }}
             >
               {visibleMonths.map(
@@ -183,20 +175,15 @@ export default function ProfileActivityCard({
                     item.count /
                     maxCount;
 
-                  const height =
+                  const barHeight =
                     item.count ===
                     0
                       ? 4
                       : Math.max(
-                          18,
+                          10,
                           ratio *
-                            185
+                            100
                         );
-
-                  const alpha =
-                    0.34 +
-                    ratio *
-                      0.58;
 
                   const isTop =
                     item.key ===
@@ -214,102 +201,35 @@ export default function ProfileActivityCard({
                         item.key
                       }
                       title={`${label.long}: ${item.count}`}
-                      style={{
-                        minWidth:
-                          0,
-                        height:
-                          "100%",
-                        display:
-                          "flex",
-                        flexDirection:
-                          "column",
-                        justifyContent:
-                          "flex-end",
-                        alignItems:
-                          "center",
-                        gap:
-                          "7px",
-                      }}
+                      className="taste-profile-activity-column"
                     >
                       <div
-                        style={{
-                          color:
-                            isTop
-                              ? "#f4c057"
-                              : "var(--taste-text-muted)",
-                          fontSize:
-                            "9px",
-                          fontWeight:
-                            isTop
-                              ? 800
-                              : 650,
-                        }}
+                        className={
+                          isTop
+                            ? "taste-profile-activity-value taste-profile-activity-value-top"
+                            : "taste-profile-activity-value"
+                        }
                       >
                         {
                           item.count
                         }
                       </div>
 
-                      <div
-                        style={{
-                          width:
-                            "100%",
-                          maxWidth:
-                            "42px",
-                          height:
-                            `${height}px`,
-                          minHeight:
-                            "4px",
-                          border:
+                      <div className="taste-profile-activity-bar-slot">
+                        <div
+                          className={
                             isTop
-                              ? "1px solid rgba(244,192,87,0.70)"
-                              : `1px solid rgba(223,127,50,${Math.min(
-                                  0.52,
-                                  alpha
-                                )})`,
-                          borderRadius:
-                            "7px 7px 3px 3px",
-                          background:
-                            isTop
-                              ? `
-                                  linear-gradient(
-                                    180deg,
-                                    rgba(244,192,87,0.96),
-                                    rgba(217,102,47,0.88)
-                                  )
-                                `
-                              : `
-                                  linear-gradient(
-                                    180deg,
-                                    rgba(231,146,48,${alpha}),
-                                    rgba(176,74,42,${Math.max(
-                                      0.24,
-                                      alpha -
-                                        0.16
-                                    )})
-                                  )
-                                `,
-                          boxShadow:
-                            isTop
-                              ? "0 0 20px rgba(231,132,45,0.24)"
-                              : "none",
-                        }}
-                      />
+                              ? "taste-profile-activity-bar taste-profile-activity-bar-top"
+                              : "taste-profile-activity-bar"
+                          }
+                          style={{
+                            height:
+                              `${barHeight}%`,
+                          }}
+                        />
+                      </div>
 
-                      <div
-                        style={{
-                          minHeight:
-                            "27px",
-                          color:
-                            "var(--taste-text-muted)",
-                          fontSize:
-                            "8px",
-                          lineHeight:
-                            1.25,
-                          textAlign:
-                            "center",
-                        }}
-                      >
+                      <div className="taste-profile-activity-month">
                         <div>
                           {
                             label.short
@@ -326,14 +246,7 @@ export default function ProfileActivityCard({
                               ]?.key ??
                                 item.key
                             ).year) && (
-                          <div
-                            style={{
-                              marginTop:
-                                "2px",
-                              opacity:
-                                0.62,
-                            }}
-                          >
+                          <div className="taste-profile-activity-year">
                             {
                               label.year
                             }
@@ -346,35 +259,13 @@ export default function ProfileActivityCard({
               )}
             </div>
           ) : (
-            <div
-              style={{
-                height:
-                  "250px",
-                display:
-                  "flex",
-                alignItems:
-                  "center",
-                justifyContent:
-                  "center",
-                color:
-                  "var(--taste-text-muted)",
-                fontSize:
-                  "12px",
-              }}
-            >
+            <div className="taste-profile-activity-empty">
               Zatím bez dat
             </div>
           )}
         </article>
 
-        <div
-          style={{
-            display:
-              "grid",
-            gap:
-              "10px",
-          }}
-        >
+        <ProfileLoopCarousel className="taste-profile-activity-metrics-carousel">
           <ActivityMetric
             label="Nejaktivnější měsíc"
             value={
@@ -423,7 +314,7 @@ export default function ProfileActivityCard({
             detail="od první ochutnávky"
             tone="gold"
           />
-        </div>
+        </ProfileLoopCarousel>
       </div>
     </section>
   );
@@ -475,6 +366,7 @@ function ActivityMetric({
 
   return (
     <article
+      className="taste-profile-activity-metric"
       style={{
         minHeight:
           "92px",
@@ -495,6 +387,7 @@ function ActivityMetric({
       }}
     >
       <div
+        className="taste-profile-activity-metric-label"
         style={{
           color:
             color.accent,

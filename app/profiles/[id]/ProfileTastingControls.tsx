@@ -12,6 +12,7 @@ type ProfileTastingControlsProps = {
   query: string;
   letter: string;
   letters: string[];
+  showAll: boolean;
 };
 
 export default function ProfileTastingControls({
@@ -21,10 +22,12 @@ export default function ProfileTastingControls({
   query,
   letter,
   letters,
+  showAll,
 }: ProfileTastingControlsProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const hasExplicitSort = searchParams.has("sort");
   const [showCountries, setShowCountries] = useState(
     sort === "country" || Boolean(country)
   );
@@ -38,15 +41,24 @@ export default function ProfileTastingControls({
     nextCountry = country,
     nextLetter = letter,
     nextQuery = query,
+    nextShowAll = false,
   }: {
     nextSort?: TastingSort;
     nextCountry?: string;
     nextLetter?: string;
     nextQuery?: string;
+    nextShowAll?: boolean;
   }) {
     const params = new URLSearchParams(searchParams.toString());
     params.set("view", "beers");
-    params.set("sort", nextSort);
+
+    if (nextShowAll) {
+      params.set("all", "1");
+      params.delete("sort");
+    } else {
+      params.delete("all");
+      params.set("sort", nextSort);
+    }
 
     if (nextCountry) {
       params.set("country", nextCountry);
@@ -98,7 +110,14 @@ export default function ProfileTastingControls({
             className="taste-button-secondary"
             onClick={() => {
               setSearchValue("");
-              navigate({ nextQuery: "" });
+              const params = new URLSearchParams(searchParams.toString());
+              params.set("view", "beers");
+              params.delete("q");
+              params.delete("sort");
+              params.delete("country");
+              params.delete("letter");
+              params.delete("all");
+              router.replace(`${pathname}?${params.toString()}`, { scroll: false });
             }}
           >
             Zrušit
@@ -110,8 +129,28 @@ export default function ProfileTastingControls({
         <button
           type="button"
           className="taste-button-secondary"
+          aria-pressed={showAll}
+          onClick={() => {
+            setShowLetters(false);
+            setShowCountries(false);
+            setSearchValue("");
+            navigate({
+              nextSort: "newest",
+              nextCountry: "",
+              nextLetter: "",
+              nextQuery: "",
+              nextShowAll: true,
+            });
+          }}
+        >
+          Vše
+        </button>
+
+        <button
+          type="button"
+          className="taste-button-secondary"
           aria-expanded={showLetters}
-          aria-pressed={sort === "alpha" || Boolean(letter)}
+          aria-pressed={hasExplicitSort && (sort === "alpha" || Boolean(letter))}
           onClick={() => {
             const nextVisible = !showLetters;
             setShowLetters(nextVisible);
@@ -129,7 +168,7 @@ export default function ProfileTastingControls({
             key={option.key}
             type="button"
             className="taste-button-secondary"
-            aria-pressed={sort === option.key && !country && !letter}
+            aria-pressed={hasExplicitSort && sort === option.key && !country && !letter}
             onClick={() => {
               setShowLetters(false);
               setShowCountries(false);
@@ -144,7 +183,7 @@ export default function ProfileTastingControls({
           type="button"
           className="taste-button-secondary"
           aria-expanded={showCountries}
-          aria-pressed={sort === "country" || Boolean(country)}
+          aria-pressed={hasExplicitSort && (sort === "country" || Boolean(country))}
           onClick={() => {
             const nextVisible = !showCountries;
             setShowCountries(nextVisible);

@@ -72,6 +72,7 @@ type ProfilePageProps = {
     country?: string | string[];
     q?: string | string[];
     letter?: string | string[];
+    all?: string | string[];
   }>;
 };
 
@@ -126,6 +127,8 @@ export default async function ProfilePage({
     typeof resolvedSearchParams.letter === "string"
       ? resolvedSearchParams.letter.toLocaleUpperCase("cs")
       : "";
+  const showAllTastings =
+    resolvedSearchParams.all === "1";
 
   const supabase =
     await createClient();
@@ -616,7 +619,7 @@ export default async function ProfilePage({
 
   const normalizedTastingQuery = tastingQuery.toLocaleLowerCase("cs");
 
-  const visibleTastings = allTastings
+  const filteredTastings = allTastings
     .filter((tasting) => {
       const brewery =
         tasting.beer_versions?.breweries ?? tasting.beers?.breweries;
@@ -676,6 +679,18 @@ export default async function ProfilePage({
         beerA.localeCompare(beerB, "cs", { sensitivity: "base" })
       );
     });
+
+  const hasTastingSelection =
+    showAllTastings ||
+    typeof requestedSort === "string" ||
+    Boolean(selectedCountry) ||
+    Boolean(tastingQuery) ||
+    Boolean(selectedLetter);
+
+  const visibleTastings =
+    hasTastingSelection
+      ? filteredTastings
+      : [];
 
   // ==================================================
   // STATISTIKY
@@ -1054,14 +1069,16 @@ export default async function ProfilePage({
         title={
           view === "breweries"
             ? (isMe ? "Moje pivovary" : "Pivovary")
-            : (
-              <>
-                {profile.display_name}
-              </>
-            )
+            : view === "beers"
+              ? (isMe ? "Co jsem vypil" : "Co vypil")
+              : (
+                <>
+                  {profile.display_name}
+                </>
+              )
         }
         subtitle={
-          view === "breweries"
+          view === "breweries" || view === "beers"
             ? ""
             : isMe
               ? "Tvoje pivní cesta v Pivníku. Ochutnávky, objevené pivovary, nové styly a odznaky na jednom místě."
@@ -1095,6 +1112,8 @@ export default async function ProfilePage({
                 countries={countries ?? []}
                 createBreweryAction={createBrewery}
               />
+            ) : view === "beers" ? (
+              undefined
             ) : (
               <TastingModal
                 beers={availableBeers}
@@ -1478,7 +1497,7 @@ export default async function ProfilePage({
           HISTORIE
       ================================================== */}
 
-      {view === "beers" && <section>
+      {view === "beers" && <section className="taste-profile-tastings-section">
         <div className="taste-profile-activity-mobile">
           <ProfileActivityCard
             monthlyActivity={
@@ -1550,9 +1569,13 @@ export default async function ProfilePage({
             }}
           >
             {
-              visibleTastings.length
+              hasTastingSelection
+                ? visibleTastings.length
+                : allTastings.length
             }{" "}
-            {visibleTastings.length ===
+            {(hasTastingSelection
+              ? visibleTastings.length
+              : allTastings.length) ===
             1
               ? "záznam"
               : "záznamů"}
@@ -1566,31 +1589,20 @@ export default async function ProfilePage({
           query={tastingQuery}
           letter={selectedLetter}
           letters={tastingLetters}
+          showAll={showAllTastings}
         />
 
-        {visibleTastings.length ===
-          0 && (
-          <div
-            className="taste-card"
-            style={{
-              padding:
-                "34px",
-
-              textAlign:
-                "center",
-
-              color:
-                "var(--taste-text-muted)",
-
-              fontSize:
-                "13px",
-            }}
-          >
-            {selectedCountry || selectedLetter || tastingQuery
-              ? "Tomuto výběru neodpovídá žádná ochutnávka."
+        {!hasTastingSelection ? (
+          <div className="taste-card taste-profile-tastings-empty">
+            {allTastings.length > 0
+              ? "Vyber filtr nebo tlačítko Vše."
               : "Tento uživatel zatím nemá žádnou ochutnávku."}
           </div>
-        )}
+        ) : visibleTastings.length === 0 ? (
+          <div className="taste-card taste-profile-tastings-empty">
+            Tomuto výběru neodpovídá žádná ochutnávka.
+          </div>
+        ) : null}
 
         <div
           style={{
