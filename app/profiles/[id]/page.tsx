@@ -200,7 +200,8 @@ export default async function ProfilePage({
           breweries!beer_versions_brewery_id_fkey (
             id,
             name,
-            country
+            country,
+            logo_url
           ),
           beer_styles (
             id,
@@ -217,7 +218,8 @@ export default async function ProfilePage({
             breweries (
               id,
               name,
-              country
+              country,
+              logo_url
             )
           )
         ),
@@ -233,7 +235,8 @@ export default async function ProfilePage({
           breweries (
             id,
             name,
-            country
+            country,
+            logo_url
           ),
           beer_styles (
             id,
@@ -268,7 +271,8 @@ export default async function ProfilePage({
         breweries (
           id,
           name,
-          country
+          country,
+          logo_url
         ),
         beer_styles (
           id,
@@ -284,7 +288,7 @@ export default async function ProfilePage({
     supabase
       .from("breweries")
       .select(
-        "id, name, country"
+        "id, name, country, logo_url"
       )
       .order("name");
 
@@ -1230,7 +1234,8 @@ export default async function ProfilePage({
         </div>
       </section>
 
-      <div className="taste-profile-activity-desktop">
+      <div className="taste-profile-stat-sections">
+      <div className="taste-profile-stat-slot taste-profile-stat-slot-activity taste-profile-activity-desktop">
         <ProfileActivityCard
         monthlyActivity={
           profileStats.monthlyActivity
@@ -1247,6 +1252,7 @@ export default async function ProfilePage({
       />
       </div>
 
+      <div className="taste-profile-stat-slot taste-profile-stat-slot-dna">
       <ProfileBeerDnaCard
         styles={
           tasteStats.styles
@@ -1256,6 +1262,9 @@ export default async function ProfilePage({
         }
       />
 
+      </div>
+
+      <div className="taste-profile-stat-slot taste-profile-stat-slot-technical">
       <ProfileTechnicalCard
         plato={
           profileStats.plato
@@ -1268,6 +1277,9 @@ export default async function ProfilePage({
         }
       />
 
+      </div>
+
+      <div className="taste-profile-stat-slot taste-profile-stat-slot-packaging">
       <ProfilePackagingCard
         items={
           tasteStats.packaging
@@ -1277,6 +1289,9 @@ export default async function ProfilePage({
         }
       />
 
+      </div>
+
+      <div className="taste-profile-stat-slot taste-profile-stat-slot-preferences">
       <div className="taste-profile-preference-order">
         <div className="taste-profile-preference-brands">
           <ProfileBrandsCard
@@ -1299,6 +1314,9 @@ export default async function ProfilePage({
         </div>
       </div>
 
+      </div>
+
+      <div className="taste-profile-stat-slot taste-profile-stat-slot-world">
       <ProfileWorldCard
         items={
           tasteStats.countries
@@ -1308,6 +1326,9 @@ export default async function ProfilePage({
         }
       />
 
+      </div>
+
+      <div className="taste-profile-stat-slot taste-profile-stat-slot-hops">
       <ProfileHopsCard
         items={
           tasteStats.hops
@@ -1317,6 +1338,9 @@ export default async function ProfilePage({
         }
       />
 
+      </div>
+
+      <div className="taste-profile-stat-slot taste-profile-stat-slot-records">
       <ProfileRecordsCard
         strongestBeer={
           profileStats.strongestBeer
@@ -1337,6 +1361,8 @@ export default async function ProfilePage({
           profileStats.firstTasting
         }
       />
+      </div>
+      </div>
       </>}
 
       {view === "breweries" && (

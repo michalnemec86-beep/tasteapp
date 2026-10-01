@@ -330,7 +330,8 @@ body:has(.taste-profile-concept) {
   display: none !important;
 }
 
-.taste-profile-preference-order {
+.taste-profile-preference-order,
+.taste-profile-stat-sections {
   display: contents;
 }
 
@@ -442,6 +443,43 @@ body:has(.taste-profile-concept) {
 
   .taste-profile-activity-mobile h2 {
     color: #f2b63f !important;
+  }
+
+  .taste-profile-stat-sections {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .taste-profile-stat-slot-activity {
+    order: 1;
+  }
+
+  .taste-profile-stat-slot-dna {
+    order: 2;
+  }
+
+  .taste-profile-stat-slot-technical {
+    order: 3;
+  }
+
+  .taste-profile-stat-slot-records {
+    order: 4;
+  }
+
+  .taste-profile-stat-slot-preferences {
+    order: 5;
+  }
+
+  .taste-profile-stat-slot-world {
+    order: 6;
+  }
+
+  .taste-profile-stat-slot-hops {
+    order: 7;
+  }
+
+  .taste-profile-stat-slot-packaging {
+    order: 8;
   }
 
   .taste-profile-preference-order {
