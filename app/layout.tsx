@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { Suspense } from "react";
 import { Geist } from "next/font/google";
 
 import AppNav from "./AppNav";
@@ -101,7 +102,9 @@ export default async function RootLayout({
         className={`${geistSans.className} antialiased`}
       >
         <PivnikLaunchScreen />
-        <NavigationFeedback />
+        <Suspense fallback={null}>
+          <NavigationFeedback />
+        </Suspense>
         <ModalBehaviorManager />
         <AuthSessionSync />
         <BreweryListStatePersistence />
