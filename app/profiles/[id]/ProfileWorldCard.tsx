@@ -68,6 +68,7 @@ export default function ProfileWorldCard({
 
   return (
     <section
+      className="taste-profile-section taste-profile-world-section"
       style={{
         marginBottom:
           "38px",
@@ -102,6 +103,7 @@ export default function ProfileWorldCard({
         </h2>
 
         <p
+          className="taste-profile-section-description"
           style={{
             maxWidth:
               "650px",
@@ -131,6 +133,7 @@ export default function ProfileWorldCard({
         "
       >
         <div
+          className="taste-profile-world-map-wrap"
           style={{
             minWidth: 0,
           }}
@@ -145,6 +148,7 @@ export default function ProfileWorldCard({
         </div>
 
         <article
+          className="taste-profile-country-ranking"
           style={{
             padding:
               "17px",
@@ -201,6 +205,7 @@ export default function ProfileWorldCard({
             </div>
 
             <div
+              className="taste-profile-country-count"
               style={{
                 textAlign:
                   "right",
@@ -279,6 +284,7 @@ export default function ProfileWorldCard({
                       key={
                         item.id
                       }
+                      className="taste-profile-country-row"
                       style={{
                         padding:
                           "11px 12px",
@@ -371,6 +377,7 @@ export default function ProfileWorldCard({
                       </div>
 
                       <div
+                        className="taste-profile-value-track taste-profile-country-value-track"
                         style={{
                           height:
                             "5px",
@@ -385,6 +392,7 @@ export default function ProfileWorldCard({
                         }}
                       >
                         <div
+                          className="taste-profile-value-fill"
                           style={{
                             width:
                               `${Math.max(
