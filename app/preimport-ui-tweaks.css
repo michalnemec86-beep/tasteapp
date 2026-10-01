@@ -21,6 +21,64 @@ body:has(.taste-route-loading) * {
   cursor: wait !important;
 }
 
+.taste-navigation-feedback {
+  position: fixed;
+  z-index: 2000;
+  top: calc(10px + env(safe-area-inset-top));
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 92px;
+  padding: 7px 10px;
+  border: 1px solid rgba(231,166,47,.34);
+  border-radius: 13px;
+  background:
+    radial-gradient(circle at 30% 20%, rgba(255,211,117,.12), transparent 55%),
+    rgba(19,14,10,.94);
+  box-shadow:
+    0 10px 30px rgba(0,0,0,.42),
+    0 0 18px rgba(231,166,47,.10),
+    inset 0 1px rgba(255,232,181,.08);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  pointer-events: none;
+}
+
+.taste-navigation-feedback .taste-loader {
+  gap: 7px;
+  font-size: 9px;
+}
+
+.taste-navigation-feedback .taste-loader-mark {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+}
+
+.taste-navigation-feedback .taste-loader-mark svg {
+  width: 12px;
+  height: 15px;
+}
+
+@media (max-width: 720px) {
+  .taste-navigation-feedback {
+    top: calc(7px + env(safe-area-inset-top));
+    min-width: 78px;
+    padding: 6px 8px;
+    border-radius: 11px;
+  }
+
+  .taste-navigation-feedback .taste-loader {
+    flex-direction: row;
+    gap: 6px;
+  }
+
+  .taste-navigation-feedback .taste-loader-mark {
+    width: 27px;
+    height: 27px;
+    border-radius: 8px;
+  }
+}
+
 .taste-loader {
   display: inline-flex;
   align-items: center;
