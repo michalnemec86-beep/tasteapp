@@ -25,7 +25,7 @@ body:has(.taste-profile-concept) {
 .taste-app-shell:has(.taste-profile-medals-concept) {
   --taste-profile-hero-image: url("/images/heroes/achievements-pub-table.webp");
   --taste-profile-hero-position: 50% -40px;
-  --taste-profile-hero-mobile-position: 77% -18px;
+  --taste-profile-hero-mobile-position: 77% -185px;
   --taste-profile-hero-mobile-size: auto 350px;
 }
 
