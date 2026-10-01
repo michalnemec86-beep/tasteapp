@@ -12,6 +12,7 @@ import BreweryTableClient, {
   type BreweryTableRow,
 } from "./BreweryTableClient";
 import BreweryCreateModalClient from "./BreweryCreateModalClient";
+import "./breweries-concept.css";
 import {
   createBrewery,
   updateBrewery,
@@ -406,6 +407,7 @@ export default async function BreweriesPage({
 
   return (
     <main
+      className="taste-brewery-catalog-concept"
       style={{
         maxWidth: "1500px",
         margin: "0 auto",
@@ -818,6 +820,7 @@ export default async function BreweriesPage({
                 updateBreweryAction={updateBrewery}
                 currentUserId={user.id}
                 adminView={await isAdminView(user.id)}
+                initiallyVisible={Boolean(selectedCountry)}
               />
             )}
           </section>
