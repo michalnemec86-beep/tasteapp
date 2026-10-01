@@ -149,6 +149,7 @@ export default function ProfileBeerDnaCard({
 
   return (
     <section
+      className="taste-profile-section taste-profile-dna-section"
       style={{
         marginBottom:
           "38px",
@@ -183,6 +184,7 @@ export default function ProfileBeerDnaCard({
         </h2>
 
         <p
+          className="taste-profile-section-description"
           style={{
             maxWidth:
               "650px",
@@ -203,12 +205,7 @@ export default function ProfileBeerDnaCard({
       </div>
 
       <article
-        className="
-          grid
-          grid-cols-1
-          gap-5
-          lg:grid-cols-[340px_minmax(0,1fr)]
-        "
+        className="taste-profile-dna-card grid grid-cols-1 gap-5 lg:grid-cols-[340px_minmax(0,1fr)]"
         style={{
           padding:
             "22px",
@@ -239,6 +236,7 @@ export default function ProfileBeerDnaCard({
         }}
       >
         <div
+          className="taste-profile-dna-silhouette"
           style={{
             minHeight:
               "430px",
@@ -313,6 +311,7 @@ export default function ProfileBeerDnaCard({
         </div>
 
         <div
+          className="taste-profile-dna-details"
           style={{
             display:
               "flex",
@@ -324,6 +323,7 @@ export default function ProfileBeerDnaCard({
         >
           {dominant && (
             <div
+              className="taste-profile-dna-dominant"
               style={{
                 marginBottom:
                   "18px",
@@ -404,6 +404,7 @@ export default function ProfileBeerDnaCard({
           )}
 
           <div
+            className="taste-profile-dna-segments"
             style={{
               display:
                 "grid",
