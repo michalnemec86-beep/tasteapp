@@ -11,6 +11,7 @@ import {
 } from "next/navigation";
 
 import TastingForm from "./tastings/new/TastingForm";
+import { notifyAchievementsUpdated } from "@/lib/achievement-notifications";
 
 type Brewery = {
   id: number;
@@ -135,6 +136,7 @@ export default function TastingModalClient({
 
     if (result.success) {
       setOpen(false);
+      notifyAchievementsUpdated();
       router.refresh();
     }
   }

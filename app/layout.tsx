@@ -8,6 +8,7 @@ import BreweryListStatePersistence from "./BreweryListStatePersistence";
 import PivnikLaunchScreen from "./PivnikLaunchScreen";
 import NavigationFeedback from "./NavigationFeedback";
 import ModalBehaviorManager from "./ModalBehaviorManager";
+import AchievementCelebrationClient from "./AchievementCelebrationClient";
 import { createClient } from "@/lib/supabase/server";
 
 import "leaflet/dist/leaflet.css";
@@ -22,6 +23,7 @@ import "./desktop-polish.css";
 import "./home-concept.css";
 import "./visual-system.css";
 import "./rating-controls.css";
+import "./achievement-celebration.css";
 
 const defaultUrl =
   process.env.VERCEL_URL
@@ -108,6 +110,9 @@ export default async function RootLayout({
           <NavigationFeedback />
         </Suspense>
         <ModalBehaviorManager />
+        {user && <Suspense fallback={null}>
+          <AchievementCelebrationClient key={user.id} userId={user.id} />
+        </Suspense>}
         <AuthSessionSync />
         <BreweryListStatePersistence />
         <div className="taste-app-shell">
@@ -118,4 +123,3 @@ export default async function RootLayout({
     </html>
   );
 }
-

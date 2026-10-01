@@ -32,6 +32,7 @@ import StatsRankingCard, { StatsPackagingCard } from "@/components/stats/StatsRa
 import PageHero from "@/components/ui/PageHero";
 import AppIcon from "@/components/ui/AppIcon";
 import HomeStatIcon from "@/components/home/HomeStatIcon";
+import AchievementNotificationRefresh from "@/app/AchievementNotificationRefresh";
 import MobileHomeStatsCarousel from "@/components/home/MobileHomeStatsCarousel";
 import ResponsiveTimelinePager from "@/components/home/ResponsiveTimelinePager";
 import { fetchAllRows } from "@/lib/fetch-all-rows";
@@ -1122,6 +1123,7 @@ export default async function ActivityPage({
       {/* ==================================================
           HERO
       ================================================== */}
+      <AchievementNotificationRefresh signature={newlyUnlockedAchievements.map((item) => item.id).join(",")} />
 
       <PageHero
         mobileCompact

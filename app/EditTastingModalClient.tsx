@@ -1,5 +1,7 @@
 "use client";
 
+import { notifyAchievementsUpdated } from "@/lib/achievement-notifications";
+
 import StarRatingInput from "@/components/ui/StarRatingInput";
 
 import { useState } from "react";
@@ -439,6 +441,7 @@ export default function EditTastingModalClient({
 
       if (result.success) {
         setOpen(false);
+        notifyAchievementsUpdated();
         router.refresh();
       }
     } catch (err) {

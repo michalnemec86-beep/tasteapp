@@ -1,0 +1,105 @@
+.taste-achievement-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(5, 4, 3, .66);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  overscroll-behavior: contain;
+}
+
+.taste-achievement-celebration[role="dialog"] {
+  position: relative;
+  width: min(100%, 350px);
+  max-height: calc(100dvh - 48px);
+  overflow-y: auto;
+  padding: 26px 24px 20px !important;
+  overscroll-behavior: contain !important;
+  border: 1px solid #bd873f;
+  border-radius: 20px;
+  background: radial-gradient(ellipse at 50% 44%, rgba(204, 135, 42, .18), transparent 65%), linear-gradient(145deg, #311e0e, #12110e 68%);
+  box-shadow: inset 0 1px 1px #f8da95, inset 0 -1px 1px #785122, 0 0 35px rgba(228, 168, 67, .22), 0 20px 70px rgba(0, 0, 0, .75);
+  text-align: center;
+  animation: taste-achievement-arrive 350ms cubic-bezier(.2, .75, .3, 1) both;
+}
+
+.taste-achievement-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid transparent;
+  color: #d4b68a;
+  background: transparent;
+  font-size: 24px;
+  line-height: 1;
+}
+.taste-achievement-close:focus-visible {
+  outline: 2px solid #ffc052;
+  outline-offset: 1px;
+}
+.taste-achievement-close:hover { background: rgba(255, 192, 82, .1); }
+.taste-achievement-eyebrow {
+  margin: 0 14px 8px;
+  color: #dfc49a;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+}
+.taste-achievement-celebration h2 {
+  margin: 0;
+  color: #ffc052;
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.25;
+  text-wrap: balance;
+}
+.taste-achievement-medal {
+  display: block;
+  width: 180px;
+  height: auto;
+  margin: 12px auto 6px;
+  filter: drop-shadow(0 6px 7px rgba(0, 0, 0, .65));
+}
+.taste-achievement-material {
+  margin: 0 0 8px;
+  color: #f2dfbf;
+  font-size: 16px;
+  font-weight: 700;
+}
+.taste-achievement-description {
+  margin: 0;
+  color: #e4d8c8;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.taste-achievement-description strong { color: #fff3dc; font-weight: 600; }
+.taste-achievement-dismiss-hint {
+  margin: 16px 0 0;
+  color: #bda582;
+  font-size: 11px;
+  line-height: 1.5;
+}
+@keyframes taste-achievement-arrive {
+  from { opacity: 0; transform: translateY(12px) scale(.92); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@media (max-width: 760px) {
+  .taste-achievement-celebration[role="dialog"] { width: min(100%, 300px); padding: 24px 18px 18px !important; }
+  .taste-achievement-celebration h2 { font-size: 20px; }
+  .taste-achievement-medal { width: 156px; }
+}
+@media (max-height: 520px) {
+  .taste-achievement-celebration[role="dialog"] { padding-top: 18px !important; padding-bottom: 14px !important; }
+  .taste-achievement-medal { width: 112px; margin-top: 6px; }
+  .taste-achievement-dismiss-hint { margin-top: 10px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .taste-achievement-celebration[role="dialog"] { animation: none; }
+}
