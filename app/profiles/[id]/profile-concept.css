@@ -204,6 +204,15 @@ body:has(.taste-profile-concept) {
   .taste-profile-concept .taste-page-hero-stats:has(.taste-page-hero-stats-action):not(:has(.taste-hero-stat)) {
     display: none;
   }
+
+  .taste-profile-activity-layout {
+    grid-template-columns: minmax(0,1fr) 250px;
+  }
+
+  .taste-profile-activity-metrics-carousel .taste-profile-loop-carousel-track {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
 }
 
 @media (max-width: 760px) {
@@ -701,6 +710,11 @@ body:has(.taste-profile-concept) {
   /* Mobile-only content placement. */
   .taste-profile-activity-desktop {
     display: none !important;
+  }
+
+  .taste-profile-activity-layout {
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
   }
 
   .taste-profile-activity-section > div:first-child {
