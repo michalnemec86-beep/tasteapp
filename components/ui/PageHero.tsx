@@ -26,6 +26,7 @@ type PageHeroProps = {
   action?: ReactNode;
   stats?: HeroStat[];
   statsLabel?: ReactNode;
+  statsAction?: ReactNode;
   statsScrollable?: boolean;
   statsLoop?: boolean;
   imageUrl?: string;
@@ -45,6 +46,7 @@ export default function PageHero({
   action,
   stats = [],
   statsLabel,
+  statsAction,
   statsScrollable = false,
   statsLoop = false,
   imageUrl,
@@ -423,6 +425,12 @@ export default function PageHero({
           {statsLabel && (
             <div className="taste-page-hero-stats-label">
               {statsLabel}
+            </div>
+          )}
+
+          {statsAction && (
+            <div className="taste-page-hero-stats-action">
+              {statsAction}
             </div>
           )}
 
