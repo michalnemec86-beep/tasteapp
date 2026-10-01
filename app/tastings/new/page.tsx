@@ -244,6 +244,7 @@ export default async function NewTastingPage({
 
   return (
     <main
+      className="taste-entry-page"
       style={{
         padding:
           "40px",
@@ -256,7 +257,7 @@ export default async function NewTastingPage({
       }}
     >
       <h1>
-        🍺 Zapsat ochutnávku
+        Zapsat ochutnávku
       </h1>
 
       <TastingForm

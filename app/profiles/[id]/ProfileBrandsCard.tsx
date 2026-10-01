@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import type { RankingItem } from "@/lib/stats";
 import AutoLogoFrame from "@/components/ui/AutoLogoFrame";
+import HomeStatIcon from "@/components/home/HomeStatIcon";
 
 type Props = {
   items: RankingItem[];
@@ -62,7 +63,7 @@ export default function ProfileBrandsCard({
                           padding={2}
                         />
                       ) : (
-                        <span className="taste-profile-ranking-logo-placeholder" />
+                        <span className="taste-profile-ranking-logo-placeholder" aria-hidden="true"><HomeStatIcon kind="crest" /></span>
                       )}
                     </span>
                     <Link href={`/stats?user=${profileId}&locked=1&brand=${item.id}`} className="taste-entity-link" style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "var(--taste-text)", fontSize: "12px", fontWeight: 750 }}>

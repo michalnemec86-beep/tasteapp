@@ -6,7 +6,8 @@ import { fetchAllRows } from "@/lib/fetch-all-rows";
 import { buildTasteStats } from "@/lib/stats";
 import { normalizeCountryName } from "@/lib/country-flags";
 import PageHero from "@/components/ui/PageHero";
-import AppIcon from "@/components/ui/AppIcon";
+import HomeStatIcon from "@/components/home/HomeStatIcon";
+import "../../stats-concept.css";
 import RankingCardClient from "../../RankingCardClient";
 import PackagingSummaryCard from "../../PackagingSummaryCard";
 
@@ -199,6 +200,7 @@ export default async function CountryStatsPage({
 
   return (
     <main
+      className="taste-stats-concept taste-country-concept"
       style={{
         maxWidth: "1400px",
         margin: "0 auto",
@@ -222,25 +224,25 @@ export default async function CountryStatsPage({
         }
         stats={[
           {
-            icon: <AppIcon name="brewery" size={18} />,
+            icon: <HomeStatIcon kind="brewery" />,
             accent: "#f2b63f",
             value: countryBreweries.length,
             label: "Pivovarů",
           },
           {
-            icon: "●",
+            icon: <HomeStatIcon kind="brewery" />,
             accent: "#9cad47",
             value: activeBreweries,
             label: "Aktivních",
           },
           {
-            icon: <AppIcon name="beer" size={18} />,
+            icon: <HomeStatIcon kind="mug" />,
             accent: "#e88835",
             value: tastedBeerIds.size,
             label: "Ochutnaných piv",
           },
           {
-            icon: "◆",
+            icon: <HomeStatIcon kind="crest" />,
             accent: "#d65b42",
             value: brandIds.size,
             label: "Značek",
@@ -314,7 +316,7 @@ export default async function CountryStatsPage({
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(330px, 1fr))",
+            gridTemplateColumns: "repeat(auto-fit, minmax(min(350px, 100%), 1fr))",
             gap: "16px",
             alignItems: "start",
           }}
@@ -323,7 +325,7 @@ export default async function CountryStatsPage({
             title="Piva"
             tone="gold"
             subtitle="Ochutnaná piva z této země"
-            icon={<AppIcon name="beer" size={20} />}
+            icon={<HomeStatIcon kind="mug" />}
             items={stats.beers}
             personalItemIds={personalStats.beers.map((item) => item.id)}
           />
@@ -332,7 +334,7 @@ export default async function CountryStatsPage({
             title="Značky"
             tone="honey"
             subtitle="Značky v ochutnávkách"
-            icon={<AppIcon name="label" size={20} />}
+            icon={<HomeStatIcon kind="crest" />}
             items={stats.brands}
             itemHrefPrefix="/brands"
             personalItemIds={personalStats.brands.map((item) => item.id)}
@@ -342,7 +344,7 @@ export default async function CountryStatsPage({
             title="Pivovary"
             tone="honey"
             subtitle="Ochutnávané pivovary"
-            icon={<AppIcon name="brewery" size={20} />}
+            icon={<HomeStatIcon kind="brewery" />}
             items={stats.breweries}
             itemHrefPrefix="/breweries"
             personalItemIds={personalStats.breweries.map((item) => item.id)}
@@ -352,7 +354,7 @@ export default async function CountryStatsPage({
             title="Pivní styly"
             tone="amber"
             subtitle="Styly zastoupené v této zemi"
-            icon={<AppIcon name="hop" size={20} />}
+            icon={<HomeStatIcon kind="hop" />}
             items={stats.styles}
             personalItemIds={personalStats.styles.map((item) => item.id)}
           />
@@ -361,7 +363,7 @@ export default async function CountryStatsPage({
             title="Chmely"
             tone="malt"
             subtitle="Dohledané chmely použitých piv"
-            icon={<AppIcon name="hop" size={20} />}
+            icon={<HomeStatIcon kind="hop" />}
             items={stats.hops}
             personalItemIds={personalStats.hops.map((item) => item.id)}
           />

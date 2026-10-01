@@ -21,7 +21,7 @@ export default function PaginationControls({ currentPage, totalPages, queryParam
     router.replace(query ? pathname + "?" + query : pathname, { scroll: false });
   }
   return (
-    <div style={{ display: "flex", justifyContent: "center", alignItems: "center", flexWrap: "wrap", gap: "6px", marginTop: "14px" }}>
+    <div className="taste-pagination" style={{ display: "flex", justifyContent: "center", alignItems: "center", flexWrap: "wrap", gap: "6px", marginTop: "14px" }}>
       <button type="button" disabled={currentPage <= 1} onClick={() => goToPage(currentPage - 1)} className="taste-button-secondary" style={{ height: "34px", padding: "0 11px", fontSize: "10px", opacity: currentPage <= 1 ? 0.45 : 1 }}>← Předchozí</button>
       {pageList(currentPage, totalPages).map((page, index) => page == null ? (
         <span key={"ellipsis-" + index} style={{ padding: "0 3px", color: "var(--taste-text-muted)", fontSize: "11px" }}>…</span>

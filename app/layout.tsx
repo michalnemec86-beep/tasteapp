@@ -20,6 +20,7 @@ import "./app-nav.css";
 import "./mobile-ux.css";
 import "./desktop-polish.css";
 import "./home-concept.css";
+import "./visual-system.css";
 
 const defaultUrl =
   process.env.VERCEL_URL

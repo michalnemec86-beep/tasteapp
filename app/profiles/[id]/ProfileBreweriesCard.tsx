@@ -4,6 +4,7 @@ import type {
   RankingItem,
 } from "@/lib/stats";
 import AutoLogoFrame from "@/components/ui/AutoLogoFrame";
+import HomeStatIcon from "@/components/home/HomeStatIcon";
 
 type ProfileBreweriesCardProps = {
   items: RankingItem[];
@@ -209,7 +210,7 @@ export default function ProfileBreweriesCard({
                             padding={3}
                           />
                         ) : (
-                          <span className="taste-profile-ranking-logo-placeholder" />
+                          <span className="taste-profile-ranking-logo-placeholder" aria-hidden="true"><HomeStatIcon kind="brewery" /></span>
                         )}
                       </span>
 

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
 import PageHero from "@/components/ui/PageHero";
+import HomeStatIcon from "@/components/home/HomeStatIcon";
 import ReferenceWarning from "@/components/ui/ReferenceWarning";
 import { isAdminView } from "@/lib/adminView";
 import { createClient } from "@/lib/supabase/server";
@@ -320,7 +321,7 @@ export default async function BeerDetailPage({ params }: Props) {
   const quantity = (tastingRows ?? []).reduce((sum, row) => sum + (row.quantity ?? 1), 0);
 
   return (
-    <main style={{ maxWidth: "1100px", margin: "0 auto", padding: "34px 24px 80px" }}>
+    <main className="taste-detail-concept taste-beer-detail-concept">
       <PageHero
         eyebrow="Pivo"
         imageUrl="/images/heroes/catalog.jpg"
@@ -333,10 +334,10 @@ export default async function BeerDetailPage({ params }: Props) {
           </div>
         }
         stats={[
-          { icon: "◆", accent: "#d98945", value: brand?.name ?? "—", label: "Značka" },
-          { icon: "●", accent: "#e88835", value: brewery?.name ?? "—", label: "Aktuální pivovar" },
-          { icon: "◐", accent: "#9cad47", value: style?.name ?? "—", label: "Styl" },
-          { icon: "◉", accent: "#f2b63f", value: quantity, label: "Vypitých" },
+          { icon: <HomeStatIcon kind="crest" />, accent: "#d98945", value: brand?.name ?? "—", label: "Značka" },
+          { icon: <HomeStatIcon kind="brewery" />, accent: "#e88835", value: brewery?.name ?? "—", label: "Aktuální pivovar" },
+          { icon: <HomeStatIcon kind="hop" />, accent: "#9cad47", value: style?.name ?? "—", label: "Styl" },
+          { icon: <HomeStatIcon kind="barrel" />, accent: "#f2b63f", value: quantity, label: "Vypitých" },
         ]}
       />
 

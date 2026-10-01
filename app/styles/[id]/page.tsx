@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import PageHero from "@/components/ui/PageHero";
+import HomeStatIcon from "@/components/home/HomeStatIcon";
 import PaginationControls from "@/components/ui/PaginationControls";
 import { paginateItems, parsePositivePage } from "@/lib/pagination";
 import { createClient } from "@/lib/supabase/server";
@@ -46,8 +47,8 @@ export default async function StyleDetailPage({ params, searchParams }: Props) {
 
   const pagination = paginateItems(beers, parsePositivePage(pageParams.page));
   return (
-    <main style={{ maxWidth: "1100px", margin: "0 auto", padding: "34px 24px 80px" }}>
-      <PageHero eyebrow="Pivní styl" imageUrl="/images/heroes/catalog.jpg" visualVariant="catalog" title={style.name} subtitle={style.aliases?.length ? "Také: " + style.aliases.join(", ") : "Piva evidovaná v tomto stylu."} action={<Link href="/stats" className="taste-button-secondary">← Co a jak pijeme</Link>} stats={[{ icon: "◆", accent: "#9cad47", value: beers.length, label: "Piv" }, { icon: "◉", accent: "#f2b63f", value: totalQuantity, label: "Vypitých" }]} />
+    <main className="taste-detail-concept taste-style-detail-concept">
+      <PageHero eyebrow="Pivní styl" imageUrl="/images/heroes/catalog.jpg" visualVariant="catalog" title={style.name} subtitle={style.aliases?.length ? "Také: " + style.aliases.join(", ") : "Piva evidovaná v tomto stylu."} action={<Link href="/stats" className="taste-button-secondary">← Co a jak pijeme</Link>} stats={[{ icon: <HomeStatIcon kind="mug" />, accent: "#9cad47", value: beers.length, label: "Piv" }, { icon: <HomeStatIcon kind="barrel" />, accent: "#f2b63f", value: totalQuantity, label: "Vypitých" }]} />
       <section style={{ marginTop: "24px" }}>
         <div className="taste-label" style={{ marginBottom: "6px" }}>Evidence stylu</div>
         <h2 style={{ margin: "0 0 14px", fontSize: "24px" }}>Piva stylu {style.name}</h2>
@@ -58,7 +59,7 @@ export default async function StyleDetailPage({ params, searchParams }: Props) {
             return <article key={beer.id} className="taste-card taste-glow-hop" style={{ padding: "16px" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "14px", flexWrap: "wrap" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
-                  <Link href={"/beers/" + beer.id} className="taste-entity-link" style={{ color: "var(--taste-text)", fontSize: "16px", fontWeight: 800 }}>{beer.name}</Link>
+                  <Link href={"/beers/" + beer.id} className="taste-entity-link taste-detail-beer-name">{beer.name}</Link>
                   {beer.is_non_alcoholic && <span style={{ padding: "3px 7px", borderRadius: "999px", background: "rgba(156,173,71,0.12)", color: "#9cad47", fontSize: "9px", fontWeight: 800 }}>NEALKO</span>}
                 </div>
                 <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", fontSize: "11px" }}>

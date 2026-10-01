@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
 import PageHero from "@/components/ui/PageHero";
+import HomeStatIcon from "@/components/home/HomeStatIcon";
 import PaginationControls from "@/components/ui/PaginationControls";
 import { paginateItems, parsePositivePage } from "@/lib/pagination";
 import { createClient } from "@/lib/supabase/server";
@@ -73,7 +74,7 @@ export default async function BrandDetailPage({ params, searchParams }: Props) {
   }
 
   return (
-    <main style={{ maxWidth: "1100px", margin: "0 auto", padding: "34px 24px 80px" }}>
+    <main className="taste-detail-concept taste-brand-detail-concept">
       <PageHero
         eyebrow="Značka"
         imageUrl="/images/heroes/breweries.jpg"
@@ -81,11 +82,11 @@ export default async function BrandDetailPage({ params, searchParams }: Props) {
         subtitle="Produktová značka je v Pivníku oddělená od výrobního pivovaru. Díky tomu zůstává statisticky souvislá i při historické změně výrobce."
         action={<Link href="/stats" className="taste-button-secondary">← Co a jak pijeme</Link>}
         stats={[
-          { icon: "◆", accent: "#d98945", value: beers.length, label: "Piv" },
-          { icon: "●", accent: "#e88835", value: totalTastingCount, label: "Ochutnávek" },
-          { icon: "◉", accent: "#f2b63f", value: totalQuantity, label: "Vypitých" },
+          { icon: <HomeStatIcon kind="mug" />, accent: "#d98945", value: beers.length, label: "Piv" },
+          { icon: <HomeStatIcon kind="mug" />, accent: "#e88835", value: totalTastingCount, label: "Ochutnávek" },
+          { icon: <HomeStatIcon kind="barrel" />, accent: "#f2b63f", value: totalQuantity, label: "Vypitých" },
           {
-            icon: "◎",
+            icon: <HomeStatIcon kind="globe" />,
             accent: "#9cad47",
             value: rawBrand.country ? (
               <Link
@@ -114,7 +115,7 @@ export default async function BrandDetailPage({ params, searchParams }: Props) {
             return (
               <article key={beer.id} className="taste-card taste-glow-honey" style={{ padding: "16px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", gap: "14px", alignItems: "center", flexWrap: "wrap" }}>
-                  <Link href={`/beers/${beer.id}`} className="taste-entity-link" style={{ color: "var(--taste-text)", fontSize: "16px", fontWeight: 800 }}>
+                  <Link href={`/beers/${beer.id}`} className="taste-entity-link taste-detail-beer-name">
                     {beer.name}
                   </Link>
                   {brewery ? (

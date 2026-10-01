@@ -1,0 +1,357 @@
+/* Shared reading scale. Route styles still control layout, charts and special states. */
+:root {
+  --taste-font-page: clamp(29px, 3vw, 38px);
+  --taste-font-section: 22px;
+  --taste-font-card: 19px;
+  --taste-font-body: 14px;
+  --taste-font-caption: 12px;
+  --taste-font-control: 13px;
+  --taste-font-value: 20px;
+  --taste-panel-background: radial-gradient(circle at 18% 4%, rgba(255,213,149,.10), transparent 26%), linear-gradient(158deg, #311d0b 0%, #25170d 42%, #17130f 78%, #12110e 100%);
+  --taste-panel-border: rgba(205,133,62,.40);
+  --taste-panel-shadow: 0 8px 22px rgba(0,0,0,.28), inset 0 1px rgba(255,229,177,.09);
+}
+
+/* Specificity keeps the scale stable when a route's CSS is loaded after navigation. */
+.taste-app-shell.taste-app-shell .taste-page-hero-title,
+.taste-app-shell.taste-app-shell .taste-settings-heading h1,
+.taste-app-shell.taste-app-shell .taste-entry-page > h1 {
+  color: var(--taste-amber-bright) !important;
+  font-size: var(--taste-font-page) !important;
+  line-height: 1.12 !important;
+  letter-spacing: -.025em !important;
+  overflow-wrap: anywhere;
+}
+
+.taste-app-shell.taste-app-shell main h2 {
+  color: var(--taste-amber-bright) !important;
+  font-size: var(--taste-font-section) !important;
+  line-height: 1.2 !important;
+  font-weight: 800;
+}
+
+.taste-app-shell.taste-app-shell :is(.taste-ranking-title, .taste-world-map-title, .taste-czech-brewery-map-title, .taste-brewery-section-title) {
+  color: var(--taste-amber-bright) !important;
+  font-size: var(--taste-font-card) !important;
+  line-height: 1.2 !important;
+}
+
+.taste-app-shell.taste-app-shell :is(.taste-page-hero-subtitle, .taste-regulars-section-header p, .taste-profile-section-description, .taste-ranking-subtitle) {
+  color: var(--taste-text-soft) !important;
+  font-size: var(--taste-font-caption) !important;
+  line-height: 1.5 !important;
+}
+
+.taste-app-shell.taste-app-shell .taste-hero-stat-label {
+  color: var(--taste-amber-bright) !important;
+  font-size: var(--taste-font-caption) !important;
+  line-height: 1.25 !important;
+}
+
+.taste-app-shell.taste-app-shell .taste-page-hero-mobile-compact .taste-hero-stat .taste-hero-stat-label {
+  color: var(--taste-amber-bright) !important;
+  font-size: var(--taste-font-caption) !important;
+  line-height: 1.25 !important;
+}
+
+.taste-app-shell.taste-app-shell .taste-page-hero-mobile-compact .taste-hero-stat .taste-hero-stat-value {
+  color: var(--taste-text) !important;
+  font-size: var(--taste-font-value) !important;
+}
+
+.taste-app-shell.taste-app-shell .taste-hero-stat-value {
+  color: var(--taste-text) !important;
+  font-size: var(--taste-font-value) !important;
+  line-height: 1.15 !important;
+  overflow-wrap: anywhere;
+}
+
+.taste-app-shell.taste-app-shell .taste-hero-stat-action :is(.taste-hero-stat-value, .taste-hero-stat-label) {
+  color: #fff7df !important;
+}
+
+.taste-app-shell.taste-app-shell .taste-hero-stat > div:last-child {
+  min-width: 0;
+}
+
+.taste-app-shell.taste-app-shell :is(.taste-tasting-sort-buttons, .taste-profile-tabs, .taste-stats-hero-links) .taste-button-secondary,
+.taste-app-shell.taste-app-shell :is(.taste-ranking-more, .taste-beer-catalog-action, .taste-brewery-catalog-reset, .taste-brewery-catalog-show-all, .taste-brewery-catalog-clear) {
+  font-size: var(--taste-font-control) !important;
+  line-height: 1.3 !important;
+}
+
+.taste-app-shell.taste-app-shell :is(.taste-beer-catalog-brand, .taste-beer-catalog-brewery, .taste-beer-catalog-chip, .taste-beer-catalog-hops, .taste-beer-catalog-total-label, .taste-beer-catalog-mine, .taste-brewery-catalog-result-meta, .taste-profile-brewery-item-country, .taste-profile-brewery-item-count span) {
+  font-size: var(--taste-font-caption) !important;
+  line-height: 1.4 !important;
+}
+
+.taste-app-shell.taste-app-shell :is(.taste-beer-catalog-name, .taste-brewery-beer-name, .taste-profile-brewery-item-name, .taste-detail-beer-name) {
+  color: var(--taste-text) !important;
+  font-size: 17px !important;
+  line-height: 1.25 !important;
+}
+
+.taste-app-shell.taste-app-shell :is(.taste-timeline-date, .taste-timeline-realname) {
+  font-size: var(--taste-font-caption) !important;
+  line-height: 1.3 !important;
+}
+
+.taste-app-shell.taste-app-shell :is(.taste-timeline-details, .taste-timeline-quantity) {
+  font-size: var(--taste-font-caption) !important;
+  line-height: 1.4 !important;
+}
+
+.taste-app-shell.taste-app-shell :is(.taste-timeline-nickname-plain, .taste-timeline-main-title, .taste-timeline-main-link, .taste-timeline-quantity) {
+  color: var(--taste-amber-bright) !important;
+}
+
+/* Rankings share readable rows and logos on desktop as well as mobile. */
+.taste-app-shell.taste-app-shell .taste-ranking-row,
+.taste-ranking-modal-panel.taste-ranking-modal-panel .taste-ranking-row {
+  grid-template-columns: minmax(0, 1fr) 20px auto !important;
+  gap: 7px 8px !important;
+}
+
+.taste-app-shell.taste-app-shell .taste-ranking-progress-track,
+.taste-ranking-modal-panel.taste-ranking-modal-panel .taste-ranking-progress-track {
+  grid-column: 1 / -1;
+  grid-row: 2;
+}
+
+.taste-app-shell.taste-app-shell .taste-ranking-count,
+.taste-ranking-modal-panel.taste-ranking-modal-panel .taste-ranking-count {
+  grid-column: 3;
+  grid-row: 1;
+  flex-direction: column;
+  align-items: flex-end !important;
+  gap: 4px !important;
+}
+
+.taste-app-shell.taste-app-shell .taste-ranking-count strong,
+.taste-ranking-modal-panel.taste-ranking-modal-panel .taste-ranking-count strong {
+  color: var(--taste-text) !important;
+  font-size: 15px !important;
+  font-weight: 400 !important;
+}
+
+.taste-app-shell.taste-app-shell .taste-ranking-name,
+.taste-ranking-modal-panel.taste-ranking-modal-panel .taste-ranking-name {
+  display: block;
+  color: var(--taste-text) !important;
+  font-size: var(--taste-font-body) !important;
+  line-height: 1.3 !important;
+}
+
+.taste-app-shell.taste-app-shell .taste-ranking-item-label,
+.taste-ranking-modal-panel.taste-ranking-modal-panel .taste-ranking-item-label {
+  display: flex !important;
+  width: 100%;
+}
+
+.taste-app-shell.taste-app-shell .taste-ranking-item-text,
+.taste-ranking-modal-panel.taste-ranking-modal-panel .taste-ranking-item-text {
+  overflow: visible !important;
+  white-space: normal !important;
+  overflow-wrap: anywhere;
+}
+
+.taste-app-shell.taste-app-shell :is(.taste-ranking-comparison, .taste-packaging-summary-share, .taste-packaging-summary-count > span),
+.taste-ranking-modal-panel.taste-ranking-modal-panel .taste-ranking-comparison {
+  font-size: var(--taste-font-caption) !important;
+  line-height: 1.3 !important;
+}
+
+.taste-app-shell.taste-app-shell .taste-ranking-card :is(.taste-brewery-logo-frame, .taste-ranking-logo-placeholder),
+.taste-ranking-modal-panel.taste-ranking-modal-panel :is(.taste-brewery-logo-frame, .taste-ranking-logo-placeholder) {
+  flex: 0 0 34px;
+  width: 34px !important;
+  height: 34px !important;
+  border-radius: 50% !important;
+  padding: 3px !important;
+}
+
+.taste-ranking-logo-placeholder svg { width: 26px; height: 26px; }
+.taste-app-shell.taste-app-shell :is(.taste-home-desktop-stats-column, .taste-home-mobile-stats-slide) h3 {
+  color: var(--taste-amber-bright) !important;
+  font-size: var(--taste-font-card) !important;
+  line-height: 1.2 !important;
+}
+.taste-ranking-modal-panel.taste-ranking-modal-panel .taste-ranking-title {
+  color: var(--taste-amber-bright) !important;
+  font-size: var(--taste-font-card) !important;
+}
+
+.taste-app-shell.taste-app-shell .taste-packaging-summary-name {
+  font-size: var(--taste-font-body) !important;
+  white-space: normal !important;
+}
+
+.taste-app-shell.taste-app-shell .taste-packaging-summary-count strong {
+  color: var(--taste-text) !important;
+  font-weight: 400 !important;
+}
+
+.taste-app-shell.taste-app-shell .taste-pagination :is(button, span) {
+  font-size: var(--taste-font-caption) !important;
+}
+
+.taste-app-shell.taste-app-shell .taste-pagination button { min-height: 36px; }
+
+/* Extend the established metal-edged shell to older detail and account pages. */
+body:has(:is(.taste-detail-concept, .taste-settings-page, .taste-entry-page, .taste-ui-card)) { background: #080807; }
+
+.taste-app-shell:has(:is(.taste-detail-concept, .taste-settings-page, .taste-entry-page, .taste-ui-card)) {
+  position: relative;
+  isolation: isolate;
+  box-sizing: border-box;
+  width: min(1500px, calc(100% - 48px));
+  margin: 28px auto 42px;
+  border: 2px solid transparent;
+  border-radius: 17px;
+  background: linear-gradient(#100d0a, #0c0a08) padding-box, linear-gradient(125deg, #e5af61 0%, #69411f 13%, #f1cb89 29%, #50331e 48%, #b77d3f 74%, #ead2a2 100%) border-box;
+  box-shadow: 0 0 0 1px #302012, 0 0 0 5px rgba(9,7,5,.95), 0 23px 65px rgba(0,0,0,.60), inset 0 0 0 1px rgba(255,225,164,.13);
+}
+
+.taste-app-shell:has(.taste-detail-concept)::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: 65px;
+  left: 0;
+  right: 0;
+  height: 760px;
+  background: linear-gradient(180deg, rgba(10,7,5,.05), rgba(16,12,9,.84) 56%, #100d0a 84%), linear-gradient(90deg, rgba(12,8,6,.76), rgba(12,8,6,.18) 57%, rgba(12,8,6,.08)), url("/images/heroes/catalog.jpg") 50% -54px / 100% auto no-repeat;
+  pointer-events: none;
+}
+
+.taste-app-shell:has(.taste-brand-detail-concept)::before {
+  background-image: linear-gradient(180deg, rgba(10,7,5,.05), rgba(16,12,9,.84) 56%, #100d0a 84%), linear-gradient(90deg, rgba(12,8,6,.76), rgba(12,8,6,.18) 57%, rgba(12,8,6,.08)), url("/images/heroes/breweries.jpg");
+}
+
+.taste-app-shell:has(:is(.taste-detail-concept, .taste-settings-page, .taste-entry-page, .taste-ui-card)) > .taste-app-nav {
+  top: 0;
+  border-radius: 15px 15px 0 0;
+  border-bottom-color: rgba(236,177,88,.31) !important;
+  background: linear-gradient(180deg, rgba(23,18,14,.97), rgba(18,13,10,.94)) !important;
+}
+
+.taste-detail-concept {
+  position: relative;
+  z-index: 0;
+  max-width: 1500px;
+  margin: 0 auto;
+  padding: 12px 24px 72px;
+}
+
+.taste-detail-concept > .taste-page-hero {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.taste-detail-concept .taste-page-hero-layout > div:not(.taste-page-hero-copy):not(.taste-page-hero-action-column) { opacity: 0; }
+
+.taste-detail-concept .taste-page-hero-stats { border: 0 !important; background: rgba(13,10,8,.29) !important; }
+
+.taste-detail-concept .taste-hero-stat {
+  border-color: rgba(232,170,78,.3) !important;
+  background: linear-gradient(145deg, rgba(76,43,20,.44), rgba(22,16,12,.87)) !important;
+  box-shadow: inset 0 1px rgba(255,230,174,.08), 0 4px 12px rgba(0,0,0,.22) !important;
+}
+
+.taste-detail-concept .taste-hero-stat > div:first-child { width: 42px !important; height: 42px !important; }
+.taste-detail-concept .taste-hero-stat > div:first-child svg { width: 34px; height: 34px; }
+.taste-detail-concept .taste-hero-stat-value { font-size: 16px !important; }
+
+.taste-detail-concept .taste-card,
+.taste-settings-card,
+.taste-ui-card {
+  border-color: var(--taste-panel-border) !important;
+  border-radius: 12px !important;
+  background: var(--taste-panel-background) !important;
+  box-shadow: var(--taste-panel-shadow) !important;
+}
+
+.taste-detail-concept .taste-card { overflow-wrap: anywhere; }
+.taste-detail-concept .taste-card :is(p, .taste-entity-link) { font-size: var(--taste-font-body); line-height: 1.5; }
+.taste-detail-concept article .taste-entity-link:not(.taste-detail-beer-name) { color: var(--taste-text-soft) !important; font-size: var(--taste-font-caption) !important; }
+.taste-detail-concept .taste-label { color: var(--taste-amber-bright); font-size: var(--taste-font-caption); }
+.taste-detail-beer-name { font-weight: 800; }
+
+.taste-app-shell.taste-app-shell .taste-settings-page { max-width: 1100px; padding: 28px 24px 72px; }
+.taste-app-shell.taste-app-shell .taste-settings-card > p { font-size: var(--taste-font-body); }
+.taste-app-shell.taste-app-shell .taste-settings-card label { color: var(--taste-amber-bright); font-size: var(--taste-font-control); }
+.taste-ui-card-title { color: var(--taste-amber-bright); font-size: var(--taste-font-section) !important; line-height: 1.2 !important; }
+.taste-ui-card-description { color: var(--taste-text-soft) !important; font-size: var(--taste-font-body) !important; line-height: 1.5; }
+.taste-entry-page > h1 { margin: 0 0 24px; }
+.taste-entry-page label { color: var(--taste-amber-bright); font-size: var(--taste-font-control) !important; }
+
+/* Dialogs keep the existing compact mobile height and scroll behavior. */
+[role="dialog"][aria-modal="true"] :is(h1, h2),
+div[style*="position: fixed"][style*="z-index: 1000"] :is(h1, h2) {
+  color: var(--taste-amber-bright) !important;
+  font-size: var(--taste-font-section) !important;
+  line-height: 1.2 !important;
+}
+
+[role="dialog"][aria-modal="true"] label,
+div[style*="position: fixed"][style*="z-index: 1000"] label {
+  color: var(--taste-text-soft);
+  font-size: var(--taste-font-control) !important;
+  line-height: 1.3 !important;
+}
+
+@media (min-width: 761px) {
+  .taste-app-shell.taste-app-shell .taste-profile-activity-layout { grid-template-columns: minmax(0,1fr); }
+  .taste-app-shell.taste-app-shell .taste-profile-activity-metrics-carousel .taste-profile-loop-carousel-track { grid-template-columns: repeat(3, minmax(0,1fr)); }
+  .taste-app-shell.taste-app-shell .taste-profile-mobile-ranking-logo { display: inline-flex !important; align-items: center; justify-content: center; }
+  .taste-app-shell.taste-app-shell .taste-profile-ranking-number { display: none !important; }
+  .taste-app-shell.taste-app-shell :is(.taste-profile-brand-row, .taste-profile-brewery-row) .taste-profile-ranking-row-main { grid-template-columns: 34px minmax(0,1fr) auto !important; gap: 9px !important; }
+  .taste-profile-mobile-ranking-logo .taste-brewery-logo-frame { width: 34px !important; height: 34px !important; border-radius: 50% !important; }
+  .taste-profile-ranking-logo-placeholder { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border: 1px solid var(--taste-panel-border); border-radius: 50%; background: linear-gradient(145deg, #3e2917, #18130e); }
+  .taste-profile-ranking-logo-placeholder svg { width: 26px; height: 26px; }
+  .taste-app-shell.taste-app-shell .taste-profile-activity-chart-card { min-height: 164px; }
+  .taste-app-shell.taste-app-shell .taste-profile-activity-chart { height: 128px; }
+  .taste-app-shell.taste-app-shell .taste-profile-activity-bar-slot { height: 74px; }
+  .taste-app-shell.taste-app-shell :is(.taste-profile-activity-value, .taste-profile-activity-month) { font-size: 10px; }
+}
+
+.taste-app-shell.taste-app-shell .taste-profile-ranking-row-main .taste-entity-link { color: var(--taste-text) !important; font-size: var(--taste-font-body) !important; line-height: 1.3 !important; }
+.taste-app-shell.taste-app-shell .taste-profile-ranking-row-main > span:last-child { font-size: var(--taste-font-body) !important; }
+.taste-app-shell.taste-app-shell .taste-profile-ranking-row-main > a { color: var(--taste-text) !important; font-size: var(--taste-font-body) !important; line-height: 1.3 !important; }
+.taste-app-shell.taste-app-shell .taste-profile-activity-metric-label { font-size: var(--taste-font-caption) !important; letter-spacing: .025em !important; }
+.taste-app-shell.taste-app-shell .taste-profile-activity-metric > div:last-child { font-size: var(--taste-font-caption) !important; }
+.taste-app-shell.taste-app-shell .taste-profile-ranking-logo-placeholder { display: inline-flex; align-items: center; justify-content: center; }
+.taste-app-shell.taste-app-shell .taste-profile-ranking-logo-placeholder svg { width: 80%; height: 80%; }
+.taste-app-shell.taste-app-shell .taste-profile-value-fill { background: linear-gradient(90deg, rgba(181,111,28,.72), #f2b63f 58%, #ffe075 100%) !important; box-shadow: 0 0 9px rgba(242,182,63,.35), inset 0 1px rgba(255,255,255,.28) !important; }
+
+@media (max-width: 760px) {
+  :root {
+    --taste-font-page: 22px;
+    --taste-font-section: 19px;
+    --taste-font-card: 18px;
+    --taste-font-value: 18px;
+  }
+
+  .taste-app-shell:has(:is(.taste-detail-concept, .taste-settings-page, .taste-entry-page, .taste-ui-card)) { width: 100%; margin: 0; border: 0; border-radius: 0; box-shadow: none; }
+  .taste-app-shell:has(.taste-detail-concept)::before { top: 58px; height: 590px; background-size: auto, auto, auto 390px; background-position: center, center, 58% -24px; }
+  .taste-app-shell:has(:is(.taste-detail-concept, .taste-settings-page, .taste-entry-page, .taste-ui-card)) > .taste-app-nav { border-radius: 0; }
+  .taste-detail-concept, .taste-app-shell.taste-app-shell .taste-settings-page { padding: 12px 12px 56px; }
+  .taste-detail-concept .taste-page-hero-layout { min-height: 108px !important; }
+  .taste-detail-concept .taste-page-hero-copy { padding: 12px 8px !important; }
+  .taste-detail-concept .taste-page-hero-action-column { min-height: 0 !important; padding: 0 8px 12px !important; }
+  .taste-detail-concept .taste-page-hero-action .taste-button-secondary { min-height: 36px; font-size: var(--taste-font-control) !important; }
+  .taste-detail-concept .taste-page-hero-stats > div { grid-template-columns: repeat(2, minmax(0,1fr)) !important; }
+  .taste-detail-concept .taste-hero-stat { gap: 7px !important; padding: 8px 6px !important; }
+  .taste-detail-concept .taste-hero-stat > div:first-child { width: 30px !important; height: 30px !important; }
+  .taste-detail-concept .taste-hero-stat > div:first-child svg { width: 26px; height: 26px; }
+  .taste-app-shell.taste-app-shell .taste-detail-concept .taste-hero-stat-value { font-size: var(--taste-font-body) !important; line-height: 1.3 !important; }
+  .taste-detail-concept .taste-card { padding: 14px !important; }
+  .taste-app-shell.taste-app-shell .taste-entry-page { padding: 24px 12px 56px !important; }
+  .taste-app-shell.taste-app-shell .taste-ui-card input { font-size: 16px; }
+  .taste-settings-heading { margin-bottom: 18px; }
+  .taste-settings-card { padding: 16px; }
+  .taste-ranking-modal-panel.taste-ranking-modal-panel .taste-ranking-title { color: var(--taste-amber-bright) !important; font-size: var(--taste-font-card) !important; }
+  .taste-app-shell.taste-app-shell .taste-brewery-beer-name { font-size: 15px !important; }
+  .taste-app-shell.taste-app-shell .taste-profile-tabs .taste-profile-tab { min-height: 38px; font-size: 12px !important; white-space: normal; line-height: 1.25; }
+}
