@@ -10,6 +10,8 @@ import {
 } from "@/lib/profileStats";
 
 import PageHero from "@/components/ui/PageHero";
+import HomeStatIcon from "@/components/home/HomeStatIcon";
+import "./regulars-concept.css";
 
 type ProfileRow = {
   id: string;
@@ -317,507 +319,95 @@ export default async function ProfilesPage() {
     );
 
   return (
-    <main
-      style={{
-        maxWidth: "1500px",
-        margin: "0 auto",
-        padding:
-          "34px 24px 80px",
-      }}
-    >
+    <main className="taste-regulars-concept">
       <PageHero
         eyebrow="Hospoda"
         imageUrl="/images/heroes/users.jpg"
         visualVariant="profile"
-        title="Hospoda"
+        title="Štamgasti"
         subtitle=""
-        action={
-          <Link
-            href="/activity"
-            className="taste-button-secondary"
-            style={{
-              fontSize: "12px",
-              fontWeight: 650,
-            }}
-          >
-            ← Aktivita v hospodě
-          </Link>
-        }
       />
 
-      <section
-        style={{
-          marginTop: "24px",
-        }}
-      >
-        <div
-          style={{
-            marginBottom: "15px",
-          }}
-        >
-          <h2
-            style={{
-              margin: 0,
-              fontSize: "24px",
-              letterSpacing:
-                "-0.025em",
-            }}
-          >
-            Pivní vizitky
-          </h2>
-
-          <p
-            style={{
-              maxWidth: "620px",
-              margin: "6px 0 0",
-              color:
-                "var(--taste-text-muted)",
-              fontSize: "11px",
-              lineHeight: 1.55,
-            }}
-          >
-            Rychlý pohled na
-            pivní stopu každého
-            uživatele.
-          </p>
+      <section className="taste-regulars-section" aria-labelledby="regulars-title">
+        <div className="taste-regulars-section-header">
+          <div>
+            <h2 id="regulars-title">Pivní vizitky</h2>
+            <p>Rychlý pohled na pivní stopu každého uživatele.</p>
+          </div>
+          <Link href="/activity" className="taste-regulars-activity">
+            Aktivita v hospodě →
+          </Link>
         </div>
 
-        {profileCards.length ===
-          0 && (
-          <div
-            className="taste-card"
-            style={{
-              padding: "34px",
-              textAlign: "center",
-              color:
-                "var(--taste-text-muted)",
-            }}
-          >
-            Zatím tu není žádný
-            uživatelský profil.
+        {profileCards.length === 0 && (
+          <div className="taste-regulars-empty">
+            Zatím tu není žádný uživatelský profil.
           </div>
         )}
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns:
-              "repeat(auto-fit, minmax(min(310px, 100%), 1fr))",
-            gap: "14px",
-          }}
-        >
-          {profileCards.map(
-            ({
-              profile,
-              stats,
-            }) => {
-              const isMe =
-                profile.id ===
-                user.id;
+        <div className="taste-regulars-grid">
+          {profileCards.map(({ profile, stats }) => {
+            const isMe = profile.id === user.id;
+            const initial = profile.display_name?.trim().charAt(0).toUpperCase() || "•";
+            const statItems = [
+              { label: "Vypitých", value: stats.totalQuantity, icon: "barrel" },
+              { label: "Různých piv", value: stats.uniqueBeers, icon: "mug" },
+              { label: "Pivovarů", value: stats.uniqueBreweries, icon: "brewery" },
+              { label: "Států", value: stats.uniqueCountries, icon: "globe" },
+            ] as const;
 
-              const initial =
-                profile.display_name
-                  ?.trim()
-                  .charAt(0)
-                  .toUpperCase() ||
-                "•";
-
-              const statItems = [
-                {
-                  label:
-                    "Vypitých",
-                  value:
-                    stats.totalQuantity,
-                  accent:
-                    "#f2b63f",
-                },
-                {
-                  label:
-                    "Různých piv",
-                  value:
-                    stats.uniqueBeers,
-                  accent:
-                    "#e88835",
-                },
-                {
-                  label:
-                    "Pivovarů",
-                  value:
-                    stats.uniqueBreweries,
-                  accent:
-                    "#d65b42",
-                },
-                {
-                  label:
-                    "Států",
-                  value:
-                    stats.uniqueCountries,
-                  accent:
-                    "#b77a36",
-                },
-              ];
-
-              return (
-                <Link
-                  key={
-                    profile.id
-                  }
-                  href={`/profiles/${profile.id}`}
-                  className="taste-profile-card"
-                  style={{
-                    position:
-                      "relative",
-                    overflow:
-                      "hidden",
-                    display:
-                      "block",
-                    minWidth: 0,
-                    padding:
-                      "18px",
-                    border:
-                      isMe
-                        ? "1px solid rgba(243,180,63,0.48)"
-                        : "1px solid var(--taste-border)",
-                    borderRadius:
-                      "var(--taste-radius-lg)",
-                    color:
-                      "inherit",
-                    textDecoration:
-                      "none",
-                    background: `
-                      radial-gradient(
-                        circle at 100% 0%,
-                        ${
-                          isMe
-                            ? "rgba(243,180,63,0.13)"
-                            : "rgba(217,137,69,0.08)"
-                        },
-                        transparent 13rem
-                      ),
-                      linear-gradient(
-                        145deg,
-                        rgba(242,182,63,0.045),
-                        transparent 65%
-                      ),
-                      var(--taste-surface)
-                    `,
-                    boxShadow:
-                      isMe
-                        ? "0 13px 34px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,235,195,0.04)"
-                        : "inset 0 1px 0 rgba(255,235,195,0.025)",
-                  }}
-                >
+            return (
+              <Link
+                key={profile.id}
+                href={`/profiles/${profile.id}`}
+                className={`taste-regulars-card${isMe ? " taste-regulars-card-me" : ""}`}
+              >
+                <div className="taste-regulars-identity">
                   <div
-                    style={{
-                      display:
-                        "flex",
-                      alignItems:
-                        "center",
-                      gap: "13px",
-                    }}
+                    className="taste-regulars-avatar"
+                    style={profile.avatar_url ? {
+                      backgroundImage: `url(${JSON.stringify(profile.avatar_url)})`,
+                    } : undefined}
+                    aria-hidden="true"
                   >
-                    <div
-                      style={{
-                        width: "60px",
-                        height:
-                          "60px",
-                        flexShrink:
-                          0,
-                        overflow:
-                          "hidden",
-                        display:
-                          "flex",
-                        alignItems:
-                          "center",
-                        justifyContent:
-                          "center",
-                        border:
-                          "1px solid rgba(242,182,63,0.48)",
-                        borderRadius:
-                          "50%",
-                        background:
-                          profile.avatar_url
-                            ? `url(${JSON.stringify(
-                                profile.avatar_url
-                              )}) center / cover no-repeat`
-                            : `
-                                radial-gradient(
-                                  circle at 35% 25%,
-                                  rgba(242,182,63,0.30),
-                                  transparent 55%
-                                ),
-                                linear-gradient(
-                                  145deg,
-                                  #713b1d,
-                                  #27150c
-                                )
-                              `,
-                        color:
-                          "#f2b63f",
-                        fontSize:
-                          "23px",
-                        lineHeight:
-                          1,
-                        fontWeight:
-                          900,
-                        boxShadow:
-                          "0 0 22px rgba(242,182,63,0.12)",
-                      }}
-                    >
-                      {!profile.avatar_url &&
-                        initial}
+                    {!profile.avatar_url && initial}
+                  </div>
+                  <div className="taste-regulars-identity-copy">
+                    <div className="taste-regulars-role">
+                      {isMe ? "Tvůj profil" : "Pivní cestovatel"}
                     </div>
-
-                    <div
-                      style={{
-                        minWidth: 0,
-                        flex: 1,
-                      }}
-                    >
-                      <div
-                        style={{
-                          color:
-                            "#f2b63f",
-                          fontSize:
-                            "8px",
-                          fontWeight:
-                            900,
-                          letterSpacing:
-                            "0.095em",
-                          textTransform:
-                            "uppercase",
-                        }}
-                      >
-                        {isMe
-                          ? "Tvůj profil"
-                          : "Pivní cestovatel"}
-                      </div>
-
-                      <div
-                        style={{
-                          marginTop:
-                            "4px",
-                          overflow:
-                            "hidden",
-                          color:
-                            "var(--taste-text)",
-                          fontSize:
-                            "21px",
-                          lineHeight:
-                            1.1,
-                          fontWeight:
-                            900,
-                          letterSpacing:
-                            "-0.03em",
-                          textOverflow:
-                            "ellipsis",
-                          whiteSpace:
-                            "nowrap",
-                        }}
-                      >
-                        {
-                          profile.display_name
-                        }
-
-                        {profile.id ===
-                          "17be5dc3-a3f9-4fd2-ae90-dee7692034fc" && (
-                          <span
-                            title="Správce Pivníku"
-                            aria-label="Správce Pivníku"
-                            style={{
-                              marginLeft:
-                                "6px",
-                              color:
-                                "#f2b63f",
-                              fontSize:
-                                "10px",
-                            }}
-                          >
-                            ◆
-                          </span>
-                        )}
-                      </div>
-
-                      {profile.real_name && (
-                        <div
-                          style={{
-                            marginTop:
-                              "4px",
-                            color:
-                              "var(--taste-text-muted)",
-                            fontSize:
-                              "10px",
-                            lineHeight:
-                              1.25,
-                            fontWeight:
-                              700,
-                            overflowWrap:
-                              "anywhere",
-                          }}
-                        >
-                          {
-                            profile.real_name
-                          }
-                        </div>
+                    <h3 className="taste-regulars-name">
+                      {profile.display_name}
+                      {profile.id === "17be5dc3-a3f9-4fd2-ae90-dee7692034fc" && (
+                        <span className="taste-regulars-admin" title="Správce Pivníku" aria-label="Správce Pivníku">◆</span>
                       )}
-
-                      <div
-                        style={{
-                          marginTop:
-                            "5px",
-                          color:
-                            "var(--taste-text-muted)",
-                          fontSize:
-                            "10px",
-                        }}
-                      >
-                        Naposledy{" "}
-                        {formatDate(
-                          stats.lastTasting
-                        )}
-                      </div>
+                    </h3>
+                    {profile.real_name && (
+                      <div className="taste-regulars-real-name">{profile.real_name}</div>
+                    )}
+                    <div className="taste-regulars-last-tasting">
+                      Naposledy {formatDate(stats.lastTasting)}
                     </div>
                   </div>
+                </div>
 
-                  <div
-                    className="taste-profile-card-stats"
-                    style={{
-                      display:
-                        "grid",
-                      gridTemplateColumns:
-                        "repeat(4, minmax(0, 1fr))",
-                      gap: "7px",
-                      marginTop:
-                        "17px",
-                    }}
-                  >
-                    {statItems.map(
-                      (item) => (
-                        <div
-                          key={
-                            item.label
-                          }
-                          style={{
-                            minWidth:
-                              0,
-                            padding:
-                              "9px 8px",
-                            border:
-                              "1px solid rgba(255,255,255,0.055)",
-                            borderRadius:
-                              "11px",
-                            background:
-                              "rgba(10,7,5,0.28)",
-                          }}
-                        >
-                          <div
-                            style={{
-                              width:
-                                "18px",
-                              height:
-                                "2px",
-                              marginBottom:
-                                "7px",
-                              borderRadius:
-                                "999px",
-                              background:
-                                item.accent,
-                            }}
-                          />
+                <dl className="taste-regulars-stats">
+                  {statItems.map((item) => (
+                    <div key={item.label} className="taste-regulars-stat">
+                      <HomeStatIcon kind={item.icon} />
+                      <dt>{item.label}</dt>
+                      <dd>{item.value}</dd>
+                    </div>
+                  ))}
+                </dl>
 
-                          <div
-                            style={{
-                              color:
-                                "var(--taste-text)",
-                              fontSize:
-                                "17px",
-                              lineHeight:
-                                1,
-                              fontWeight:
-                                850,
-                            }}
-                          >
-                            {
-                              item.value
-                            }
-                          </div>
-
-                          <div
-                            style={{
-                              marginTop:
-                                "5px",
-                              overflow:
-                                "hidden",
-                              color:
-                                "var(--taste-text-muted)",
-                              fontSize:
-                                "8px",
-                              fontWeight:
-                                700,
-                              textOverflow:
-                                "ellipsis",
-                              whiteSpace:
-                                "nowrap",
-                            }}
-                          >
-                            {
-                              item.label
-                            }
-                          </div>
-                        </div>
-                      )
-                    )}
-                  </div>
-
-                  <div
-                    style={{
-                      display:
-                        "flex",
-                      alignItems:
-                        "center",
-                      justifyContent:
-                        "space-between",
-                      gap: "12px",
-                      marginTop:
-                        "15px",
-                      paddingTop:
-                        "12px",
-                      borderTop:
-                        "1px solid rgba(255,255,255,0.055)",
-                    }}
-                  >
-                    <span
-                      style={{
-                        color:
-                          "var(--taste-text-muted)",
-                        fontSize:
-                          "9px",
-                      }}
-                    >
-                      {
-                        stats.uniqueStyles
-                      }{" "}
-                      pivních stylů
-                    </span>
-
-                    <span
-                      style={{
-                        color:
-                          "#f2b63f",
-                        fontSize:
-                          "10px",
-                        fontWeight:
-                          800,
-                      }}
-                    >
-                      Zobrazit pivní
-                      profil →
-                    </span>
-                  </div>
-                </Link>
-              );
-            }
-          )}
+                <div className="taste-regulars-footer">
+                  <span>{stats.uniqueStyles} pivních stylů</span>
+                  <span className="taste-regulars-open">Zobrazit pivní profil →</span>
+                </div>
+              </Link>
+            );
+          })}
         </div>
       </section>
     </main>
