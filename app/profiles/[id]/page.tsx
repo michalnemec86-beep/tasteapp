@@ -1,3 +1,4 @@
+import { beerHref, brandHref, styleHref, countryHref } from "@/lib/entity-navigation";
 import Link from "next/link";
 
 import {
@@ -722,7 +723,7 @@ export default async function ProfilePage({
     {
       label: "Top styl",
       href: tasteStats.styles[0]
-        ? `/stats?user=${profile.id}&locked=1&style=${tasteStats.styles[0].id}`
+        ? styleHref(tasteStats.styles[0].id)
         : `/stats?user=${profile.id}&locked=1&focus=styles`,
       value:
         tasteStats.styles[0]
@@ -742,7 +743,7 @@ export default async function ProfilePage({
     {
       label: "Top značka",
       href: tasteStats.brands[0]
-        ? `/stats?user=${profile.id}&locked=1&brand=${tasteStats.brands[0].id}`
+        ? brandHref(tasteStats.brands[0].id)
         : `/stats?user=${profile.id}&locked=1&focus=brands`,
       value:
         tasteStats.brands[0]
@@ -759,7 +760,7 @@ export default async function ProfilePage({
     {
       label: "Top pivovar",
       href: tasteStats.breweries[0]
-        ? `/stats?user=${profile.id}&locked=1&brewery=${tasteStats.breweries[0].id}`
+        ? `/breweries/${tasteStats.breweries[0].id}`
         : `/stats?user=${profile.id}&locked=1&focus=breweries`,
       value:
         tasteStats.breweries[0]
@@ -779,7 +780,7 @@ export default async function ProfilePage({
     {
       label: "Top stát",
       href: tasteStats.countries[0]
-        ? `/stats?user=${profile.id}&locked=1&country=${encodeURIComponent(tasteStats.countries[0].name)}`
+        ? countryHref(tasteStats.countries[0].name)
         : `/stats?user=${profile.id}&locked=1&focus=countries`,
       value:
         tasteStats.countries[0]
@@ -1759,7 +1760,7 @@ export default async function ProfilePage({
                           }}
                         >
                           {tasting.beers?.id ? (
-                            <Link href={`/beers/${tasting.beers.id}`} className="taste-entity-link" style={{ color: "inherit" }}>
+                            <Link href={beerHref(tasting.beers.id, (tasting.beer_versions?.breweries ?? tasting.beers?.breweries)?.id)} className="taste-entity-link" style={{ color: "inherit" }}>
                               {tasting.beers.name}
                             </Link>
                           ) : "Neznámé pivo"}
@@ -1816,16 +1817,9 @@ export default async function ProfilePage({
                             </span>
                           ))}
 
-                        {tasting
-                          .beers
-                          ?.beer_styles
-                          ?.name
-                          ? ` · ${tasting.beers.beer_styles.name}`
-                          : ""}
+                        {(tasting.beer_versions?.beer_styles ?? tasting.beers?.beer_styles) && <> · <Link href={styleHref((tasting.beer_versions?.beer_styles ?? tasting.beers?.beer_styles)!.id)} className="taste-entity-link" style={{ color: "inherit" }}>{(tasting.beer_versions?.beer_styles ?? tasting.beers?.beer_styles)!.name}</Link></>}
+                        {(tasting.beer_versions?.breweries ?? tasting.beers?.breweries)?.country && <> · <Link href={countryHref((tasting.beer_versions?.breweries ?? tasting.beers?.breweries)!.country!)} className="taste-entity-link" style={{ color: "inherit" }}>{(tasting.beer_versions?.breweries ?? tasting.beers?.breweries)!.country}</Link></>}
 
-                        {(tasting.beer_versions?.breweries ?? tasting.beers?.breweries)?.country
-                          ? ` · ${(tasting.beer_versions?.breweries ?? tasting.beers?.breweries)!.country}`
-                          : ""}
                       </div>
                     </div>
 

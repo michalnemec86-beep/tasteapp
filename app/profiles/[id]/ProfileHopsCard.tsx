@@ -1,3 +1,4 @@
+import { hopHref } from "@/lib/entity-navigation";
 import Link from "next/link";
 
 import type {
@@ -278,7 +279,7 @@ export default function ProfileHopsCard({
                     }}
                   >
                     <Link
-                      href={`/stats?user=${profileId}&locked=1&hop=${item.id}`}
+                      href={hopHref(item.id)}
                       style={{
                         maxWidth: "100%",
                         color: "var(--taste-text)",
@@ -390,7 +391,7 @@ export default function ProfileHopsCard({
             >
               {dominant ? (
                 <Link
-                  href={`/stats?user=${profileId}&locked=1&hop=${dominant.id}`}
+                  href={hopHref(dominant.id)}
                   style={{ color: "inherit", textDecoration: "none" }}
                 >
                   {dominant.name}

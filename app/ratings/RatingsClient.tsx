@@ -1,5 +1,6 @@
 "use client";
 
+import { beerHref, styleHref, countryHref } from "@/lib/entity-navigation";
 import { useMemo, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import PageHero from "@/components/ui/PageHero";
@@ -73,8 +74,8 @@ export default function RatingsClient({ rows, initialBeer = "" }: { rows: RatedT
             {row.avatarUrl ? <img src={row.avatarUrl} alt="" width="42" height="42"/> : <HomeStatIcon kind="crest"/>}
           </Link>
           <div className="taste-rating-review-content">
-            <div className="taste-rating-review-sentence"><Link href={`/profiles/${row.userId}`} className="taste-rating-user">{row.userName}</Link> <span>ohodnotil pivo</span> <Link href={`/beers/${row.beerId}`} className="taste-rating-beer">{row.beerName}</Link></div>
-            <div className="taste-rating-review-meta">{row.breweryName}<span> · {getPackagingMeta(row.packaging)?.label || "Jiné"}</span><time dateTime={row.ratedAt}>{new Date(row.ratedAt).toLocaleString("cs-CZ", { timeZone: "Europe/Prague", day: "numeric", month: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" })}</time></div>
+            <div className="taste-rating-review-sentence"><Link href={`/profiles/${row.userId}`} className="taste-rating-user">{row.userName}</Link> <span>ohodnotil pivo</span> <Link href={beerHref(row.beerId, row.breweryId)} className="taste-rating-beer">{row.beerName}</Link></div>
+            <div className="taste-rating-review-meta">{row.breweryId ? <Link href={`/breweries/${row.breweryId}`}>{row.breweryName}</Link> : row.breweryName}<span> · {getPackagingMeta(row.packaging)?.label || "Jiné"}</span><time dateTime={row.ratedAt}>{new Date(row.ratedAt).toLocaleString("cs-CZ", { timeZone: "Europe/Prague", day: "numeric", month: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" })}</time></div>
           </div>
           <RatingStars rating={row.rating}/>
         </article>)}</div>
@@ -114,7 +115,7 @@ function BeerRanking({ title, items, worst }: { title: string; items: RatingRank
     {!items.length ? <p className="taste-ratings-empty">Zatím tu nejsou hodnocená piva.</p> : <ol className="taste-rating-ranking-list">{items.map((item,index) => <li key={item.id}>
       <span className="taste-rating-position">{index+1}</span>
       {item.tasting.logoUrl ? <AutoLogoFrame src={item.tasting.logoUrl} alt="" size={34}/> : <span className="taste-rating-beer-icon"><HomeStatIcon kind="mug"/></span>}
-      <div className="taste-rating-rank-name"><Link href={`/beers/${item.id}`}>{item.name}</Link><span>{item.tasting.breweryName}</span></div>
+      <div className="taste-rating-rank-name"><Link href={beerHref(item.id, item.tasting.breweryId)}>{item.name}</Link><span>{item.tasting.breweryId ? <Link href={`/breweries/${item.tasting.breweryId}`}>{item.tasting.breweryName}</Link> : item.tasting.breweryName}</span></div>
       <RankScore item={item}/>
     </li>)}</ol>}
   </article>;
@@ -130,8 +131,8 @@ function CategoryRanking({ rows, group, title, icon, onSelect }: { rows: RatedTa
     {!items.length ? <p className="taste-ratings-empty">Zatím bez hodnocení.</p> : <ol className="taste-rating-ranking-list">{items.map((item,index) => <li key={item.id}>
       <span className="taste-rating-position">{index+1}</span>
       {group === "packaging" && <HomeStatIcon kind={item.id === "draft" ? "mug" : item.id === "bottle" ? "bottle" : item.id === "can" ? "can" : item.id === "pet" ? "pet" : "package"}/>}
-      <button className="taste-rating-category-name" onClick={() => onSelect(item.id)} title="Filtrovat hodnocení">{group === "packaging" ? getPackagingMeta(item.name)?.label || "Jiné" : item.name}</button>
-      <RankScore item={item}/>
+      {group === "country" ? <Link className="taste-rating-category-name" href={countryHref(item.name)}>{item.name}</Link> : group === "style" && item.tasting.styleId ? <Link className="taste-rating-category-name" href={styleHref(item.tasting.styleId)}>{item.name}</Link> : <button className="taste-rating-category-name" onClick={() => onSelect(item.id)}>{group === "packaging" ? getPackagingMeta(item.name)?.label || "Jiné" : item.name}</button>}
+      <button className="taste-rating-score-filter" onClick={() => onSelect(item.id)} aria-label={`Filtrovat hodnocení: ${item.name}`}><RankScore item={item}/></button>
     </li>)}</ol>}
   </article>;
 }

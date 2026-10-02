@@ -23,6 +23,10 @@ Pozdější commit přidává tuto dokumentaci; nemění funkce archivované ver
 - 2. 10. 2026: jednotná normalizace všech uložených log včetně pivního podtácku
   ([popis a ověření](logo-normalization.md)). Originály a archiv zůstávají zachované.
 
+- Připravená změna navigace: názvy vedou na profily nebo výpisy piv,
+  včetně Hodnocení; samostatné karty piv, značek a stylů nahrazují resolver odkazy.
+  Podrobnosti a rozsah ověření: [navigace](entity-navigation.md). Změna čeká na nasazení.
+
 ## Dokumenty k načtení
 
 - [Přehled funkcí a ověření](function-report-2026-10-02.md).

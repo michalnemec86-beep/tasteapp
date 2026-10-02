@@ -1,3 +1,4 @@
+import { countryHref } from "@/lib/entity-navigation";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
@@ -278,7 +279,7 @@ export default async function CountryStatsPage({
         </div>
 
         <Link
-          href={`/breweries?focus=1&country=${encodeURIComponent(countryName)}`}
+          href={countryHref(countryName)}
           style={{
             color: "var(--taste-amber-bright)",
             textDecoration: "none",

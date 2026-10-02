@@ -243,7 +243,7 @@ export default function ProfileBreweriesView({
 
               <div className="taste-profile-brewery-item-main">
                 <Link
-                  href={`/stats?user=${encodeURIComponent(profileId)}&locked=1&brewery=${encodeURIComponent(String(item.id))}`}
+                  href={`/breweries/${encodeURIComponent(String(item.id))}`}
                   className="taste-entity-link taste-profile-brewery-item-name"
                 >
                   {item.name}

@@ -1,5 +1,6 @@
 "use client";
 
+import { countryHref } from "@/lib/entity-navigation";
 import {
   useEffect,
   useRef,
@@ -502,18 +503,6 @@ export default function BeerWorldMap({
 
     const czechName = nameByCode.get(code) ?? countryName;
 
-    if (statsContextUserId && lockStatsContext) {
-      const params = new URLSearchParams(window.location.search);
-      params.set("user", statsContextUserId);
-      params.set("locked", "1");
-      params.set("country", czechName);
-      params.delete("focus");
-      params.delete("metric");
-
-      router.push(`/stats?${params.toString()}`);
-      return;
-    }
-
     router.push(
       `/stats/country/${encodeURIComponent(czechName)}`
     );
@@ -531,9 +520,7 @@ export default function BeerWorldMap({
     if (code === "GB" && hasGroupedUkRegion) return undefined;
 
     const name = nameByCode.get(code) ?? countryName;
-    return statsContextUserId && lockStatsContext
-      ? `/stats?user=${encodeURIComponent(statsContextUserId)}&locked=1&country=${encodeURIComponent(name)}`
-      : `/stats/country/${encodeURIComponent(name)}`;
+    return countryHref(name);
   }
 
   return (

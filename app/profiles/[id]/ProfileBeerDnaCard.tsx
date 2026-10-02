@@ -1,3 +1,4 @@
+import { styleHref } from "@/lib/entity-navigation";
 import Link from "next/link";
 
 import type {
@@ -473,7 +474,7 @@ export default function ProfileBeerDnaCard({
                       </div>
                     ) : (
                       <Link
-                        href={`/stats?user=${profileId}&locked=1&style=${segment.id}`}
+                        href={styleHref(segment.id)}
                         style={{
                           display: "block",
                           overflow: "hidden",

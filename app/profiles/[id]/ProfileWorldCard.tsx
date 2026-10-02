@@ -1,3 +1,4 @@
+import { countryHref } from "@/lib/entity-navigation";
 import Link from "next/link";
 import BeerWorldMap from "@/app/stats/BeerWorldMap";
 
@@ -335,7 +336,7 @@ export default function ProfileWorldCard({
                         </div>
 
                         <Link
-                          href={`/stats?user=${profileId}&locked=1&country=${encodeURIComponent(item.name)}`}
+                          href={countryHref(item.name)}
                           className="taste-entity-link"
                           style={{
                             overflow:
