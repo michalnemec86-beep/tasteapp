@@ -11,3 +11,9 @@ When offline, a visible banner explains that saving needs a connection. Captured
 Verification: `node --test tests/*.test.mjs`, `npm run build`, and ESLint on the changed files. HTTP checks verify public install assets, service-worker headers, and continued sign-in requirements for catalog pages. Worker tests simulate loss and return of the network and verify the cache allowlist.
 
 Device acceptance checks (require actual phones): install from Chrome on Android and Safari on iPhone; launch from the icon; sign in; navigate and use Back; open and close a tasting modal with the keyboard visible; leave a filled form open while going offline; reconnect and save; relaunch after an application update. iPhone may have a separate sign-in session in the installed app. Installation prompts and wording depend on browser and OS; manual instructions always remain available.
+
+## Device confirmation
+
+On 2026-10-02 Michal confirmed installation and running on a real iPhone.
+This does not certify every acceptance check listed above. Installation on
+a physical Android phone has not yet been confirmed. See [project state](project-state.md).

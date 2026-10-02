@@ -1,5 +1,9 @@
 # TasteApp – architecture overview
 
+> Historical snapshot from 2026-09-04. For the current baseline, permissions,
+> PWA and archive, start with [project-state.md](project-state.md) and the
+> [2026-10-02 report](function-report-2026-10-02.md).
+
 Last reviewed: 2026-09-04  
 Reference application state: commit `9d994f6` (`Add optional profile names`)
 
