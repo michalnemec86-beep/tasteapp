@@ -224,7 +224,6 @@ export default async function BeerDetailPage({ params }: Props) {
     styleId: style?.id ?? null,
     plato: currentPlato,
     abv: currentAbv,
-    isCatalog: beer.is_catalog,
   });
 
   const currentCollaboratorNames = (current?.beer_version_collaborators ?? [])

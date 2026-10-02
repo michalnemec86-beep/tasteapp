@@ -8,60 +8,14 @@ function hasText(value: string | null | undefined) {
   return Boolean(value?.trim());
 }
 
-function normalizeCountry(value: string | null | undefined) {
-  return (value ?? "")
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .trim();
-}
-
-function isCzechCountry(value: string | null | undefined) {
-  return [
-    "cesko",
-    "ceska republika",
-    "czechia",
-    "czech republic",
-  ].includes(normalizeCountry(value));
-}
-
 export function getBreweryReferenceStatus(input: {
   name: string | null | undefined;
-  city: string | null | undefined;
   country: string | null | undefined;
-  address: string | null | undefined;
-  website: string | null | undefined;
-  logoUrl: string | null | undefined;
-  isNomadic: boolean | null | undefined;
-  foundedYear: number | null | undefined;
-  latitude: number | null | undefined;
-  longitude: number | null | undefined;
 }): ReferenceStatus {
   const missing: string[] = [];
-
   if (!hasText(input.name)) missing.push("název");
-  if (!hasText(input.city)) missing.push("město");
   if (!hasText(input.country)) missing.push("stát");
-  if (!input.isNomadic && !hasText(input.address)) missing.push("adresa");
-  if (!hasText(input.website)) missing.push("web");
-  if (!hasText(input.logoUrl)) missing.push("logo");
-  if (
-    isCzechCountry(input.country) &&
-    (
-      input.latitude == null ||
-      !Number.isFinite(input.latitude) ||
-      input.longitude == null ||
-      !Number.isFinite(input.longitude)
-    )
-  ) {
-    missing.push("GPS");
-  }
-
-  return {
-    ready: missing.length === 0,
-    complete: missing.length === 0,
-    missing,
-  };
+  return { ready: missing.length === 0, complete: missing.length === 0, missing };
 }
 
 export function getBeerReferenceStatus(input: {
@@ -71,25 +25,35 @@ export function getBeerReferenceStatus(input: {
   styleId: number | null | undefined;
   plato: number | null | undefined;
   abv: number | null | undefined;
-  isCatalog: boolean | null | undefined;
 }): ReferenceStatus {
   const missing: string[] = [];
-
   if (!hasText(input.name)) missing.push("název");
   if (input.brandId == null) missing.push("značka");
   if (input.breweryId == null) missing.push("pivovar");
   if (input.styleId == null) missing.push("pivní styl");
-  if (input.plato == null && input.abv == null) missing.push("stupňovitost nebo ABV");
+  const hasStrength = [input.plato, input.abv].some(
+    (value) => value != null && Number.isFinite(value)
+  );
+  if (!hasStrength) missing.push("stupňovitost nebo ABV");
+  return { ready: missing.length === 0, complete: missing.length === 0, missing };
+}
 
-  const complete = missing.length === 0;
-
-  if (!input.isCatalog) {
-    missing.push("potvrzení katalogu");
-  }
-
-  return {
-    ready: complete && Boolean(input.isCatalog),
-    complete,
-    missing,
-  };
+// Autocomplete follows the same automatic rules as the catalog and detail pages.
+// The historical administrator confirmation flag is no longer a prerequisite.
+export function getBeerSuggestionReferenceStatus(input: {
+  name: string | null | undefined;
+  brands?: { id: number } | null;
+  breweries?: { id: number } | null;
+  beer_styles?: { id: number } | null;
+  plato?: number | null;
+  abv?: number | null;
+}): ReferenceStatus {
+  return getBeerReferenceStatus({
+    name: input.name,
+    brandId: input.brands?.id,
+    breweryId: input.breweries?.id,
+    styleId: input.beer_styles?.id,
+    plato: input.plato,
+    abv: input.abv,
+  });
 }

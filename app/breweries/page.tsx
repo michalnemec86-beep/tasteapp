@@ -329,15 +329,7 @@ export default async function BreweriesPage({
 
       const referenceStatus = getBreweryReferenceStatus({
         name: brewery.name,
-        city: brewery.city,
         country: brewery.country,
-        address: brewery.address,
-        website: brewery.website,
-        logoUrl: brewery.logo_url,
-        isNomadic: brewery.is_nomadic,
-        foundedYear: brewery.founded_year,
-        latitude: brewery.latitude,
-        longitude: brewery.longitude,
       });
 
       return {

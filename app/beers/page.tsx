@@ -5,11 +5,10 @@ import HomeStatIcon from "@/components/home/HomeStatIcon";
 import "./beers-concept.css";
 import { createClient } from "@/lib/supabase/server";
 import { getBeerReferenceStatus } from "@/lib/referenceStatus";
-import { isAdminView, isCatalogAdminUser } from "@/lib/adminView";
+import { isAdminView } from "@/lib/adminView";
 import { isBeerAvailableForTasting } from "@/lib/beerPortfolio";
 
 import BeerCatalogClient, { type BeerCatalogItem } from "./BeerCatalogClient";
-import { confirmCatalogBeer } from "./actions";
 
 type Relation<T> = T | T[] | null;
 
@@ -107,7 +106,6 @@ export default async function BeerCatalogPage() {
       styleId: style?.id ?? null,
       plato: current?.plato ?? beer.plato,
       abv: current?.abv ?? beer.abv,
-      isCatalog: beer.is_catalog,
     });
 
     return {
@@ -120,7 +118,6 @@ export default async function BeerCatalogPage() {
       abv: current?.abv ?? beer.abv,
       ibu: current?.ibu ?? beer.ibu,
       isNonAlcoholic: Boolean(beer.is_non_alcoholic),
-      isCatalog: Boolean(beer.is_catalog),
       canTaste: Boolean(brand && identityBrewery) &&
         isBeerAvailableForTasting(beer.portfolio_status, identityBrewery?.closed_year),
       hops,
@@ -131,7 +128,7 @@ export default async function BeerCatalogPage() {
       referenceReady: referenceStatus.ready,
       referenceMissing: referenceStatus.missing,
     };
-  }).sort((a, b) => Number(b.isCatalog) - Number(a.isCatalog) || a.name.localeCompare(b.name, "cs", { sensitivity: "base" }));
+  }).sort((a, b) => Number(b.referenceReady) - Number(a.referenceReady) || a.name.localeCompare(b.name, "cs", { sensitivity: "base" }));
 
   const tastedCount = beers.filter((beer) => beer.totalQuantity > 0).length;
   const myCount = beers.filter((beer) => beer.myQuantity > 0).length;
@@ -154,9 +151,7 @@ export default async function BeerCatalogPage() {
 
       <BeerCatalogClient
         beers={beers}
-        isCatalogAdmin={isCatalogAdminUser(user.id)}
         adminView={await isAdminView(user.id)}
-        confirmAction={confirmCatalogBeer}
       />
     </main>
   );

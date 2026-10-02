@@ -1,5 +1,7 @@
 "use client";
 
+import { getBeerSuggestionReferenceStatus } from "@/lib/referenceStatus";
+
 import StarRatingInput from "@/components/ui/StarRatingInput";
 
 import { useMemo, useState } from "react";
@@ -211,9 +213,9 @@ export default function TastingForm({
       const aDirect = normalizeText(a.name).includes(beerQuery);
       const bDirect = normalizeText(b.name).includes(beerQuery);
       if (aDirect !== bDirect) return aDirect ? -1 : 1;
-      if (Boolean(a.is_catalog) !== Boolean(b.is_catalog)) {
-        return a.is_catalog ? -1 : 1;
-      }
+      const aReady = getBeerSuggestionReferenceStatus(a).ready;
+      const bReady = getBeerSuggestionReferenceStatus(b).ready;
+      if (aReady !== bReady) return aReady ? -1 : 1;
 
       return a.name.localeCompare(b.name, "cs", { sensitivity: "base" });
     }) : [];
@@ -697,7 +699,7 @@ export default function TastingForm({
                       <>
                         <span style={suggestionLabelStyle}>Značka</span>
                         <span style={{ fontSize: "12px", opacity: 0.82 }}>
-                          {beer.brands.name}{beer.is_catalog ? " · katalogové" : ""}
+                          {beer.brands.name}{getBeerSuggestionReferenceStatus(beer).ready ? " · ověřené" : ""}
                         </span>
                       </>
                     )}

@@ -480,10 +480,13 @@ export async function updateBrewery(
     formData.get("website") ?? ""
   ).trim();
 
-  if (!city || !country || !website || (!currentBrewery.is_nomadic && !address)) {
-    throw new Error("Pro úpravu pivovaru vyplňte město, stát, web a adresu (kromě létajícího pivovaru).");
+  if (!effectiveName?.trim()) {
+    throw new Error("Název pivovaru je povinný.");
   }
   const canonicalCountry = await getCanonicalCountry(country);
+  if (!canonicalCountry) {
+    throw new Error("Stát pivovaru je povinný.");
+  }
 
   const foundedYear =
     readOptionalInteger(
@@ -762,7 +765,7 @@ export async function updateBrewery(
     .update({
       name:
         effectiveName,
-      city,
+      city: city || null,
       country: canonicalCountry,
       address:
         currentBrewery.is_nomadic

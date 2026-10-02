@@ -307,8 +307,8 @@ export default function BreweryEditModalClient({
                   </div>
 
                   <div style={gridStyle}>
-                    <Field label="Město" required>
-                      <input name="city" defaultValue={brewery.city ?? ""} required style={inputStyle} />
+                    <Field label="Město">
+                      <input name="city" defaultValue={brewery.city ?? ""} style={inputStyle} />
                     </Field>
 
                     <Field label="Stát" required>
@@ -339,22 +339,20 @@ export default function BreweryEditModalClient({
                       />
                     </Field>
 
-                    <Field label="Adresa" required={!brewery.isNomadic}>
+                    <Field label="Adresa">
                       <input
                         name="address"
                         defaultValue={brewery.address ?? ""}
                         disabled={brewery.isNomadic}
-                        required={!brewery.isNomadic}
                         placeholder={brewery.isNomadic ? "Letající pivovar" : undefined}
                         style={brewery.isNomadic ? lockedInputStyle : inputStyle}
                       />
                     </Field>
 
-                    <Field label="Web" required>
+                    <Field label="Web">
                       <input
                         name="website"
                         defaultValue={brewery.website ?? ""}
-                        required
                         placeholder="https://…"
                         style={inputStyle}
                       />

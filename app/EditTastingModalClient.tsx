@@ -1,5 +1,7 @@
 "use client";
 
+import { getBeerSuggestionReferenceStatus } from "@/lib/referenceStatus";
+
 import { notifyAchievementsUpdated } from "@/lib/achievement-notifications";
 
 import StarRatingInput from "@/components/ui/StarRatingInput";
@@ -33,6 +35,8 @@ type Hop = {
 };
 
 type Beer = {
+  plato?: number | null;
+  abv?: number | null;
   id: number;
   name: string;
   is_catalog?: boolean;
@@ -410,9 +414,9 @@ export default function EditTastingModalClient({
           const aDirect = normalizeText(a.name).includes(beerQuery);
           const bDirect = normalizeText(b.name).includes(beerQuery);
           if (aDirect !== bDirect) return aDirect ? -1 : 1;
-          if (Boolean(a.is_catalog) !== Boolean(b.is_catalog)) {
-            return a.is_catalog ? -1 : 1;
-          }
+          const aReady = getBeerSuggestionReferenceStatus(a).ready;
+          const bReady = getBeerSuggestionReferenceStatus(b).ready;
+          if (aReady !== bReady) return aReady ? -1 : 1;
           return a.name.localeCompare(b.name, "cs");
         })
     : [];

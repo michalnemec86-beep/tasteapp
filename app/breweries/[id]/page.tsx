@@ -185,15 +185,7 @@ export default async function BreweryDetailPage({ params, searchParams }: Props)
 
   const breweryReferenceStatus = getBreweryReferenceStatus({
     name: brewery.name,
-    city: brewery.city,
     country: brewery.country,
-    address: brewery.address,
-    website: brewery.website,
-    logoUrl: brewery.logo_url,
-    isNomadic: brewery.is_nomadic,
-    foundedYear: brewery.founded_year,
-    latitude: brewery.latitude,
-    longitude: brewery.longitude,
   });
 
   const history = [...(brewery.brewery_name_history ?? [])].sort(
@@ -284,7 +276,6 @@ export default async function BreweryDetailPage({ params, searchParams }: Props)
           styleId: currentStyle?.id ?? fallbackStyle?.id ?? null,
           plato: currentVersion?.plato ?? beer.plato,
           abv: currentVersion?.abv ?? beer.abv,
-          isCatalog: beer.is_catalog,
         }),
         canEdit: (isCatalogAdmin && adminView) || (beer.tastings ?? []).some(
           (tasting: any) => tasting.user_id === user.id && tasting.tasted_on >= "2026-09-01"

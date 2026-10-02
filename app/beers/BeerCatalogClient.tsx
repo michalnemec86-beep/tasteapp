@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useMemo, useState, type ReactNode } from "react";
-import CatalogConfirmButton from "./CatalogConfirmButton";
 import ReferenceWarning from "@/components/ui/ReferenceWarning";
 
 export type BeerCatalogItem = {
@@ -15,7 +14,6 @@ export type BeerCatalogItem = {
   abv: number | null;
   ibu: number | null;
   isNonAlcoholic: boolean;
-  isCatalog: boolean;
   canTaste: boolean;
   hops: Array<{ id: number; name: string }>;
   totalQuantity: number;
@@ -38,14 +36,10 @@ function initial(name: string) {
 
 export default function BeerCatalogClient({
   beers,
-  isCatalogAdmin,
   adminView,
-  confirmAction,
 }: {
   beers: BeerCatalogItem[];
-  isCatalogAdmin: boolean;
   adminView: boolean;
-  confirmAction: (beerId: number) => Promise<{ success: boolean }>;
 }) {
   const [filter, setFilter] = useState<FilterMode>("all");
   const [sort, setSort] = useState<SortMode>("default");
@@ -128,7 +122,7 @@ export default function BeerCatalogClient({
         }
 
         return (
-          Number(b.isCatalog) - Number(a.isCatalog) ||
+          Number(b.referenceReady) - Number(a.referenceReady) ||
           a.name.localeCompare(b.name, "cs", { sensitivity: "base" })
         );
       });
@@ -476,12 +470,6 @@ export default function BeerCatalogClient({
                 >
                   + Zapsat ochutnávku
                 </Link>
-              )}
-
-              {isCatalogAdmin && adminView && !beer.isCatalog && (
-                <div style={{ marginTop: "10px" }}>
-                  <CatalogConfirmButton beerId={beer.id} isCatalog={beer.isCatalog} confirmAction={confirmAction} />
-                </div>
               )}
             </article>
           ))}
