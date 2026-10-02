@@ -5,12 +5,13 @@ import PageHero from "@/components/ui/PageHero";
 import HomeStatIcon from "@/components/home/HomeStatIcon";
 import "./beers-concept.css";
 import { createClient } from "@/lib/supabase/server";
-import { fetchAllRows } from "@/lib/fetch-all-rows";
 import { getBeerReferenceStatus } from "@/lib/referenceStatus";
 import { isAdminView } from "@/lib/adminView";
 import { isBeerAvailableForTasting } from "@/lib/beerPortfolio";
 
 import { getCatalogueMatch } from "@/lib/catalogue-scope";
+import { getNewsRange } from "@/lib/navigation-news";
+import { fetchCatalogueRows, getNewCatalogueIds } from "@/lib/catalogue-news";
 
 import BeerCatalogClient, { type BeerCatalogItem } from "./BeerCatalogClient";
 
@@ -21,7 +22,7 @@ function one<T>(value: Relation<T> | undefined): T | null {
 }
 
 export default async function BeerCatalogPage({ searchParams }: {
-  searchParams: Promise<{ style?: string; hop?: string; beer?: string }>;
+  searchParams: Promise<{ style?: string; hop?: string; beer?: string; newSince?: string; newUntil?: string }>;
 }) {
   const params = await searchParams;
   function idParam(value: string | undefined) {
@@ -32,6 +33,8 @@ export default async function BeerCatalogPage({ searchParams }: {
   const styleId = idParam(params.style);
   const hopId = idParam(params.hop);
   const beerId = idParam(params.beer);
+  let newsRange;
+  try { newsRange = getNewsRange(params.newSince, params.newUntil); } catch { notFound(); }
   const supabase = await createClient();
   const {
     data: { user },
@@ -49,9 +52,11 @@ export default async function BeerCatalogPage({ searchParams }: {
     if (result?.error) throw new Error(result.error.message);
     if (result && !result.data) notFound();
   }
-  const scope = [styleResult?.data ? `Pivní styl: ${styleResult.data.name}` : "", hopResult?.data ? `Chmel: ${hopResult.data.name}` : ""].filter(Boolean).join(" · ");
+  const scope = [newsRange ? "Nová piva" : "", styleResult?.data ? `Pivní styl: ${styleResult.data.name}` : "", hopResult?.data ? `Chmel: ${hopResult.data.name}` : ""].filter(Boolean).join(" · ");
+  const newsIds = await getNewCatalogueIds(supabase, "beers", user.id, newsRange);
 
-  const rows = await fetchAllRows((from, to) => supabase
+  const rows = await fetchCatalogueRows((from, to, selectedIds) => {
+    let query = supabase
       .from("beers")
       .select(`
         id, name, plato, abv, ibu, is_non_alcoholic, is_catalog, portfolio_status,
@@ -66,10 +71,12 @@ export default async function BeerCatalogPage({ searchParams }: {
           beer_version_hops ( hops ( id, name ) )
         ),
         tastings ( id, user_id, quantity )
-      `)
-      .order("name", { ascending: true })
+      `);
+    if (selectedIds) query = query.in("id", selectedIds);
+    return query.order("name", { ascending: true })
       .order("id")
-      .range(from, to), 1000);
+      .range(from, to);
+  }, newsIds);
 
   const catalogueScope = { styleId, hopId, beerId };
   const scopedRows = rows.filter(raw => getCatalogueMatch(raw, catalogueScope).matches);
@@ -168,7 +175,7 @@ export default async function BeerCatalogPage({ searchParams }: {
       />
 
       <BeerCatalogClient
-        key={`${styleId}-${hopId}-${beerId}`}
+        key={`${styleId}-${hopId}-${beerId}-${newsRange?.since ?? ""}`}
         initiallyExpanded={Boolean(scope || beerId)}
         beers={beers}
         adminView={await isAdminView(user.id)}

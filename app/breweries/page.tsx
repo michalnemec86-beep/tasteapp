@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
-import { fetchAllRows } from "@/lib/fetch-all-rows";
+import { getNewsRange } from "@/lib/navigation-news";
+import { fetchCatalogueRows, getNewCatalogueIds } from "@/lib/catalogue-news";
 import { getBreweryReferenceStatus } from "@/lib/referenceStatus";
 import PageHero from "@/components/ui/PageHero";
 import { isAdminView } from "@/lib/adminView";
@@ -23,6 +24,8 @@ type BreweriesPageProps = {
   searchParams: Promise<{
     country?: string | string[];
     focus?: string | string[];
+    newSince?: string | string[];
+    newUntil?: string | string[];
   }>;
 };
 
@@ -60,13 +63,17 @@ export default async function BreweriesPage({
     getStringParam(params.country)?.trim() || undefined;
   const requestedFocus =
     getStringParam(params.focus) === "1";
+  let newsRange;
+  try { newsRange = getNewsRange(params.newSince, params.newUntil); } catch { notFound(); }
+  const newsIds = await getNewCatalogueIds(supabase, "breweries", user.id, newsRange);
 
   const [
     breweries,
     { data: profiles, error: profilesError },
     { data: countries, error: countriesError },
   ] = await Promise.all([
-    fetchAllRows((from, to) => supabase
+    fetchCatalogueRows((from, to, selectedIds) => {
+      let query = supabase
       .from("breweries")
       .select(`
         id,
@@ -107,10 +114,12 @@ export default async function BreweriesPage({
           from_year,
           changed_year
         )
-      `)
-      .order("name", { ascending: true })
+      `);
+      if (selectedIds) query = query.in("id", selectedIds);
+      return query.order("name", { ascending: true })
       .order("id")
-      .range(from, to), 1000),
+      .range(from, to);
+    }, newsIds),
     supabase
       .from("profiles")
       .select("id, display_name")
@@ -415,7 +424,7 @@ export default async function BreweriesPage({
         title={
           isFocusedDrilldown
             ? `Pivovary · ${selectedCountry}`
-            : "Katalog pivovarů"
+            : newsRange ? "Nové pivovary" : "Katalog pivovarů"
         }
         subtitle={
           isFocusedDrilldown
@@ -423,7 +432,7 @@ export default async function BreweriesPage({
             : "Společná databáze pivovarů, jejich původu, historie a piv zaznamenaných v Pivníku."
         }
         action={
-          selectedCountry ? (
+          selectedCountry || newsRange ? (
             <Link
               href="/breweries"
               className="taste-button-secondary"
@@ -753,7 +762,7 @@ export default async function BreweriesPage({
                 >
                   {selectedCountry
                     ? `Pivovary · ${selectedCountry}`
-                    : "Všechny pivovary"}
+                    : newsRange ? "Nové pivovary" : "Všechny pivovary"}
                 </h2>
               </div>
 
@@ -809,7 +818,8 @@ export default async function BreweriesPage({
                 updateBreweryAction={updateBrewery}
                 currentUserId={user.id}
                 adminView={await isAdminView(user.id)}
-                initiallyVisible={Boolean(selectedCountry)}
+                key={newsRange?.since ?? "all"}
+                initiallyVisible={Boolean(selectedCountry || newsRange)}
               />
             )}
           </section>

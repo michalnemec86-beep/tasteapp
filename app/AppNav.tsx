@@ -6,6 +6,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { HopMark } from "@/components/brand/PivnikMark";
 import { Download, Settings } from "lucide-react";
+import useNavigationNews from "./useNavigationNews";
+import { getNewsHref } from "@/lib/navigation-news";
 
 export default function AppNav({
   currentUserId,
@@ -15,6 +17,13 @@ export default function AppNav({
   const pathname = usePathname();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { news, reopen } = useNavigationNews(currentUserId, pathname);
+  const counts = news?.counts ?? { activity: 0, beers: 0, breweries: 0 };
+  const hasNews = Object.values(counts).some(count => count > 0);
+  function reopenSection(href: string) {
+    reopen(href);
+    if (pathname === href && !window.location.search) router.refresh();
+  }
 
   useEffect(() => {
     setMobileOpen(false);
@@ -115,11 +124,11 @@ export default function AppNav({
             padding: "10px 0",
           }}
         >
-          <NavLink href="/activity" active={isActive("/activity")}>Aktivita v hospodě</NavLink>
+          <NavLink href="/activity" active={isActive("/activity")} newsCount={counts.activity} onClick={() => reopenSection("/activity")}>Aktivita v hospodě</NavLink>
           <NavLink href="/stats" active={isActive("/stats")}>Co a jak pijeme</NavLink>
           <NavLink href="/ratings" active={isActive("/ratings")}>Hodnocení</NavLink>
-          <NavLink href="/beers" active={isActive("/beers")}>Pivní lístek</NavLink>
-          <NavLink href="/breweries" active={isActive("/breweries")}>Pivovary</NavLink>
+          <NavLink href={getNewsHref("beers", news)} active={isActive("/beers")} newsCount={counts.beers} onClick={() => reopenSection(getNewsHref("beers", news))}>Pivní lístek</NavLink>
+          <NavLink href={getNewsHref("breweries", news)} active={isActive("/breweries")} newsCount={counts.breweries} onClick={() => reopenSection(getNewsHref("breweries", news))}>Pivovary</NavLink>
           <NavLink href="/profiles" active={isActive("/profiles")}>Štamgasti</NavLink>
         </div>
 
@@ -195,11 +204,12 @@ export default function AppNav({
           <button
             type="button"
             className="taste-mobile-menu-button"
-            aria-label={mobileOpen ? "Zavřít navigaci" : "Otevřít navigaci"}
+            aria-label={mobileOpen ? "Zavřít navigaci" : hasNews ? "Otevřít navigaci, máte novinky" : "Otevřít navigaci"}
             aria-expanded={mobileOpen}
             onClick={() => setMobileOpen((current) => !current)}
           >
             {mobileOpen ? "×" : "☰"}
+            {hasNews && <span className="taste-nav-news-dot" aria-hidden="true" />}
           </button>
         </div>
       </div>
@@ -207,11 +217,11 @@ export default function AppNav({
       {mobileOpen && (
         <div className="taste-mobile-menu">
           <MobileNavLink href="/" active={isActive("/me")}>Můj pivní deník</MobileNavLink>
-          <MobileNavLink href="/activity" active={isActive("/activity")}>Aktivita v hospodě</MobileNavLink>
+          <MobileNavLink href="/activity" active={isActive("/activity")} newsCount={counts.activity} onClick={() => reopenSection("/activity")}>Aktivita v hospodě</MobileNavLink>
           <MobileNavLink href="/stats" active={isActive("/stats")}>Co a jak pijeme</MobileNavLink>
           <MobileNavLink href="/ratings" active={isActive("/ratings")}>Hodnocení</MobileNavLink>
-          <MobileNavLink href="/beers" active={isActive("/beers")}>Pivní lístek</MobileNavLink>
-          <MobileNavLink href="/breweries" active={isActive("/breweries")}>Pivovary</MobileNavLink>
+          <MobileNavLink href={getNewsHref("beers", news)} active={isActive("/beers")} newsCount={counts.beers} onClick={() => reopenSection(getNewsHref("beers", news))}>Pivní lístek</MobileNavLink>
+          <MobileNavLink href={getNewsHref("breweries", news)} active={isActive("/breweries")} newsCount={counts.breweries} onClick={() => reopenSection(getNewsHref("breweries", news))}>Pivovary</MobileNavLink>
           <MobileNavLink href="/profiles" active={isActive("/profiles")}>Štamgasti</MobileNavLink>
           <MobileNavLink href="/install" active={isActive("/install")}>Nainstalovat Pivník</MobileNavLink>
           <MobileNavLink href="/settings" active={isActive("/settings")}>Nastavení</MobileNavLink>
@@ -294,14 +304,18 @@ function MobileNavLink({
   href,
   active,
   children,
+  newsCount,
+  onClick,
 }: {
   href: string;
   active: boolean;
   children: React.ReactNode;
+  newsCount?: number;
+  onClick?: () => void;
 }) {
   return (
-    <Link href={href} className="taste-mobile-nav-link" data-active={active ? "true" : "false"}>
-      <span>{children}</span>
+    <Link href={href} prefetch={newsCount === undefined ? undefined : false} onClick={onClick} className="taste-mobile-nav-link" data-active={active ? "true" : "false"}>
+      <span className="taste-mobile-nav-label">{children}<NewsBadge count={newsCount} /></span>
       <span aria-hidden="true">›</span>
     </Link>
   );
@@ -311,14 +325,20 @@ function NavLink({
   href,
   active,
   children,
+  newsCount,
+  onClick,
 }: {
   href: string;
   active: boolean;
   children: React.ReactNode;
+  newsCount?: number;
+  onClick?: () => void;
 }) {
   return (
     <Link
       href={href}
+      prefetch={newsCount === undefined ? undefined : false}
+      onClick={onClick}
       style={{
         position: "relative",
         display: "inline-flex",
@@ -338,6 +358,7 @@ function NavLink({
       }}
     >
       {children}
+      <NewsBadge count={newsCount} />
       {active && (
         <span
           style={{
@@ -355,4 +376,9 @@ function NavLink({
       )}
     </Link>
   );
+}
+
+function NewsBadge({ count = 0 }: { count?: number }) {
+  if (count < 1) return null;
+  return <span className="taste-nav-news-badge" aria-label={`${count} novinek`}>{count > 99 ? "99+" : count}</span>;
 }

@@ -10,6 +10,36 @@
   display: none;
 }
 
+.taste-nav-news-badge {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  min-width: 19px;
+  height: 19px;
+  padding: 0 5px;
+  margin-left: 6px;
+  border-radius: 999px;
+  background: #d52f3b;
+  color: #fff;
+  font-size: 10px;
+  line-height: 1;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.taste-mobile-nav-label { display: inline-flex; align-items: center; }
+.taste-nav-news-dot {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #e13743;
+  box-shadow: 0 0 0 2px #21150e;
+}
+
 .taste-profile-nav-link {
   display: inline-flex;
   flex: 0 0 auto;
@@ -150,6 +180,7 @@
   }
 
   .taste-mobile-menu-button {
+    position: relative;
     width: 42px;
     height: 42px;
     display: inline-flex;
