@@ -17,6 +17,7 @@ import {
 
 import {
   buildProfileStats,
+  getTastingDate,
 } from "@/lib/profileStats";
 
 import {
@@ -667,8 +668,8 @@ export default async function ProfilePage({
         (a.beer_versions?.breweries ?? a.beers?.breweries)?.country ?? "";
       const countryB =
         (b.beer_versions?.breweries ?? b.beers?.breweries)?.country ?? "";
-      const dateA = Date.parse(a.tasted_at ?? a.tasted_on ?? "") || 0;
-      const dateB = Date.parse(b.tasted_at ?? b.tasted_on ?? "") || 0;
+      const dateA = Date.parse(getTastingDate(a) ?? "") || 0;
+      const dateB = Date.parse(getTastingDate(b) ?? "") || 0;
 
       if (tastingSort === "alpha") {
         return beerA.localeCompare(beerB, "cs", { sensitivity: "base" });

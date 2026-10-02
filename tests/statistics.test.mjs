@@ -16,7 +16,7 @@ function load(relative) {
   }).outputText, filename);
   return sourceModule.exports;
 }
-const { buildProfileStats } = load('lib/profileStats.ts');
+const { buildProfileStats, getTastingDate } = load('lib/profileStats.ts');
 const { buildTasteStats } = load('lib/stats.ts');
 const { isBeerAvailableForTasting } = load('lib/beerPortfolio.ts');
 const hop = id => ({ hops: { id, name: `Chmel ${id}` } });
@@ -73,4 +73,17 @@ test('historical/discontinued beers and closed breweries cannot be selected for 
   for (const status of ['active', 'seasonal', 'limited']) assert.equal(isBeerAvailableForTasting(status, null), true);
   for (const status of ['historical', 'discontinued']) assert.equal(isBeerAvailableForTasting(status, null), false);
   assert.equal(isBeerAvailableForTasting('active', 2026), false);
+});
+
+
+test('diary chronology follows the displayed tasting date, including imported and backdated entries', () => {
+  const rows = [
+    tasting({ tasted_on: '2019-06-07', tasted_at: '2026-09-23T10:16:11Z' }),
+    tasting({ tasted_on: '2025-05-28', tasted_at: '2026-09-23T10:16:11Z' }),
+    tasting({ tasted_on: '2026-09-26', tasted_at: '2026-09-26T11:56:20Z' }),
+  ];
+  const newest = [...rows].sort((a, b) => Date.parse(getTastingDate(b)) - Date.parse(getTastingDate(a)));
+  assert.deepEqual(newest.map(row => row.tasted_on), ['2026-09-26', '2025-05-28', '2019-06-07']);
+  assert.equal(getTastingDate({ tasted_on: null, tasted_at: '2020-01-02T12:00:00Z' }), '2020-01-02');
+  assert.equal(getTastingDate({ tasted_on: null, tasted_at: null }), null);
 });

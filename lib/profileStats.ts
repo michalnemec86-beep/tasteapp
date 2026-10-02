@@ -75,7 +75,7 @@ function normalizeText(value: string) {
     .trim();
 }
 
-function getTastingDate(tasting: ProfileStatsTasting) {
+export function getTastingDate(tasting: Pick<ProfileStatsTasting, "tasted_on" | "tasted_at">) {
   return tasting.tasted_on ?? tasting.tasted_at?.slice(0, 10) ?? null;
 }
 
