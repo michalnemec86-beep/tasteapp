@@ -32,6 +32,11 @@ Pozdější commit přidává tuto dokumentaci; nemění funkce archivované ver
   Historická piva v seznamu pivovaru nejsou klikací; statistiky a staré ochutnávky
   zůstávají zachované. Bez změny databázových záznamů nebo migrace.
 
+- 2. 10. 2026: osobní červené počty novinek u Aktivity, Pivního lístku a Pivovarů;
+  na mobilu také tečka u menu ([chování a ověření](navigation-news.md)).
+  Návštěvy se synchronizují přes účet. Nová metadata a RPC respektují RLS;
+  starší obsah při zavedení nevytvoří upozornění.
+
 ## Dokumenty k načtení
 
 - [Přehled funkcí a ověření](function-report-2026-10-02.md).

@@ -118,7 +118,8 @@ export default function BreweryListStatePersistence() {
         country: stored?.country ?? "",
         city: stored?.city ?? "",
       };
-      const stateToRestore = hasState(urlState) ? urlState : storedState;
+      // Do not hide fresh catalogue entries behind filters from an older visit.
+      const stateToRestore = hasState(urlState) || entryParams.has("newSince") ? urlState : storedState;
 
       if (hasState(stateToRestore)) {
         const schedule = (delay: number, callback: () => void) => {
