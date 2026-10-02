@@ -319,7 +319,7 @@ export default async function FocusedBeerDetails({ beerId }: Props) {
       >
         <div className="taste-label">Aktuální parametry</div>
         <div style={{ display: "flex", flexWrap: "wrap", gap: "10px 18px", marginTop: "12px", fontSize: "13px" }}>
-          {brand && <Link className="taste-entity-link" href={brandHref(brand.id, brewery?.id)}>Značka: <strong>{brand.name}</strong></Link>}
+          {brand && <Link prefetch={false} className="taste-entity-link" href={brandHref(brand.id, brewery?.id)}>Značka: <strong>{brand.name}</strong></Link>}
           {brewery && <Link className="taste-entity-link" href={`/breweries/${brewery.id}`}>Pivovar: <strong>{brewery.name}</strong></Link>}
           {style && <Link className="taste-entity-link" href={styleHref(style.id)}>Styl: <strong>{style.name}</strong></Link>}
           {currentPlato != null && <span>Stupňovitost: <strong>{currentPlato} °P</strong></span>}

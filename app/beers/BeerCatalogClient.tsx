@@ -421,7 +421,7 @@ export default function BeerCatalogClient({
               <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "flex-start" }}>
                 <div style={{ minWidth: 0 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                    <Link href={beerHref(beer.id, beer.brewery?.id)} className="taste-entity-link taste-beer-catalog-name" style={{ color: "var(--taste-text)", fontSize: "18px", lineHeight: 1.15, fontWeight: 850 }}>
+                    <Link prefetch={false} href={beerHref(beer.id, beer.brewery?.id)} className="taste-entity-link taste-beer-catalog-name" style={{ color: "var(--taste-text)", fontSize: "18px", lineHeight: 1.15, fontWeight: 850 }}>
                       {beer.name}
                     </Link>
                     {adminView && !beer.referenceReady && <ReferenceWarning missing={beer.referenceMissing} />}
@@ -429,7 +429,7 @@ export default function BeerCatalogClient({
                   {beer.historicalMatch && <div style={{ marginTop: "6px", color: "var(--taste-amber-bright)", fontSize: "12px" }}>Shoda v historické verzi</div>}
                   {beer.brand && (
                     <div className="taste-beer-catalog-brand" style={{ marginTop: "5px", fontSize: "11px" }}>
-                      <Link href={brandHref(beer.brand.id, beer.brewery?.id)} className="taste-entity-link">{beer.brand.name}</Link>
+                      <Link prefetch={false} href={brandHref(beer.brand.id, beer.brewery?.id)} className="taste-entity-link">{beer.brand.name}</Link>
                     </div>
                   )}
                 </div>

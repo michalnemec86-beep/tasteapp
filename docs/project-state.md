@@ -23,9 +23,14 @@ Pozdější commit přidává tuto dokumentaci; nemění funkce archivované ver
 - 2. 10. 2026: jednotná normalizace všech uložených log včetně pivního podtácku
   ([popis a ověření](logo-normalization.md)). Originály a archiv zůstávají zachované.
 
-- Připraveno: sjednocení navigace názvů na profily pivovarů, států a uživatelů;
+- 2. 10. 2026 nasazeno (PR #65): sjednocení navigace názvů na profily pivovarů, států a uživatelů;
   piva a značky uvnitř pivovaru, styly/chmely do Pivního lístku
   ([pravidla a ověření](entity-navigation.md)). Změna není součástí původního archivu.
+
+- 2. 10. 2026: pasivní historie sortimentu a načítání podrobností až podle
+  zvoleného filtru nebo přímého odkazu ([rozsah a ověření](passive-beer-history.md)).
+  Historická piva v seznamu pivovaru nejsou klikací; statistiky a staré ochutnávky
+  zůstávají zachované. Bez změny databázových záznamů nebo migrace.
 
 ## Dokumenty k načtení
 

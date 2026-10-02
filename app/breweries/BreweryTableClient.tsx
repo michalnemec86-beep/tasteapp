@@ -1536,7 +1536,7 @@ function BreweryBrandsModal({
                     minWidth: 0,
                   }}
                 >
-                  <Link
+                  <Link prefetch={false}
                     href={brandHref(brand.id, brewery.id)}
                     style={{
                       color:

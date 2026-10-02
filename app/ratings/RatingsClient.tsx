@@ -74,7 +74,7 @@ export default function RatingsClient({ rows, initialBeer = "" }: { rows: RatedT
             {row.avatarUrl ? <img src={row.avatarUrl} alt="" width="42" height="42"/> : <HomeStatIcon kind="crest"/>}
           </Link>
           <div className="taste-rating-review-content">
-            <div className="taste-rating-review-sentence"><Link href={`/profiles/${row.userId}`} className="taste-rating-user">{row.userName}</Link> <span>ohodnotil pivo</span> <Link href={beerHref(row.beerId, row.breweryId)} className="taste-rating-beer">{row.beerName}</Link></div>
+            <div className="taste-rating-review-sentence"><Link href={`/profiles/${row.userId}`} className="taste-rating-user">{row.userName}</Link> <span>ohodnotil pivo</span> <Link prefetch={false} href={beerHref(row.beerId, row.breweryId)} className="taste-rating-beer">{row.beerName}</Link></div>
             <div className="taste-rating-review-meta">{row.breweryId ? <Link href={`/breweries/${row.breweryId}`}>{row.breweryName}</Link> : row.breweryName}<span> · {getPackagingMeta(row.packaging)?.label || "Jiné"}</span><time dateTime={row.ratedAt}>{new Date(row.ratedAt).toLocaleString("cs-CZ", { timeZone: "Europe/Prague", day: "numeric", month: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" })}</time></div>
           </div>
           <RatingStars rating={row.rating}/>
@@ -115,7 +115,7 @@ function BeerRanking({ title, items, worst }: { title: string; items: RatingRank
     {!items.length ? <p className="taste-ratings-empty">Zatím tu nejsou hodnocená piva.</p> : <ol className="taste-rating-ranking-list">{items.map((item,index) => <li key={item.id}>
       <span className="taste-rating-position">{index+1}</span>
       {item.tasting.logoUrl ? <AutoLogoFrame src={item.tasting.logoUrl} alt="" size={34}/> : <span className="taste-rating-beer-icon"><HomeStatIcon kind="mug"/></span>}
-      <div className="taste-rating-rank-name"><Link href={beerHref(item.id, item.tasting.breweryId)}>{item.name}</Link><span>{item.tasting.breweryId ? <Link href={`/breweries/${item.tasting.breweryId}`}>{item.tasting.breweryName}</Link> : item.tasting.breweryName}</span></div>
+      <div className="taste-rating-rank-name"><Link prefetch={false} href={beerHref(item.id, item.tasting.breweryId)}>{item.name}</Link><span>{item.tasting.breweryId ? <Link href={`/breweries/${item.tasting.breweryId}`}>{item.tasting.breweryName}</Link> : item.tasting.breweryName}</span></div>
       <Link href={`/ratings?beer=${item.id}`} aria-label={`Hodnocení piva ${item.name}`}><RankScore item={item}/></Link>
     </li>)}</ol>}
   </article>;

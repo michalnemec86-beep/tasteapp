@@ -6,12 +6,11 @@ import { isBeerAvailableForTasting } from "@/lib/beerPortfolio";
 import { notFound, redirect } from "next/navigation";
 import "./brewery-detail.css";
 
-import { fetchAllRows } from "@/lib/fetch-all-rows";
+import { loadBreweryPortfolio, type BreweryBeerIndex } from "@/lib/brewery-portfolio";
 import { createClient } from "@/lib/supabase/server";
-import { getBeerReferenceStatus, getBreweryReferenceStatus } from "@/lib/referenceStatus";
+import { getBreweryReferenceStatus } from "@/lib/referenceStatus";
 import {
   beerPortfolioStatusLabel,
-  isHistoricalBeerPortfolioStatus,
 } from "@/lib/beerPortfolio";
 import PageHero from "@/components/ui/PageHero";
 import ReferenceWarning from "@/components/ui/ReferenceWarning";
@@ -100,18 +99,7 @@ export default async function BreweryDetailPage({ params, searchParams }: Props)
         brewery_brands (
           brands ( id, name )
         ),
-        beers (
-          id, name, plato, abv, ibu, is_non_alcoholic, is_catalog, portfolio_status,
-          brands ( id, name ),
-          beer_styles ( id, name ),
-          beer_hops ( hops ( name ) ),
-          beer_versions (
-            id, version_year, is_current, plato, abv, ibu,
-            beer_styles ( id, name ),
-            beer_version_hops ( hops ( name ) )
-          ),
-          tastings ( id, user_id, tasted_on, quantity )
-        ),
+        beers ( id, portfolio_status, brands ( id, name ) ),
         brewery_name_history ( id, previous_name, from_year, changed_year )
       `)
       .eq("id", breweryId)
@@ -146,16 +134,8 @@ export default async function BreweryDetailPage({ params, searchParams }: Props)
     supabase
       .from("beer_versions")
       .select(`
-        id, version_year, is_current, plato, abv, ibu, brewery_id, brewed_for_brewery_id,
-        beer_styles ( id, name ),
-        beer_version_hops ( hops ( name ) ),
-        beers!inner (
-          id, name, plato, abv, ibu, is_non_alcoholic, is_catalog, portfolio_status,
-          brands ( id, name ),
-          beer_styles ( id, name ),
-          beer_hops ( hops ( name ) ),
-          tastings ( id, user_id, tasted_on, quantity )
-        )
+        id, beer_id,
+        beers!inner ( id, portfolio_status, brands ( id, name ) )
       `)
       .eq("is_current", true)
       .eq("brewed_for_brewery_id", breweryId),
@@ -204,157 +184,28 @@ export default async function BreweryDetailPage({ params, searchParams }: Props)
   }, null);
 
   const commissionedBeers = (commissionedResult.data ?? []).flatMap((version: any) => {
-    const beer = one(version.beers);
-    if (!beer) return [];
-    return [{
-      ...beer,
-      beer_versions: [{
-        id: version.id,
-        version_year: version.version_year,
-        is_current: version.is_current,
-        plato: version.plato,
-        abv: version.abv,
-        ibu: version.ibu,
-        brewery_id: version.brewery_id,
-        brewed_for_brewery_id: version.brewed_for_brewery_id,
-        beer_styles: version.beer_styles,
-        beer_version_hops: version.beer_version_hops,
-      }],
-      isCommissionedForThisBrewery: true,
-    }];
+    const beer = one<BreweryBeerIndex>(version.beers);
+    return beer ? [{ ...beer, isCommissionedForThisBrewery: true }] : [];
   });
-
-  const directBeerIds = new Set((brewery.beers ?? []).map((beer: any) => beer.id));
+  const directBeerIds = new Set((brewery.beers ?? []).map(beer => beer.id));
   const breweryBeerRows = [
     ...(brewery.beers ?? []),
-    ...commissionedBeers.filter((beer: any) => !directBeerIds.has(beer.id)),
+    ...commissionedBeers.filter(beer => !directBeerIds.has(beer.id)),
   ];
-
-  const contextualRows: any[] = [];
-  if (focusedBeerId || focusedBrandId) {
-    const focusRows = await fetchAllRows((from, to) => {
-      let query = supabase.from("beers").select(`
-        id, name, brewery_id, plato, abv, ibu, is_non_alcoholic, is_catalog, portfolio_status,
-        brands(id, name), beer_styles(id, name), beer_hops(hops(id, name)),
-        beer_versions(id, brewery_id, brewed_for_brewery_id, version_year, is_current, plato, abv, ibu, beer_styles(id, name), beer_version_hops(hops(id, name))),
-        tastings(id, user_id, tasted_on, quantity)
-      `);
-      query = focusedBeerId ? query.eq("id", focusedBeerId) : query.eq("brand_id", focusedBrandId!);
-      return query.order("id").range(from, to);
-    });
-    const existingIds = new Set(breweryBeerRows.map((beer: any) => beer.id));
-    for (const beer of focusRows) {
-      if (!existingIds.has(beer.id) && (beer.brewery_id === breweryId || beer.beer_versions.some(version => version.brewery_id === breweryId || version.brewed_for_brewery_id === breweryId))) {
-        contextualRows.push(beer);
-      }
-    }
-  }
-  const contextualIds = new Set(contextualRows.map(beer => beer.id));
-  const normalizedRows = [...breweryBeerRows, ...contextualRows]
-    .map((beer: any) => {
-      const brand = one(beer.brands);
-      const fallbackStyle = one(beer.beer_styles);
-      const fallbackHopNames = (beer.beer_hops ?? [])
-        .map((item: any) => one(item.hops)?.name)
-        .filter(Boolean) as string[];
-
-      const versions = beer.beer_versions ?? [];
-      const currentVersion =
-        versions.find((version: any) => version.is_current) ?? null;
-
-      const currentStyle = currentVersion
-        ? one(currentVersion.beer_styles)
-        : null;
-
-      const currentHopNames = currentVersion
-        ? (currentVersion.beer_version_hops ?? [])
-            .map((item: any) => one(item.hops)?.name)
-            .filter(Boolean) as string[]
-        : [];
-
-      const portfolioStatus = beer.portfolio_status ?? "active";
-      const effectivePortfolioStatus =
-        brewery.closed_year != null ? "historical" : portfolioStatus;
-      const isHistorical = isHistoricalBeerPortfolioStatus(
-        effectivePortfolioStatus
-      );
-
-      return {
-        ...beer,
-        brand,
-        portfolioStatus,
-        effectivePortfolioStatus,
-        isHistorical,
-        plato: currentVersion?.plato ?? beer.plato,
-        abv: currentVersion?.abv ?? beer.abv,
-        ibu: currentVersion?.ibu ?? beer.ibu,
-        styleName: currentStyle?.name ?? fallbackStyle?.name ?? "",
-        styleId: currentStyle?.id ?? fallbackStyle?.id ?? null,
-        hopNames:
-          currentHopNames.length > 0
-            ? currentHopNames
-            : fallbackHopNames,
-        currentVersionId: currentVersion?.id ?? null,
-        versionCount: versions.length,
-        referenceStatus: getBeerReferenceStatus({
-          name: beer.name,
-          brandId: brand?.id ?? null,
-          breweryId: currentVersion?.brewery_id ?? brewery.id,
-          styleId: currentStyle?.id ?? fallbackStyle?.id ?? null,
-          plato: currentVersion?.plato ?? beer.plato,
-          abv: currentVersion?.abv ?? beer.abv,
-        }),
-        canEdit: (isCatalogAdmin && adminView) || (beer.tastings ?? []).some(
-          (tasting: any) => tasting.user_id === user.id && tasting.tasted_on >= "2026-09-01"
-        ),
-      };
-    })
-    .sort((a: any, b: any) =>
-      a.name.localeCompare(b.name, "cs", {
-        sensitivity: "base",
-      })
-    );
-
-  const breweryBeers = normalizedRows.filter((beer: any) => !contextualIds.has(beer.id));
-  const currentBreweryBeers = breweryBeers.filter(
-    (beer: any) => !beer.isHistorical
-  );
-  const historicalBreweryBeers = breweryBeers.filter(
-    (beer: any) => beer.isHistorical
-  );
-  const portfolioBeers =
-    portfolioFilter === "all"
-      ? breweryBeers
-      : portfolioFilter === "historical"
-        ? historicalBreweryBeers
-        : currentBreweryBeers;
-
-  const visibleBreweryBeers = [...portfolioBeers, ...normalizedRows.filter((beer: any) => contextualIds.has(beer.id))];
-  const focusExists = visibleBreweryBeers.some((beer: any) => beer.id === focusedBeerId);
-
+  const portfolio = await loadBreweryPortfolio(supabase, breweryBeerRows, {
+    breweryId, closedYear: brewery.closed_year, userId: user.id,
+    adminView: isCatalogAdmin && adminView,
+    portfolio: portfolioFilter, beerId: focusedBeerId, brandId: focusedBrandId,
+  });
+  const { visibleBeers: visibleBreweryBeers, contextualIds, consumedBeerCount } = portfolio;
+  const focusExists = visibleBreweryBeers.some(beer => beer.id === focusedBeerId);
   if (focusedBeerId && !focusExists) notFound();
-
-  const consumedBeerCount = breweryBeers.reduce(
-    (total: number, beer: any) =>
-      total +
-      (beer.tastings ?? []).reduce(
-        (beerTotal: number, tasting: any) =>
-          beerTotal + (tasting.quantity ?? 1),
-        0
-      ),
-    0
-  );
 
   const linkedBrands: Array<{ id: number; name: string }> = [...new Map([
     ...(brewery.brewery_brands ?? []).map((row: any) => one(row.brands)),
-    ...normalizedRows.map((beer: any) => beer.brand),
+    ...portfolio.brands, ...portfolio.contextBrands,
   ].filter(Boolean).map((brand: any) => [brand.id, brand] as const)).values()];
-  const brandCount = new Set([
-    ...linkedBrands.map((brand) => brand.id),
-    ...breweryBeers
-      .map((beer: any) => beer.brand?.id)
-      .filter((brandId: unknown): brandId is number => typeof brandId === "number"),
-  ]).size;
+  const brandCount = linkedBrands.length;
 
   const relatedIds = Array.from(new Set([
     ...(outgoingResult.data ?? []).map((item) => item.to_brewery_id),
@@ -430,7 +281,7 @@ export default async function BreweryDetailPage({ params, searchParams }: Props)
           </div>
         }
         stats={[
-          { icon: "🍺", value: breweryBeers.length, label: "Piv v katalogu" },
+          { icon: "🍺", value: portfolio.totalBeerCount, label: "Piv v katalogu" },
           { icon: "◆", value: brandCount, label: "Značek" },
           { icon: "✓", value: consumedBeerCount, label: "Vypitých piv" },
         ]}
@@ -548,6 +399,7 @@ export default async function BreweryDetailPage({ params, searchParams }: Props)
                   <Link
                     key={item.key}
                     href={item.href}
+                    prefetch={false}
                     className="taste-button-secondary"
                     style={{
                       padding: "6px 9px",
@@ -598,16 +450,17 @@ export default async function BreweryDetailPage({ params, searchParams }: Props)
                   }}
                 >
                   <div style={{ minWidth: 0 }}>
-                    <Link href={beerHref(beer.id, brewery.id)} className="taste-entity-link taste-brewery-beer-name" style={{ color: "var(--taste-text)", fontSize: "13px", fontWeight: 700, lineHeight: 1.3 }}>
-                      {beer.name}
-                    </Link>
+                    {beer.isHistorical ? (
+                      <span className="taste-brewery-beer-name" style={{ color: "var(--taste-text)", fontSize: "13px", fontWeight: 700, lineHeight: 1.3 }}>{beer.name}</span>
+                    ) : (
+                      <Link prefetch={false} href={beerHref(beer.id, brewery.id)} className="taste-entity-link taste-brewery-beer-name" style={{ color: "var(--taste-text)", fontSize: "13px", fontWeight: 700, lineHeight: 1.3 }}>{beer.name}</Link>
+                    )}
                     {adminView && !beer.referenceStatus.ready && <span style={{ marginLeft: "7px" }}><ReferenceWarning missing={beer.referenceStatus.missing} /></span>}
                     {beer.brand && (
                       <div className="taste-brewery-beer-brand" style={{ marginTop: "5px", color: "var(--taste-text-muted)", fontSize: "10px" }}>
                         <span style={{ marginRight: "5px" }}>Značka:</span>
-                        <Link href={brandHref(beer.brand.id, brewery.id)} className="taste-entity-link" style={{ color: "var(--taste-amber-bright)", fontWeight: 700 }}>
-                          {beer.brand.name}
-                        </Link>
+                        {beer.isHistorical ? <span style={{ color: "var(--taste-amber-bright)", fontWeight: 700 }}>{beer.brand.name}</span> :
+                          <Link prefetch={false} href={brandHref(beer.brand.id, brewery.id)} className="taste-entity-link" style={{ color: "var(--taste-amber-bright)", fontWeight: 700 }}>{beer.brand.name}</Link>}
                       </div>
                     )}
                     <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "5px", marginTop: "6px" }}>
@@ -618,12 +471,12 @@ export default async function BreweryDetailPage({ params, searchParams }: Props)
                       {beer.effectivePortfolioStatus !== "active" && (
                         <Badge>{beerPortfolioStatusLabel(beer.effectivePortfolioStatus).toUpperCase()}</Badge>
                       )}
-                      {beer.styleName && <Link href={styleHref(beer.styleId)} className="taste-entity-link" style={{ color: "var(--taste-text-soft)", fontSize: "10px", fontWeight: 650 }}>{beer.styleName}</Link>}
+                      {beer.styleName && (beer.isHistorical ? <span style={{ color: "var(--taste-text-soft)", fontSize: "10px", fontWeight: 650 }}>{beer.styleName}</span> : <Link href={styleHref(beer.styleId)} className="taste-entity-link" style={{ color: "var(--taste-text-soft)", fontSize: "10px", fontWeight: 650 }}>{beer.styleName}</Link>)}
                       {beer.plato != null && <Badge>{beer.plato} °P</Badge>}
                       {beer.abv != null && <Badge>{beer.abv} %</Badge>}
                       {beer.ibu != null && <Badge>IBU {beer.ibu}</Badge>}
                     </div>
-                    {beer.hopNames.length > 0 && (
+                    {!beer.isHistorical && beer.hopNames.length > 0 && (
                       <div
                         style={{
                           marginTop: "6px",
@@ -638,7 +491,7 @@ export default async function BreweryDetailPage({ params, searchParams }: Props)
                         </span>
                       </div>
                     )}
-                    {beer.versionCount > 1 && (
+                    {!beer.isHistorical && beer.versionCount > 1 && (
                       <div
                         style={{
                           marginTop: "7px",
@@ -653,7 +506,7 @@ export default async function BreweryDetailPage({ params, searchParams }: Props)
                   </div>
 
                   <div className="taste-brewery-beer-actions" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                    {beer.canEdit && !contextualIds.has(beer.id) && (
+                    {beer.canEdit && (!beer.isHistorical || (isCatalogAdmin && adminView)) && !contextualIds.has(beer.id) && (
                       <CatalogBeerEditModalClient
                         breweryName={brewery.name}
                         beer={{
@@ -665,7 +518,7 @@ export default async function BreweryDetailPage({ params, searchParams }: Props)
                           isNonAlcoholic: beer.is_non_alcoholic,
                           styleName: beer.styleName,
                           hopNames: beer.hopNames,
-                          tastingCount: beer.tastings?.length ?? 0,
+                          tastingCount: beer.tastingCount,
                           portfolioStatus: beer.portfolioStatus,
                         }}
                         styles={styles}
@@ -676,7 +529,7 @@ export default async function BreweryDetailPage({ params, searchParams }: Props)
                       />
                     )}
                     <div className="taste-brewery-beer-quantity" style={{ color: "var(--taste-amber-bright)", fontSize: "11px", fontWeight: 750, whiteSpace: "nowrap" }}>
-                      {(beer.tastings ?? []).reduce((sum: number, tasting: any) => sum + (tasting.quantity ?? 1), 0)}×
+                      {beer.totalQuantity}×
                     </div>
                   </div>
                   {beer.id === focusedBeerId && <div style={{ gridColumn: "1 / -1", minWidth: 0 }}>
@@ -704,7 +557,7 @@ export default async function BreweryDetailPage({ params, searchParams }: Props)
             <div className="taste-label taste-brewery-section-title" style={{ marginBottom: "9px" }}>Značky pivovaru</div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: "7px" }}>
               {linkedBrands.sort((a, b) => a.name.localeCompare(b.name, "cs")).map((brand) => (
-                <Link key={brand.id} href={brandHref(brand.id, brewery.id)} id={`brand-${brand.id}`} data-focused={brand.id === focusedBrandId ? "true" : undefined} className="taste-button-secondary" style={{ padding: "6px 9px", fontSize: "10px" }}>
+                <Link prefetch={false} key={brand.id} href={brandHref(brand.id, brewery.id)} id={`brand-${brand.id}`} data-focused={brand.id === focusedBrandId ? "true" : undefined} className="taste-button-secondary" style={{ padding: "6px 9px", fontSize: "10px" }}>
                   {brand.name}
                 </Link>
               ))}
@@ -722,7 +575,7 @@ export default async function BreweryDetailPage({ params, searchParams }: Props)
                   <span style={{ color: "var(--taste-text-muted)" }}> + </span>
                   <Link href={`/breweries/${item.collaborator.id}`} className="taste-entity-link">{item.collaborator.name}</Link>
                   <span style={{ color: "var(--taste-text-muted)" }}> · </span>
-                  <Link href={`/beers/${item.beer.id}`} className="taste-entity-link">{item.beer.name}</Link>
+                  <Link prefetch={false} href={`/beers/${item.beer.id}`} className="taste-entity-link">{item.beer.name}</Link>
                   {item.versionYear != null && <span style={{ marginLeft: "5px", color: "var(--taste-text-muted)", fontSize: "9px" }}>({item.versionYear})</span>}
                 </div>
               ))}

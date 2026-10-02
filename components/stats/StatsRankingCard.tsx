@@ -402,6 +402,7 @@ function BeerRankingCardView({
 
             return getItemHref ? (
               <Link
+                prefetch={false}
                 key={
                   item.id
                 }
@@ -691,6 +692,7 @@ function BrandRankingCardView({
 
             return getItemHref ? (
               <Link
+                prefetch={false}
                 key={
                   item.id
                 }
@@ -2706,4 +2708,3 @@ function RankingCardView({
     </section>
   );
 }
-

@@ -1,4 +1,4 @@
-# Navigace objektů – připravená změna 2. 10. 2026
+# Navigace objektů – změna 2. 10. 2026
 
 | Klik na název | Cíl |
 | --- | --- |
@@ -11,6 +11,8 @@
 | Chmel | Pivní lístek s filtrem chmele |
 
 Pravidlo platí v deníku, aktivitě, statistikách, Pivním lístku a Hodnocení.
+Výjimka: historické/ukončené položky v seznamu pivovaru jsou pasivní, bez odkazů
+na pivo, značku a styl. Z deníku a Hodnocení lze jejich detail dál otevřít.
 Osobní souhrnná čísla a analytické ovládání si zachovávají původní uživatelský kontext.
 Hodnocení kategorií: název otevře objekt/výpis, skóre filtruje hodnocení.
 
@@ -20,7 +22,8 @@ Při odkazu z ochutnávky je pivovar určen její historickou verzí. Pokud pivo
 není v běžném sortimentu daného pivovaru, načte se pouze zvolená položka, ověří
 se její skutečná historická/zakázková vazba a otevře se uvnitř profilu. Nepřičítá
 se do stávajících souhrnných čísel profilu. Nepříslušný odkaz skončí 404.
-Odkaz na historické pivo automaticky otevře Vše, takže jej filtr Současný neskryje.
+Přímý odkaz načte kontext vybraného piva nebo značky, takže historickou položku
+filtr Současný neskryje a současně se nemusí načítat celé historické portfolio.
 
 Přímý kontext značky v sortimentu nebo katalogu určuje konkrétní pivovar.
 Bez kontextu se použijí existující vazby brewery_brands a katalogové výrobní
@@ -47,5 +50,5 @@ ukazuje také deset posledních ochutnávek a jejich uživatele/hodnocení.
   starý odkaz piva, neexistující pivo a nepřihlášený uživatel.
 - Read-only kontrola datových vazeb na původním Supabase.
 - Bez databázové migrace, bez změn ochutnávek, identit, hodnocení či oprávnění.
-- Připraveno k nasazení; přihlášené mobilní/desktopové klikání v produkci se
-  před nasazením této větve neověřovalo.
+- Sjednocení navigace nasazeno v PR #65; Michal potvrdil, že je aplikace v pořádku.
+- [Následná úprava pasivní historie a její kontroly](passive-beer-history.md).
