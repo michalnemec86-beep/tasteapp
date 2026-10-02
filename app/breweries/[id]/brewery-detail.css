@@ -273,3 +273,8 @@ body:has(.taste-brewery-detail-concept) {
     width: 100%;
   }
 }
+
+.taste-brewery-beer-row, [id^="brand-"] { scroll-margin-top: 100px; }
+.taste-brewery-detail-concept [data-focused="true"] { outline: 2px solid var(--taste-amber-bright); border-radius: 10px; background: rgba(242,182,63,.08); }
+.taste-brewery-inline-beer { padding: 12px 0; }
+.taste-brewery-inline-beer h3 { font-size: 18px; }

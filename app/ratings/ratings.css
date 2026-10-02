@@ -110,3 +110,6 @@
   .taste-rating-review .taste-rating-star { width: 22px; height: 22px; }
   .taste-rating-review-meta time { display: block; margin-left: 0; margin-top: 3px; }
 }
+
+.taste-rating-score-filter { border: 0; padding: 0; background: transparent; color: inherit; cursor: pointer; }
+.taste-rating-score-filter:focus-visible { outline: 2px solid var(--taste-amber-bright); border-radius: 6px; }

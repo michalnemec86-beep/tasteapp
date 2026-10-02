@@ -1,3 +1,4 @@
+import { resolveBrandBreweryIds } from "@/lib/entity-navigation";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
@@ -22,6 +23,7 @@ import {
 type BreweriesPageProps = {
   searchParams: Promise<{
     country?: string | string[];
+    brand?: string;
     focus?: string | string[];
   }>;
 };
@@ -58,11 +60,12 @@ export default async function BreweriesPage({
   const params = await searchParams;
   const selectedCountry =
     getStringParam(params.country)?.trim() || undefined;
+  const selectedBrandId = Number(params.brand) || null;
   const requestedFocus =
     getStringParam(params.focus) === "1";
 
   const [
-    breweries,
+    breweryDataset,
     { data: profiles, error: profilesError },
     { data: countries, error: countriesError },
   ] = await Promise.all([
@@ -81,6 +84,7 @@ export default async function BreweriesPage({
         closed_year,
         latitude,
         longitude,
+        brewery_brands ( brand_id ),
         beers (
           id,
           name,
@@ -124,6 +128,24 @@ export default async function BreweriesPage({
         ascending: true,
       }),
   ]);
+
+  let brandProducerIds: number[] = [];
+  let brandName = "";
+  if (selectedBrandId) {
+    const { data: brand, error: brandError } = await supabase.from("brands").select("name").eq("id", selectedBrandId).maybeSingle();
+    if (brandError) throw new Error(brandError.message);
+    brandName = brand?.name ?? "Vybraná značka";
+    const brandBeers = await fetchAllRows((from, to) => supabase.from("beers")
+      .select("id, brewery_id, beer_versions ( brewery_id, is_current )")
+      .eq("brand_id", selectedBrandId).order("id").range(from, to));
+    const { data: brandLinks, error } = await supabase.from("brewery_brands").select("brewery_id").eq("brand_id", selectedBrandId);
+    if (error) throw new Error(error.message);
+    brandProducerIds = resolveBrandBreweryIds(brandBeers.flatMap(beer => {
+      const id = beer.beer_versions?.find(version => version.is_current)?.brewery_id ?? beer.brewery_id;
+      return id ? [id] : [];
+    }), (brandLinks ?? []).map(link => link.brewery_id));
+  }
+  const breweries = selectedBrandId ? breweryDataset.filter(brewery => brandProducerIds.includes(brewery.id)) : breweryDataset;
 
   if (profilesError) {
     throw new Error(profilesError.message);
@@ -374,7 +396,7 @@ export default async function BreweriesPage({
     : tableRows;
 
   const isFocusedDrilldown =
-    requestedFocus && Boolean(selectedCountry);
+    requestedFocus && Boolean(selectedCountry || selectedBrandId);
 
   const visibleActiveBreweryCount = visibleTableRows.filter(
     (brewery) => brewery.closedYear == null
@@ -406,7 +428,7 @@ export default async function BreweriesPage({
       <PageHero
         eyebrow={
           isFocusedDrilldown
-            ? "Státní evidence"
+            ? selectedBrandId ? "Pivovary značky" : "Státní evidence"
             : "Pivovarský adresář"
         }
         imageUrl="/images/heroes/breweries.jpg"
@@ -414,12 +436,12 @@ export default async function BreweriesPage({
         visualVariant="catalog"
         title={
           isFocusedDrilldown
-            ? `Pivovary · ${selectedCountry}`
+            ? `Pivovary · ${brandName || selectedCountry}`
             : "Katalog pivovarů"
         }
         subtitle={
           isFocusedDrilldown
-            ? "Čistý přehled evidovaných pivovarů pro vybranou zemi."
+            ? selectedBrandId ? "Vyber pivovar, u kterého chceš otevřít značku." : "Čistý přehled evidovaných pivovarů pro vybranou zemi."
             : "Společná databáze pivovarů, jejich původu, historie a piv zaznamenaných v Pivníku."
         }
         action={
@@ -513,7 +535,7 @@ export default async function BreweriesPage({
                   fontWeight: 700,
                 }}
               >
-                {selectedCountry}
+                {brandName || selectedCountry}
               </span>
             </div>
 
@@ -556,7 +578,7 @@ export default async function BreweriesPage({
                     letterSpacing: "-0.025em",
                   }}
                 >
-                  Pivovary v zemi {selectedCountry}
+                  {selectedBrandId ? `Pivovary značky ${brandName}` : `Pivovary v zemi ${selectedCountry}`}
                 </h2>
               </div>
 
@@ -583,7 +605,7 @@ export default async function BreweriesPage({
                   fontSize: "13px",
                 }}
               >
-                Pro tento stát zatím není evidovaný žádný pivovar.
+                {selectedBrandId ? "Tato značka zatím nemá přiřazený pivovar." : "Pro tento stát zatím není evidovaný žádný pivovar."}
               </div>
             ) : (
               <div
@@ -597,7 +619,7 @@ export default async function BreweriesPage({
                 {visibleTableRows.map((brewery) => (
                   <Link
                     key={brewery.id}
-                    href={`/breweries/${brewery.id}`}
+                    href={selectedBrandId ? `/breweries/${brewery.id}?brand=${selectedBrandId}&portfolio=all#brand-${selectedBrandId}` : `/breweries/${brewery.id}`}
                     className="taste-card"
                     style={{
                       display: "block",
@@ -707,7 +729,7 @@ export default async function BreweriesPage({
               }}
             >
               <span>
-                Stát: {selectedCountry} · {visibleTableRows.length}{" "}
+                Stát: {brandName || selectedCountry} · {visibleTableRows.length}{" "}
                 {visibleTableRows.length === 1
                   ? "pivovar"
                   : "pivovarů"}
@@ -752,7 +774,7 @@ export default async function BreweriesPage({
                   }}
                 >
                   {selectedCountry
-                    ? `Pivovary · ${selectedCountry}`
+                    ? `Pivovary · ${brandName || selectedCountry}`
                     : "Všechny pivovary"}
                 </h2>
               </div>
@@ -799,7 +821,7 @@ export default async function BreweriesPage({
                   fontSize: "13px",
                 }}
               >
-                Pro tento stát zatím není evidovaný žádný pivovar.
+                {selectedBrandId ? "Tato značka zatím nemá přiřazený pivovar." : "Pro tento stát zatím není evidovaný žádný pivovar."}
               </div>
             ) : (
               <BreweryTableClient
@@ -809,7 +831,7 @@ export default async function BreweriesPage({
                 updateBreweryAction={updateBrewery}
                 currentUserId={user.id}
                 adminView={await isAdminView(user.id)}
-                initiallyVisible={Boolean(selectedCountry)}
+                initiallyVisible={Boolean(selectedCountry || selectedBrandId)}
               />
             )}
           </section>

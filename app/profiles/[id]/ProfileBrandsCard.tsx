@@ -1,3 +1,4 @@
+import { brandHref } from "@/lib/entity-navigation";
 import Link from "next/link";
 
 import type { RankingItem } from "@/lib/stats";
@@ -66,7 +67,7 @@ export default function ProfileBrandsCard({
                         <span className="taste-profile-ranking-logo-placeholder" aria-hidden="true"><HomeStatIcon kind="crest" /></span>
                       )}
                     </span>
-                    <Link href={`/stats?user=${profileId}&locked=1&brand=${item.id}`} className="taste-entity-link" style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "var(--taste-text)", fontSize: "12px", fontWeight: 750 }}>
+                    <Link href={brandHref(item.id)} className="taste-entity-link" style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "var(--taste-text)", fontSize: "12px", fontWeight: 750 }}>
                       {item.name}
                     </Link>
                     <span style={{ color: accent, fontSize: "11px", fontWeight: 850, whiteSpace: "nowrap" }}>

@@ -215,7 +215,7 @@ export default function ProfileBreweriesCard({
                       </span>
 
                       <Link
-                        href={`/stats?user=${profileId}&locked=1&brewery=${item.id}`}
+                        href={`/breweries/${item.id}`}
                         style={{
                           overflow:
                             "hidden",

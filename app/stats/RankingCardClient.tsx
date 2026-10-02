@@ -1,5 +1,6 @@
 "use client";
 
+import { getRankingEntityHref } from "@/lib/entity-navigation";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
@@ -10,7 +11,6 @@ import {
 import { createPortal } from "react-dom";
 import AutoLogoFrame from "@/components/ui/AutoLogoFrame";
 import HomeStatIcon from "@/components/home/HomeStatIcon";
-import { getCountryEvidenceHref } from "@/lib/country-flags";
 
 type RankingItem = {
   id: string | number;
@@ -111,60 +111,9 @@ const TONE_STYLES: Record<RankingTone, RankingToneStyle> = {
   },
 };
 
-function getItemHref(
-  title: string,
-  item: RankingItem,
-  itemHrefPrefix?: string,
-  lockedContext = false,
-  currentQuery = ""
-) {
-  if (lockedContext) {
-    const params = new URLSearchParams(currentQuery);
-    params.set("locked", "1");
-    params.delete("focus");
-    params.delete("metric");
-
-    const paramByTitle: Record<string, string> = {
-      Piva: "beer",
-      Značky: "brand",
-      Pivovary: "brewery",
-      "Pivní styly": "style",
-      Státy: "country",
-      Chmely: "hop",
-    };
-
-    const param = paramByTitle[title];
-
-    if (!param) {
-      return null;
-    }
-
-    params.set(
-      param,
-      title === "Státy" ? item.name : String(item.id)
-    );
-
-    return `/stats?${params.toString()}`;
-  }
-
-  if (itemHrefPrefix) {
-    return `${itemHrefPrefix}/${item.id}`;
-  }
-
-  switch (title) {
-    case "Piva":
-      return `/beers/${item.id}`;
-    case "Značky":
-      return `/brands/${item.id}`;
-    case "Pivní styly":
-      return `/styles/${item.id}`;
-    case "Státy":
-      return getCountryEvidenceHref(item.name);
-    case "Chmely":
-      return `/stats?hop=${encodeURIComponent(String(item.id))}`;
-    default:
-      return null;
-  }
+function getItemHref(title: string, item: RankingItem, itemHrefPrefix?: string, _lockedContext = false, _currentQuery = "") {
+  return getRankingEntityHref(title, item) ??
+    (itemHrefPrefix ? `${itemHrefPrefix}/${item.id}` : null);
 }
 
 export default function RankingCardClient({

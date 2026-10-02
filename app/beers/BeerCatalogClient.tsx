@@ -1,10 +1,13 @@
 "use client";
 
+import { beerHref, brandHref, styleHref, hopHref, countryHref } from "@/lib/entity-navigation";
 import Link from "next/link";
 import { useMemo, useState, type ReactNode } from "react";
 import ReferenceWarning from "@/components/ui/ReferenceWarning";
 
 export type BeerCatalogItem = {
+  styleIds: number[];
+  hopIds: number[];
   id: number;
   name: string;
   brand: { id: number; name: string } | null;
@@ -37,19 +40,27 @@ function initial(name: string) {
 export default function BeerCatalogClient({
   beers,
   adminView,
+  initialShowAll = false,
+  initialSearch = "",
+  selectedStyleId = null,
+  selectedHopId = null,
 }: {
   beers: BeerCatalogItem[];
   adminView: boolean;
+  initialShowAll?: boolean;
+  initialSearch?: string;
+  selectedStyleId?: number | null;
+  selectedHopId?: number | null;
 }) {
   const [filter, setFilter] = useState<FilterMode>("all");
   const [sort, setSort] = useState<SortMode>("default");
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(initialSearch);
   const [country, setCountry] = useState("");
   const [showCountries, setShowCountries] = useState(false);
   const [letter, setLetter] = useState("");
   const [showLetters, setShowLetters] = useState(false);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
-  const [showAll, setShowAll] = useState(false);
+  const [showAll, setShowAll] = useState(initialShowAll);
 
   const letters = useMemo(
     () =>
@@ -88,6 +99,7 @@ export default function BeerCatalogClient({
         if (!needle) return true;
 
         return [
+          String(beer.id),
           beer.name,
           beer.brand?.name,
           beer.brewery?.name,
@@ -417,14 +429,14 @@ export default function BeerCatalogClient({
               <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "flex-start" }}>
                 <div style={{ minWidth: 0 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                    <Link href={`/beers/${beer.id}`} className="taste-entity-link taste-beer-catalog-name" style={{ color: "var(--taste-text)", fontSize: "18px", lineHeight: 1.15, fontWeight: 850 }}>
+                    <Link href={beerHref(beer.id, beer.brewery?.id)} className="taste-entity-link taste-beer-catalog-name" style={{ color: "var(--taste-text)", fontSize: "18px", lineHeight: 1.15, fontWeight: 850 }}>
                       {beer.name}
                     </Link>
                     {adminView && !beer.referenceReady && <ReferenceWarning missing={beer.referenceMissing} />}
                   </div>
                   {beer.brand && (
                     <div className="taste-beer-catalog-brand" style={{ marginTop: "5px", fontSize: "11px" }}>
-                      <Link href={`/brands/${beer.brand.id}`} className="taste-entity-link">{beer.brand.name}</Link>
+                      <Link href={brandHref(beer.brand.id)} className="taste-entity-link">{beer.brand.name}</Link>
                     </div>
                   )}
                 </div>
@@ -439,11 +451,12 @@ export default function BeerCatalogClient({
                 {beer.brewery ? (
                   <Link href={`/breweries/${beer.brewery.id}`} className="taste-entity-link">{beer.brewery.name}</Link>
                 ) : "Neznámý pivovar"}
-                {beer.brewery?.country ? ` · ${beer.brewery.country}` : ""}
+                {beer.brewery?.country && <> · <Link href={countryHref(beer.brewery.country)} className="taste-entity-link">{beer.brewery.country}</Link></>}
               </div>
 
+              {((selectedStyleId && beer.style?.id !== selectedStyleId) || (selectedHopId && !beer.hops.some(hop => hop.id === selectedHopId))) && <div className="taste-beer-catalog-hops">Odpovídá historické verzi piva.</div>}
               <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginTop: "12px" }}>
-                {beer.style && <InfoChip>{beer.style.name}</InfoChip>}
+                {beer.style && <InfoChip><Link href={styleHref(beer.style.id)} className="taste-entity-link">{beer.style.name}</Link></InfoChip>}
                 {beer.plato != null && <InfoChip>{beer.plato} °P</InfoChip>}
                 {beer.abv != null && <InfoChip>{beer.abv} %</InfoChip>}
                 {beer.ibu != null && <InfoChip>IBU {beer.ibu}</InfoChip>}
@@ -452,7 +465,7 @@ export default function BeerCatalogClient({
 
               {beer.hops.length > 0 && (
                 <div className="taste-beer-catalog-hops" style={{ marginTop: "11px", color: "var(--taste-text-muted)", fontSize: "10px", lineHeight: 1.45 }}>
-                  Chmely: {beer.hops.map((hop) => hop.name).join(", ")}
+                  Chmely: {beer.hops.map((hop, index) => <span key={hop.id}>{index > 0 && ", "}<Link href={hopHref(hop.id)} className="taste-entity-link">{hop.name}</Link></span>)}
                 </div>
               )}
 

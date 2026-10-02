@@ -1,4 +1,5 @@
-import { redirect } from "next/navigation";
+import Link from "next/link";
+import { notFound, redirect } from "next/navigation";
 
 import PageHero from "@/components/ui/PageHero";
 import HomeStatIcon from "@/components/home/HomeStatIcon";
@@ -17,7 +18,12 @@ function one<T>(value: Relation<T> | undefined): T | null {
   return Array.isArray(value) ? value[0] ?? null : value ?? null;
 }
 
-export default async function BeerCatalogPage() {
+export default async function BeerCatalogPage({ searchParams }: { searchParams: Promise<{ style?: string; hop?: string; q?: string; beer?: string }> }) {
+  const selection = await searchParams;
+  const beerId = selection.beer ? Number(selection.beer) : null;
+  const styleId = selection.style ? Number(selection.style) : null;
+  const hopId = selection.hop ? Number(selection.hop) : null;
+  if ([styleId, hopId, beerId].some(id => id !== null && (!Number.isSafeInteger(id) || id < 1))) notFound();
   const supabase = await createClient();
   const {
     data: { user },
@@ -47,7 +53,7 @@ export default async function BeerCatalogPage() {
       .order("id")
       .range(from, to), 1000);
 
-  const beers: BeerCatalogItem[] = rows.map((raw) => {
+  let beers: BeerCatalogItem[] = rows.map((raw) => {
     const beer = raw as {
       id: number;
       name: string;
@@ -95,6 +101,8 @@ export default async function BeerCatalogPage() {
     });
 
     return {
+      styleIds: [...new Set([one(beer.beer_styles)?.id, ...(beer.beer_versions ?? []).map(version => one(version.beer_styles)?.id)].filter((id): id is number => Boolean(id)))],
+      hopIds: [...new Set([...(beer.beer_hops ?? []), ...(beer.beer_versions ?? []).flatMap(version => version.beer_version_hops ?? [])].map(row => one(row.hops)?.id).filter((id): id is number => Boolean(id)))],
       id: beer.id,
       name: beer.name,
       brand,
@@ -116,6 +124,18 @@ export default async function BeerCatalogPage() {
     };
   }).sort((a, b) => Number(b.referenceReady) - Number(a.referenceReady) || a.name.localeCompare(b.name, "cs", { sensitivity: "base" }));
 
+  let selectionName = "";
+  if (styleId || hopId) {
+    const { data: entity, error } = await supabase.from(styleId ? "beer_styles" : "hops")
+      .select("id, name").eq("id", styleId ?? hopId!).maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!entity) notFound();
+    selectionName = entity.name;
+    beers = beers.filter(beer => (!styleId || beer.styleIds.includes(styleId)) && (!hopId || beer.hopIds.includes(hopId)));
+  }
+  if (beerId) beers = beers.filter(beer => beer.id === beerId);
+  const breweryCount = new Set(beers.map(beer => beer.brewery?.id).filter(Boolean)).size;
+  const countryCount = new Set(beers.map(beer => beer.brewery?.country).filter(Boolean)).size;
   const tastedCount = beers.filter((beer) => beer.totalQuantity > 0).length;
   const myCount = beers.filter((beer) => beer.myQuantity > 0).length;
 
@@ -125,17 +145,23 @@ export default async function BeerCatalogPage() {
         eyebrow="Katalog piv"
         imageUrl="/images/heroes/catalog.jpg"
         visualVariant="catalog"
-        title="Pivní lístek"
-        subtitle="Všechna piva evidovaná v aplikaci na jednom místě."
+        title={selectionName ? `${styleId ? "Pivní styl" : "Chmel"}: ${selectionName}` : "Pivní lístek"}
+        subtitle={selectionName ? "Evidovaná piva včetně historických verzí." : "Všechna piva evidovaná v aplikaci na jednom místě."}
+        action={selectionName ? <Link href="/beers" className="taste-button-secondary">Všechna piva</Link> : undefined}
         statsScrollable
         stats={[
           { icon: <HomeStatIcon kind="mug" />, value: beers.length, label: "Všech piv", accent: "#f2b63f" },
-          { icon: <HomeStatIcon kind="barrel" />, value: tastedCount, label: "Ochutnaných", accent: "#e88835" },
-          { icon: <HomeStatIcon kind="hop" />, value: myCount, label: "Moje piva", accent: "#9cad47" },
+          { icon: <HomeStatIcon kind="barrel" />, value: selectionName ? breweryCount : tastedCount, label: selectionName ? "Pivovarů" : "Ochutnaných", accent: "#e88835" },
+          { icon: <HomeStatIcon kind="hop" />, value: selectionName ? countryCount : myCount, label: selectionName ? "Států" : "Moje piva", accent: "#9cad47" },
         ]}
       />
 
       <BeerCatalogClient
+        key={`${styleId ?? ""}-${hopId ?? ""}-${beerId ?? ""}`}
+        initialShowAll={Boolean(selectionName || selection.q || beerId)}
+        initialSearch={selection.q ?? ""}
+        selectedStyleId={styleId}
+        selectedHopId={hopId}
         beers={beers}
         adminView={await isAdminView(user.id)}
       />
