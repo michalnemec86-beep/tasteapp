@@ -9,6 +9,8 @@ import {
   buildProfileStats,
 } from "@/lib/profileStats";
 
+import { fetchAllRows } from "@/lib/fetch-all-rows";
+
 import PageHero from "@/components/ui/PageHero";
 import HomeStatIcon from "@/components/home/HomeStatIcon";
 import "./regulars-concept.css";
@@ -185,16 +187,7 @@ export default async function ProfilesPage() {
       []
     ) as ProfileRow[];
 
-  const rawTastings: RawTastingRow[] = [];
-  const tastingPageSize = 1000;
-
-  for (
-    let from = 0;
-    ;
-    from += tastingPageSize
-  ) {
-    const tastingsResult =
-      await supabase
+  const rawTastings = await fetchAllRows((from, to) => supabase
         .from("tastings")
         .select(`
           user_id,
@@ -242,35 +235,7 @@ export default async function ProfilesPage() {
         .order("id", {
           ascending: true,
         })
-        .range(
-          from,
-          from + tastingPageSize - 1
-        );
-
-    if (tastingsResult.error) {
-      throw new Error(
-        tastingsResult.error.message
-      );
-    }
-
-    const page =
-      (
-        tastingsResult.data ??
-        []
-      ) as unknown as
-        RawTastingRow[];
-
-    rawTastings.push(
-      ...page
-    );
-
-    if (
-      page.length <
-      tastingPageSize
-    ) {
-      break;
-    }
-  }
+        .range(from, to), 1000) as unknown as RawTastingRow[];
 
   const tastingsByUser =
     new Map<

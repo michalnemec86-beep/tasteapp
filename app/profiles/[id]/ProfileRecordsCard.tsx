@@ -1,20 +1,9 @@
 "use client";
 
-import {
-  useEffect,
-  useState,
-} from "react";
-import {
-  useParams,
-} from "next/navigation";
-
 import type {
   ProfileBeerRecord,
   ProfileActivityPoint,
 } from "@/lib/profileStats";
-import {
-  loadProfileTechnicalStats,
-} from "@/lib/profileTechnicalStatsClient";
 import ProfileLoopCarousel from "./ProfileLoopCarousel";
 
 type ProfileRecordsCardProps = {
@@ -251,72 +240,6 @@ export default function ProfileRecordsCard({
   mostActiveYear,
   firstTasting,
 }: ProfileRecordsCardProps) {
-  const params =
-    useParams<{
-      id?: string | string[];
-    }>();
-
-  const profileId =
-    Array.isArray(params?.id)
-      ? params.id[0]
-      : params?.id;
-
-  const [records, setRecords] =
-    useState({
-      strongestBeer,
-      bitterestBeer,
-      highestPlatoBeer,
-    });
-
-  useEffect(() => {
-    let active = true;
-
-    setRecords({
-      strongestBeer,
-      bitterestBeer,
-      highestPlatoBeer,
-    });
-
-    if (!profileId) {
-      return () => {
-        active = false;
-      };
-    }
-
-    loadProfileTechnicalStats(
-      profileId
-    )
-      .then((stats) => {
-        if (!active) {
-          return;
-        }
-
-        setRecords({
-          strongestBeer:
-            stats.strongestBeer,
-          bitterestBeer:
-            stats.bitterestBeer,
-          highestPlatoBeer:
-            stats.highestPlatoBeer,
-        });
-      })
-      .catch((error) => {
-        console.error(
-          "Profile record fallback failed:",
-          error
-        );
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [
-    profileId,
-    strongestBeer,
-    bitterestBeer,
-    highestPlatoBeer,
-  ]);
-
   return (
     <section
       className="taste-profile-section taste-profile-records-section"
@@ -394,7 +317,7 @@ export default function ProfileRecordsCard({
             eyebrow="Silák"
             title="Nejvyšší obsah alkoholu"
             record={
-              records.strongestBeer
+              strongestBeer
             }
             unit="%"
             decimals={1}
@@ -408,7 +331,7 @@ export default function ProfileRecordsCard({
             eyebrow="Hořká špička"
             title="Nejvyšší hodnota IBU"
             record={
-              records.bitterestBeer
+              bitterestBeer
             }
             unit="IBU"
             decimals={0}
@@ -422,7 +345,7 @@ export default function ProfileRecordsCard({
             eyebrow="Plné tělo"
             title="Nejvyšší stupňovitost"
             record={
-              records.highestPlatoBeer
+              highestPlatoBeer
             }
             unit="°P"
             decimals={1}

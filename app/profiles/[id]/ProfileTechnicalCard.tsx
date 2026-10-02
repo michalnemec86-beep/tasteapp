@@ -1,19 +1,8 @@
 "use client";
 
-import {
-  useEffect,
-  useState,
-} from "react";
-import {
-  useParams,
-} from "next/navigation";
-
 import type {
   ProfileNumericSummary,
 } from "@/lib/profileStats";
-import {
-  loadProfileTechnicalStats,
-} from "@/lib/profileTechnicalStatsClient";
 import ProfileLoopCarousel from "./ProfileLoopCarousel";
 
 type ProfileTechnicalCardProps = {
@@ -447,72 +436,6 @@ export default function ProfileTechnicalCard({
   abv,
   ibu,
 }: ProfileTechnicalCardProps) {
-  const params =
-    useParams<{
-      id?: string | string[];
-    }>();
-
-  const profileId =
-    Array.isArray(params?.id)
-      ? params.id[0]
-      : params?.id;
-
-  const [resolved, setResolved] =
-    useState({
-      plato,
-      abv,
-      ibu,
-    });
-
-  useEffect(() => {
-    let active = true;
-
-    setResolved({
-      plato,
-      abv,
-      ibu,
-    });
-
-    if (!profileId) {
-      return () => {
-        active = false;
-      };
-    }
-
-    loadProfileTechnicalStats(
-      profileId
-    )
-      .then((stats) => {
-        if (!active) {
-          return;
-        }
-
-        setResolved({
-          plato:
-            stats.plato,
-          abv:
-            stats.abv,
-          ibu:
-            stats.ibu,
-        });
-      })
-      .catch((error) => {
-        console.error(
-          "Profile technical stats fallback failed:",
-          error
-        );
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [
-    profileId,
-    plato,
-    abv,
-    ibu,
-  ]);
-
   return (
     <section
       className="taste-profile-section taste-profile-technical-section"
@@ -577,7 +500,7 @@ export default function ProfileTechnicalCard({
           subtitle="Sladový profil"
           unit="°P"
           summary={
-            resolved.plato
+            plato
           }
           maxScale={30}
           decimals={1}
@@ -589,7 +512,7 @@ export default function ProfileTechnicalCard({
           subtitle="Síla"
           unit="% ABV"
           summary={
-            resolved.abv
+            abv
           }
           maxScale={15}
           decimals={1}
@@ -601,7 +524,7 @@ export default function ProfileTechnicalCard({
           subtitle="Chmelový profil"
           unit="IBU"
           summary={
-            resolved.ibu
+            ibu
           }
           maxScale={100}
           decimals={0}

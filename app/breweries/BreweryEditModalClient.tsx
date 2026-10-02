@@ -1,5 +1,7 @@
 "use client";
 
+import { fetchAllRows } from "@/lib/fetch-all-rows";
+
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
@@ -65,40 +67,40 @@ export default function BreweryEditModalClient({
     setNewBrandNames("");
     setOpen(true);
 
-    const supabase = createClient();
-    const [brandsResult, linkedResult] = await Promise.all([
-      supabase.from("brands").select("name").order("name"),
-      supabase
-        .from("brewery_brands")
-        .select("brands ( name )")
-        .eq("brewery_id", brewery.id),
-    ]);
+    try {
+      const supabase = createClient();
+      const [brandsResult, linkedResult] = await Promise.all([
+        fetchAllRows((from, to) => supabase.from("brands").select("name").order("name").order("id").range(from, to)),
+        supabase
+          .from("brewery_brands")
+          .select("brands ( name )")
+          .eq("brewery_id", brewery.id),
+      ]);
 
-    if (brandsResult.error || linkedResult.error) {
-      setError(
-        brandsResult.error?.message ||
-          linkedResult.error?.message ||
-          "Značky se nepodařilo načíst."
+      if (linkedResult.error) {
+        setError(linkedResult.error.message || "Značky se nepodařilo načíst.");
+        return;
+      }
+
+      setBrandOptions(Array.from(new Set(brandsResult.map((brand) => brand.name))));
+
+      const linkedRows = (linkedResult.data ?? []) as unknown as Array<{
+        brands: { name: string } | Array<{ name: string }> | null;
+      }>;
+
+      setLinkedBrandNames(
+        linkedRows
+          .map((row) =>
+            Array.isArray(row.brands)
+              ? row.brands[0]?.name
+              : row.brands?.name
+          )
+          .filter((name): name is string => Boolean(name))
+          .sort((a, b) => a.localeCompare(b, "cs", { sensitivity: "base" }))
       );
-      return;
+    } catch (caughtError) {
+      setError(caughtError instanceof Error ? caughtError.message : "Značky se nepodařilo načíst.");
     }
-
-    setBrandOptions((brandsResult.data ?? []).map((brand) => brand.name));
-
-    const linkedRows = (linkedResult.data ?? []) as unknown as Array<{
-      brands: { name: string } | Array<{ name: string }> | null;
-    }>;
-
-    setLinkedBrandNames(
-      linkedRows
-        .map((row) =>
-          Array.isArray(row.brands)
-            ? row.brands[0]?.name
-            : row.brands?.name
-        )
-        .filter((name): name is string => Boolean(name))
-        .sort((a, b) => a.localeCompare(b, "cs", { sensitivity: "base" }))
-    );
   }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {

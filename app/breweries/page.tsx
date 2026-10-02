@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
+import { fetchAllRows } from "@/lib/fetch-all-rows";
 import { getBreweryReferenceStatus } from "@/lib/referenceStatus";
 import PageHero from "@/components/ui/PageHero";
 import { isAdminView } from "@/lib/adminView";
@@ -61,11 +62,11 @@ export default async function BreweriesPage({
     getStringParam(params.focus) === "1";
 
   const [
-    { data: breweries, error },
+    breweries,
     { data: profiles, error: profilesError },
     { data: countries, error: countriesError },
   ] = await Promise.all([
-    supabase
+    fetchAllRows((from, to) => supabase
       .from("breweries")
       .select(`
         id,
@@ -107,9 +108,9 @@ export default async function BreweriesPage({
           changed_year
         )
       `)
-      .order("name", {
-        ascending: true,
-      }),
+      .order("name", { ascending: true })
+      .order("id")
+      .range(from, to), 1000),
     supabase
       .from("profiles")
       .select("id, display_name")
@@ -123,10 +124,6 @@ export default async function BreweriesPage({
         ascending: true,
       }),
   ]);
-
-  if (error) {
-    throw new Error(error.message);
-  }
 
   if (profilesError) {
     throw new Error(profilesError.message);

@@ -4,6 +4,7 @@ import PageHero from "@/components/ui/PageHero";
 import HomeStatIcon from "@/components/home/HomeStatIcon";
 import "./beers-concept.css";
 import { createClient } from "@/lib/supabase/server";
+import { fetchAllRows } from "@/lib/fetch-all-rows";
 import { getBeerReferenceStatus } from "@/lib/referenceStatus";
 import { isAdminView } from "@/lib/adminView";
 import { isBeerAvailableForTasting } from "@/lib/beerPortfolio";
@@ -26,11 +27,7 @@ export default async function BeerCatalogPage() {
     redirect("/auth/login");
   }
 
-  const rows: Array<Record<string, unknown>> = [];
-  const pageSize = 1000;
-
-  for (let from = 0; ; from += pageSize) {
-    const { data, error } = await supabase
+  const rows = await fetchAllRows((from, to) => supabase
       .from("beers")
       .select(`
         id, name, plato, abv, ibu, is_non_alcoholic, is_catalog, portfolio_status,
@@ -47,19 +44,8 @@ export default async function BeerCatalogPage() {
         tastings ( id, user_id, quantity )
       `)
       .order("name", { ascending: true })
-      .range(from, from + pageSize - 1);
-
-    if (error) {
-      throw new Error(error.message);
-    }
-
-    const batch = (data ?? []) as unknown as Array<Record<string, unknown>>;
-    rows.push(...batch);
-
-    if (batch.length < pageSize) {
-      break;
-    }
-  }
+      .order("id")
+      .range(from, to), 1000);
 
   const beers: BeerCatalogItem[] = rows.map((raw) => {
     const beer = raw as {

@@ -1,5 +1,7 @@
 "use client";
 
+import { fetchAllRows } from "@/lib/fetch-all-rows";
+
 import { useEffect, useState, type FormEvent } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
@@ -33,14 +35,18 @@ export default function BreweryCreateModalClient({
   async function prepareOpen() {
     setError("");
     setOpen(true);
-    const supabase = createClient();
-    const [brandsResult, userResult] = await Promise.all([
-      supabase.from("brands").select("name").order("name"),
-      supabase.auth.getUser(),
-    ]);
+    try {
+      const supabase = createClient();
+      const [brandsResult, userResult] = await Promise.all([
+        fetchAllRows((from, to) => supabase.from("brands").select("name").order("name").order("id").range(from, to)),
+        supabase.auth.getUser(),
+      ]);
 
-    setBrandOptions((brandsResult.data ?? []).map((brand) => brand.name));
-    setIsAdmin(userResult.data.user?.id === ADMIN_USER_ID);
+      setBrandOptions(Array.from(new Set(brandsResult.map((brand) => brand.name))));
+      setIsAdmin(userResult.data.user?.id === ADMIN_USER_ID);
+    } catch (caughtError) {
+      setError(caughtError instanceof Error ? caughtError.message : "Značky se nepodařilo načíst.");
+    }
   }
 
   useEffect(() => {
