@@ -6,6 +6,7 @@ import AppNav from "./AppNav";
 import AuthSessionSync from "./AuthSessionSync";
 import BreweryListStatePersistence from "./BreweryListStatePersistence";
 import PivnikLaunchScreen from "./PivnikLaunchScreen";
+import PwaProvider from "./PwaProvider";
 import NavigationFeedback from "./NavigationFeedback";
 import ModalBehaviorManager from "./ModalBehaviorManager";
 import AchievementCelebrationClient from "./AchievementCelebrationClient";
@@ -24,6 +25,7 @@ import "./home-concept.css";
 import "./visual-system.css";
 import "./rating-controls.css";
 import "./achievement-celebration.css";
+import "./pwa.css";
 
 const defaultUrl =
   process.env.VERCEL_URL
@@ -105,20 +107,22 @@ export default async function RootLayout({
       <body
         className={`${geistSans.className} antialiased`}
       >
-        <PivnikLaunchScreen />
-        <Suspense fallback={null}>
-          <NavigationFeedback />
-        </Suspense>
-        <ModalBehaviorManager />
-        {user && <Suspense fallback={null}>
-          <AchievementCelebrationClient key={user.id} userId={user.id} />
-        </Suspense>}
-        <AuthSessionSync />
-        <BreweryListStatePersistence />
-        <div className="taste-app-shell">
-          <AppNav currentUserId={user?.id ?? null} />
-          {children}
-        </div>
+        <PwaProvider>
+          <PivnikLaunchScreen />
+          <Suspense fallback={null}>
+            <NavigationFeedback />
+          </Suspense>
+          <ModalBehaviorManager />
+          {user && <Suspense fallback={null}>
+            <AchievementCelebrationClient key={user.id} userId={user.id} />
+          </Suspense>}
+          <AuthSessionSync />
+          <BreweryListStatePersistence />
+          <div className="taste-app-shell">
+            <AppNav currentUserId={user?.id ?? null} />
+            {children}
+          </div>
+        </PwaProvider>
       </body>
     </html>
   );

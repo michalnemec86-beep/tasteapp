@@ -1,0 +1,41 @@
+.pivnik-install-page{max-width:1000px;margin:0 auto;padding:32px 24px 48px;color:var(--taste-text)}
+.pivnik-install-hero{display:flex;align-items:center;gap:22px;margin-bottom:26px}
+.pivnik-install-icon{border-radius:24px;flex-shrink:0;border:1px solid var(--taste-border-strong);box-shadow:0 12px 30px #0004}
+.pivnik-install-eyebrow{font-size:10px;font-weight:750;letter-spacing:.12em;text-transform:uppercase;color:var(--taste-amber)}
+.pivnik-install-hero h1{font-size:32px;line-height:1.15;font-weight:850;letter-spacing:-.035em;margin:8px 0;color:var(--taste-amber-bright)}
+.pivnik-install-hero p,.pivnik-install-card p{color:var(--taste-text-soft);font-size:14px;line-height:1.65}
+.pivnik-install-layout{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:20px;align-items:start}
+.pivnik-install-card{min-width:0;padding:26px;border:1px solid var(--taste-border);border-radius:18px;background:linear-gradient(145deg,#e7a62f08,transparent 70%),var(--taste-surface);box-shadow:0 14px 35px #0003,inset 0 1px 0 #fff3dd08}
+.pivnik-install-card h2{color:var(--taste-amber-bright);font-size:19px;font-weight:800;letter-spacing:-.02em;line-height:1.3;margin:0}
+.pivnik-install-card-heading,.pivnik-install-details>div{display:flex;gap:10px;align-items:center;color:var(--taste-amber)}
+.pivnik-install-intro{margin-top:12px;margin-bottom:22px}
+.pivnik-install-button{min-height:48px;display:flex;align-items:center;justify-content:center;gap:9px;width:100%;padding:13px 16px;border:1px solid #b2c97f;border-radius:12px;background:linear-gradient(135deg,#b6cd80,#809b48);color:#17200d;font-size:15px;font-weight:800;text-decoration:none;box-shadow:0 6px 22px #819a4022;cursor:pointer}
+.pivnik-install-button:hover{filter:brightness(1.08)}
+.pivnik-install-button:disabled{opacity:.65;cursor:wait}
+.pivnik-install-platforms{display:flex;gap:6px;padding:5px;background:var(--taste-bg);border:1px solid var(--taste-border);border-radius:12px;margin:20px 0 24px}
+.pivnik-install-platforms button{flex:1;min-height:42px;border-radius:8px;color:var(--taste-text-muted);font-size:14px;font-weight:750;cursor:pointer}
+.pivnik-install-platforms button[aria-pressed=true]{background:linear-gradient(135deg,#e7a62f29,#a8622119);color:var(--taste-amber-bright);box-shadow:inset 0 0 0 1px #e7a62f40}
+.pivnik-install-steps{display:grid;gap:23px;list-style:none;margin:0;padding:0}
+.pivnik-install-steps li{display:flex;align-items:flex-start;gap:13px}
+.pivnik-install-step-number{display:grid;place-items:center;flex-shrink:0;width:30px;height:30px;border-radius:9px;background:#e7a62f12;border:1px solid #e7a62f40;color:var(--taste-amber-bright);font-size:13px;font-weight:800}
+.pivnik-install-steps h3{display:flex;gap:7px;align-items:center;font-size:15px;line-height:1.5;font-weight:750;margin:2px 0 5px}
+.pivnik-install-steps p{font-size:13px;margin:0}
+.pivnik-install-side{display:grid;gap:20px}
+.pivnik-install-qr{text-align:center}
+.pivnik-install-qr p{font-size:13px;margin:12px 0 20px}
+.pivnik-install-qr-image{display:grid;place-items:center;max-width:240px;min-height:220px;margin:auto;padding:8px;border-radius:16px;background:#fff;overflow:hidden;color:#160e08;font-size:13px}
+.pivnik-install-qr-image img{display:block;max-width:100%;height:auto}
+.pivnik-install-qr-caption{display:block;font-size:11px;color:var(--taste-text-muted);margin-top:14px}
+.pivnik-install-details h2{font-size:16px}
+.pivnik-install-details p{font-size:13px;margin:14px 0 0}
+.pivnik-install-link-tools{margin-top:26px;padding-top:22px;border-top:1px solid var(--taste-border)}
+.pivnik-install-link-tools label{display:block;color:var(--taste-text-muted);font-size:11px;font-weight:650;margin-bottom:8px}
+.pivnik-install-link-tools>div{display:flex;gap:8px}
+.pivnik-install-link-tools input{min-width:0;flex:1;min-height:44px;border:1px solid var(--taste-border);border-radius:10px;background:var(--taste-bg);color:var(--taste-text-soft);padding:10px;font-size:12px}
+.pivnik-install-link-tools button{display:grid;place-items:center;flex-shrink:0;width:44px;min-height:44px;background:#e7a62f12;border:1px solid var(--taste-border);border-radius:10px;color:var(--taste-amber-bright);cursor:pointer}
+.pivnik-install-message{font-size:12px!important;margin:12px 0 0;min-height:20px;color:var(--taste-amber-bright)!important}
+.pivnik-installed-state{text-align:center}
+.pivnik-install-success{display:grid;place-items:center;width:58px;height:58px;background:#9cad4714;border:1px solid #9cad4755;border-radius:18px;color:var(--taste-success);margin:0 auto 18px}
+.pivnik-install-notice{padding:12px 14px;border-radius:12px;background:#e7a62f12;border:1px solid var(--taste-border);font-size:13px!important}
+.pivnik-install-page button:focus-visible,.pivnik-install-page a:focus-visible,.pivnik-install-page input:focus-visible{outline:2px solid var(--taste-amber-bright);outline-offset:3px}
+@media(max-width:720px){.pivnik-install-page{padding:22px 14px 32px}.pivnik-install-hero{gap:14px;margin-bottom:20px}.pivnik-install-icon{width:64px;height:64px;border-radius:18px}.pivnik-install-hero h1{font-size:25px;margin:6px 0}.pivnik-install-hero p{font-size:12px}.pivnik-install-layout{grid-template-columns:1fr;gap:16px}.pivnik-install-card{padding:21px 18px;border-radius:16px}.pivnik-install-card h2{font-size:18px}.pivnik-install-qr{display:none}.pivnik-install-side{gap:16px}.pivnik-install-link-tools input{font-size:16px}.pivnik-install-details h2{font-size:16px}}

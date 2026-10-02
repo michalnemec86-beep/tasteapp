@@ -9,6 +9,7 @@ export default function PivnikLaunchScreen() {
 
   useEffect(() => {
     let cancelled = false;
+    const timeout = window.setTimeout(() => { if (!cancelled) setVisible(false); }, 1500);
 
     const hide = () => {
       requestAnimationFrame(() => {
@@ -26,6 +27,7 @@ export default function PivnikLaunchScreen() {
 
     return () => {
       cancelled = true;
+      window.clearTimeout(timeout);
     };
   }, []);
 

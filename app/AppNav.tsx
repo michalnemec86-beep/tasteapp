@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { HopMark } from "@/components/brand/PivnikMark";
-import { Settings } from "lucide-react";
+import { Download, Settings } from "lucide-react";
 
 export default function AppNav({
   currentUserId,
@@ -37,6 +37,13 @@ export default function AppNav({
 
   if (pathname.startsWith("/auth")) {
     return null;
+  }
+
+  if (!currentUserId) {
+    return <nav className="taste-app-nav" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "16px", padding: "16px 20px", borderBottom: "1px solid var(--taste-border)", background: "var(--taste-bg)" }}>
+      <BrandLink compact />
+      <Link href="/auth/login" className="taste-profile-nav-link">Přihlásit se</Link>
+    </nav>;
   }
 
   const isOwnProfilePath = Boolean(
@@ -124,6 +131,10 @@ export default function AppNav({
           Můj pivní deník
         </Link>
 
+        <Link href="/install" className="taste-settings-link" aria-label="Nainstalovat Pivník" title="Nainstalovat Pivník" aria-current={isActive("/install") ? "page" : undefined}>
+          <Download size={19} aria-hidden="true" />
+        </Link>
+
         <Link
           href="/settings"
           className="taste-settings-link"
@@ -202,6 +213,7 @@ export default function AppNav({
           <MobileNavLink href="/beers" active={isActive("/beers")}>Pivní lístek</MobileNavLink>
           <MobileNavLink href="/breweries" active={isActive("/breweries")}>Pivovary</MobileNavLink>
           <MobileNavLink href="/profiles" active={isActive("/profiles")}>Štamgasti</MobileNavLink>
+          <MobileNavLink href="/install" active={isActive("/install")}>Nainstalovat Pivník</MobileNavLink>
           <MobileNavLink href="/settings" active={isActive("/settings")}>Nastavení</MobileNavLink>
           <button type="button" onClick={handleLogout} className="taste-mobile-menu-logout">
             Odhlásit

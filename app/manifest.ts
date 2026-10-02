@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
+    id: "/",
     name: "Pivník",
     short_name: "Pivník",
     description:
@@ -9,6 +10,7 @@ export default function manifest(): MetadataRoute.Manifest {
     start_url: "/",
     scope: "/",
     display: "standalone",
+    prefer_related_applications: false,
     background_color: "#160e08",
     theme_color: "#160e08",
     lang: "cs",
