@@ -1,3 +1,4 @@
+import { beerHref, styleHref, hopHref, countryHref } from "@/lib/entity-navigation";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
@@ -1235,7 +1236,7 @@ export default async function ActivityPage({
             packagingItems={
               globalStats.packaging
             }
-            getItemHref={(item) => `/styles/${item.id}`}
+            getItemHref={(item) => styleHref(item.id)}
           />
 
 
@@ -1407,7 +1408,7 @@ export default async function ActivityPage({
               items={globalStats.styles}
               packagingItems={globalStats.packaging}
               showPackaging={false}
-              getItemHref={(item) => `/styles/${item.id}`}
+              getItemHref={(item) => styleHref(item.id)}
             />
 
             <StatsPackagingCard
@@ -1430,7 +1431,7 @@ export default async function ActivityPage({
               accent="#d37f43"
               items={globalStats.countries}
               getItemHref={(item) =>
-                `/breweries?focus=1&country=${encodeURIComponent(item.name)}`
+                countryHref(item.name)
               }
             />
 
@@ -1478,7 +1479,7 @@ export default async function ActivityPage({
             items={
               globalStats.countries
             }
-            getItemHref={(item) => `/breweries?focus=1&country=${encodeURIComponent(item.name)}`}
+            getItemHref={(item) => countryHref(item.name)}
           />
 
           <StatsRankingCard
@@ -1649,8 +1650,7 @@ function TastingTimelineCard({
               {tasting.beers?.id ? (
                 <Link
                   href={
-                    "/beers/" +
-                    tasting.beers.id
+                    beerHref(tasting.beers.id, brewery?.id)
                   }
                   className="taste-timeline-main-link"
                 >
@@ -1725,7 +1725,11 @@ function TastingTimelineCard({
                       index
                     }
                   >
-                    {detail}
+                    {index === 0 && (tasting.beer_versions?.beer_styles ?? tasting.beers?.beer_styles)?.id
+                      ? <Link href={styleHref((tasting.beer_versions?.beer_styles ?? tasting.beers?.beer_styles)!.id)} className="taste-entity-link">{detail}</Link>
+                      : brewery?.country === detail
+                        ? <Link href={countryHref(detail)} className="taste-entity-link">{detail}</Link>
+                        : detail}
                   </span>
                 )
               )}
@@ -1941,7 +1945,7 @@ function CatalogTimelineCard({
     ) : row.event_type ===
         "hop_created" &&
       row.hops ? (
-      row.hops.name
+      <Link href={hopHref(row.hops.id)} className="taste-entity-link">{row.hops.name}</Link>
     ) : row.beers ? (
       <Link
         href={

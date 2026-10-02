@@ -23,6 +23,10 @@ Pozdější commit přidává tuto dokumentaci; nemění funkce archivované ver
 - 2. 10. 2026: jednotná normalizace všech uložených log včetně pivního podtácku
   ([popis a ověření](logo-normalization.md)). Originály a archiv zůstávají zachované.
 
+- Připraveno: sjednocení navigace názvů na profily pivovarů, států a uživatelů;
+  piva a značky uvnitř pivovaru, styly/chmely do Pivního lístku
+  ([pravidla a ověření](entity-navigation.md)). Změna není součástí původního archivu.
+
 ## Dokumenty k načtení
 
 - [Přehled funkcí a ověření](function-report-2026-10-02.md).

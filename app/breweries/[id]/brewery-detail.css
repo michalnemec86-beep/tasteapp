@@ -273,3 +273,13 @@ body:has(.taste-brewery-detail-concept) {
     width: 100%;
   }
 }
+
+/* Deep links open their context without hiding historical entries. */
+.taste-brewery-detail-concept [id^="beer-"],
+.taste-brewery-detail-concept [id^="brand-"] { scroll-margin-top: 100px; }
+.taste-brewery-detail-concept [data-focused="true"] {
+  background: rgba(242, 182, 63, .10);
+  outline: 1px solid rgba(242, 182, 63, .65);
+  border-radius: 10px;
+}
+.taste-brewery-focused-detail { padding: 12px 0; }
