@@ -18,6 +18,11 @@ Supabase projekt: nsnvryyocwzfwxiwhqca
 Funkční základ archivované verze: 65ed1f0f6938ae4a87d53623e2123485c52812e6.
 Pozdější commit přidává tuto dokumentaci; nemění funkce archivované verze.
 
+## Následné změny
+
+- 2. 10. 2026: jednotná normalizace všech uložených log včetně pivního podtácku
+  ([popis a ověření](logo-normalization.md)). Originály a archiv zůstávají zachované.
+
 ## Dokumenty k načtení
 
 - [Přehled funkcí a ověření](function-report-2026-10-02.md).
