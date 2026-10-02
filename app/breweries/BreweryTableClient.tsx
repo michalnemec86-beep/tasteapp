@@ -1,5 +1,6 @@
 "use client";
 
+import { countryHref, brandHref } from "@/lib/entity-navigation";
 import {
   useEffect,
   useMemo,
@@ -978,7 +979,7 @@ export default function BreweryTableClient({
                     >
                       {brewery.country ? (
                         <Link
-                          href={`/breweries?focus=1&country=${encodeURIComponent(brewery.country)}`}
+                          href={countryHref(brewery.country)}
                           className="taste-entity-link"
                         >
                           {brewery.country}
@@ -1536,7 +1537,7 @@ function BreweryBrandsModal({
                   }}
                 >
                   <Link
-                    href={`/brands/${brand.id}`}
+                    href={brandHref(brand.id, brewery.id)}
                     style={{
                       color:
                         "var(--taste-text)",

@@ -1,4 +1,5 @@
-import { redirect } from "next/navigation";
+import Link from "next/link";
+import { notFound, redirect } from "next/navigation";
 
 import PageHero from "@/components/ui/PageHero";
 import HomeStatIcon from "@/components/home/HomeStatIcon";
@@ -9,6 +10,8 @@ import { getBeerReferenceStatus } from "@/lib/referenceStatus";
 import { isAdminView } from "@/lib/adminView";
 import { isBeerAvailableForTasting } from "@/lib/beerPortfolio";
 
+import { getCatalogueMatch } from "@/lib/catalogue-scope";
+
 import BeerCatalogClient, { type BeerCatalogItem } from "./BeerCatalogClient";
 
 type Relation<T> = T | T[] | null;
@@ -17,7 +20,18 @@ function one<T>(value: Relation<T> | undefined): T | null {
   return Array.isArray(value) ? value[0] ?? null : value ?? null;
 }
 
-export default async function BeerCatalogPage() {
+export default async function BeerCatalogPage({ searchParams }: {
+  searchParams: Promise<{ style?: string; hop?: string; beer?: string }>;
+}) {
+  const params = await searchParams;
+  function idParam(value: string | undefined) {
+    if (value === undefined) return null;
+    if (!/^[1-9]\d*$/.test(value) || !Number.isSafeInteger(Number(value))) notFound();
+    return Number(value);
+  }
+  const styleId = idParam(params.style);
+  const hopId = idParam(params.hop);
+  const beerId = idParam(params.beer);
   const supabase = await createClient();
   const {
     data: { user },
@@ -26,6 +40,16 @@ export default async function BeerCatalogPage() {
   if (!user) {
     redirect("/auth/login");
   }
+
+  const [styleResult, hopResult] = await Promise.all([
+    styleId ? supabase.from("beer_styles").select("id, name").eq("id", styleId).maybeSingle() : Promise.resolve(null),
+    hopId ? supabase.from("hops").select("id, name").eq("id", hopId).maybeSingle() : Promise.resolve(null),
+  ]);
+  for (const result of [styleResult, hopResult]) {
+    if (result?.error) throw new Error(result.error.message);
+    if (result && !result.data) notFound();
+  }
+  const scope = [styleResult?.data ? `Pivní styl: ${styleResult.data.name}` : "", hopResult?.data ? `Chmel: ${hopResult.data.name}` : ""].filter(Boolean).join(" · ");
 
   const rows = await fetchAllRows((from, to) => supabase
       .from("beers")
@@ -47,7 +71,9 @@ export default async function BeerCatalogPage() {
       .order("id")
       .range(from, to), 1000);
 
-  const beers: BeerCatalogItem[] = rows.map((raw) => {
+  const catalogueScope = { styleId, hopId, beerId };
+  const scopedRows = rows.filter(raw => getCatalogueMatch(raw, catalogueScope).matches);
+  const beers: BeerCatalogItem[] = scopedRows.map((raw) => {
     const beer = raw as {
       id: number;
       name: string;
@@ -95,6 +121,7 @@ export default async function BeerCatalogPage() {
     });
 
     return {
+      historicalMatch: getCatalogueMatch(beer, catalogueScope).historicalOnly,
       id: beer.id,
       name: beer.name,
       brand,
@@ -125,17 +152,24 @@ export default async function BeerCatalogPage() {
         eyebrow="Katalog piv"
         imageUrl="/images/heroes/catalog.jpg"
         visualVariant="catalog"
-        title="Pivní lístek"
-        subtitle="Všechna piva evidovaná v aplikaci na jednom místě."
+        title={scope || "Pivní lístek"}
+        subtitle={scope ? "Evidovaná a ochutnaná piva včetně historických verzí." : "Všechna piva evidovaná v aplikaci na jednom místě."}
+        action={scope ? <Link href="/beers" className="taste-button-secondary">Všechna piva</Link> : undefined}
         statsScrollable
         stats={[
           { icon: <HomeStatIcon kind="mug" />, value: beers.length, label: "Všech piv", accent: "#f2b63f" },
           { icon: <HomeStatIcon kind="barrel" />, value: tastedCount, label: "Ochutnaných", accent: "#e88835" },
           { icon: <HomeStatIcon kind="hop" />, value: myCount, label: "Moje piva", accent: "#9cad47" },
+          ...(scope ? [
+            { icon: <HomeStatIcon kind="brewery" />, value: new Set(beers.map(beer => beer.brewery?.id).filter(Boolean)).size, label: "Pivovarů", accent: "#e88835" },
+            { icon: <HomeStatIcon kind="globe" />, value: new Set(beers.map(beer => beer.brewery?.country).filter(Boolean)).size, label: "Států", accent: "#9cad47" },
+          ] : []),
         ]}
       />
 
       <BeerCatalogClient
+        key={`${styleId}-${hopId}-${beerId}`}
+        initiallyExpanded={Boolean(scope || beerId)}
         beers={beers}
         adminView={await isAdminView(user.id)}
       />
