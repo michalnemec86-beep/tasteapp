@@ -626,6 +626,7 @@ function RankingList({
             >
               {href ? (
                 <Link
+                  prefetch={false}
                   href={
                     href
                   }

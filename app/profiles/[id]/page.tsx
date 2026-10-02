@@ -1760,7 +1760,7 @@ export default async function ProfilePage({
                           }}
                         >
                           {tasting.beers?.id ? (
-                            <Link href={beerHref(tasting.beers.id, (tasting.beer_versions?.breweries ?? tasting.beers?.breweries)?.id)} className="taste-entity-link" style={{ color: "inherit" }}>
+                            <Link prefetch={false} href={beerHref(tasting.beers.id, (tasting.beer_versions?.breweries ?? tasting.beers?.breweries)?.id)} className="taste-entity-link" style={{ color: "inherit" }}>
                               {tasting.beers.name}
                             </Link>
                           ) : "Neznámé pivo"}

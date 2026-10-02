@@ -31,7 +31,7 @@ export default async function BrandRedirect({ params }: { params: Promise<{ id: 
     <h1>Pivovary značky {brandResult.data.name}</h1>
     <p>{choices.length ? "Značka je evidovaná u více pivovarů. Vyber pivovar." : "Značka zatím nemá přiřazený pivovar."}</p>
     <div style={{ display: "grid", gap: "12px" }}>{choices.sort((a,b) => a.name.localeCompare(b.name,"cs")).map(brewery =>
-      <Link key={brewery.id} href={getBrandHref(brandId, brewery.id)} className="taste-card taste-entity-link" style={{ padding: "18px" }}>{brewery.name}</Link>
+      <Link prefetch={false} key={brewery.id} href={getBrandHref(brandId, brewery.id)} className="taste-card taste-entity-link" style={{ padding: "18px" }}>{brewery.name}</Link>
     )}</div>
     <Link href="/beers" className="taste-button-secondary" style={{ display: "inline-flex", marginTop: "20px" }}>Pivní lístek</Link>
   </main>;

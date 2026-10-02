@@ -1648,7 +1648,7 @@ function TastingTimelineCard({
           <div className="taste-timeline-main-line">
             <h3 className="taste-timeline-beer-name taste-timeline-main-title">
               {tasting.beers?.id ? (
-                <Link
+                <Link prefetch={false}
                   href={
                     beerHref(tasting.beers.id, brewery?.id)
                   }
@@ -1933,7 +1933,7 @@ function CatalogTimelineCard({
     row.event_type ===
       "brand_created" &&
     row.brands ? (
-      <Link
+      <Link prefetch={false}
         href={
           "/brands/" +
           row.brands.id
@@ -1947,7 +1947,7 @@ function CatalogTimelineCard({
       row.hops ? (
       <Link href={hopHref(row.hops.id)} className="taste-entity-link">{row.hops.name}</Link>
     ) : row.beers ? (
-      <Link
+      <Link prefetch={false}
         href={
           "/beers/" +
           row.beers.id
