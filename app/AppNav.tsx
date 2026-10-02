@@ -21,6 +21,7 @@ export default function AppNav({
   const counts = news?.counts ?? { activity: 0, beers: 0, breweries: 0 };
   const hasNews = Object.values(counts).some(count => count > 0);
   function reopenSection(href: string) {
+    setMobileOpen(false);
     reopen(href);
     if (pathname === href && !window.location.search) router.refresh();
   }

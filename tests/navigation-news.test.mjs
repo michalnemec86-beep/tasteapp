@@ -137,8 +137,9 @@ test('catalogue news uses visible creations by other users within the captured r
 
 test('desktop and expanded mobile navigation show only red numeric badges, a menu dot and no zero badges', () => {
   let news = snapshot(), mobileOpen = false;
+  const closed = [];
   const Nav = load('app/AppNav.tsx', {
-    react: { ...React, useState: () => [mobileOpen, () => {}], useEffect: () => {} },
+    react: { ...React, useState: () => [mobileOpen, value => { closed.push(value); mobileOpen = value; }], useEffect: () => {} },
     'next/link': ({ prefetch, ...props }) => React.createElement('a', props),
     'next/navigation': { usePathname: () => '/', useRouter: () => ({}) },
     '@/lib/supabase/client': { createClient: () => ({}) },
@@ -159,6 +160,11 @@ test('desktop and expanded mobile navigation show only red numeric badges, a men
   html = renderToStaticMarkup(React.createElement(Nav, { currentUserId: 'me' }));
   assert.match(html, /aria-label="120 novinek">99\+<\/span>/);
   assert.doesNotMatch(renderToStaticMarkup(React.createElement(Nav, { currentUserId: null })), /taste-nav-news-badge/);
+  mobileOpen = true; news = snapshot();
+  const collect = node => !node || typeof node !== 'object' ? [] : Array.isArray(node) ? node.flatMap(collect) : [node, ...collect(node.props?.children)];
+  const link = collect(Nav({ currentUserId: 'me' })).filter(node => node.props?.href?.startsWith('/beers?') && node.props?.onClick).at(-1);
+  link.props.onClick();
+  assert.equal(closed.at(-1), false, 'menu closes even when only the list query changes');
 });
 
 test('news catalogue batches avoid oversized URLs and remain complete across concurrent deletions', async () => {
