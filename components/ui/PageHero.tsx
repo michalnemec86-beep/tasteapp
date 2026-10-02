@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 
+import AutoLogoFrame from "@/components/ui/AutoLogoFrame";
 import HorizontalStatScroller from "@/components/ui/HorizontalStatScroller";
 import { getCountryHeroTheme } from "@/lib/country-flags";
 
@@ -500,15 +501,12 @@ function BreweryLogoVisual({ src, alt }: { src: string; alt: string }) {
         pointerEvents: "none",
       }}
     >
-      <img
+      <AutoLogoFrame
         src={src}
         alt={alt}
-        style={{
-          display: "block",
-          width: "100%",
-          height: "100%",
-          objectFit: "contain",
-        }}
+        padding={0}
+        className="taste-brewery-coaster-artwork"
+        style={{ width: "100%", height: "100%", border: 0, boxShadow: "none" }}
       />
     </div>
   );

@@ -1,5 +1,7 @@
 "use client";
 
+import AutoLogoFrame from "@/components/ui/AutoLogoFrame";
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -323,42 +325,13 @@ export default function BreweryLogoManagerClient({
             minWidth: 0,
           }}
         >
-          <div
-            className="taste-brewery-logo-frame"
-            style={{
-              width: "72px",
-              height: "52px",
-              flexShrink: 0,
-              display: "flex",
-              alignItems: "center",
-              justifyContent:
-                "center",
-
-            }}
-          >
-            {logoUrl ? (
-              <img
-                src={logoUrl}
-                alt={`Logo ${breweryName}`}
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "contain",
-                }}
-              />
-            ) : (
-              <span
-                style={{
-                  color:
-                    "var(--taste-text-muted)",
-                  fontSize: "10px",
-                  fontWeight: 700,
-                }}
-              >
-                BEZ LOGA
-              </span>
-            )}
-          </div>
+          {logoUrl ? (
+            <AutoLogoFrame src={logoUrl} alt={`Logo ${breweryName}`} size={64} />
+          ) : (
+            <span className="taste-brewery-logo-frame" style={{ width: 64, height: 64,
+              display: "inline-flex", alignItems: "center", justifyContent: "center",
+              color: "var(--taste-text-muted)", fontSize: 10, fontWeight: 700 }}>BEZ LOGA</span>
+          )}
 
           <div>
             <div
@@ -558,7 +531,8 @@ export default function BreweryLogoManagerClient({
                 Přímý náhled se nepodařilo načíst. Pokud jde o běžnou webovou stránku, použij „Prověřit odkaz“ a Pivník z ní zkusí logo najít.
               </div>
             ) : (
-              <img
+              <AutoLogoFrame
+                size={92}
                 src={manualUrl.trim()}
                 alt="Náhled ručně vloženého loga"
                 referrerPolicy="no-referrer"
@@ -605,7 +579,8 @@ export default function BreweryLogoManagerClient({
                     overflow: "hidden",
                   }}
                 >
-                  <img
+                  <AutoLogoFrame
+                    size={80}
                     src={candidate.url}
                     alt={candidate.label}
                     referrerPolicy="no-referrer"
@@ -741,7 +716,8 @@ export default function BreweryLogoManagerClient({
                         "hidden",
                     }}
                   >
-                    <img
+                    <AutoLogoFrame
+                      size={80}
                       src={candidate.url}
                       alt={
                         candidate.label
