@@ -81,6 +81,14 @@ export default function AccountSettings({
   const [manualMessageError, setManualMessageError] = useState(false);
   const [createdCredentials, setCreatedCredentials] = useState<{ email: string; password: string } | null>(null);
   const [credentialsMessage, setCredentialsMessage] = useState("");
+  const [resetEmail, setResetEmail] = useState("");
+  const [resetPassword, setResetPassword] = useState("");
+  const [resetPasswordAgain, setResetPasswordAgain] = useState("");
+  const [resetBusy, setResetBusy] = useState(false);
+  const [resetMessage, setResetMessage] = useState("");
+  const [resetMessageError, setResetMessageError] = useState(false);
+  const [resetCredentials, setResetCredentials] = useState<{ email: string; password: string } | null>(null);
+  const [resetCredentialsMessage, setResetCredentialsMessage] = useState("");
 
   const loadInvitations = useCallback(async () => {
     if (!canSwitchView) return;
@@ -198,7 +206,7 @@ export default function AccountSettings({
 
   async function createQrInvitation(targetEmail: string, clearInput = false) {
     const normalizedEmail = targetEmail.trim().toLowerCase();
-    if (!normalizedEmail || inviteBusyEmail) return;
+    if (!normalizedEmail || inviteBusyEmail || resetBusy) return;
 
     setInviteBusyEmail(normalizedEmail);
     setInviteBusyKind("qr");
@@ -293,6 +301,81 @@ export default function AccountSettings({
     }
   }
 
+  async function resetUserPassword(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const normalizedEmail = resetEmail.trim().toLowerCase();
+
+    setResetMessage("");
+    setResetMessageError(false);
+    setResetCredentialsMessage("");
+    setResetCredentials(null);
+
+    if (!normalizedEmail) return;
+    if (resetPassword.length < 10) {
+      setResetMessageError(true);
+      setResetMessage("Dočasné heslo musí mít alespoň 10 znaků.");
+      return;
+    }
+    if (resetPassword !== resetPasswordAgain) {
+      setResetMessageError(true);
+      setResetMessage("Zadaná dočasná hesla se neshodují.");
+      return;
+    }
+
+    setResetBusy(true);
+
+    try {
+      const supabase = createClient();
+      const { data, error } = await supabase.functions.invoke("admin-invitations", {
+        body: {
+          action: "reset_password",
+          email: normalizedEmail,
+          password: resetPassword,
+        },
+      });
+
+      if (error) throw error;
+      if (!data?.ok) {
+        setResetMessageError(true);
+        setResetMessage(data?.message ?? "Reset hesla se nepodařil.");
+        return;
+      }
+
+      setResetCredentials({
+        email: normalizedEmail,
+        password: resetPassword,
+      });
+      setResetMessage(data.message ?? "Dočasné heslo bylo nastaveno.");
+      setResetEmail("");
+      setResetPassword("");
+      setResetPasswordAgain("");
+    } catch {
+      setResetMessageError(true);
+      setResetMessage("Reset hesla se nepodařil. Zkus to znovu.");
+    } finally {
+      setResetBusy(false);
+    }
+  }
+
+  async function copyResetCredentials() {
+    if (!resetCredentials) return;
+    const text = [
+      "Pivník",
+      "Přihlášení: " + window.location.origin + "/auth/login",
+      "E-mail: " + resetCredentials.email,
+      "Dočasné heslo: " + resetCredentials.password,
+      "",
+      "Po přihlášení si aplikace vyžádá nastavení vlastního hesla.",
+    ].join("\n");
+
+    try {
+      await navigator.clipboard.writeText(text);
+      setResetCredentialsMessage("Přihlašovací údaje jsou zkopírované.");
+    } catch {
+      setResetCredentialsMessage("Údaje se nepodařilo zkopírovat.");
+    }
+  }
+
   async function copyCreatedCredentials() {
     if (!createdCredentials) return;
     const text = [
@@ -313,7 +396,7 @@ export default function AccountSettings({
   }
 
   async function cancelInvitation(invitation: InvitationRow) {
-    if (inviteBusyEmail || manualBusy) return;
+    if (inviteBusyEmail || manualBusy || resetBusy) return;
 
     const methodText = invitation.registrationMethod === "admin_password"
       ? "Účet s dočasným heslem bude odstraněn."
@@ -430,7 +513,7 @@ export default function AccountSettings({
                   placeholder="jmeno@example.cz"
                 />
               </div>
-              <button type="submit" disabled={inviteBusyEmail !== null || manualBusy || !inviteEmail.trim()}>
+              <button type="submit" disabled={inviteBusyEmail !== null || manualBusy || resetBusy || !inviteEmail.trim()}>
                 {inviteBusyKind === "qr" && inviteBusyEmail === inviteEmail.trim().toLowerCase() ? "Vytvářím…" : "Vytvořit QR pozvánku"}
               </button>
             </form>
@@ -504,7 +587,7 @@ export default function AccountSettings({
                 value={manualPasswordAgain}
                 onChange={(event) => setManualPasswordAgain(event.target.value)}
               />
-              <button type="submit" disabled={manualBusy || inviteBusyEmail !== null}>
+              <button type="submit" disabled={manualBusy || inviteBusyEmail !== null || resetBusy}>
                 {manualBusy ? "Vytvářím účet…" : "Vytvořit účet"}
               </button>
             </form>
@@ -525,6 +608,70 @@ export default function AccountSettings({
               </div>
             )}
           </div>
+
+          <div className="taste-settings-registration-path taste-settings-reset-path">
+            <span className="taste-settings-registration-number">3</span>
+            <div>
+              <h3>Obnova přístupu</h3>
+              <p>Pro aktivní účet nastav nové dočasné heslo bez mazání profilu nebo pivních dat. Po přihlášení si uživatel povinně vytvoří vlastní heslo.</p>
+            </div>
+
+            <form className="taste-settings-manual-form" onSubmit={resetUserPassword}>
+              <label htmlFor="reset-email">E-mail uživatele</label>
+              <input
+                id="reset-email"
+                type="email"
+                autoComplete="off"
+                required
+                maxLength={254}
+                value={resetEmail}
+                onChange={(event) => setResetEmail(event.target.value)}
+                placeholder="jmeno@example.cz"
+              />
+              <label htmlFor="reset-password">Nové dočasné heslo</label>
+              <input
+                id="reset-password"
+                type="password"
+                autoComplete="new-password"
+                required
+                minLength={10}
+                maxLength={128}
+                value={resetPassword}
+                onChange={(event) => setResetPassword(event.target.value)}
+                placeholder="Alespoň 10 znaků"
+              />
+              <label htmlFor="reset-password-again">Dočasné heslo znovu</label>
+              <input
+                id="reset-password-again"
+                type="password"
+                autoComplete="new-password"
+                required
+                minLength={10}
+                maxLength={128}
+                value={resetPasswordAgain}
+                onChange={(event) => setResetPasswordAgain(event.target.value)}
+              />
+              <button type="submit" disabled={resetBusy || manualBusy || inviteBusyEmail !== null}>
+                {resetBusy ? "Resetuji heslo…" : "Nastavit dočasné heslo"}
+              </button>
+            </form>
+
+            {resetMessage && <p className="taste-settings-feedback taste-settings-invite-feedback" role="status" data-error={resetMessageError}>{resetMessage}</p>}
+
+            {resetCredentials && (
+              <div className="taste-settings-credentials">
+                <span className="taste-settings-qr-kicker">Údaje k předání</span>
+                <strong>{resetCredentials.email}</strong>
+                <code>{resetCredentials.password}</code>
+                <p>Heslo je viditelné jen tady v prohlížeči. Profil, ochutnávky i ostatní data zůstávají beze změny.</p>
+                <div className="taste-settings-qr-actions">
+                  <button type="button" onClick={() => void copyResetCredentials()}>Kopírovat údaje</button>
+                  <button type="button" className="taste-settings-secondary-button" onClick={() => setResetCredentials(null)}>Skrýt</button>
+                </div>
+                {resetCredentialsMessage && <span className="taste-settings-qr-message">{resetCredentialsMessage}</span>}
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="taste-settings-invite-list" aria-live="polite">
@@ -534,7 +681,7 @@ export default function AccountSettings({
               type="button"
               className="taste-settings-secondary-button"
               onClick={() => void loadInvitations()}
-              disabled={invitationsLoading || inviteBusyEmail !== null || manualBusy}
+              disabled={invitationsLoading || inviteBusyEmail !== null || manualBusy || resetBusy}
             >
               {invitationsLoading ? "Načítám…" : "Obnovit stav"}
             </button>
@@ -575,7 +722,7 @@ export default function AccountSettings({
                         <button
                           type="button"
                           className="taste-settings-secondary-button"
-                          disabled={inviteBusyEmail !== null || manualBusy}
+                          disabled={inviteBusyEmail !== null || manualBusy || resetBusy}
                           onClick={() => void createQrInvitation(invitation.email)}
                         >
                           {busy && inviteBusyKind === "qr" ? "Vytvářím…" : "Nový QR"}
@@ -584,7 +731,7 @@ export default function AccountSettings({
                       <button
                         type="button"
                         className="taste-settings-danger-button"
-                        disabled={inviteBusyEmail !== null || manualBusy}
+                        disabled={inviteBusyEmail !== null || manualBusy || resetBusy}
                         onClick={() => void cancelInvitation(invitation)}
                       >
                         {busy && inviteBusyKind === "cancel" ? "Ruším…" : "Zrušit registraci"}
