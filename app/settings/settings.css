@@ -85,6 +85,7 @@
 
 .taste-settings-registration-paths { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
 .taste-settings-registration-path { position: relative; min-width: 0; padding: 18px; border: 1px solid rgba(231,166,47,.18); border-radius: 15px; background: rgba(15,10,7,.35); }
+.taste-settings-reset-path { grid-column: 1 / -1; }
 .taste-settings-registration-path > div:first-of-type { padding-left: 38px; }
 .taste-settings-registration-path h3 { margin: 0 0 5px; font-size: 17px; font-weight: 850; }
 .taste-settings-registration-path > div > p { margin: 0 0 16px; color: var(--taste-text-soft); font-size: 13px; line-height: 1.5; }

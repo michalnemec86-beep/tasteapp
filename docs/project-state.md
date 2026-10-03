@@ -37,6 +37,11 @@ Pozdější commit přidává tuto dokumentaci; nemění funkce archivované ver
   Návštěvy se synchronizují přes účet. Nová metadata a RPC respektují RLS;
   starší obsah při zavedení nevytvoří upozornění.
 
+- 3. 10. 2026: administrátorská obnova přístupu bez mazání účtu
+  ([chování a ověření](admin-password-reset.md)). Reset nastaví dočasné heslo
+  aktivnímu uživateli, zachová jeho UUID a data a při dalším přihlášení vynutí
+  nastavení vlastního hesla.
+
 ## Dokumenty k načtení
 
 - [Přehled funkcí a ověření](function-report-2026-10-02.md).
