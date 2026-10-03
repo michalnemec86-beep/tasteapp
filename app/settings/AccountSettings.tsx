@@ -488,8 +488,8 @@ export default function AccountSettings({
       </section>}
 
       {canSwitchView && <section className="taste-settings-card taste-settings-invite-card" aria-labelledby="settings-invite-title">
-        <h2 id="settings-invite-title">Registrace nového štamgasta</h2>
-        <p>Do Pivníku vedou jen dvě cesty: bezpečná QR pozvánka, nebo účet vytvořený správcem s dočasným heslem. Aktivní uživatelé se v seznamu čekajících registrací nezobrazují.</p>
+        <h2 id="settings-invite-title">Registrace a přístup štamgastů</h2>
+        <p>Nový štamgast může přijít přes bezpečnou QR pozvánku nebo účet s dočasným heslem. Aktivnímu uživateli může správce obnovit přístup bez mazání profilu a pivních dat.</p>
 
         <div className="taste-settings-registration-paths">
           <div className="taste-settings-registration-path">
