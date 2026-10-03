@@ -292,6 +292,46 @@ async function createPasswordAccount(email: string, password: string, existing: 
   };
 }
 
+
+async function resetUserPassword(user: AuthUser, password: string) {
+  const appMetadata = {
+    ...(user.app_metadata ?? {}),
+    must_change_password: true,
+    password_reset_by_admin_at: new Date().toISOString(),
+  };
+
+  const response = await fetch(
+    SUPABASE_URL + "/auth/v1/admin/users/" + encodeURIComponent(user.id),
+    {
+      method: "PUT",
+      headers: serviceHeaders(),
+      body: JSON.stringify({
+        password,
+        app_metadata: appMetadata,
+      }),
+    },
+  );
+
+  const payload = await response.json().catch(() => ({})) as GenerateLinkPayload;
+  if (!response.ok || !payload.id) {
+    const detail =
+      payload.msg ??
+      payload.message ??
+      payload.error_description ??
+      "Supabase heslo nezměnil.";
+    throw new Error(detail);
+  }
+
+  if (user.email) {
+    await revokeExistingQrLinks(user.email.toLowerCase());
+  }
+
+  return {
+    id: payload.id,
+    email: payload.email ?? user.email ?? "",
+  };
+}
+
 Deno.serve(async (req: Request) => {
   const origin = req.headers.get("Origin");
 
@@ -446,6 +486,63 @@ Deno.serve(async (req: Request) => {
         ok: true,
         message: "Pozvánka byla zrušena. Starý QR kód ani původní invite odkaz už nejsou platnou cestou k účtu.",
       });
+    }
+
+    if (body.action === "reset_password") {
+      const email = (body.email ?? "").trim().toLowerCase();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) {
+        return json(origin, { ok: false, message: "Zadej platnou e-mailovou adresu." }, 400);
+      }
+
+      const password = body.password ?? "";
+      if (password.length < 10 || password.length > 128) {
+        return json(origin, {
+          ok: false,
+          message: "Dočasné heslo musí mít 10 až 128 znaků.",
+        }, 400);
+      }
+
+      const users = await listAuthUsers();
+      const existing = users.find(
+        (user) => (user.email ?? "").toLowerCase() === email,
+      );
+
+      if (!existing) {
+        return json(origin, {
+          ok: false,
+          message: "Účet s tímto e-mailem v Pivníku neexistuje.",
+        }, 404);
+      }
+
+      const confirmedAt = existing.email_confirmed_at ?? existing.confirmed_at ?? null;
+      if (!confirmedAt) {
+        return json(origin, {
+          ok: false,
+          message: "Tento účet ještě není aktivní. Použij správu čekající registrace.",
+        }, 409);
+      }
+
+      if (existing.id === ADMIN_USER_ID) {
+        return json(origin, {
+          ok: false,
+          message: "Heslo správce měň standardní cestou v nastavení účtu.",
+        }, 409);
+      }
+
+      try {
+        const account = await resetUserPassword(existing, password);
+        return json(origin, {
+          ok: true,
+          message: "Dočasné heslo bylo nastaveno. Uživatel si po přihlášení musí vytvořit vlastní heslo.",
+          account,
+        });
+      } catch (error) {
+        const detail = error instanceof Error ? error.message : "Supabase heslo nezměnil.";
+        return json(origin, {
+          ok: false,
+          message: "Reset hesla se nepodařil. " + detail,
+        }, 400);
+      }
     }
 
     if (body.action !== "qr" && body.action !== "create_account") {
