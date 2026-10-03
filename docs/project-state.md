@@ -42,6 +42,11 @@ Pozdější commit přidává tuto dokumentaci; nemění funkce archivované ver
   aktivnímu uživateli, zachová jeho UUID a data a při dalším přihlášení vynutí
   nastavení vlastního hesla.
 
+- 3. 10. 2026: oprava dokončení změny hesla v mobilním prohlížeči:
+  CORS preflight a odpovědi `complete-initial-password`, opakování pouze
+  neúspěšného dokončení a kontrola obnovení relace
+  ([příčina a ověření](admin-password-reset.md)).
+
 ## Dokumenty k načtení
 
 - [Přehled funkcí a ověření](function-report-2026-10-02.md).

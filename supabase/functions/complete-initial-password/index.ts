@@ -4,10 +4,27 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
-function json(body: unknown, status = 200) {
+const allowedOrigins = new Set([
+  "https://tasteapp-eosin.vercel.app",
+  "http://localhost:3000",
+]);
+
+function corsHeaders(origin: string | null) {
+  return {
+    "Access-Control-Allow-Origin": origin && allowedOrigins.has(origin)
+      ? origin
+      : "https://tasteapp-eosin.vercel.app",
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Content-Type": "application/json",
+    "Vary": "Origin",
+  };
+}
+
+function json(origin: string | null, body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { "Content-Type": "application/json" },
+    headers: corsHeaders(origin),
   });
 }
 
@@ -25,17 +42,22 @@ type AuthUser = {
 };
 
 Deno.serve(async (req: Request) => {
+  const origin = req.headers.get("Origin");
+  if (req.method === "OPTIONS") {
+    return new Response(null, { status: 204, headers: corsHeaders(origin) });
+  }
+
   if (req.method !== "POST") {
-    return json({ ok: false, message: "Nepodporovaná metoda." }, 405);
+    return json(origin, { ok: false, message: "Nepodporovaná metoda." }, 405);
   }
 
   if (!SUPABASE_URL || !ANON_KEY || !SERVICE_ROLE_KEY) {
-    return json({ ok: false, message: "Chybí serverová konfigurace." }, 500);
+    return json(origin, { ok: false, message: "Chybí serverová konfigurace." }, 500);
   }
 
   const authHeader = req.headers.get("Authorization");
   if (!authHeader?.startsWith("Bearer ")) {
-    return json({ ok: false, message: "Chybí přihlášení." }, 401);
+    return json(origin, { ok: false, message: "Chybí přihlášení." }, 401);
   }
 
   try {
@@ -47,14 +69,14 @@ Deno.serve(async (req: Request) => {
     });
 
     if (!userResponse.ok) {
-      return json({ ok: false, message: "Přihlášení se nepodařilo ověřit." }, 401);
+      return json(origin, { ok: false, message: "Přihlášení se nepodařilo ověřit." }, 401);
     }
 
     const user = await userResponse.json() as AuthUser;
     const currentMetadata = user.app_metadata ?? {};
 
     if (currentMetadata.must_change_password !== true) {
-      return json({ ok: true, changed: false });
+      return json(origin, { ok: true, changed: false });
     }
 
     const nextMetadata = {
@@ -76,10 +98,10 @@ Deno.serve(async (req: Request) => {
       throw new Error("Auth update failed (" + updateResponse.status + "): " + detail);
     }
 
-    return json({ ok: true, changed: true });
+    return json(origin, { ok: true, changed: true });
   } catch (error) {
     console.error("complete-initial-password", error);
-    return json({
+    return json(origin, {
       ok: false,
       message: "Dokončení prvního nastavení hesla selhalo.",
     }, 500);

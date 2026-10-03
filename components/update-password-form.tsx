@@ -22,17 +22,18 @@ export function UpdatePasswordForm({
   const [passwordAgain, setPasswordAgain] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [passwordSaved, setPasswordSaved] = useState(false);
 
   const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
-    if (password.length < 8) {
+    if (!passwordSaved && password.length < 8) {
       setError("Nové heslo musí mít alespoň 8 znaků.");
       return;
     }
 
-    if (password !== passwordAgain) {
+    if (!passwordSaved && password !== passwordAgain) {
       setError("Zadaná hesla se neshodují.");
       return;
     }
@@ -41,18 +42,26 @@ export function UpdatePasswordForm({
     setIsLoading(true);
 
     try {
-      const { error } = await supabase.auth.updateUser({ password });
-      if (error) throw error;
+      if (!passwordSaved) {
+        const { error } = await supabase.auth.updateUser({ password });
+        if (error) throw error;
+        setPasswordSaved(true);
+        setPassword("");
+        setPasswordAgain("");
+      }
 
       const { data: completion, error: completionError } = await supabase.functions.invoke(
         "complete-initial-password",
         { body: {} },
       );
-      if (completionError || completion?.ok === false) {
-        throw new Error(completion?.message ?? "Dokončení prvního nastavení hesla selhalo.");
+      if (completionError || completion?.ok !== true) {
+        throw new Error("Heslo je uložené, ale dokončení se nepodařilo. Stiskni Zkusit dokončit znovu.");
       }
 
-      await supabase.auth.refreshSession();
+      const { data: refreshed, error: refreshError } = await supabase.auth.refreshSession();
+      if (refreshError || !refreshed.session || refreshed.user?.app_metadata?.must_change_password === true) {
+        throw new Error("Heslo je uložené, ale obnovení přihlášení se nepodařilo. Stiskni Zkusit dokončit znovu.");
+      }
       window.location.replace("/");
     } catch (caughtError: unknown) {
       setError(
@@ -83,7 +92,8 @@ export function UpdatePasswordForm({
                   id="password"
                   type="password"
                   placeholder="Alespoň 8 znaků"
-                  required
+                  required={!passwordSaved}
+                  disabled={isLoading || passwordSaved}
                   minLength={8}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -96,7 +106,8 @@ export function UpdatePasswordForm({
                   id="password-again"
                   type="password"
                   placeholder="Zopakuj nové heslo"
-                  required
+                  required={!passwordSaved}
+                  disabled={isLoading || passwordSaved}
                   minLength={8}
                   value={passwordAgain}
                   onChange={(e) => setPasswordAgain(e.target.value)}
@@ -106,7 +117,7 @@ export function UpdatePasswordForm({
               {error && <p className="text-sm text-red-500">{error}</p>}
 
               <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Ukládám…" : "Uložit nové heslo"}
+                {isLoading ? "Ukládám…" : passwordSaved ? "Zkusit dokončit znovu" : "Uložit nové heslo"}
               </Button>
             </div>
           </form>
