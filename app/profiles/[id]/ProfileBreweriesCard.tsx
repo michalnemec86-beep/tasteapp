@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { BreweryBrowseProvider, BreweryBrowseLink } from "@/components/navigation/BreweryBrowse";
 
 import type {
   RankingItem,
@@ -7,6 +7,7 @@ import AutoLogoFrame from "@/components/ui/AutoLogoFrame";
 import HomeStatIcon from "@/components/home/HomeStatIcon";
 
 type ProfileBreweriesCardProps = {
+  currentUserId: string;
   items: RankingItem[];
   profileId: string;
   limit?: number;
@@ -45,7 +46,7 @@ const tones = [
 
 export default function ProfileBreweriesCard({
   items,
-  profileId,
+  currentUserId,
   limit = 8,
 }: ProfileBreweriesCardProps) {
   const visibleItems =
@@ -59,6 +60,7 @@ export default function ProfileBreweriesCard({
 
 
   return (
+    <BreweryBrowseProvider ids={items.map(item => Number(item.id))} ownerId={currentUserId} label="Osobní pivovary">
     <section
       className="taste-profile-section taste-profile-breweries-section"
       style={{
@@ -214,7 +216,7 @@ export default function ProfileBreweriesCard({
                         )}
                       </span>
 
-                      <Link
+                      <BreweryBrowseLink
                         href={`/breweries/${item.id}`}
                         style={{
                           overflow:
@@ -234,7 +236,7 @@ export default function ProfileBreweriesCard({
                         }}
                       >
                         {item.name}
-                      </Link>
+                      </BreweryBrowseLink>
 
                       <div
                         style={{
@@ -308,5 +310,6 @@ export default function ProfileBreweriesCard({
         </div>
       )}
     </section>
+    </BreweryBrowseProvider>
   );
 }

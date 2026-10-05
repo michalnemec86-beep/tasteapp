@@ -31,6 +31,7 @@ export function getRankingEntityHref(title: string, item: { id: number | string;
     case "Pivní styly": return getStyleHref(item.id);
     case "Chmely": return getHopHref(item.id);
     case "Státy": return getCountryHref(item.name);
+    case "Způsob podání": return `/stats/packaging/${encodeURIComponent(String(item.id))}`;
     default: return null;
   }
 }

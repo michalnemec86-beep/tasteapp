@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BreweryBrowseProvider, BreweryBrowseLink } from "@/components/navigation/BreweryBrowse";
 import { notFound, redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
@@ -603,8 +604,9 @@ export default async function BreweriesPage({
                   gap: "12px",
                 }}
               >
+                <BreweryBrowseProvider ids={visibleTableRows.map(row => row.id)} ownerId={user.id} label={selectedCountry ? `Pivovary · ${selectedCountry}` : "Katalog pivovarů"}>
                 {visibleTableRows.map((brewery) => (
-                  <Link
+                  <BreweryBrowseLink
                     key={brewery.id}
                     href={`/breweries/${brewery.id}`}
                     className="taste-card"
@@ -692,8 +694,9 @@ export default async function BreweriesPage({
                         <span>· založen {brewery.foundedYear}</span>
                       )}
                     </div>
-                  </Link>
+                  </BreweryBrowseLink>
                 ))}
+                </BreweryBrowseProvider>
               </div>
             )}
           </section>

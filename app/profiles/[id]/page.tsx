@@ -1418,6 +1418,7 @@ export default async function ProfilePage({
 
         <div className="taste-profile-preference-breweries">
           <ProfileBreweriesCard
+            currentUserId={user.id}
             items={
               tasteStats.breweries
             }
@@ -1480,7 +1481,7 @@ export default async function ProfilePage({
       </>}
 
       {view === "breweries" && (
-        <ProfileBreweriesView items={profileBreweryItems} profileId={profile.id} />
+        <ProfileBreweriesView items={profileBreweryItems} profileId={profile.id} currentUserId={user.id} />
       )}
 
       {/* ==================================================

@@ -322,6 +322,7 @@ export default async function CountryStatsPage({
           }}
         >
           <RankingCardClient
+            currentUserId={user.id}
             title="Piva"
             tone="gold"
             subtitle="Ochutnaná piva z této země"
@@ -331,6 +332,7 @@ export default async function CountryStatsPage({
           />
 
           <RankingCardClient
+            currentUserId={user.id}
             title="Značky"
             tone="honey"
             subtitle="Značky v ochutnávkách"
@@ -341,6 +343,7 @@ export default async function CountryStatsPage({
           />
 
           <RankingCardClient
+            currentUserId={user.id}
             title="Pivovary"
             tone="honey"
             subtitle="Ochutnávané pivovary"
@@ -351,6 +354,7 @@ export default async function CountryStatsPage({
           />
 
           <RankingCardClient
+            currentUserId={user.id}
             title="Pivní styly"
             tone="amber"
             subtitle="Styly zastoupené v této zemi"
@@ -360,6 +364,7 @@ export default async function CountryStatsPage({
           />
 
           <RankingCardClient
+            currentUserId={user.id}
             title="Chmely"
             tone="malt"
             subtitle="Dohledané chmely použitých piv"

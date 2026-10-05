@@ -1,7 +1,7 @@
 "use client";
 
 import { getRankingEntityHref } from "@/lib/entity-navigation";
-import Link from "next/link";
+import { BreweryBrowseProvider, BreweryBrowseLink } from "@/components/navigation/BreweryBrowse";
 import { pushRankingDialog, closeRankingDialog } from "@/lib/ranking-dialog-history";
 import { useSearchParams } from "next/navigation";
 import {
@@ -40,6 +40,8 @@ type RankingToneStyle = {
 };
 
 type RankingCardClientProps = {
+  currentUserId: string;
+  expanded?: boolean;
   title: string;
   subtitle: string;
   icon: ReactNode;
@@ -116,12 +118,14 @@ const TONE_STYLES: Record<RankingTone, RankingToneStyle> = {
   },
 };
 
-function getItemHref(title: string, item: RankingItem, itemHrefPrefix?: string, _lockedContext = false, _currentQuery = "") {
+function getItemHref(title: string, item: RankingItem, itemHrefPrefix?: string) {
   return getRankingEntityHref(title, item) ??
     (itemHrefPrefix ? `${itemHrefPrefix}/${item.id}` : null);
 }
 
 export default function RankingCardClient({
+  currentUserId,
+  expanded = false,
   title,
   icon,
   items,
@@ -132,13 +136,11 @@ export default function RankingCardClient({
   personalItemIds = [],
   comparisonItems = [],
   comparisonLabel = "moje",
-  lockedContext = false,
 }: RankingCardClientProps) {
   const searchParams = useSearchParams();
-  const currentQuery = searchParams.toString();
   const isClient = useSyncExternalStore(subscribeToHydration, clientSnapshot, serverSnapshot);
   const dialogKey = anchorId ?? title;
-  const isOpen = isClient && searchParams.get("ranking") === dialogKey;
+  const isOpen = !expanded && isClient && searchParams.get("ranking") === dialogKey;
   const setIsOpen = useCallback((open: boolean) => {
     const url = new URL(window.location.href);
     const href = () => url.pathname + url.search + url.hash;
@@ -159,7 +161,7 @@ export default function RankingCardClient({
       ? Math.max(...items.map((item) => item.count))
       : 1;
 
-  const previewItems = items.slice(0, PREVIEW_LIMIT);
+  const previewItems = expanded ? items : items.slice(0, PREVIEW_LIMIT);
   const cardTone = TONE_STYLES[tone];
 
   useEffect(() => {
@@ -185,7 +187,7 @@ export default function RankingCardClient({
   }, [isOpen, setIsOpen]);
 
   return (
-    <>
+    <BreweryBrowseProvider ids={title === "Pivovary" ? items.map(item => Number(item.id)) : []} ownerId={currentUserId} label={title}>
       <section
         id={anchorId}
         className="taste-ranking-card"
@@ -226,12 +228,10 @@ export default function RankingCardClient({
             personalItemIds={personalItemIds}
             comparisonItems={comparisonItems}
             comparisonLabel={comparisonLabel}
-            lockedContext={lockedContext}
-            currentQuery={currentQuery}
           />
         )}
 
-        {items.length > 0 && (
+        {!expanded && items.length > 0 && (
           <button
             type="button"
             onClick={() => setIsOpen(true)}
@@ -354,15 +354,13 @@ export default function RankingCardClient({
                   personalItemIds={personalItemIds}
                   comparisonItems={comparisonItems}
                   comparisonLabel={comparisonLabel}
-                  lockedContext={lockedContext}
-                  currentQuery={currentQuery}
                 />
               </div>
             </section>
           </div>,
           document.body
         )}
-    </>
+    </BreweryBrowseProvider>
   );
 }
 
@@ -516,8 +514,6 @@ function RankingList({
   personalItemIds,
   comparisonItems,
   comparisonLabel,
-  lockedContext,
-  currentQuery,
 }: {
   title: string;
   items: RankingItem[];
@@ -527,8 +523,6 @@ function RankingList({
   personalItemIds: Array<string | number>;
   comparisonItems: RankingItem[];
   comparisonLabel: string;
-  lockedContext: boolean;
-  currentQuery: string;
 }) {
   const personalIds =
     new Set(
@@ -582,9 +576,7 @@ function RankingList({
               : getItemHref(
                   title,
                   item,
-                  itemHrefPrefix,
-                  lockedContext,
-                  currentQuery
+                  itemHrefPrefix
                 );
 
           const comparisonCount =
@@ -646,7 +638,7 @@ function RankingList({
               }}
             >
               {href ? (
-                <Link
+                <BreweryBrowseLink
                   prefetch={false}
                   href={
                     href
@@ -661,7 +653,7 @@ function RankingList({
                   }}
                 >
                   {label}
-                </Link>
+                </BreweryBrowseLink>
               ) : (
                 label
               )}

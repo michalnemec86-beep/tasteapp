@@ -8,6 +8,8 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
+import { BreweryBrowseProvider, BreweryBrowseLink } from "@/components/navigation/BreweryBrowse";
+import { browseReturnHref } from "@/lib/brewery-browse";
 import ReferenceWarning from "@/components/ui/ReferenceWarning";
 import {
   usePathname,
@@ -197,7 +199,6 @@ function normalizeText(value: string | null | undefined) {
 export default function BreweryTableClient({
   rows,
   profiles,
-  countries,
   currentUserId,
   adminView,
   initiallyVisible = false,
@@ -231,25 +232,25 @@ export default function BreweryTableClient({
   }
 
   const [sortKey, setSortKey] =
-    useState<SortKey>("name");
+    useState<SortKey>(() => columns.some(column => column.key === searchParams.get("cSort")) ? searchParams.get("cSort") as SortKey : "name");
 
   const [sortDirection, setSortDirection] =
-    useState<SortDirection>("asc");
+    useState<SortDirection>(searchParams.get("cDirection") === "desc" ? "desc" : "asc");
 
   const [search, setSearch] =
-    useState("");
+    useState(searchParams.get("cSearch") ?? "");
 
   const [selectedUserId, setSelectedUserId] =
-    useState("");
+    useState(searchParams.get("cUser") ?? "");
 
   const [selectedCountry, setSelectedCountry] =
-    useState("");
+    useState(searchParams.get("cCountry") ?? "");
 
   const [selectedCity, setSelectedCity] =
-    useState("");
+    useState(searchParams.get("cCity") ?? "");
 
   const [showAll, setShowAll] =
-    useState(initiallyVisible);
+    useState(searchParams.has("cAll") ? searchParams.get("cAll") === "1" : initiallyVisible);
 
   const [
     brandListBrewery,
@@ -546,8 +547,12 @@ export default function BreweryTableClient({
     showAll ||
     hasActiveFilters;
 
+  const returnHref = browseReturnHref(pathname, searchParams.toString(), {
+    cSort: sortKey, cDirection: sortDirection, cSearch: search, cUser: selectedUserId,
+    cCountry: selectedCountry, cCity: selectedCity, cAll: showAll ? "1" : "0",
+  });
   return (
-    <>
+    <BreweryBrowseProvider ids={filteredAndSortedRows.map(row => row.id)} ownerId={currentUserId} label="Katalog pivovarů" returnHref={returnHref}>
       <div
         className="taste-brewery-catalog-toolbar"
         aria-label="Hledání a filtrování pivovarů"
@@ -906,7 +911,7 @@ export default function BreweryTableClient({
                           minWidth: 0,
                         }}
                       >
-                        <Link
+                        <BreweryBrowseLink
                           href={`/breweries/${brewery.id}`}
                           style={{
                             color: isPersonal
@@ -919,7 +924,7 @@ export default function BreweryTableClient({
                           }}
                         >
                           {brewery.name}
-                        </Link>
+                        </BreweryBrowseLink>
 
                         {isPersonal && (
                           <span
@@ -1268,7 +1273,7 @@ export default function BreweryTableClient({
           }
         />
       )}
-    </>
+    </BreweryBrowseProvider>
   );
 }
 
