@@ -101,3 +101,78 @@ test('brand resolver preserves ambiguous producers and prefers the only open bre
   const empty = await route({ params: Promise.resolve({ id: '20' }) });
   assert.ok(empty);
 });
+
+const { pushRankingDialog, closeRankingDialog } = load('lib/ranking-dialog-history.js');
+
+function rankingHistory(initialHref, initialState = { __NA: true, tree: "next-router-state" }) {
+  const entries = [{ href: initialHref, state: initialState }];
+  let index = 0;
+  return {
+    get href() { return entries[index].href; },
+    get length() { return entries.length; },
+    get state() { return entries[index].state; },
+    pushState(state, _title, href) {
+      // Model Next.js preserving its router state around external pushState.
+      assert.equal(state?.__NA, undefined);
+      entries.splice(index + 1);
+      entries.push({ href, state: { ...state, __NA: true, tree: "next-router-state" } });
+      index++;
+    },
+    replaceState(state, _title, href) {
+      assert.equal(state?.__NA, undefined);
+      entries[index] = { href, state: { ...state, __NA: true, tree: "next-router-state" } };
+    },
+    back() { if (index > 0) index--; },
+    forward() { if (index < entries.length - 1) index++; },
+  };
+}
+
+test('expanded ranking is restored after detail, then back closes it; forward restores each step', () => {
+  const base = '/stats?user=me&year=2026&sort=name-asc#pivovary';
+  const expanded = '/stats?user=me&year=2026&sort=name-asc&ranking=pivovary#pivovary';
+  const history = rankingHistory(base);
+  pushRankingDialog(history, base, expanded);
+  history.pushState(null, '', '/breweries/42');
+  history.back();
+  assert.equal(history.href, expanded);
+  assert.equal(history.state.pivnikRankingDialog, expanded);
+  history.back();
+  assert.equal(history.href, base);
+  history.forward();
+  assert.equal(history.href, expanded);
+  history.forward();
+  assert.equal(history.href, '/breweries/42');
+});
+
+test('close consumes the dialog entry; reopening does not accumulate stale entries', () => {
+  const history = rankingHistory('/stats');
+  pushRankingDialog(history, '/stats', '/stats?ranking=pivovary');
+  closeRankingDialog(history, history.href, '/stats');
+  assert.equal(history.href, '/stats');
+  pushRankingDialog(history, '/stats', '/stats?ranking=styly');
+  assert.equal(history.length, 2);
+  closeRankingDialog(history, history.href, '/stats');
+  assert.equal(history.href, '/stats');
+});
+
+test('bookmarked or changed dialog URLs close in place instead of navigating to another page', () => {
+  const history = rankingHistory('/stats?ranking=pivovary&user=me');
+  closeRankingDialog(history, history.href, '/stats?user=me');
+  assert.equal(history.href, '/stats?user=me');
+  assert.equal(history.length, 1);
+  pushRankingDialog(history, history.href, '/stats?user=me&ranking=styly');
+  history.replaceState({ pivnikRankingDialog: '/stats?user=me&ranking=styly' }, '', '/stats?user=other&ranking=styly');
+  closeRankingDialog(history, history.href, '/stats?user=other');
+  assert.equal(history.href, '/stats?user=other');
+});
+
+test('duplicate opens and closes are inert; encoded filters do not prevent a one-step close', () => {
+  const history = rankingHistory('/stats?q=A%20B');
+  pushRankingDialog(history, history.href, '/stats?q=A+B&ranking=pivovary');
+  pushRankingDialog(history, history.href, history.href);
+  assert.equal(history.length, 2);
+  closeRankingDialog(history, history.href, '/stats?q=A+B');
+  assert.equal(history.href, '/stats?q=A%20B');
+  closeRankingDialog(history, history.href, history.href);
+  assert.equal(history.length, 2);
+});

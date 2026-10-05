@@ -2,11 +2,13 @@
 
 import { getRankingEntityHref } from "@/lib/entity-navigation";
 import Link from "next/link";
+import { pushRankingDialog, closeRankingDialog } from "@/lib/ranking-dialog-history";
 import { useSearchParams } from "next/navigation";
 import {
   type ReactNode,
+  useCallback,
   useEffect,
-  useState,
+  useSyncExternalStore,
 } from "react";
 import { createPortal } from "react-dom";
 import AutoLogoFrame from "@/components/ui/AutoLogoFrame";
@@ -53,6 +55,9 @@ type RankingCardClientProps = {
 };
 
 const PREVIEW_LIMIT = 10;
+const subscribeToHydration = () => () => {};
+const clientSnapshot = () => true;
+const serverSnapshot = () => false;
 
 const TONE_STYLES: Record<RankingTone, RankingToneStyle> = {
   gold: {
@@ -131,7 +136,23 @@ export default function RankingCardClient({
 }: RankingCardClientProps) {
   const searchParams = useSearchParams();
   const currentQuery = searchParams.toString();
-  const [isOpen, setIsOpen] = useState(false);
+  const isClient = useSyncExternalStore(subscribeToHydration, clientSnapshot, serverSnapshot);
+  const dialogKey = anchorId ?? title;
+  const isOpen = isClient && searchParams.get("ranking") === dialogKey;
+  const setIsOpen = useCallback((open: boolean) => {
+    const url = new URL(window.location.href);
+    const href = () => url.pathname + url.search + url.hash;
+    const currentHref = href();
+    if (open) {
+      if (url.searchParams.get("ranking") === dialogKey) return;
+      url.searchParams.set("ranking", dialogKey);
+      pushRankingDialog(window.history, currentHref, href());
+    } else {
+      if (url.searchParams.get("ranking") !== dialogKey) return;
+      url.searchParams.delete("ranking");
+      closeRankingDialog(window.history, currentHref, href());
+    }
+  }, [dialogKey]);
 
   const maximum =
     items.length > 0
@@ -161,7 +182,7 @@ export default function RankingCardClient({
       document.body.style.overflow = previousOverflow;
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [isOpen]);
+  }, [isOpen, setIsOpen]);
 
   return (
     <>

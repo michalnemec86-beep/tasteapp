@@ -20,6 +20,10 @@ Pozdější commit přidává tuto dokumentaci; nemění funkce archivované ver
 
 ## Následné změny
 
+- 5. 10. 2026: rozbalené žebříčky v Co a jak pijeme mají vlastní krok historie.
+  Návrat z profilu obnoví otevřený seznam; další Zpět jej zavře. Stejná cesta
+  platí na desktopu i mobilu ([příčina, rozsah a ověření](ranking-history.md)).
+
 - 5. 10. 2026: oprava falešné chyby zapnutí push po úspěšném HTTP 204 a
   odstranění zbytečného čekání při startu ([příčina a rozsah](mobile-push-news.md#oprava-aktivace-a-spuštění-5-10-2026)).
   Počítadla se čtou mimo frontu serverových akcí, ověření účtu je sdílené jen
