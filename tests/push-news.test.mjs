@@ -39,6 +39,7 @@ function edge({ auth = true, recipients = [], send = async () => {}, failRpc } =
       const name = url.split('/').at(-1), body = JSON.parse(options.body);
       calls.push({ name, body });
       if (name === failRpc) return new Response('', { status: 503 });
+      if (['register_push_news','manage_push_news','finish_push_news'].includes(name)) return new Response(null,{status:204});
       return Response.json(name === 'push_news_configuration' ? config : name === 'claim_push_news' ? recipients : name === 'push_news_status' ? true : null);
     },
     Request, Response, URL, AbortSignal, Date, TextEncoder, Uint8Array, crypto: webcrypto,
@@ -68,6 +69,7 @@ test('subscription, status and disable use only the verified caller, and return 
   assert.equal(e.calls.find(call => call.name === 'manage_push_news').body.p_user_id, 'verified-caller');
   assert.equal((await e.request({ action: 'subscribe', subscription: { ...subscription, endpoint: 'https://evil.example/' }, token })).status, 400);
   assert.equal(e.calls.filter(call => call.name === 'register_push_news').length, 1);
+  assert.equal((await e.request({ action:'touch',endpoint:subscription.endpoint })).status,200,'204 heartbeat is a successful update');
 });
 
 test('scheduler rejects user JWTs and wrong secrets before claiming any deliveries', async () => {

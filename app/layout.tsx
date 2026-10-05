@@ -10,7 +10,7 @@ import PwaProvider from "./PwaProvider";
 import NavigationFeedback from "./NavigationFeedback";
 import ModalBehaviorManager from "./ModalBehaviorManager";
 import AchievementCelebrationClient from "./AchievementCelebrationClient";
-import { createClient } from "@/lib/supabase/server";
+import { getCurrentUser } from "@/lib/supabase/current-user";
 
 import "leaflet/dist/leaflet.css";
 import "./globals.css";
@@ -97,10 +97,7 @@ export default async function RootLayout({
   children:
     React.ReactNode;
 }>) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
 
   return (
     <html lang="cs">

@@ -10,6 +10,7 @@ import {
   createClient,
 } from "@/lib/supabase/server";
 import { fetchAllRows } from "@/lib/fetch-all-rows";
+import { getCurrentUser } from "@/lib/supabase/current-user";
 import { isBeerAvailableForTasting } from "@/lib/beerPortfolio";
 
 import {
@@ -137,10 +138,7 @@ export default async function ProfilePage({
   const supabase =
     await createClient();
 
-  const {
-    data: { user },
-  } =
-    await supabase.auth.getUser();
+  const user = await getCurrentUser();
 
   if (!user) {
     redirect(
@@ -2056,86 +2054,6 @@ export default async function ProfilePage({
 // ==================================================
 // VZHLED MEDAILÍ
 // ==================================================
-
-function StatCard({
-  value,
-  label,
-  accent = false,
-}: {
-  value: number;
-  label: string;
-  accent?: boolean;
-}) {
-  return (
-    <div
-      style={{
-        padding:
-          "16px 17px",
-
-        border:
-          accent
-            ? "1px solid rgba(231,166,47,0.34)"
-            : "1px solid var(--taste-border)",
-
-        borderRadius:
-          "var(--taste-radius-md)",
-
-        background:
-          accent
-            ? `
-              linear-gradient(
-                145deg,
-                rgba(231,166,47,0.10),
-                rgba(231,166,47,0.02)
-              ),
-              var(--taste-surface)
-            `
-            : "var(--taste-surface)",
-
-        boxShadow:
-          "var(--taste-shadow-soft)",
-      }}
-    >
-      <div
-        style={{
-          color:
-            accent
-              ? "var(--taste-amber-bright)"
-              : "var(--taste-text)",
-
-          fontSize:
-            "27px",
-
-          lineHeight:
-            1,
-
-          fontWeight:
-            800,
-
-          letterSpacing:
-            "-0.03em",
-        }}
-      >
-        {value}
-      </div>
-
-      <div
-        style={{
-          marginTop:
-            "6px",
-
-          color:
-            "var(--taste-text-muted)",
-
-          fontSize:
-            "11px",
-        }}
-      >
-        {label}
-      </div>
-    </div>
-  );
-}
 
 // ==================================================
 // PARAMETR

@@ -28,7 +28,7 @@ async function registration() {
   } finally { clearTimeout(timer!); }
 }
 export async function pushRequest(body: Record<string, unknown>) {
-  const { data, error } = await createClient().functions.invoke("push-news", { body });
+  const { data, error } = await createClient().functions.invoke("push-news", { body, signal: AbortSignal.timeout(10_000) });
   if (error || !data?.ok) throw new Error("Oznámení se nepodařilo nastavit. Zkus to znovu.");
   return data as { ok: true; publicKey?: string; enabled?: boolean };
 }

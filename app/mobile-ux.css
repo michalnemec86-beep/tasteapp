@@ -492,6 +492,8 @@
     transition:
       opacity 180ms ease,
       visibility 180ms ease;
+    /* Bound the handoff from CSS arrival, even if hydration/fonts are slow. */
+    animation: pivnik-launch-dismiss 180ms ease 1200ms forwards;
   }
 
   .pivnik-launch-screen.is-hidden {

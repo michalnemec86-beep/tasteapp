@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { getNewsSection, isNewsTimestamp, NavigationNewsController, type NavigationNews } from "@/lib/navigation-news";
-import { getNavigationNews } from "./navigation-news/actions";
+import { getNavigationNews } from "./navigation-news/client";
 import { PUSH_CHANGE, hasPushDevice, syncPushNews } from "@/lib/push-news-client";
 
 function displayedUntil(search: string) {
