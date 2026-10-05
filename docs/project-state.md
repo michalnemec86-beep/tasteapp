@@ -20,6 +20,11 @@ Pozdější commit přidává tuto dokumentaci; nemění funkce archivované ver
 
 ## Následné změny
 
+- 5. 10. 2026: odkazy z Aktivity vedou na celé konkrétní statistiky; detaily
+  pivovarů umožňují posun vlevo/vpravo v původním filtrovaném seznamu
+  ([chování, výkon a ověření](category-brewery-browsing.md)). Bez nové databázové
+  zátěže pro určení sousedů, bez změny statistik či oprávnění.
+
 - 5. 10. 2026: rozbalené žebříčky v Co a jak pijeme mají vlastní krok historie.
   Návrat z profilu obnoví otevřený seznam; další Zpět jej zavře. Stejná cesta
   platí na desktopu i mobilu ([příčina, rozsah a ověření](ranking-history.md)).

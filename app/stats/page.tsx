@@ -31,7 +31,8 @@ type StatsFocus =
   | "breweries"
   | "styles"
   | "countries"
-  | "hops";
+  | "hops"
+  | "packaging";
 
 type StatsPageProps = {
   searchParams: Promise<{
@@ -450,6 +451,7 @@ export default async function StatsPage({
     ...filterBySearch(rawStats.styles),
     ...filterBySearch(rawStats.countries),
     ...filterBySearch(rawStats.hops),
+    ...(selectedFocus === "packaging" ? filterBySearch(rawStats.packaging) : []),
   ];
 
   const availableLetters = Array.from(
@@ -522,7 +524,7 @@ export default async function StatsPage({
       sortMode
     ),
     packaging: sortRanking(
-      rawStats.packaging,
+      selectedFocus === "packaging" ? filterRankingItems(rawStats.packaging) : rawStats.packaging,
       sortMode
     ),
   };
@@ -682,6 +684,15 @@ export default async function StatsPage({
           comparisonValue: comparisonTotalCountries,
           icon: <HomeStatIcon kind="globe" />,
           accent: "#b77a36",
+        },
+        packaging: {
+          title: "Způsob podání",
+          subtitle: "Podání a obaly ochutnaných piv",
+          label: "Vypitých piv",
+          value: totalTastings,
+          comparisonValue: comparisonTotalTastings,
+          icon: <HomeStatIcon kind="mug" />,
+          accent: "#e88835",
         },
         hops: {
           title: "Chmely",
@@ -894,6 +905,8 @@ export default async function StatsPage({
         >
           {(!selectedFocus || selectedFocus === "beers") && (
             <RankingCardClient
+              currentUserId={user.id}
+              expanded={Boolean(selectedFocus)}
               anchorId="piva"
               title="Piva"
               tone="gold"
@@ -910,6 +923,8 @@ export default async function StatsPage({
 
           {(!selectedFocus || selectedFocus === "brands") && (
             <RankingCardClient
+              currentUserId={user.id}
+              expanded={Boolean(selectedFocus)}
               anchorId="znacky"
               title="Značky"
               tone="honey"
@@ -927,6 +942,8 @@ export default async function StatsPage({
 
           {(!selectedFocus || selectedFocus === "breweries") && (
             <RankingCardClient
+              currentUserId={user.id}
+              expanded={Boolean(selectedFocus)}
               anchorId="pivovary"
               title="Pivovary"
               tone="honey"
@@ -944,6 +961,8 @@ export default async function StatsPage({
 
           {(!selectedFocus || selectedFocus === "styles") && (
             <RankingCardClient
+              currentUserId={user.id}
+              expanded={Boolean(selectedFocus)}
               anchorId="styly"
               title="Pivní styly"
               tone="amber"
@@ -960,6 +979,8 @@ export default async function StatsPage({
 
           {(!selectedFocus || selectedFocus === "countries") && (
             <RankingCardClient
+              currentUserId={user.id}
+              expanded={Boolean(selectedFocus)}
               anchorId="staty"
               title="Státy"
               tone="copper"
@@ -976,6 +997,8 @@ export default async function StatsPage({
 
           {(!selectedFocus || selectedFocus === "hops") && (
             <RankingCardClient
+              currentUserId={user.id}
+              expanded={Boolean(selectedFocus)}
               anchorId="chmely"
               title="Chmely"
               tone="malt"
@@ -987,6 +1010,21 @@ export default async function StatsPage({
               lockedContext={isLockedContext}
               disableItemLinks={Boolean(selectedFocus) && Boolean(selectedProfile) && !isLockedContext}
               personalItemIds={personalStats.hops.map((item) => item.id)}
+            />
+          )}
+          {selectedFocus === "packaging" && (
+            <RankingCardClient
+              currentUserId={user.id}
+              expanded
+              anchorId="podani"
+              title="Způsob podání"
+              subtitle="Podání a obaly ochutnaných piv"
+              tone="amber"
+              icon={<HomeStatIcon kind="mug" />}
+              items={stats.packaging}
+              comparisonItems={comparisonStats.packaging}
+              comparisonLabel={comparisonLabel}
+              personalItemIds={personalStats.packaging.map(item => item.id)}
             />
           )}
         </HorizontalRankingScroller>
@@ -1109,7 +1147,8 @@ function isStatsFocus(
     value === "breweries" ||
     value === "styles" ||
     value === "countries" ||
-    value === "hops"
+    value === "hops" ||
+    value === "packaging"
   );
 }
 

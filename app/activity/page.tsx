@@ -1142,7 +1142,7 @@ export default async function ActivityPage({
             accent: "#f2b63f",
             value: totalTastings,
             label: "Vypitých piv",
-            href: "/stats#piva",
+            href: "/stats?focus=beers&metric=quantity",
           },
           {
             icon: (
@@ -1151,7 +1151,7 @@ export default async function ActivityPage({
             accent: "#d98a43",
             value: totalBeers,
             label: "Různých piv",
-            href: "/stats#piva",
+            href: "/stats?focus=beers",
           },
           {
             icon: (
@@ -1160,7 +1160,7 @@ export default async function ActivityPage({
             accent: "#c46f38",
             value: totalBrands,
             label: "Značek",
-            href: "/stats#znacky",
+            href: "/stats?focus=brands",
           },
           {
             icon: (
@@ -1169,7 +1169,7 @@ export default async function ActivityPage({
             accent: "#e88835",
             value: totalBreweries,
             label: "Pivovarů",
-            href: "/stats#pivovary",
+            href: "/stats?focus=breweries",
           },
           {
             icon: (
@@ -1178,7 +1178,7 @@ export default async function ActivityPage({
             accent: "#9cad47",
             value: totalStyles,
             label: "Stylů",
-            href: "/stats#styly",
+            href: "/stats?focus=styles",
           },
           {
             icon: (
@@ -1187,7 +1187,7 @@ export default async function ActivityPage({
             accent: "#d65b42",
             value: totalCountries,
             label: "Států",
-            href: "/stats#staty",
+            href: "/stats?focus=countries",
           },
         ]}
       />
@@ -1203,6 +1203,7 @@ export default async function ActivityPage({
         <aside className="taste-home-desktop-stats-column order-2 grid self-start content-start gap-4 md:grid-cols-2 xl:order-1 xl:col-span-3 xl:grid-cols-1">
 
           <StatsRankingCard
+            currentUserId={user.id}
             title="Nejčastější pivovary"
             subtitle="Podle počtu vypitých piv"
             icon={
@@ -1221,6 +1222,7 @@ export default async function ActivityPage({
           />
 
           <StatsRankingCard
+            currentUserId={user.id}
             title="Pivní styly"
             subtitle="Nejčastější styly"
             icon={
@@ -1392,6 +1394,7 @@ export default async function ActivityPage({
         <div className="taste-home-mobile-stats-wrap order-2">
           <MobileHomeStatsCarousel>
             <StatsRankingCard
+            currentUserId={user.id}
               title="Nejčastější pivovary"
               subtitle="Podle počtu vypitých piv"
               icon={<AppIcon name="brewery" size={20} />}
@@ -1401,6 +1404,7 @@ export default async function ActivityPage({
             />
 
             <StatsRankingCard
+            currentUserId={user.id}
               title="Pivní styly"
               subtitle="Nejčastější styly"
               icon={<AppIcon name="hop" size={20} />}
@@ -1416,6 +1420,7 @@ export default async function ActivityPage({
             />
 
             <StatsRankingCard
+            currentUserId={user.id}
               title="Nejčastější piva"
               subtitle="Konkrétní piva"
               icon={<AppIcon name="label" size={20} />}
@@ -1425,6 +1430,7 @@ export default async function ActivityPage({
             />
 
             <StatsRankingCard
+            currentUserId={user.id}
               title="Státy"
               subtitle="Země původu pivovarů"
               icon={<AppIcon name="globe" size={20} />}
@@ -1436,6 +1442,7 @@ export default async function ActivityPage({
             />
 
             <StatsRankingCard
+            currentUserId={user.id}
               title="Značky"
               subtitle="Nejčastější produktové značky"
               icon={<AppIcon name="label" size={20} />}
@@ -1451,6 +1458,7 @@ export default async function ActivityPage({
         <aside className="taste-home-desktop-stats-column order-3 grid self-start content-start gap-4 md:grid-cols-2 xl:col-span-3 xl:grid-cols-1">
 
           <StatsRankingCard
+            currentUserId={user.id}
             title="Nejčastější piva"
             subtitle="Konkrétní piva"
             icon={
@@ -1467,6 +1475,7 @@ export default async function ActivityPage({
           />
 
           <StatsRankingCard
+            currentUserId={user.id}
             title="Státy"
             subtitle="Země původu pivovarů"
             icon={
@@ -1483,6 +1492,7 @@ export default async function ActivityPage({
           />
 
           <StatsRankingCard
+            currentUserId={user.id}
             title="Značky"
             subtitle="Nejčastější produktové značky"
             icon={<AppIcon name="label" size={20} />}

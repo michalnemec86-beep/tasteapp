@@ -80,11 +80,12 @@ export default function BreweryListStatePersistence() {
 
     const syncUrl = (state: StoredState, page: string | null = null) => {
       const params = new URLSearchParams(window.location.search);
+      const snapshot = params.has("cSort");
       const values: Array<[string, string]> = [
-        ["q", state.search],
-        ["user", state.user],
-        ["country", state.country],
-        ["city", state.city],
+        [snapshot ? "cSearch" : "q", state.search],
+        [snapshot ? "cUser" : "user", state.user],
+        [snapshot ? "cCountry" : "country", state.country],
+        [snapshot ? "cCity" : "city", state.city],
       ];
 
       for (const [key, value] of values) {
@@ -109,45 +110,51 @@ export default function BreweryListStatePersistence() {
     };
 
     try {
-      const urlState = readUrlState(entryParams);
-      const raw = sessionStorage.getItem(STORAGE_KEY);
-      const stored = raw ? (JSON.parse(raw) as Partial<StoredState>) : null;
-      const storedState: StoredState = {
-        search: stored?.search ?? "",
-        user: stored?.user ?? "",
-        country: stored?.country ?? "",
-        city: stored?.city ?? "",
-      };
-      // Do not hide fresh catalogue entries behind filters from an older visit.
-      const stateToRestore = hasState(urlState) || entryParams.has("newSince") ? urlState : storedState;
-
-      if (hasState(stateToRestore)) {
-        const schedule = (delay: number, callback: () => void) => {
-          const timer = window.setTimeout(callback, delay);
-          restoreTimers.push(timer);
-        };
-
-        schedule(0, () => {
-          dispatchControlledValue(SELECTORS.user, stateToRestore.user, "change");
-          dispatchControlledValue(SELECTORS.search, stateToRestore.search, "input");
-        });
-
-        schedule(90, () => {
-          dispatchControlledValue(SELECTORS.country, stateToRestore.country, "change");
-        });
-
-        schedule(180, () => {
-          dispatchControlledValue(SELECTORS.city, stateToRestore.city, "change");
-        });
-
-        schedule(340, () => {
-          const restored = readCurrentState();
-          restoring = false;
-          sessionStorage.setItem(STORAGE_KEY, JSON.stringify(restored));
-          syncUrl(restored, entryPage);
-        });
-      } else {
+      // The table restores the full browse snapshot synchronously, including sort
+      // and visibility. Replaying delayed DOM events would reset those values.
+      if (entryParams.has("cSort")) {
         restoring = false;
+      } else {
+        const urlState = readUrlState(entryParams);
+        const raw = sessionStorage.getItem(STORAGE_KEY);
+        const stored = raw ? (JSON.parse(raw) as Partial<StoredState>) : null;
+        const storedState: StoredState = {
+          search: stored?.search ?? "",
+          user: stored?.user ?? "",
+          country: stored?.country ?? "",
+          city: stored?.city ?? "",
+        };
+        // Do not hide fresh catalogue entries behind filters from an older visit.
+        const stateToRestore = hasState(urlState) || entryParams.has("newSince") ? urlState : storedState;
+
+        if (hasState(stateToRestore)) {
+          const schedule = (delay: number, callback: () => void) => {
+            const timer = window.setTimeout(callback, delay);
+            restoreTimers.push(timer);
+          };
+
+          schedule(0, () => {
+            dispatchControlledValue(SELECTORS.user, stateToRestore.user, "change");
+            dispatchControlledValue(SELECTORS.search, stateToRestore.search, "input");
+          });
+
+          schedule(90, () => {
+            dispatchControlledValue(SELECTORS.country, stateToRestore.country, "change");
+          });
+
+          schedule(180, () => {
+            dispatchControlledValue(SELECTORS.city, stateToRestore.city, "change");
+          });
+
+          schedule(340, () => {
+            const restored = readCurrentState();
+            restoring = false;
+            sessionStorage.setItem(STORAGE_KEY, JSON.stringify(restored));
+            syncUrl(restored, entryPage);
+          });
+        } else {
+          restoring = false;
+        }
       }
     } catch {
       restoring = false;

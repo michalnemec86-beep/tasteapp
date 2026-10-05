@@ -283,3 +283,12 @@ body:has(.taste-brewery-detail-concept) {
   border-radius: 10px;
 }
 .taste-brewery-focused-detail { padding: 12px 0; }
+
+/* Previous/next keep the originating filtered list and its order. */
+.taste-brewery-browse{display:grid;grid-template-columns:44px minmax(0,1fr) 44px;align-items:center;gap:12px;margin:-8px 0 24px;padding:10px 14px;border:1px solid var(--taste-border);border-radius:12px;background:var(--taste-surface)}
+.taste-brewery-browse-arrow{display:flex;align-items:center;justify-content:center;width:44px;height:44px;border:1px solid rgba(231,166,47,.35);border-radius:10px;background:rgba(231,166,47,.08);color:var(--taste-amber-bright);font-size:24px;text-decoration:none}
+.taste-brewery-browse-arrow:disabled{opacity:.3;cursor:default}
+.taste-brewery-browse-list{display:grid;gap:3px;min-width:0;text-align:center;color:var(--taste-text);text-decoration:none;font-size:13px;font-weight:700}
+.taste-brewery-browse-list span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.taste-brewery-browse-list small{font-size:10px;font-weight:500;color:var(--taste-text-muted)}
+@media(max-width:640px){.taste-brewery-browse{gap:8px;padding:8px;margin-bottom:18px}.taste-brewery-browse-list{font-size:12px}}

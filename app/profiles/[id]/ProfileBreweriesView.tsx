@@ -1,6 +1,8 @@
 "use client";
 
-import Link from "next/link";
+import { usePathname, useSearchParams } from "next/navigation";
+import { BreweryBrowseProvider, BreweryBrowseLink } from "@/components/navigation/BreweryBrowse";
+import { browseReturnHref } from "@/lib/brewery-browse";
 import { useMemo, useState } from "react";
 import AutoLogoFrame from "@/components/ui/AutoLogoFrame";
 
@@ -16,17 +18,21 @@ type BrewerySort = "alpha" | "most" | "least" | "country";
 
 export default function ProfileBreweriesView({
   items,
-  profileId,
+  currentUserId,
 }: {
   items: ProfileBreweryItem[];
   profileId: string;
+  currentUserId: string;
 }) {
-  const [sort, setSort] = useState<BrewerySort>("most");
-  const [query, setQuery] = useState("");
-  const [country, setCountry] = useState("");
-  const [showCountries, setShowCountries] = useState(false);
-  const [letter, setLetter] = useState("");
-  const [showLetters, setShowLetters] = useState(false);
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const requestedSort = searchParams.get("brewerySort");
+  const [sort, setSort] = useState<BrewerySort>(requestedSort === "alpha" || requestedSort === "least" || requestedSort === "country" ? requestedSort : "most");
+  const [query, setQuery] = useState(searchParams.get("breweryQ") ?? "");
+  const [country, setCountry] = useState(searchParams.get("breweryCountry") ?? "");
+  const [showCountries, setShowCountries] = useState(Boolean(searchParams.get("breweryCountry")));
+  const [letter, setLetter] = useState(searchParams.get("breweryLetter") ?? "");
+  const [showLetters, setShowLetters] = useState(Boolean(searchParams.get("breweryLetter")));
 
   function initial(name: string) {
     const first = name.trim().charAt(0).toLocaleUpperCase("cs");
@@ -105,7 +111,9 @@ export default function ProfileBreweriesView({
     }
   }
 
+  const returnHref = browseReturnHref(pathname, searchParams.toString(), { brewerySort: sort, breweryQ: query, breweryCountry: country, breweryLetter: letter });
   return (
+    <BreweryBrowseProvider ids={visibleItems.map(item => Number(item.id))} ownerId={currentUserId} label="Osobní pivovary" returnHref={returnHref}>
     <section style={{ marginBottom: "38px" }}>
       <div className="taste-tasting-sort" aria-label="Filtrování pivovarů">
         <div className="taste-tasting-search">
@@ -242,12 +250,12 @@ export default function ProfileBreweriesView({
               </div>
 
               <div className="taste-profile-brewery-item-main">
-                <Link
+                <BreweryBrowseLink
                   href={`/breweries/${encodeURIComponent(String(item.id))}`}
                   className="taste-entity-link taste-profile-brewery-item-name"
                 >
                   {item.name}
-                </Link>
+                </BreweryBrowseLink>
                 <span className="taste-profile-brewery-item-country">
                   {item.country ?? "Země neuvedena"}
                 </span>
@@ -270,5 +278,6 @@ export default function ProfileBreweriesView({
         </div>
       )}
     </section>
+    </BreweryBrowseProvider>
   );
 }

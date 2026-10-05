@@ -1,10 +1,13 @@
 import Link from "next/link";
+import { statsCategoryHref } from "@/lib/stats-category-navigation";
+import { BreweryBrowseProvider, BreweryBrowseLink } from "@/components/navigation/BreweryBrowse";
 import type { ReactNode } from "react";
 
 import AutoLogoFrame from "@/components/ui/AutoLogoFrame";
 import type { RankingItem } from "@/lib/stats";
 
 type StatsRankingCardProps = {
+  currentUserId: string;
   title: string;
   subtitle: string;
   icon: ReactNode;
@@ -466,7 +469,7 @@ function BeerRankingCardView({
         }}
       >
         <Link
-          href="/stats#piva"
+          href="/stats?focus=beers"
           aria-label="Zobrazit všechna piva ve statistikách"
           style={{
             color:
@@ -756,7 +759,7 @@ function BrandRankingCardView({
         }}
       >
         <Link
-          href="/stats#znacky"
+          href="/stats?focus=brands"
           aria-label="Zobrazit všechny značky ve statistikách"
           style={{
             color:
@@ -1006,7 +1009,7 @@ function CountryRankingCardView({
         }}
       >
         <Link
-          href="/stats#staty"
+          href="/stats?focus=countries"
           aria-label="Zobrazit všechny státy ve statistikách"
           style={{
             color:
@@ -1416,7 +1419,7 @@ function PackagingRankingCardView({
         }}
       >
         <Link
-          href="/stats"
+          href="/stats?focus=packaging"
           style={{
             color:
               "#fff",
@@ -1869,7 +1872,6 @@ function BeerStyleRankingCardView({
   title,
   items,
   getItemHref,
-  accent,
 }: StatsRankingCardProps) {
   const topItems =
     items.slice(0, 5);
@@ -2144,7 +2146,7 @@ function BeerStyleRankingCardView({
         }}
       >
         <Link
-          href="/stats#styly"
+          href="/stats?focus=styles"
           aria-label="Zobrazit všechny pivní styly ve statistikách"
           style={{
             color:
@@ -2168,6 +2170,7 @@ function BreweryRankingCardView({
   title,
   items,
   getItemHref,
+  currentUserId,
 }: StatsRankingCardProps) {
   const topItems =
     items.slice(0, 5);
@@ -2190,6 +2193,7 @@ function BreweryRankingCardView({
   };
 
   return (
+    <BreweryBrowseProvider ids={items.map(item => Number(item.id))} ownerId={currentUserId} label="Nejčastější pivovary">
     <section
       style={{
         position: "relative",
@@ -2329,7 +2333,7 @@ function BreweryRankingCardView({
             );
 
             return getItemHref ? (
-              <Link
+              <BreweryBrowseLink
                 key={item.id}
                 href={getItemHref(
                   item
@@ -2348,7 +2352,7 @@ function BreweryRankingCardView({
                 }}
               >
                 {content}
-              </Link>
+              </BreweryBrowseLink>
             ) : (
               <div
                 key={item.id}
@@ -2377,7 +2381,7 @@ function BreweryRankingCardView({
         }}
       >
         <Link
-          href="/stats#pivovary"
+          href="/stats?focus=breweries"
           aria-label="Zobrazit všechny pivovary ve statistikách"
           style={{
             color: "#fff",
@@ -2391,6 +2395,7 @@ function BreweryRankingCardView({
         </Link>
       </div>
     </section>
+    </BreweryBrowseProvider>
   );
 }
 
@@ -2681,7 +2686,7 @@ function RankingCardView({
         }}
       >
         <Link
-          href="/stats"
+          href={statsCategoryHref(title)}
           style={{
             display: "flex",
             alignItems: "center",

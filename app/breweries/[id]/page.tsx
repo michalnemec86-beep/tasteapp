@@ -13,6 +13,8 @@ import {
   beerPortfolioStatusLabel,
 } from "@/lib/beerPortfolio";
 import PageHero from "@/components/ui/PageHero";
+import { BreweryBrowseNavigation } from "@/components/navigation/BreweryBrowse";
+import { withBreweryBrowse } from "@/lib/brewery-browse";
 import ReferenceWarning from "@/components/ui/ReferenceWarning";
 import { isAdminView, isCatalogAdminUser } from "@/lib/adminView";
 import BreweryCzechMapClient from "../BreweryCzechMapClient";
@@ -54,7 +56,7 @@ function relationLabel(type: string, direction: "from" | "to") {
 
 type Props = {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ portfolio?: string | string[]; beer?: string; brand?: string }>;
+  searchParams: Promise<{ portfolio?: string | string[]; beer?: string; brand?: string; browse?: string }>;
 };
 
 export default async function BreweryDetailPage({ params, searchParams }: Props) {
@@ -287,6 +289,8 @@ export default async function BreweryDetailPage({ params, searchParams }: Props)
         ]}
       />
 
+      <BreweryBrowseNavigation breweryId={brewery.id} ownerId={user.id} />
+
       <section
         className="taste-card taste-brewery-details-card"
         style={{
@@ -398,7 +402,7 @@ export default async function BreweryDetailPage({ params, searchParams }: Props)
                 ].map((item) => (
                   <Link
                     key={item.key}
-                    href={item.href}
+                    href={withBreweryBrowse(item.href, resolvedSearchParams.browse)}
                     prefetch={false}
                     className="taste-button-secondary"
                     style={{
@@ -453,14 +457,14 @@ export default async function BreweryDetailPage({ params, searchParams }: Props)
                     {beer.isHistorical ? (
                       <span className="taste-brewery-beer-name" style={{ color: "var(--taste-text)", fontSize: "13px", fontWeight: 700, lineHeight: 1.3 }}>{beer.name}</span>
                     ) : (
-                      <Link prefetch={false} href={beerHref(beer.id, brewery.id)} className="taste-entity-link taste-brewery-beer-name" style={{ color: "var(--taste-text)", fontSize: "13px", fontWeight: 700, lineHeight: 1.3 }}>{beer.name}</Link>
+                      <Link prefetch={false} href={withBreweryBrowse(beerHref(beer.id, brewery.id), resolvedSearchParams.browse)} className="taste-entity-link taste-brewery-beer-name" style={{ color: "var(--taste-text)", fontSize: "13px", fontWeight: 700, lineHeight: 1.3 }}>{beer.name}</Link>
                     )}
                     {adminView && !beer.referenceStatus.ready && <span style={{ marginLeft: "7px" }}><ReferenceWarning missing={beer.referenceStatus.missing} /></span>}
                     {beer.brand && (
                       <div className="taste-brewery-beer-brand" style={{ marginTop: "5px", color: "var(--taste-text-muted)", fontSize: "10px" }}>
                         <span style={{ marginRight: "5px" }}>Značka:</span>
                         {beer.isHistorical ? <span style={{ color: "var(--taste-amber-bright)", fontWeight: 700 }}>{beer.brand.name}</span> :
-                          <Link prefetch={false} href={brandHref(beer.brand.id, brewery.id)} className="taste-entity-link" style={{ color: "var(--taste-amber-bright)", fontWeight: 700 }}>{beer.brand.name}</Link>}
+                          <Link prefetch={false} href={withBreweryBrowse(brandHref(beer.brand.id, brewery.id), resolvedSearchParams.browse)} className="taste-entity-link" style={{ color: "var(--taste-amber-bright)", fontWeight: 700 }}>{beer.brand.name}</Link>}
                       </div>
                     )}
                     <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "5px", marginTop: "6px" }}>
@@ -557,7 +561,7 @@ export default async function BreweryDetailPage({ params, searchParams }: Props)
             <div className="taste-label taste-brewery-section-title" style={{ marginBottom: "9px" }}>Značky pivovaru</div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: "7px" }}>
               {linkedBrands.sort((a, b) => a.name.localeCompare(b.name, "cs")).map((brand) => (
-                <Link prefetch={false} key={brand.id} href={brandHref(brand.id, brewery.id)} id={`brand-${brand.id}`} data-focused={brand.id === focusedBrandId ? "true" : undefined} className="taste-button-secondary" style={{ padding: "6px 9px", fontSize: "10px" }}>
+                <Link prefetch={false} key={brand.id} href={withBreweryBrowse(brandHref(brand.id, brewery.id), resolvedSearchParams.browse)} id={`brand-${brand.id}`} data-focused={brand.id === focusedBrandId ? "true" : undefined} className="taste-button-secondary" style={{ padding: "6px 9px", fontSize: "10px" }}>
                   {brand.name}
                 </Link>
               ))}
