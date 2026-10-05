@@ -1,6 +1,6 @@
 # Pivník - současný stav a návaznost práce
 
-Aktualizováno: 2. 10. 2026. Toto je výchozí přehled pro další práci na projektu.
+Aktualizováno: 5. 10. 2026. Toto je výchozí přehled pro další práci na projektu.
 
 ## Dohodnutý stav
 
@@ -19,6 +19,12 @@ Funkční základ archivované verze: 65ed1f0f6938ae4a87d53623e2123485c52812e6.
 Pozdější commit přidává tuto dokumentaci; nemění funkce archivované verze.
 
 ## Následné změny
+
+- 5. 10. 2026: dobrovolná oznámení novinek i při zavřené aplikaci a značka na
+  její ikoně podle možností telefonu ([zapnutí, limity a ověření](mobile-push-news.md)).
+  Zapíná se pro každou instalaci v Nastavení, nejvýše jednou za 24 hodin pro
+  účet, s nočním klidem. Backend běží odděleně od zápisů a načítání stránek.
+  Fyzické doručení na telefonech zatím nebylo ověřeno.
 
 - 2. 10. 2026: jednotná normalizace všech uložených log včetně pivního podtácku
   ([popis a ověření](logo-normalization.md)). Originály a archiv zůstávají zachované.

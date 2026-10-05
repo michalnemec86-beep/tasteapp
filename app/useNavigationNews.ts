@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { getNewsSection, isNewsTimestamp, NavigationNewsController, type NavigationNews } from "@/lib/navigation-news";
 import { getNavigationNews } from "./navigation-news/actions";
+import { PUSH_CHANGE, hasPushDevice, syncPushNews } from "@/lib/push-news-client";
 
 function displayedUntil(search: string) {
   const value = new URLSearchParams(search).get("newUntil");
@@ -36,6 +37,21 @@ export default function useNavigationNews(userId: string | null, pathname: strin
   }, [userId]);
 
   useEffect(() => { void controller.current?.visit(getNewsSection(pathname), false, displayedUntil(window.location.search)); }, [userId, pathname]);
+
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout>;
+    const sync = () => {
+      clearTimeout(timer);
+      void syncPushNews(userId, news).catch(() => undefined);
+      // An opted-in visible phone sends a small heartbeat, without reloading
+      // counters. The background sender then avoids interrupting an active app.
+      if (hasPushDevice(userId) && document.visibilityState === "visible") timer = setTimeout(sync, 60_000);
+    };
+    sync();
+    window.addEventListener(PUSH_CHANGE, sync);
+    document.addEventListener("visibilitychange", sync);
+    return () => { clearTimeout(timer); window.removeEventListener(PUSH_CHANGE, sync); document.removeEventListener("visibilitychange", sync); };
+  }, [userId, news]);
 
   return {
     news: news?.userId === userId ? news : null,

@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { isAdminView, isCatalogAdminUser } from "@/lib/adminView";
 import AccountSettings from "./AccountSettings";
+import PushNewsSettings from "./PushNewsSettings";
 import "./settings.css";
 
 export const metadata: Metadata = { title: "Nastavení" };
@@ -35,6 +36,7 @@ export default async function SettingsPage() {
         canSwitchView={isCatalogAdminUser(user.id)}
         adminView={await isAdminView(user.id)}
       />
+      <div className="taste-settings-grid taste-settings-push-grid"><PushNewsSettings userId={user.id} /></div>
     </main>
   );
 }

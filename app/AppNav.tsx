@@ -8,6 +8,7 @@ import { HopMark } from "@/components/brand/PivnikMark";
 import { Download, Settings } from "lucide-react";
 import useNavigationNews from "./useNavigationNews";
 import { getNewsHref } from "@/lib/navigation-news";
+import { disablePush } from "@/lib/push-news-client";
 
 export default function AppNav({
   currentUserId,
@@ -32,6 +33,7 @@ export default function AppNav({
 
   async function handleLogout() {
     const supabase = createClient();
+    await disablePush().catch(() => undefined);
     await supabase.auth.signOut();
     window.location.replace("/auth/login");
   }

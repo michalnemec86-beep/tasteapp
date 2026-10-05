@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/client";
+import { disablePush } from "@/lib/push-news-client";
 
 const RESUME_SYNC_AFTER_MS = 60_000;
 
@@ -31,6 +32,7 @@ export default function AuthSessionSync() {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_OUT") void disablePush(false).catch(() => undefined);
       if (
         event === "TOKEN_REFRESHED" ||
         event === "SIGNED_OUT"

@@ -20,6 +20,7 @@
 .taste-settings-card button:disabled { opacity: .65; cursor: wait; }
 .taste-settings-feedback { margin: 3px 0 0; color: #bde4ac; font-size: 14px; line-height: 1.45; }
 .taste-settings-feedback[data-error="true"] { color: #ffb4a8; }
+.taste-settings-push-grid { margin-top: 22px; }
 .taste-settings-view-card,
 .taste-settings-invite-card { grid-column: 1 / -1; }
 .taste-settings-view-options { display: flex; flex-wrap: wrap; gap: 10px; }
