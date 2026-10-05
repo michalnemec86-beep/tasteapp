@@ -87,3 +87,28 @@ Oficiální podklady: [WebKit badging](https://webkit.org/blog/14112/badging-for
 [Supabase scheduling](https://supabase.com/docs/guides/functions/schedule-functions),
 [Vault](https://supabase.com/docs/guides/database/vault),
 [web-push](https://github.com/web-push-libs/web-push).
+
+## Oprava aktivace a spuštění 5. 10. 2026
+
+Uživatel nahlásil neúspěšné zapnutí a dlouhý start. Živý register_push_news
+v 08:41 UTC úspěšně zapsal zařízení a vrátil HTTP 204. Edge helper následně
+volal response.json() nad prázdnou odpovědí, vyhodil chybu a klient odpojil
+browser subscription. Pomocná RPC cesta nyní přijímá 204 / prázdné tělo jako
+úspěch. Platí to i pro heartbeat, vypnutí a potvrzení úspěšného doručení.
+Regresní testy používají skutečný tvar prázdné odpovědi místo JSON null.
+
+Pro start jsou omezené zbytečné návaznosti: layout, homepage a profil sdílejí
+jediné Auth getUser ověření uvnitř serverového renderu přes React.cache, který
+se invaliduje mezi požadavky. Osobní data ani session se globálně necachují.
+Čtení počítadel je samostatný privátní GET /api/navigation-news, mimo sekvenční
+frontu Server Actions; potvrzení návštěvy dál používá původní ověřenou akci.
+Úvodní překryv zmizí i při pomalé hydrataci do 1,38 sekundy od načtení jeho CSS.
+Push požadavky mají desetisekundový síťový limit. Statistiky, RLS, cookies a
+osobní čísla se nemění. Přesný čas startu na fyzickém telefonu nebyl změřen;
+tyto změny nejsou tvrzením, že byla potvrzena jediná příčina celého zpoždění.
+
+Ověření opravy: 72 automatických testů, TypeScript, produkční build a lint
+změněných klientských/serverových souborů prošly. Test skutečného React server
+renderu ověřuje jeden Auth dotaz pro tři komponenty a oddělené účty při dalším
+požadavku. GET testy ověřují autorizaci, zákaz cache a zachování přesného času
+pro potvrzení návštěvy. Doručení na fyzickém telefonu se tímto neověřilo.

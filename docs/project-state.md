@@ -20,6 +20,11 @@ Pozdější commit přidává tuto dokumentaci; nemění funkce archivované ver
 
 ## Následné změny
 
+- 5. 10. 2026: oprava falešné chyby zapnutí push po úspěšném HTTP 204 a
+  odstranění zbytečného čekání při startu ([příčina a rozsah](mobile-push-news.md#oprava-aktivace-a-spuštění-5-10-2026)).
+  Počítadla se čtou mimo frontu serverových akcí, ověření účtu je sdílené jen
+  uvnitř jednoho renderu a úvodní překryv nečeká neomezeně na hydrataci.
+
 - 5. 10. 2026: dobrovolná oznámení novinek i při zavřené aplikaci a značka na
   její ikoně podle možností telefonu ([zapnutí, limity a ověření](mobile-push-news.md)).
   Zapíná se pro každou instalaci v Nastavení, nejvýše jednou za 24 hodin pro

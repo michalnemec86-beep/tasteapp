@@ -182,3 +182,41 @@ test('news catalogue batches avoid oversized URLs and remain complete across con
   assert.ok(calls.every(c => c.selected.length <= 200 && c.from === 0));
   await assert.rejects(fetchCatalogueRows(async (from, to, selected) => ({ data: [], error: selected.includes(1000) ? { message: 'Unavailable' } : null }), ids), /Unavailable/);
 });
+
+test('background news endpoint is private, authenticated and never acknowledges a queried section', async () => {
+  let result = snapshot(), fail = false;
+  const calls = [];
+  const { GET } = load('app/api/navigation-news/route.ts', {
+    '@/app/navigation-news/actions': { getNavigationNews: async (...args) => { calls.push(args); if(fail)throw new Error('private database details');return result; } },
+  });
+  const response = await GET(new Request('https://example.org/api/navigation-news?section=breweries'));
+  assert.equal(response.status,200);
+  assert.deepEqual(await response.json(),snapshot());
+  assert.equal(response.headers.get('cache-control'),'private, no-store');
+  assert.deepEqual(calls,[[]],'query parameters cannot mark an unread section as seen');
+  result=null;
+  const unauthorized=await GET();
+  assert.equal(unauthorized.status,401);
+  assert.equal(unauthorized.headers.get('cache-control'),'private, no-store');
+  fail=true;
+  const failure=await GET();
+  assert.equal(failure.status,503);
+  assert.doesNotMatch(await failure.text(),/private database/);
+});
+
+test('background reads bypass the action queue while visits keep the existing timestamp acknowledgement', async () => {
+  const previous=globalThis.fetch, read=deferred(), requests=[], actions=[];
+  globalThis.fetch=async(url,options)=>{requests.push({url,options});return read.promise;};
+  try {
+    const client=load('app/navigation-news/client.ts', { './actions':{getNavigationNews:async(...args)=>{actions.push(args);return snapshot();}} }).getNavigationNews;
+    const pending=client();
+    await client('breweries',snapshotAt);
+    assert.deepEqual(actions,[['breweries',snapshotAt]]);
+    assert.equal(requests[0].url,'/api/navigation-news');
+    assert.equal(requests[0].options.cache,'no-store');
+    read.resolve(Response.json(snapshot()));
+    assert.deepEqual(await pending,snapshot());
+    globalThis.fetch=async()=>new Response(null,{status:401});
+    assert.equal(await client(),null);
+  } finally {globalThis.fetch=previous;}
+});

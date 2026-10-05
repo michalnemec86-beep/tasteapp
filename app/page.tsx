@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-import { createClient } from "@/lib/supabase/server";
+import { getCurrentUser } from "@/lib/supabase/current-user";
 import ProfilePage from "./profiles/[id]/page";
 
 type HomeSearchParams = {
@@ -16,13 +16,7 @@ export default async function HomePage({
 }: {
   searchParams: Promise<HomeSearchParams>;
 }) {
-  const supabase =
-    await createClient();
-
-  const {
-    data: { user },
-  } =
-    await supabase.auth.getUser();
+  const user = await getCurrentUser();
 
   if (!user) {
     redirect("/auth/login");

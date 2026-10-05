@@ -1,4 +1,5 @@
 .pivnik-connection-banner{position:relative;z-index:110;display:flex;align-items:center;justify-content:center;gap:10px;padding:12px 20px;padding-top:calc(12px + env(safe-area-inset-top));border-bottom:1px solid #e7a62f55;background:#382514;color:#eed8b5;font-size:12px;line-height:1.6}
 .pivnik-connection-banner svg{flex-shrink:0;color:#ffc052}
 @media(display-mode:standalone){html{overscroll-behavior-y:none}}
-@media(prefers-reduced-motion:reduce){.pivnik-launch-screen{transition:none!important}}
+@keyframes pivnik-launch-dismiss{to{opacity:0;visibility:hidden;pointer-events:none}}
+@media(prefers-reduced-motion:reduce){.pivnik-launch-screen{transition:none!important;animation-duration:1ms!important}}

@@ -11,7 +11,11 @@ let cached: { value: Config; until: number } | null = null;
 async function rpc(name: string, body = {}) {
   const result = await fetch(`${base}/rest/v1/rpc/${name}`, { method: "POST", headers: serviceHeaders, body: JSON.stringify(body), signal: AbortSignal.timeout(10_000) });
   if (!result.ok) throw new Error("Push database request failed");
-  return result.json();
+  // PostgREST returns HTTP 204 with no body for RETURNS void. The write has
+  // already succeeded; trying to parse JSON would falsely report a failure.
+  if (result.status === 204) return null;
+  const text = await result.text();
+  return text ? JSON.parse(text) : null;
 }
 async function configuration(): Promise<Config> {
   if (cached && cached.until > Date.now()) return cached.value;
