@@ -35,3 +35,57 @@ self.addEventListener("fetch", event => {
     return response;
   }));
 });
+
+// Only an opaque device consent token is stored here, never an account/page/session.
+function pushToken(next) {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open("pivnik-push", 1);
+    request.onupgradeneeded = () => request.result.createObjectStore("settings");
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => {
+      const db = request.result;
+      const transaction = db.transaction("settings", next === undefined ? "readonly" : "readwrite");
+      const store = transaction.objectStore("settings");
+      const operation = next === undefined ? store.get("token") : next === null ? store.delete("token") : store.put(next, "token");
+      let result;
+      operation.onsuccess = () => { result = operation.result; };
+      transaction.oncomplete = () => { db.close(); resolve(result); };
+      transaction.onerror = transaction.onabort = () => { db.close(); reject(transaction.error); };
+    };
+  });
+}
+self.addEventListener("message", event => {
+  if (event.data?.type !== "pivnik-push-token") return;
+  try { if (new URL(event.source.url).origin !== self.location.origin) return; } catch { return; }
+  const token = event.data.token;
+  if (token !== null && (typeof token !== "string" || !/^[0-9a-f-]{36}$/i.test(token))) return;
+  event.waitUntil(pushToken(token).then(() => event.ports[0]?.postMessage({ ok: true }), () => event.ports[0]?.postMessage({ ok: false })));
+});
+self.addEventListener("push", event => {
+  event.waitUntil((async () => {
+    let payload;
+    try { payload = event.data?.json(); } catch { return; }
+    // Do not resurrect a logged-out, disabled or replaced device subscription.
+    if (!payload?.token || payload.token !== await pushToken()) return;
+    await self.registration.showNotification("Pivník", {
+      body: "V Pivníku jsou novinky", tag: "pivnik-news",
+      icon: "/pwa-icon/192.png", badge: "/pwa-icon/192.png",
+      data: { path: "/activity" },
+    });
+    // Android uses the pending notification. iOS can additionally badge its icon.
+    try { if (typeof self.navigator?.setAppBadge === "function") await self.navigator.setAppBadge(1); } catch { /* optional */ }
+  })());
+});
+self.addEventListener("notificationclick", event => {
+  event.notification.close();
+  event.waitUntil((async () => {
+    const target = new URL("/activity", self.location.origin).href;
+    const windows = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+    for (const client of windows) {
+      if (new URL(client.url).origin !== self.location.origin) continue;
+      const navigated = await client.navigate(target);
+      if (navigated) { await navigated.focus(); return; }
+    }
+    await self.clients.openWindow(target);
+  })());
+});
