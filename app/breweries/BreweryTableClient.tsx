@@ -21,10 +21,7 @@ import BreweryEditModalClient from "./BreweryEditModalClient";
 
 type UserBreweryStats = {
   beerCount: number;
-  tastedBeerCount: number;
   brandCount: number;
-  brandIds: number[];
-  brandNames: string[];
   consumedCount: number;
 };
 
@@ -53,7 +50,10 @@ export type BreweryTableRow = {
   latitude: number | null;
   longitude: number | null;
   beerCount: number;
+  tastedBeerCount: number;
   brandCount: number;
+  brandIds: number[];
+  brandNames: string[];
   foundedYear: number | null;
   historyFromYear: number | null;
   consumedCount: number;
