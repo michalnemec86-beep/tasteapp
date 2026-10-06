@@ -817,6 +817,7 @@ export default async function ProfilePage({
     });
 
   const hasTastingSelection =
+    view === "beers" ||
     showAllTastings ||
     typeof requestedSort === "string" ||
     Boolean(selectedCountry) ||
