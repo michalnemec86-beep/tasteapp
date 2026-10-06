@@ -20,6 +20,12 @@ Pozdější commit přidává tuto dokumentaci; nemění funkce archivované ver
 
 ## Následné změny
 
+- 6. 10. 2026: historie názvů pivovarů používá pro začátek současného názvu
+  poslední rok změny názvu, nikoli rok založení pivovaru. Při novém přejmenování
+  je rok změny povinný a původnímu názvu se automaticky uloží celé období od
+  předchozí změny (nebo od založení). Historická piva, ochutnávky a identity
+  pivovarů se tím nemění.
+
 - 5. 10. 2026: odkazy z Aktivity vedou na celé konkrétní statistiky; detaily
   pivovarů umožňují posun vlevo/vpravo v původním filtrovaném seznamu
   ([chování, výkon a ověření](category-brewery-browsing.md)). Bez nové databázové

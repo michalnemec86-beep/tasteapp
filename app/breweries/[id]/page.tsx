@@ -184,6 +184,10 @@ export default async function BreweryDetailPage({ params, searchParams }: Props)
     if (item.from_year == null) return earliest;
     return earliest == null || item.from_year < earliest ? item.from_year : earliest;
   }, null);
+  const currentNameFromYear = history.reduce<number | null>((latest, item) => {
+    if (item.changed_year == null) return latest;
+    return latest == null || item.changed_year > latest ? item.changed_year : latest;
+  }, null) ?? brewery.founded_year;
 
   const commissionedBeers = (commissionedResult.data ?? []).flatMap((version: any) => {
     const beer = one<BreweryBeerIndex>(version.beers);
@@ -619,7 +623,7 @@ export default async function BreweryDetailPage({ params, searchParams }: Props)
                 />
               ))}
               <div style={{ display: "grid", gridTemplateColumns: "92px minmax(0,1fr)", gap: "10px", color: "var(--taste-text)", fontSize: "13px", fontWeight: 700 }}>
-                <span style={{ color: "var(--taste-amber-bright)" }}>{brewery.founded_year ?? history[history.length - 1]?.changed_year ?? "?"}–</span>
+                <span style={{ color: "var(--taste-amber-bright)" }}>{currentNameFromYear ?? "?"}–</span>
                 <span>{brewery.name}</span>
               </div>
             </div>

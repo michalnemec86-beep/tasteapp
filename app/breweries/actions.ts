@@ -664,6 +664,32 @@ export async function updateBrewery(
   const allHistory =
     historyResult.data ?? [];
 
+  const breweryHistory =
+    allHistory.filter(
+      (item) =>
+        item.brewery_id ===
+        breweryId
+    );
+
+  const currentNameFromYear =
+    breweryHistory.reduce<number | null>(
+      (latest, item) => {
+        if (
+          item.changed_year ===
+          null
+        ) {
+          return latest;
+        }
+
+        return latest === null ||
+          item.changed_year >
+            latest
+          ? item.changed_year
+          : latest;
+      },
+      currentBrewery.founded_year
+    );
+
   const normalizedEffectiveName =
     normalizeText(
       effectiveName
@@ -758,6 +784,27 @@ export async function updateBrewery(
       currentBrewery.name
     );
 
+  if (
+    nameChanged &&
+    renameChangedYear === null
+  ) {
+    throw new Error(
+      "Při změně názvu je rok změny povinný."
+    );
+  }
+
+  if (
+    nameChanged &&
+    renameChangedYear !== null &&
+    currentNameFromYear !== null &&
+    renameChangedYear <
+      currentNameFromYear
+  ) {
+    throw new Error(
+      "Rok změny názvu nemůže být před začátkem období současného názvu."
+    );
+  }
+
   const {
     error: updateError,
   } = await supabase
@@ -844,6 +891,8 @@ export async function updateBrewery(
         "brewery_name_history"
       )
       .update({
+        from_year:
+          currentNameFromYear,
         changed_year:
           renameChangedYear,
       })
