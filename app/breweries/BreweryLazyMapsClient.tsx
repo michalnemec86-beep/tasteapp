@@ -151,8 +151,8 @@ export default function BreweryLazyMapsClient({
     <div
       style={{
         display: "grid",
-        gap: "18px",
-        marginTop: "30px",
+        gap: "12px",
+        marginTop: "24px",
       }}
     >
       <MapPanel
@@ -255,7 +255,7 @@ function MapPanel({
         <div
           style={{
             position: "relative",
-            minHeight: "190px",
+            minHeight: open ? "164px" : "122px",
             overflow: "hidden",
             borderBottom: open
               ? "1px solid var(--taste-border)"
@@ -274,8 +274,8 @@ function MapPanel({
               alignItems: "flex-end",
               justifyContent: "space-between",
               gap: "18px",
-              minHeight: "190px",
-              padding: "22px 24px",
+              minHeight: open ? "164px" : "122px",
+              padding: open ? "20px 22px" : "14px 18px",
               background:
                 "linear-gradient(to top, rgba(12,9,6,0.92), rgba(12,9,6,0.18) 68%, rgba(12,9,6,0.04))",
             }}
@@ -284,7 +284,7 @@ function MapPanel({
               <div
                 className="taste-label"
                 style={{
-                  marginBottom: "5px",
+                  marginBottom: open ? "5px" : "3px",
                 }}
               >
                 {eyebrow}
@@ -293,7 +293,7 @@ function MapPanel({
               <h2
                 style={{
                   margin: 0,
-                  fontSize: "22px",
+                  fontSize: open ? "21px" : "18px",
                   lineHeight: 1.1,
                   fontWeight: 780,
                   letterSpacing: "-0.025em",
@@ -302,17 +302,19 @@ function MapPanel({
                 {title}
               </h2>
 
-              <div
-                style={{
-                  marginTop: "7px",
-                  maxWidth: "560px",
-                  color: "var(--taste-text-muted)",
-                  fontSize: "11px",
-                  lineHeight: 1.45,
-                }}
-              >
-                {description}
-              </div>
+              {open && (
+                <div
+                  style={{
+                    marginTop: "7px",
+                    maxWidth: "560px",
+                    color: "var(--taste-text-muted)",
+                    fontSize: "11px",
+                    lineHeight: 1.45,
+                  }}
+                >
+                  {description}
+                </div>
+              )}
             </div>
 
             <span
@@ -320,9 +322,10 @@ function MapPanel({
               aria-hidden="true"
               style={{
                 flexShrink: 0,
-                minWidth: "92px",
+                minWidth: open ? "92px" : "82px",
+                padding: open ? undefined : "7px 9px",
                 textAlign: "center",
-                fontSize: "11px",
+                fontSize: open ? "11px" : "10px",
                 fontWeight: 750,
               }}
             >
@@ -356,54 +359,121 @@ function CzechPreview() {
         inset: 0,
         width: "100%",
         height: "100%",
-        opacity: 0.56,
+        opacity: 0.62,
       }}
     >
       <defs>
         <pattern
           id="czech-grid"
-          width="36"
-          height="36"
+          width="32"
+          height="32"
           patternUnits="userSpaceOnUse"
         >
           <path
-            d="M 36 0 L 0 0 0 36"
+            d="M 32 0 L 0 0 0 32"
             fill="none"
-            stroke="rgba(255,255,255,0.08)"
+            stroke="rgba(255,255,255,0.055)"
             strokeWidth="1"
           />
         </pattern>
+
+        <linearGradient
+          id="czech-fill"
+          x1="0"
+          y1="0"
+          x2="1"
+          y2="1"
+        >
+          <stop
+            offset="0%"
+            stopColor="rgba(231,166,47,0.10)"
+          />
+          <stop
+            offset="100%"
+            stopColor="rgba(231,166,47,0.22)"
+          />
+        </linearGradient>
       </defs>
 
-      <rect width="800" height="260" fill="url(#czech-grid)" />
+      <rect
+        width="800"
+        height="260"
+        fill="url(#czech-grid)"
+      />
 
       <path
-        d="M136 131 L184 102 L245 105 L284 80 L344 89 L378 68 L440 83 L476 69 L542 92 L604 91 L656 117 L637 145 L586 156 L555 187 L497 183 L453 204 L399 187 L349 204 L292 181 L237 186 L206 163 L151 157 Z"
-        fill="rgba(231,166,47,0.15)"
-        stroke="rgba(242,182,63,0.72)"
+        d="M118 136
+           C128 119 145 109 168 107
+           C181 91 202 83 226 86
+           C246 75 270 74 289 84
+           C307 75 327 67 350 70
+           C367 61 389 62 407 72
+           C425 68 443 71 458 82
+           C477 75 499 78 512 91
+           C530 88 548 92 560 105
+           C581 102 605 109 620 124
+           C641 126 659 137 666 151
+           C652 160 638 166 622 166
+           C610 181 594 190 573 191
+           C559 204 541 211 520 207
+           C505 218 484 222 465 214
+           C449 221 428 220 412 211
+           C394 219 372 220 355 210
+           C335 216 312 213 297 201
+           C276 205 255 198 244 185
+           C222 188 202 180 192 166
+           C169 169 146 162 136 149
+           C126 148 119 143 118 136
+           Z"
+        fill="url(#czech-fill)"
+        stroke="rgba(255,211,111,0.82)"
         strokeWidth="3"
+        strokeLinejoin="round"
+      />
+
+      <path
+        d="M284 96 C310 113 330 131 342 153"
+        fill="none"
+        stroke="rgba(255,255,255,0.10)"
+        strokeWidth="1.2"
+      />
+      <path
+        d="M415 85 C432 112 446 143 451 188"
+        fill="none"
+        stroke="rgba(255,255,255,0.10)"
+        strokeWidth="1.2"
+      />
+      <path
+        d="M515 103 C506 128 510 154 532 185"
+        fill="none"
+        stroke="rgba(255,255,255,0.10)"
+        strokeWidth="1.2"
       />
 
       {[
-        [240, 132],
-        [321, 114],
-        [389, 145],
-        [468, 112],
-        [544, 133],
-        [603, 119],
-      ].map(([cx, cy], index) => (
-        <circle
-          key={index}
-          cx={cx}
-          cy={cy}
-          r={index === 2 ? 8 : 5}
-          fill={
-            index === 2
-              ? "#ffd36f"
-              : "#e7a62f"
-          }
-          opacity={0.9}
-        />
+        { x: 300, y: 134, label: "Praha", r: 7 },
+        { x: 470, y: 165, label: "Brno", r: 5 },
+        { x: 582, y: 124, label: "Ostrava", r: 5 },
+      ].map((city) => (
+        <g key={city.label}>
+          <circle
+            cx={city.x}
+            cy={city.y}
+            r={city.r}
+            fill="#ffd36f"
+            stroke="rgba(58,37,19,0.85)"
+            strokeWidth="2"
+          />
+          <text
+            x={city.x + 11}
+            y={city.y + 4}
+            fill="rgba(255,241,194,0.78)"
+            fontSize="12"
+            fontWeight="700"
+          >
+            {city.label}
+          </text>
+        </g>
       ))}
     </svg>
   );
