@@ -346,6 +346,7 @@ export default async function BreweriesPage({
               sensitivity: "base",
             })
         ),
+        beers: [],
         foundedYear: brewery.founded_year,
         historyFromYear,
         consumedCount: stats?.consumedCount ?? 0,
