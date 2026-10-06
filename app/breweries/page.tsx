@@ -818,7 +818,10 @@ export default async function BreweriesPage({
             )}
           </section>
 
-          <BreweryLazyMapsClient />
+          <BreweryLazyMapsClient
+            newSince={newsRange?.since}
+            newUntil={newsRange?.until}
+          />
         </>
       )}
     </main>
