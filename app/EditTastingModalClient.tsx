@@ -6,7 +6,7 @@ import { notifyAchievementsUpdated } from "@/lib/achievement-notifications";
 
 import StarRatingInput from "@/components/ui/StarRatingInput";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { PACKAGING_OPTIONS } from "@/lib/packaging";
@@ -107,11 +107,11 @@ type Tasting = {
 type Props = {
   tasting: Tasting;
 
-  beers: Beer[];
-  breweries: Brewery[];
-  countries: Country[];
-  styles: BeerStyle[];
-  hops: Hop[];
+  beers?: Beer[];
+  breweries?: Brewery[];
+  countries?: Country[];
+  styles?: BeerStyle[];
+  hops?: Hop[];
 
   updateTastingAction: (
     formData: FormData
@@ -136,15 +136,27 @@ function normalizeText(text: string) {
 
 export default function EditTastingModalClient({
   tasting,
-  beers,
-  breweries,
-  countries,
-  styles,
-  hops,
+  beers = [],
+  breweries = [],
+  countries = [],
+  styles = [],
+  hops = [],
   updateTastingAction,
   deleteTastingAction,
 }: Props) {
   const router = useRouter();
+
+  const remoteBeerSearch =
+    beers.length === 0;
+
+  const [catalogBeers, setCatalogBeers] =
+    useState<Beer[]>(beers);
+
+  const [beerSearchLoading, setBeerSearchLoading] =
+    useState(false);
+
+  const [beerSearchError, setBeerSearchError] =
+    useState(false);
 
   const [open, setOpen] =
     useState(false);
@@ -404,8 +416,111 @@ export default function EditTastingModalClient({
   }
 
   const beerQuery = normalizeText(beerName);
+
+  useEffect(() => {
+    if (
+      !remoteBeerSearch ||
+      !open ||
+      beerQuery.length < 3 ||
+      existingBeerId
+    ) {
+      setBeerSearchLoading(false);
+      setBeerSearchError(false);
+      return;
+    }
+
+    setBeerSearchLoading(true);
+    setBeerSearchError(false);
+
+    const controller =
+      new AbortController();
+
+    const timeout =
+      window.setTimeout(async () => {
+        try {
+          const response =
+            await fetch(
+              `/api/tasting-search?type=beer&q=${encodeURIComponent(
+                beerName.trim()
+              )}`,
+              {
+                cache: "no-store",
+                signal:
+                  controller.signal,
+              }
+            );
+
+          if (!response.ok) {
+            throw new Error(
+              "Beer search failed"
+            );
+          }
+
+          const data =
+            (await response.json()) as {
+              beers?: Beer[];
+            };
+
+          const byId =
+            new Map(
+              catalogBeers.map(
+                (beer) => [
+                  beer.id,
+                  beer,
+                ]
+              )
+            );
+
+          for (
+            const beer of
+            data.beers ?? []
+          ) {
+            byId.set(
+              beer.id,
+              beer
+            );
+          }
+
+          setCatalogBeers(
+            Array.from(
+              byId.values()
+            )
+          );
+        } catch (searchError) {
+          if (
+            searchError instanceof Error &&
+            searchError.name ===
+              "AbortError"
+          ) {
+            return;
+          }
+
+          setBeerSearchError(true);
+        } finally {
+          if (
+            !controller.signal.aborted
+          ) {
+            setBeerSearchLoading(false);
+          }
+        }
+      }, 220);
+
+    return () => {
+      window.clearTimeout(
+        timeout
+      );
+      controller.abort();
+    };
+  }, [
+    remoteBeerSearch,
+    open,
+    beerQuery,
+    beerName,
+    existingBeerId,
+  ]);
+
   const beerSuggestions = beerQuery.length >= 3
-    ? beers
+    ? catalogBeers
         .filter((beer) =>
           normalizeText(beer.name).includes(beerQuery) ||
           normalizeText(beer.brands?.name ?? "").includes(beerQuery)
@@ -692,6 +807,49 @@ export default function EditTastingModalClient({
                           </span>
                         </button>
                       ))}
+                    </div>
+                  )}
+
+                  {beerOpen &&
+                    beerQuery.length >= 3 &&
+                    beerSuggestions.length === 0 &&
+                    beerSearchLoading && (
+                    <div style={{
+                      position: "absolute",
+                      top: "calc(100% + 4px)",
+                      left: 0,
+                      right: 0,
+                      zIndex: 60,
+                      padding: "10px 12px",
+                      border: "1px solid var(--taste-border-strong)",
+                      borderRadius: "8px",
+                      background: "var(--taste-surface-raised)",
+                      color: "var(--taste-text-muted)",
+                      fontSize: "12px",
+                    }}>
+                      Hledám pivo v evidenci…
+                    </div>
+                  )}
+
+                  {beerOpen &&
+                    beerQuery.length >= 3 &&
+                    beerSuggestions.length === 0 &&
+                    !beerSearchLoading &&
+                    beerSearchError && (
+                    <div style={{
+                      position: "absolute",
+                      top: "calc(100% + 4px)",
+                      left: 0,
+                      right: 0,
+                      zIndex: 60,
+                      padding: "10px 12px",
+                      border: "1px solid rgba(220,70,70,0.5)",
+                      borderRadius: "8px",
+                      background: "var(--taste-surface-raised)",
+                      color: "var(--taste-text-muted)",
+                      fontSize: "12px",
+                    }}>
+                      Evidenci piv se nepodařilo načíst. Zkus hledání znovu.
                     </div>
                   )}
                 </div>
