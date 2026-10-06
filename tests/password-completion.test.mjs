@@ -77,7 +77,7 @@ function formHarness(client, initialPasswordRequired = true) {
   loaded._compile(ts.transpileModule(fs.readFileSync(filename, 'utf8'), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, target: ts.ScriptTarget.ES2022 },
   }).outputText, filename);
-  function render() { index = 0; return loaded.exports.UpdatePasswordForm({ initialPasswordRequired }); }
+  function render() { index = 0; return loaded.exports.UpdatePasswordForm({ initialPasswordRequired, accountEmail: "caller@example.org" }); }
   const collect = node => !node || typeof node !== 'object' ? [] : Array.isArray(node) ? node.flatMap(collect) : [node, ...collect(node.props?.children)];
   return {
     setPasswords(value) { render(); states[0] = states[1] = value; },
@@ -93,6 +93,7 @@ test('an unconfirmed initial write retries the server request and preserves the 
   try {
     const harness = formHarness({ auth: {
       updateUser: async () => { saves++; return { error: null }; },
+      signInWithPassword: async () => attempts === 1 ? { data: {}, error: new Error('Network') } : { data: { session: {}, user: { app_metadata: { must_change_password: false } } }, error: null },
       refreshSession: async () => ({ data: { session: {}, user: { app_metadata: { must_change_password: false } } }, error: null }),
     }, functions: { invoke: async () => ++attempts === 1 ? { error: new Error('Network') } : { data: { ok: true }, error: null } } });
     harness.setPasswords('new-password');
@@ -114,6 +115,7 @@ test('a failed session refresh never redirects and retries completion without a 
   try {
     const harness = formHarness({ auth: {
       updateUser: async () => { saves++; return { error: null }; },
+      signInWithPassword: async () => ({ data: { session: {}, user: { app_metadata: { must_change_password: false } } }, error: null }),
       refreshSession: async () => ++refreshes === 1 ? { data: {}, error: new Error('Offline') } : { data: { session: {}, user: { app_metadata: { must_change_password: false } } }, error: null },
     }, functions: { invoke: async () => ({ data: { ok: true }, error: null }) } });
     harness.setPasswords('new-password');
@@ -164,7 +166,7 @@ test('rate limits and unexpected Auth failures cannot be mistaken for a differen
 });
 
 test('after the write commits but its response is lost, a reloaded form completes without a second write', async () => {
-  let metadata = { must_change_password: true }, writes = 0, redirects = 0, loseResponse = true;
+  let metadata = { must_change_password: true }, writes = 0, redirects = 0, loseResponse = true, signIns = 0;
   const handler = edge(async (url, options) => {
     if (url.endsWith('/user')) return Response.json({ id: 'caller', email: 'caller@example.org', app_metadata: metadata });
     if (url.includes('/token?')) return Response.json({ error_code: 'invalid_credentials' }, { status: 400 });
@@ -177,6 +179,11 @@ test('after the write commits but its response is lost, a reloaded form complete
   const client = {
     auth: {
       updateUser: () => { throw new Error('initial flow must not call updateUser'); },
+      signInWithPassword: async ({ password }) => {
+        assert.equal(password, 'new-password');
+        if (++signIns === 1) return { data: {}, error: new Error('Network') };
+        return { data: { session: {}, user: { app_metadata: metadata } }, error: null };
+      },
       refreshSession: async () => ({ data: { session: {}, user: { app_metadata: metadata } }, error: null }),
     }, functions: { invoke: async (_, options) => {
       const response = await handler('POST', 'valid', options.body);
@@ -214,4 +221,56 @@ test('ordinary password recovery still updates the password without the initial-
     assert.equal(writes, 1);
     assert.equal(redirects, 1);
   } finally { globalThis.window = previousWindow; }
+});
+
+
+test('initial setup restores a session with the new password after Admin API revokes the old refresh token', async () => {
+  let oldSessionRevoked = false, signedIn = false, redirects = 0;
+  const previousWindow = globalThis.window;
+  globalThis.window = { location: { replace: () => { redirects++; } } };
+  try {
+    const harness = formHarness({ auth: {
+      updateUser: () => { throw new Error('must not call updateUser'); },
+      signInWithPassword: async ({ email, password }) => {
+        assert.equal(oldSessionRevoked, true);
+        assert.equal(email, 'caller@example.org');
+        assert.equal(password, 'new-password');
+        signedIn = true;
+        return { data: { session: {}, user: { app_metadata: { must_change_password: false } } }, error: null };
+      },
+      refreshSession: async () => signedIn
+        ? { data: { session: {}, user: { app_metadata: { must_change_password: false } } }, error: null }
+        : { data: {}, error: new Error('Refresh token revoked') },
+    }, functions: { invoke: async () => { oldSessionRevoked = true; return { data: { ok: true }, error: null }; } } });
+    harness.setPasswords('new-password');
+    await harness.submit();
+    assert.equal(redirects, 1);
+    assert.equal(harness.states[0], '');
+  } finally { globalThis.window = previousWindow; }
+});
+
+test('after a lost response and revoked old session, confirmed new-password login completes setup', async () => {
+  let redirects = 0;
+  const previousWindow = globalThis.window;
+  globalThis.window = { location: { replace: () => { redirects++; } } };
+  try {
+    const harness = formHarness({ auth: {
+      signInWithPassword: async () => ({ data: { session: {}, user: { app_metadata: { must_change_password: false } } }, error: null }),
+      refreshSession: async () => ({ data: { session: {}, user: { app_metadata: { must_change_password: false } } }, error: null }),
+    }, functions: { invoke: async () => ({ error: { context: Response.json({ message: 'Expired session' }, { status: 401 }) } }) } });
+    harness.setPasswords('new-password');
+    await harness.submit();
+    assert.equal(redirects, 1);
+  } finally { globalThis.window = previousWindow; }
+});
+
+test('a login using the unchanged temporary password cannot complete setup', async () => {
+  const harness = formHarness({ auth: {
+    signInWithPassword: async () => ({ data: { session: {}, user: { app_metadata: { must_change_password: true } } }, error: null }),
+    refreshSession: () => { throw new Error('must not refresh or redirect'); },
+  }, functions: { invoke: async () => ({ error: new Error('Network') }) } });
+  harness.setPasswords('temporary-password');
+  await harness.submit();
+  assert.equal(harness.states[4], false);
+  assert.match(harness.states[2], /nepodařilo potvrdit/);
 });

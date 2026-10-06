@@ -17,8 +17,9 @@ import { useState } from "react";
 export function UpdatePasswordForm({
   className,
   initialPasswordRequired = false,
+  accountEmail,
   ...props
-}: React.ComponentPropsWithoutRef<"div"> & { initialPasswordRequired?: boolean }) {
+}: React.ComponentPropsWithoutRef<"div"> & { initialPasswordRequired?: boolean; accountEmail?: string }) {
   const [password, setPassword] = useState("");
   const [passwordAgain, setPasswordAgain] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -46,17 +47,33 @@ export function UpdatePasswordForm({
     try {
       if (!passwordSaved) {
         if (initialPasswordRequired) {
+          if (!accountEmail) {
+            throw new Error("Přihlášení vypršelo. Přihlas se znovu svým heslem.");
+          }
           const { data: completion, error: completionError } = await supabase.functions.invoke(
             "complete-initial-password",
             { body: { password } },
           );
-          if (completionError || completion?.ok !== true) {
-            let message = completion?.message;
-            if (!message && completionError?.context instanceof Response) {
-              const response = await completionError.context.json().catch(() => null);
-              message = response?.message;
-            }
-            throw new Error(message || "Uložení hesla se nepodařilo potvrdit. Zkus to znovu; dokončené nastavení se nebude opakovat.");
+          let completionMessage = completion?.message;
+          let completionStatus: number | undefined;
+          if (completionError?.context instanceof Response) {
+            completionStatus = completionError.context.status;
+            const response = await completionError.context.json().catch(() => null);
+            completionMessage = response?.message;
+          }
+          if (completionStatus === 400 || completionStatus === 429) {
+            throw new Error(completionMessage || "Heslo se nepodařilo nastavit. Zkus to znovu.");
+          }
+          // Admin password updates revoke the old refresh token. A new login is
+          // also the recovery path when the update succeeded but its response
+          // was lost, or when a retry can no longer authenticate the old session.
+          const { data: signedIn, error: signInError } = await supabase.auth.signInWithPassword({
+            email: accountEmail, password,
+          });
+          if (signInError || !signedIn.session || signedIn.user?.app_metadata?.must_change_password !== false) {
+            throw new Error(completionMessage || (completion?.ok === true
+              ? "Heslo je uložené, ale přihlášení se nepodařilo. Zkus to znovu se stejným novým heslem."
+              : "Uložení hesla se nepodařilo potvrdit. Zkus to znovu se stejným novým heslem."));
           }
         } else {
           const { error } = await supabase.auth.updateUser({ password });
