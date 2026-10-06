@@ -3,6 +3,18 @@ import type {
 } from "@supabase/supabase-js";
 
 import {
+  filterBeerCatalogItems,
+  getBeerCatalogFacets,
+  type BeerCatalogFacets,
+  type BeerCatalogFilterMode,
+  type BeerCatalogItem,
+  type BeerCatalogSortMode,
+  type BeerCatalogSummary,
+} from "@/lib/beer-catalog-page";
+import {
+  isBeerAvailableForTasting,
+} from "@/lib/beerPortfolio";
+import {
   fetchCatalogueRows,
 } from "@/lib/catalogue-news";
 import {
@@ -15,18 +27,6 @@ import {
 import {
   getBeerReferenceStatus,
 } from "@/lib/referenceStatus";
-import {
-  isBeerAvailableForTasting,
-} from "@/lib/beerPortfolio";
-import {
-  filterBeerCatalogItems,
-  getBeerCatalogFacets,
-  type BeerCatalogFacets,
-  type BeerCatalogFilterMode,
-  type BeerCatalogItem,
-  type BeerCatalogSortMode,
-  type BeerCatalogSummary,
-} from "@/lib/beer-catalog-page";
 
 type Relation<T> =
   | T
@@ -45,83 +45,97 @@ function one<T>(
     : value ?? null;
 }
 
-type RawBeer = {
+type BreweryRef = {
+  id: number;
+  name: string;
+  country:
+    | string
+    | null;
+};
+
+type StyleRef = {
+  id: number;
+  name: string;
+};
+
+type HopRef = {
+  id: number;
+  name: string;
+};
+
+type IndexBeer = {
   id: number;
   name: string;
   plato: number | null;
   abv: number | null;
-  ibu: number | null;
-  is_non_alcoholic:
-    | boolean
-    | null;
-  is_catalog:
-    | boolean
-    | null;
-  portfolio_status:
-    | string
-    | null;
   brands: Relation<{
     id: number;
     name: string;
   }>;
-  breweries: Relation<{
-    id: number;
-    name: string;
-    country:
-      | string
-      | null;
-    closed_year:
-      | number
-      | null;
-  }>;
-  beer_styles: Relation<{
-    id: number;
-    name: string;
-  }>;
+  breweries:
+    Relation<BreweryRef>;
+  beer_styles:
+    Relation<StyleRef>;
   beer_hops:
     | Array<{
-        hops: Relation<{
-          id: number;
-          name: string;
-        }>;
+        hops:
+          Relation<HopRef>;
       }>
     | null;
   beer_versions:
     | Array<{
         id: number;
-        is_current:
-          boolean;
+        is_current: boolean;
         plato:
           | number
           | null;
         abv:
           | number
           | null;
-        ibu:
-          | number
-          | null;
-        breweries: Relation<{
-          id: number;
-          name: string;
-          country:
-            | string
-            | null;
-        }>;
-        beer_styles: Relation<{
-          id: number;
-          name: string;
-        }>;
+        breweries:
+          Relation<BreweryRef>;
+        beer_styles:
+          Relation<StyleRef>;
         beer_version_hops:
           | Array<{
-              hops: Relation<{
-                id: number;
-                name: string;
-              }>;
+              hops:
+                Relation<HopRef>;
             }>
           | null;
       }>
     | null;
 };
+
+type DetailBeer =
+  IndexBeer & {
+    ibu: number | null;
+    is_non_alcoholic:
+      | boolean
+      | null;
+    portfolio_status:
+      | string
+      | null;
+    breweries: Relation<
+      BreweryRef & {
+        closed_year:
+          | number
+          | null;
+      }
+    >;
+    beer_versions:
+      | Array<
+          NonNullable<
+            IndexBeer[
+              "beer_versions"
+            ]
+          >[number] & {
+            ibu:
+              | number
+              | null;
+          }
+        >
+      | null;
+  };
 
 type TastingCountRow = {
   beer_id:
@@ -145,20 +159,22 @@ async function loadTastingCounts(
   userId: string
 ) {
   const rows =
-    await fetchAllRows(
-      (from, to) =>
-        supabase
-          .from(
-            "tastings"
-          )
-          .select(
-            "beer_id, user_id, quantity"
-          )
-          .order("id")
-          .range(
-            from,
-            to
-          )
+    (
+      await fetchAllRows(
+        (from, to) =>
+          supabase
+            .from(
+              "tastings"
+            )
+            .select(
+              "beer_id, user_id, quantity"
+            )
+            .order("id")
+            .range(
+              from,
+              to
+            )
+      )
     ) as TastingCountRow[];
 
   const totalByBeer =
@@ -303,14 +319,19 @@ export async function loadBeerCatalogOverview(
   };
 }
 
-async function loadScopedItems(
+async function loadIndexRows(
   supabase: SupabaseClient,
-  userId: string,
-  scope: CatalogueScope,
   selectedIds:
     | number[]
     | null
 ) {
+  if (
+    selectedIds &&
+    selectedIds.length === 0
+  ) {
+    return [] as IndexBeer[];
+  }
+
   const rows =
     await fetchCatalogueRows(
       (
@@ -326,9 +347,226 @@ async function loadScopedItems(
               name,
               plato,
               abv,
+              brands (
+                id,
+                name
+              ),
+              breweries (
+                id,
+                name,
+                country
+              ),
+              beer_styles (
+                id,
+                name
+              ),
+              beer_hops (
+                hops (
+                  id,
+                  name
+                )
+              ),
+              beer_versions (
+                id,
+                is_current,
+                plato,
+                abv,
+                breweries!beer_versions_brewery_id_fkey (
+                  id,
+                  name,
+                  country
+                ),
+                beer_styles (
+                  id,
+                  name
+                ),
+                beer_version_hops (
+                  hops (
+                    id,
+                    name
+                  )
+                )
+              )
+            `);
+
+        if (ids) {
+          query =
+            query.in(
+              "id",
+              ids
+            );
+        }
+
+        return query
+          .order(
+            "name",
+            {
+              ascending:
+                true,
+            }
+          )
+          .order("id")
+          .range(
+            from,
+            to
+          );
+      },
+      selectedIds
+    );
+
+  return rows as unknown as
+    IndexBeer[];
+}
+
+function toIndexItem(
+  beer: IndexBeer,
+  scope: CatalogueScope,
+  totalByBeer:
+    Map<number, number>,
+  mineByBeer:
+    Map<number, number>
+): BeerCatalogItem {
+  const match =
+    getCatalogueMatch(
+      beer,
+      scope
+    );
+
+  const current =
+    beer.beer_versions
+      ?.find(
+        (version) =>
+          version.is_current
+      ) ??
+    null;
+
+  const brewery =
+    one(
+      current?.breweries
+    ) ??
+    one(
+      beer.breweries
+    );
+
+  const style =
+    one(
+      current?.beer_styles
+    ) ??
+    one(
+      beer.beer_styles
+    );
+
+  const hopRows =
+    current
+      ? current
+          .beer_version_hops ??
+        []
+      : beer.beer_hops ??
+        [];
+
+  const hops =
+    hopRows
+      .map(
+        (row) =>
+          one(
+            row.hops
+          )
+      )
+      .filter(
+        (
+          hop
+        ): hop is HopRef =>
+          Boolean(hop)
+      );
+
+  const brand =
+    one(
+      beer.brands
+    );
+
+  const plato =
+    current?.plato ??
+    beer.plato;
+
+  const abv =
+    current?.abv ??
+    beer.abv;
+
+  const referenceStatus =
+    getBeerReferenceStatus({
+      name: beer.name,
+      brandId:
+        brand?.id ??
+        null,
+      breweryId:
+        brewery?.id ??
+        null,
+      styleId:
+        style?.id ??
+        null,
+      plato,
+      abv,
+    });
+
+  return {
+    historicalMatch:
+      match.historicalOnly,
+    id: beer.id,
+    name: beer.name,
+    brand,
+    brewery,
+    style,
+    plato,
+    abv,
+    ibu: null,
+    isNonAlcoholic:
+      false,
+    canTaste: false,
+    hops,
+    totalQuantity:
+      totalByBeer.get(
+        beer.id
+      ) ??
+      0,
+    myQuantity:
+      mineByBeer.get(
+        beer.id
+      ) ??
+      0,
+    referenceReady:
+      referenceStatus.ready,
+    referenceMissing:
+      referenceStatus.missing,
+  };
+}
+
+async function loadDetailedRows(
+  supabase: SupabaseClient,
+  ids: number[]
+) {
+  if (
+    ids.length === 0
+  ) {
+    return [] as DetailBeer[];
+  }
+
+  const rows =
+    await fetchCatalogueRows(
+      (
+        from,
+        to,
+        selectedIds
+      ) => {
+        let query =
+          supabase
+            .from("beers")
+            .select(`
+              id,
+              name,
+              plato,
+              abv,
               ibu,
               is_non_alcoholic,
-              is_catalog,
               portfolio_status,
               brands (
                 id,
@@ -374,195 +612,119 @@ async function loadScopedItems(
               )
             `);
 
-        if (ids) {
+        if (selectedIds) {
           query =
             query.in(
               "id",
-              ids
+              selectedIds
             );
         }
 
         return query
-          .order(
-            "name",
-            {
-              ascending:
-                true,
-            }
-          )
           .order("id")
           .range(
             from,
             to
           );
       },
-      selectedIds
+      ids
     );
 
-  if (
-    rows.length === 0
-  ) {
-    return [] as BeerCatalogItem[];
-  }
+  return rows as unknown as
+    DetailBeer[];
+}
 
-  const {
-    totalByBeer,
-    mineByBeer,
-  } =
-    await loadTastingCounts(
-      supabase,
-      userId
+function mergeDetail(
+  detail: DetailBeer,
+  indexItem: BeerCatalogItem
+): BeerCatalogItem {
+  const current =
+    detail.beer_versions
+      ?.find(
+        (version) =>
+          version.is_current
+      ) ??
+    null;
+
+  const brewery =
+    one(
+      current?.breweries
+    ) ??
+    one(
+      detail.breweries
     );
 
-  return rows
-    .filter(
-      (raw) =>
-        getCatalogueMatch(
-          raw,
-          scope
-        ).matches
-    )
-    .map((raw) => {
-      const beer =
-        raw as RawBeer;
+  const identityBrewery =
+    one(
+      detail.breweries
+    );
 
-      const match =
-        getCatalogueMatch(
-          beer,
-          scope
-        );
+  const style =
+    one(
+      current?.beer_styles
+    ) ??
+    one(
+      detail.beer_styles
+    );
 
-      const current =
-        beer.beer_versions
-          ?.find(
-            (version) =>
-              Boolean(
-                version.is_current
-              )
-          ) ??
-        null;
+  const hopRows =
+    current
+      ? current
+          .beer_version_hops ??
+        []
+      : detail.beer_hops ??
+        [];
 
-      const brewery =
-        one(
-          current?.breweries
-        ) ??
-        one(
-          beer.breweries
-        );
-
-      const identityBrewery =
-        one(
-          beer.breweries
-        );
-
-      const style =
-        one(
-          current?.beer_styles
-        ) ??
-        one(
-          beer.beer_styles
-        );
-
-      const hopRows =
-        current
-          ? current
-              .beer_version_hops ??
-            []
-          : beer.beer_hops ??
-            [];
-
-      const hops =
-        hopRows
-          .map(
-            (row) =>
-              one(
-                row.hops
-              )
+  const hops =
+    hopRows
+      .map(
+        (row) =>
+          one(
+            row.hops
           )
-          .filter(
-            (
-              hop
-            ): hop is {
-              id: number;
-              name: string;
-            } =>
-              Boolean(hop)
-          );
+      )
+      .filter(
+        (
+          hop
+        ): hop is HopRef =>
+          Boolean(hop)
+      );
 
-      const brand =
-        one(
-          beer.brands
-        );
+  const brand =
+    one(
+      detail.brands
+    );
 
-      const referenceStatus =
-        getBeerReferenceStatus({
-          name: beer.name,
-          brandId:
-            brand?.id ??
-            null,
-          breweryId:
-            brewery?.id ??
-            null,
-          styleId:
-            style?.id ??
-            null,
-          plato:
-            current?.plato ??
-            beer.plato,
-          abv:
-            current?.abv ??
-            beer.abv,
-        });
-
-      return {
-        historicalMatch:
-          match.historicalOnly,
-        id: beer.id,
-        name: beer.name,
-        brand,
-        brewery,
-        style,
-        plato:
-          current?.plato ??
-          beer.plato,
-        abv:
-          current?.abv ??
-          beer.abv,
-        ibu:
-          current?.ibu ??
-          beer.ibu,
-        isNonAlcoholic:
-          Boolean(
-            beer.is_non_alcoholic
-          ),
-        canTaste:
-          Boolean(
-            brand &&
-            identityBrewery
-          ) &&
-          isBeerAvailableForTasting(
-            beer.portfolio_status,
-            identityBrewery
-              ?.closed_year
-          ),
-        hops,
-        totalQuantity:
-          totalByBeer.get(
-            beer.id
-          ) ??
-          0,
-        myQuantity:
-          mineByBeer.get(
-            beer.id
-          ) ??
-          0,
-        referenceReady:
-          referenceStatus.ready,
-        referenceMissing:
-          referenceStatus.missing,
-      } satisfies
-        BeerCatalogItem;
-    });
+  return {
+    ...indexItem,
+    brand,
+    brewery,
+    style,
+    plato:
+      current?.plato ??
+      detail.plato,
+    abv:
+      current?.abv ??
+      detail.abv,
+    ibu:
+      current?.ibu ??
+      detail.ibu,
+    isNonAlcoholic:
+      Boolean(
+        detail.is_non_alcoholic
+      ),
+    canTaste:
+      Boolean(
+        brand &&
+        identityBrewery
+      ) &&
+      isBeerAvailableForTasting(
+        detail.portfolio_status,
+        identityBrewery
+          ?.closed_year
+      ),
+    hops,
+  };
 }
 
 function summarize(
@@ -641,13 +803,54 @@ export async function loadBeerCatalogPage({
   offset: number;
   limit: number;
 }): Promise<BeerCatalogPageResult> {
+  const [
+    indexRows,
+    tastingCounts,
+  ] =
+    await Promise.all([
+      loadIndexRows(
+        supabase,
+        selectedIds
+      ),
+      selectedIds &&
+      selectedIds.length ===
+        0
+        ? Promise.resolve({
+            totalByBeer:
+              new Map<
+                number,
+                number
+              >(),
+            mineByBeer:
+              new Map<
+                number,
+                number
+              >(),
+          })
+        : loadTastingCounts(
+            supabase,
+            userId
+          ),
+    ]);
+
   const scopedItems =
-    await loadScopedItems(
-      supabase,
-      userId,
-      scope,
-      selectedIds
-    );
+    indexRows
+      .filter(
+        (beer) =>
+          getCatalogueMatch(
+            beer,
+            scope
+          ).matches
+      )
+      .map(
+        (beer) =>
+          toIndexItem(
+            beer,
+            scope,
+            tastingCounts.totalByBeer,
+            tastingCounts.mineByBeer
+          )
+      );
 
   const filtered =
     filterBeerCatalogItems(
@@ -661,12 +864,52 @@ export async function loadBeerCatalogPage({
       }
     );
 
+  const pageIndexItems =
+    filtered.slice(
+      offset,
+      offset + limit
+    );
+
+  const detailRows =
+    await loadDetailedRows(
+      supabase,
+      pageIndexItems.map(
+        (beer) =>
+          beer.id
+      )
+    );
+
+  const detailById =
+    new Map(
+      detailRows.map(
+        (beer) => [
+          beer.id,
+          beer,
+        ]
+      )
+    );
+
+  const items =
+    pageIndexItems.flatMap(
+      (indexItem) => {
+        const detail =
+          detailById.get(
+            indexItem.id
+          );
+
+        return detail
+          ? [
+              mergeDetail(
+                detail,
+                indexItem
+              ),
+            ]
+          : [];
+      }
+    );
+
   return {
-    items:
-      filtered.slice(
-        offset,
-        offset + limit
-      ),
+    items,
     matchedCount:
       filtered.length,
     summary:
