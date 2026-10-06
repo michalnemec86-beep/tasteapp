@@ -90,8 +90,7 @@ type RawBeer = {
     | Array<{
         id: number;
         is_current:
-          | boolean
-          | null;
+          boolean;
         plato:
           | number
           | null;
