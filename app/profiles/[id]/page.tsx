@@ -851,6 +851,68 @@ export default async function ProfilePage({
         )
       : [];
 
+  function historyPageHref(
+    nextPage: number
+  ) {
+    const pageParams =
+      new URLSearchParams();
+
+    pageParams.set(
+      "view",
+      "beers"
+    );
+
+    if (showAllTastings) {
+      pageParams.set(
+        "all",
+        "1"
+      );
+    } else if (
+      typeof requestedSort ===
+      "string"
+    ) {
+      pageParams.set(
+        "sort",
+        tastingSort
+      );
+    }
+
+    if (selectedCountry) {
+      pageParams.set(
+        "country",
+        selectedCountry
+      );
+    }
+
+    if (tastingQuery) {
+      pageParams.set(
+        "q",
+        tastingQuery
+      );
+    }
+
+    if (selectedLetter) {
+      pageParams.set(
+        "letter",
+        selectedLetter
+      );
+    }
+
+    if (nextPage > 1) {
+      pageParams.set(
+        "page",
+        String(nextPage)
+      );
+    }
+
+    const basePath =
+      isMe
+        ? "/"
+        : `/profiles/${profile.id}`;
+
+    return `${basePath}?${pageParams.toString()}`;
+  }
+
   let visibleTastings =
     globalTastings.slice(
       0,
@@ -2030,13 +2092,9 @@ export default async function ProfilePage({
             }}
           >
             {
-              hasTastingSelection
-                ? visibleTastings.length
-                : allTastings.length
+              historyTotalCount
             }{" "}
-            {(hasTastingSelection
-              ? visibleTastings.length
-              : allTastings.length) ===
+            {historyTotalCount ===
             1
               ? "záznam"
               : "záznamů"}
@@ -2055,7 +2113,7 @@ export default async function ProfilePage({
 
         {!hasTastingSelection ? (
           <div className="taste-card taste-profile-tastings-empty">
-            {allTastings.length > 0
+            {historySourceTastings.length > 0
               ? "Vyber filtr nebo tlačítko Vše."
               : "Tento uživatel zatím nemá žádnou ochutnávku."}
           </div>
@@ -2483,6 +2541,81 @@ export default async function ProfilePage({
             }
           )}
         </div>
+
+        {hasTastingSelection &&
+          historyPageCount > 1 && (
+          <nav
+            aria-label="Stránkování ochutnávek"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "10px",
+              marginTop: "18px",
+            }}
+          >
+            {currentHistoryPage > 1 ? (
+              <Link
+                prefetch={false}
+                href={historyPageHref(
+                  currentHistoryPage -
+                    1
+                )}
+                className="taste-button-secondary"
+              >
+                ← Předchozí
+              </Link>
+            ) : (
+              <span
+                className="taste-button-secondary"
+                aria-disabled="true"
+                style={{
+                  opacity: 0.4,
+                  pointerEvents: "none",
+                }}
+              >
+                ← Předchozí
+              </span>
+            )}
+
+            <span
+              style={{
+                color:
+                  "var(--taste-text-muted)",
+                fontSize: "11px",
+                minWidth: "70px",
+                textAlign: "center",
+              }}
+            >
+              {currentHistoryPage} / {historyPageCount}
+            </span>
+
+            {currentHistoryPage <
+            historyPageCount ? (
+              <Link
+                prefetch={false}
+                href={historyPageHref(
+                  currentHistoryPage +
+                    1
+                )}
+                className="taste-button-secondary"
+              >
+                Další →
+              </Link>
+            ) : (
+              <span
+                className="taste-button-secondary"
+                aria-disabled="true"
+                style={{
+                  opacity: 0.4,
+                  pointerEvents: "none",
+                }}
+              >
+                Další →
+              </span>
+            )}
+          </nav>
+        )}
       </section>}
     </main>
   );
