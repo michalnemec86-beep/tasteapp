@@ -580,6 +580,7 @@ export default async function ProfilePage({
       name: string;
       country: string | null;
       logo_url: string | null;
+      closed_year?: number | null;
     }
   >();
 
