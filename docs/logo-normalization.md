@@ -32,3 +32,24 @@ obrázky. Spustit node --test tests/*.test.mjs a npm run build.
 
 Všech 91 aktuálních produkčních log bylo zpracováno bez chyby. Jejich velikost
 klesla z 4,20 MB přibližně na 1,08 MB; výsledky byly vizuálně prohlédnuté.
+
+
+## Oprava rámečků ve statistikách (6. 10. 2026)
+
+Carlton & United Breweries mělo v kruhovém rámečku tmavý vnitřní prstenec.
+Produkční endpoint vracel správný 384 × 384 WebP s bílým pozadím. Příčinou
+bylo padding: 3px !important z visual-system.css: toto pravidlo mělo stejnou
+specificitu jako nulové odsazení normalizovaného rámečku a načítalo se později.
+Ve statistikách existovala další podobná desktopová a mobilní pravidla.
+
+Pravidla společných žebříčků, statistik a mobilních modalů teď přidávají
+odsazení pouze nenormalizovaným obrázkům a prázdným zástupným rámečkům.
+Normalizovaný obrázek vyplňuje celý vnitřek rámečku svou připravenou barvou;
+velikosti, kruhový tvar, obvodový rámeček i náhradní zobrazení zůstávají zachované.
+Nejde o změnu algoritmu, zdrojového loga ani databáze, takže se nemění klíče
+obrázkové cache.
+
+Ověření: původní GIF Carlton & United a produkční odvozený WebP byly načtené
+a porovnané; server správně rozpoznává bílé okraje. Všech 93 automatických testů
+včetně testů normalizace a produkční sestavení prošly. Místní vizuální browser
+check nebyl proveden, protože dostupný Playwright nemá nainstalovaný Chromium.

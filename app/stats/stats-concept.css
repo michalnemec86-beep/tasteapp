@@ -584,8 +584,11 @@ body:has(.taste-stats-concept) {
   width: 24px !important;
   height: 24px !important;
   border-radius: 50% !important;
-  padding: 2px !important;
   border-color: rgba(231,166,47,.38) !important;
+}
+
+.taste-stats-concept .taste-ranking-card .taste-brewery-logo-frame:not([data-logo-normalized]) {
+  padding: 2px !important;
 }
 
 .taste-stats-concept .taste-ranking-card .taste-brewery-logo-frame:not(.taste-auto-logo-frame) {
@@ -1063,6 +1066,9 @@ body:has(.taste-stats-concept) {
     width: 34px !important;
     height: 34px !important;
     border-radius: 50% !important;
+  }
+
+  :is(.taste-stats-concept, .taste-ranking-modal-panel) :is(.taste-brewery-logo-frame:not([data-logo-normalized]), .taste-ranking-logo-placeholder) {
     padding: 3px !important;
   }
 
