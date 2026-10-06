@@ -59,6 +59,7 @@ import ProfileHeroIdentity from "./ProfileHeroIdentity";
 import ProfileTastingControls, {
   type TastingSort,
 } from "./ProfileTastingControls";
+import ProfileTastingPager from "./ProfileTastingPager";
 import ProfileBreweriesView from "./ProfileBreweriesView";
 
 import {
@@ -2483,6 +2484,13 @@ export default async function ProfilePage({
             }
           )}
         </div>
+
+        {hasTastingSelection && (
+          <ProfileTastingPager
+            currentPage={currentHistoryPage}
+            pageCount={historyPageCount}
+          />
+        )}
       </section>}
     </main>
   );
