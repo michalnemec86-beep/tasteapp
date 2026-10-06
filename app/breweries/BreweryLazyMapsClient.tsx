@@ -333,11 +333,26 @@ function MapPanel({
               aria-hidden="true"
               style={{
                 flexShrink: 0,
-                minWidth: open ? "92px" : "82px",
-                padding: open ? undefined : "7px 9px",
+                minWidth: open ? "92px" : "88px",
+                padding: open ? undefined : "8px 11px",
                 textAlign: "center",
                 fontSize: open ? "11px" : "10px",
-                fontWeight: 750,
+                fontWeight: 800,
+                color: open
+                  ? undefined
+                  : "#241708",
+                background: open
+                  ? undefined
+                  : "linear-gradient(180deg, #f2c45f 0%, #e7a62f 100%)",
+                borderColor: open
+                  ? undefined
+                  : "rgba(255,224,149,0.72)",
+                boxShadow: open
+                  ? undefined
+                  : "0 4px 14px rgba(231,166,47,0.22)",
+                textShadow: open
+                  ? undefined
+                  : "0 1px 0 rgba(255,255,255,0.22)",
               }}
             >
               {open ? "Sbalit ↑" : "Rozbalit ↓"}
