@@ -38,6 +38,7 @@ function serviceHeaders() {
 
 type AuthUser = {
   id: string;
+  email?: string;
   app_metadata?: Record<string, unknown> | null;
 };
 
@@ -79,6 +80,54 @@ Deno.serve(async (req: Request) => {
       return json(origin, { ok: true, changed: false });
     }
 
+    const body = await req.json().catch(() => null);
+    const password = body?.password;
+    if (typeof password !== "string" || password.length < 8 || password.length > 128) {
+      return json(origin, { ok: false, message: "Nové heslo musí mít 8 až 128 znaků." }, 400);
+    }
+    if (!user.email) {
+      return json(origin, { ok: false, message: "Účet nemá e-mail pro ověření hesla." }, 400);
+    }
+
+    // Admin password updates do not reject an unchanged password. Verify the
+    // candidate through Auth first; never infer a mismatch from a network error,
+    // CAPTCHA, a rate limit or another Auth failure. No password is persisted here.
+    const checkResponse = await fetch(SUPABASE_URL + "/auth/v1/token?grant_type=password", {
+      method: "POST",
+      headers: { apikey: ANON_KEY, "Content-Type": "application/json" },
+      body: JSON.stringify({ email: user.email, password }),
+    });
+    const check = await checkResponse.json().catch(() => ({}));
+    if (checkResponse.ok) {
+      // Discard only this verification session, never the caller's session.
+      if (check.access_token) {
+        await fetch(SUPABASE_URL + "/auth/v1/logout?scope=local", {
+          method: "POST",
+          headers: { apikey: ANON_KEY, Authorization: "Bearer " + check.access_token },
+        });
+      }
+      const latestResponse = await fetch(SUPABASE_URL + "/auth/v1/user", {
+        headers: { apikey: ANON_KEY, Authorization: authHeader },
+      });
+      if (!latestResponse.ok) {
+        return json(origin, { ok: false, message: "Přihlášení se nepodařilo ověřit." }, 401);
+      }
+      const latest = await latestResponse.json() as AuthUser;
+      // Another copy of this request may have completed while verification ran.
+      if (latest.app_metadata?.must_change_password !== true) {
+        return json(origin, { ok: true, changed: false });
+      }
+      return json(origin, { ok: false, message: "Nové heslo musí být jiné než současné heslo." }, 400);
+    }
+    if (check.error_code !== "invalid_credentials") {
+      return json(origin, {
+        ok: false,
+        message: checkResponse.status === 429
+          ? "Příliš mnoho pokusů. Zkus nastavení hesla za chvíli znovu."
+          : "Heslo se nepodařilo bezpečně ověřit. Zkus to znovu.",
+      }, checkResponse.status === 429 ? 429 : 503);
+    }
+
     const nextMetadata = {
       ...currentMetadata,
       must_change_password: false,
@@ -89,13 +138,19 @@ Deno.serve(async (req: Request) => {
       {
         method: "PUT",
         headers: serviceHeaders(),
-        body: JSON.stringify({ app_metadata: nextMetadata }),
+        // Auth applies these fields in one transaction. A lost response is safe
+        // to retry because /user above reads the current server metadata.
+        body: JSON.stringify({ password, app_metadata: nextMetadata }),
       },
     );
 
     if (!updateResponse.ok) {
-      const detail = await updateResponse.text();
-      throw new Error("Auth update failed (" + updateResponse.status + "): " + detail);
+      const detail = await updateResponse.json().catch(() => ({}));
+      if (updateResponse.status >= 400 && updateResponse.status < 500) {
+        return json(origin, { ok: false, message: "Heslo nesplňuje požadavky. Zvol jiné heslo o alespoň 8 znacích." }, 400);
+      }
+      // Do not log Auth response bodies, which may contain user information.
+      throw new Error("Auth update failed (" + updateResponse.status + "): " + (detail.error_code ?? "unknown"));
     }
 
     return json(origin, { ok: true, changed: true });

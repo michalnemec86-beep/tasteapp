@@ -1,6 +1,6 @@
 # Administrátorská obnova hesla
 
-Aktualizováno: 3. 10. 2026.
+Aktualizováno: 6. 10. 2026.
 
 ## Účel
 
@@ -59,3 +59,42 @@ Heslo bylo uložené, ale příznak povinné změny zůstal aktivní.
 U jednoho dotčeného účtu byl po ověření úspěšné změny hesla v Auth logu
 ručně dokončen pouze příznak povinné změny. UUID, uložené heslo a profil
 zůstaly zachované. Osobní přihlašovací údaje do dokumentace nepatří.
+
+
+## Jednotné první nastavení (6. 10. 2026)
+
+Původní oprava uchovávala dokončení pouze v paměti formuláře. Ztracená odpověď
+nebo reload mezi klientským updateUser a dokončením mohly zanechat změněné heslo
+s must_change_password=true. Nový formulář při povinné změně předává heslo přímo
+funkci complete-initial-password. Ta ověří aktuálního uživatele přes Auth /user,
+a v jednom PUT /admin/users/<ověřené UUID> uloží password a app_metadata.
+Supabase Auth aplikuje tento update v databázové transakci.
+
+- UUID se odvozuje výhradně z ověřeného tokenu. Cizí UUID ani metadata z těla
+  požadavku se nepoužívají. Ostatní app_metadata se zachovávají.
+- Pokud povinná změna už skončila, funkce vrátí úspěch bez dalšího zápisu hesla.
+  Parametr first=1 drží formulář v tomto režimu i po reloadu; nemá autorizační vliv.
+- Admin API samo nezakazuje stejné heslo. Funkce proto nejprve ověří kandidáta
+  proti Auth password grant pro e-mail ověřeného volajícího. Pouze explicitní
+  invalid_credentials dovolí nové heslo uložit. Síťové chyby, CAPTCHA a rate limit
+  nic nezmění. Při shodě je odmítnuto současné heslo a ověřovací session je odhlášena
+  pouze se scope=local, bez odhlášení původní relace.
+- Neznámý výsledek zápisu nesděluje uživateli nepravdivě, že heslo určitě bylo
+  uložené. Opakování ověří stav na serveru. Po potvrzeném zápisu se vstupy vymažou
+  a případné opakování obnovuje jen relaci. Přesměrování čeká na čerstvá metadata.
+- Běžná obnova zapomenutého hesla bez povinné změny nadále používá updateUser.
+- Prázdné staré požadavky nesmějí zrušit povinnou změnu. Starší otevřený formulář
+  je potřeba po nasazení znovu načíst.
+
+Ověření: 90 automatických testů a produkční Next.js build prošly. Jedenáct testů
+hesla spouští skutečný handler a formulář s kontrolovanými Auth odpověďmi: CORS,
+neplatné přihlášení, atomický obsah zápisu, zachování metadat, opakování, odmítnutí
+současného hesla, uzavření jen ověřovací session, selhání Auth/rate limitu,
+ztracená odpověď po commitnutí + reload, obnova relace a běžná obnova hesla.
+Nejde o přihlášení reálného uživatele na fyzickém telefonu.
+
+Read-only kontrola produkce našla jeden starší účet s přihlášením a stále
+aktivní povinnou změnou. Auth log uvádí úspěšné PUT /user, ale neobsahuje jednoznačný
+popis změněného pole. Příznak nebyl automaticky vymazán: uživatel může bezpečně
+nastavit jiné heslo, čímž nový postup dokončí oba kroky současně. Žádný profil,
+ochutnávka ani statistika nebyly při této opravě upravovány.
