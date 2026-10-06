@@ -20,6 +20,10 @@ import {
   buildProfileStats,
   getTastingDate,
 } from "@/lib/profileStats";
+import {
+  buildProfileHistoryOverview,
+  type ProfileHistoryOverviewRow,
+} from "@/lib/profileHistoryOverview";
 
 import {
   buildTasteStats,
@@ -288,14 +292,13 @@ export default async function ProfilePage({
               tasted_at,
               tasted_on,
               quantity,
-              plato,
-              abv,
-              ibu,
               place,
               notes,
+              beer_version_id,
               beer_versions (
                 id,
                 brewery_id,
+                style_id,
                 breweries!beer_versions_brewery_id_fkey (
                   id,
                   name,
@@ -304,18 +307,14 @@ export default async function ProfilePage({
                 beer_styles (
                   id,
                   name
-                ),
-                beer_version_hops (
-                  hops (
-                    id
-                  )
                 )
               ),
               beers (
                 id,
+                brand_id,
                 brewery_id,
+                style_id,
                 name,
-                is_non_alcoholic,
                 brands (
                   id,
                   name
@@ -328,11 +327,6 @@ export default async function ProfilePage({
                 beer_styles (
                   id,
                   name
-                ),
-                beer_hops (
-                  hops (
-                    id
-                  )
                 )
               )
             `)
@@ -460,9 +454,7 @@ export default async function ProfilePage({
     ]);
 
   const tastings =
-    view === "beers"
-      ? historyIndexResult
-      : tastingsResult;
+    tastingsResult;
   const beers = beersResult;
 
   const {
