@@ -20,6 +20,8 @@ Pozdější commit přidává tuto dokumentaci; nemění funkce archivované ver
 
 ## Následné změny
 
+- 6. 10. 2026: „Pivní lístek“ byl převeden na serverové stránkování zaměřené na mobilní PWA. Výchozí stránka načítá jen horní počty a neposílá do klienta celý katalog. Hledání, osobní/globální filtry, řazení, země a abeceda vracejí nejvýše 60 karet; další várka se načte až na vyžádání. Server používá lehký index katalogu pro rozhodnutí o shodě a pořadí a plný detail načítá pouze pro viditelnou stránku. Počty vypito / moje piva se skládají z kompaktních tasting vazeb místo vnořených polí u každého piva. Historické filtry stylů a chmelů zachovávají dosavadní same-version logiku přes beer_versions. Bez migrace a bez změny existujících dat.
+
 - 6. 10. 2026: stránka „Aktivita v hospodě“ byla odlehčena pro mobilní PWA i desktop. Zavřený formulář nové ochutnávky ani editace už nepřednačítají celý katalog. Timeline zůstává omezená na poslední tři měsíce a stránkovaná po 15 serverových položkách / 5 mobilních položkách. Globální statistiky dál zachovávají quantity a historické brewery/style vazby přes beer_versions, ale jejich vstupní dotaz už neposílá nepoužívané chmelové relace ani pomocná katalogová data. Žádná migrace ani změna existujících dat.
 
 - 6. 10. 2026: výkon osobního profilu a záložky „Co jsem vypil“ byl odlehčen
