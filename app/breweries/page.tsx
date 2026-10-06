@@ -5,12 +5,12 @@ import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getNewsRange } from "@/lib/navigation-news";
 import { fetchCatalogueRows, getNewCatalogueIds } from "@/lib/catalogue-news";
+import { fetchAllRows } from "@/lib/fetch-all-rows";
 import { getBreweryReferenceStatus } from "@/lib/referenceStatus";
 import PageHero from "@/components/ui/PageHero";
 import { isAdminView } from "@/lib/adminView";
 import HomeStatIcon from "@/components/home/HomeStatIcon";
-import BeerWorldMap from "../stats/BeerWorldMap";
-import BreweryCzechMapClient from "./BreweryCzechMapClient";
+import BreweryLazyMapsClient from "./BreweryLazyMapsClient";
 import BreweryTableClient, {
   type BreweryTableRow,
 } from "./BreweryTableClient";
@@ -70,57 +70,66 @@ export default async function BreweriesPage({
 
   const [
     breweries,
+    beerIndex,
+    tastingIndex,
     { data: profiles, error: profilesError },
     { data: countries, error: countriesError },
   ] = await Promise.all([
     fetchCatalogueRows((from, to, selectedIds) => {
       let query = supabase
-      .from("breweries")
-      .select(`
-        id,
-        name,
-        city,
-        country,
-        website,
-        address,
-        logo_url,
-        is_nomadic,
-        founded_year,
-        closed_year,
-        latitude,
-        longitude,
-        beers (
+        .from("breweries")
+        .select(`
           id,
           name,
+          city,
+          country,
+          website,
+          address,
+          logo_url,
+          is_nomadic,
+          founded_year,
+          closed_year,
+          latitude,
+          longitude,
+          brewery_name_history (
+            id,
+            previous_name,
+            from_year,
+            changed_year
+          )
+        `);
+
+      if (selectedIds) {
+        query = query.in("id", selectedIds);
+      }
+
+      return query
+        .order("name", { ascending: true })
+        .order("id")
+        .range(from, to);
+    }, newsIds),
+    fetchAllRows((from, to) =>
+      supabase
+        .from("beers")
+        .select(`
+          id,
+          brewery_id,
+          brand_id,
           brands (
             id,
             name
-          ),
-          plato,
-          abv,
-          ibu,
-          beer_styles (
-            id,
-            name
-          ),
-          tastings (
-            id,
-            user_id,
-            quantity
           )
-        ),
-        brewery_name_history (
-          id,
-          previous_name,
-          from_year,
-          changed_year
-        )
-      `);
-      if (selectedIds) query = query.in("id", selectedIds);
-      return query.order("name", { ascending: true })
-      .order("id")
-      .range(from, to);
-    }, newsIds),
+        `)
+        .order("id")
+        .range(from, to)
+    ),
+    fetchAllRows((from, to) =>
+      supabase
+        .from("tastings")
+        .select("beer_id, user_id, quantity")
+        .order("id")
+        .range(from, to)
+    ),
     supabase
       .from("profiles")
       .select("id, display_name")
@@ -155,82 +164,122 @@ export default async function BreweriesPage({
       .filter(Boolean)
   ).size;
 
-  const breweryCountryItems = Array.from(
-    allBreweries.reduce(
-      (map, brewery) => {
-        const country = brewery.country?.trim();
+  type MutableUserStats = {
+    beerIds: Set<number>;
+    brandIds: Set<number>;
+    consumedCount: number;
+  };
 
-        if (!country) {
-          return map;
-        }
+  type MutableBreweryStats = {
+    beerIds: Set<number>;
+    brandIds: Set<number>;
+    brandNames: Set<string>;
+    tastedBeerIds: Set<number>;
+    consumedCount: number;
+    users: Map<string, MutableUserStats>;
+  };
 
-        map.set(
-          country,
-          (map.get(country) ?? 0) + 1
-        );
-
-        return map;
-      },
-      new Map<string, number>()
-    )
-  )
-    .map(([name, count]) => ({
-      id: name,
-      name,
-      count,
-    }))
-    .sort((a, b) =>
-      b.count !== a.count
-        ? b.count - a.count
-        : a.name.localeCompare(b.name, "cs", {
-            sensitivity: "base",
-          })
-    );
-
-  const czechBreweryMapItems = allBreweries.flatMap(
-    (brewery) => {
-      if (
-        brewery.country !== "Česko" ||
-        brewery.latitude == null ||
-        brewery.longitude == null
-      ) {
-        return [];
-      }
-
-      return [
-        {
-          id: brewery.id,
-          name: brewery.name,
-          city: brewery.city,
-          latitude: brewery.latitude,
-          longitude: brewery.longitude,
-          closedYear: brewery.closed_year,
-          isPersonal: (brewery.beers ?? []).some((beer) =>
-            (beer.tastings ?? []).some((tasting) => tasting.user_id === user.id)
-          ),
-        },
-      ];
+  const breweryStats = new Map<number, MutableBreweryStats>();
+  const beerMeta = new Map<
+    number,
+    {
+      breweryId: number;
+      brandId: number | null;
+      brandName: string | null;
     }
-  );
+  >();
 
-  const recordedBeerCount = allBreweries.reduce(
-    (sum, brewery) =>
-      sum + (brewery.beers?.length ?? 0),
-    0
-  );
+  function getBreweryStats(breweryId: number) {
+    let stats = breweryStats.get(breweryId);
+
+    if (!stats) {
+      stats = {
+        beerIds: new Set<number>(),
+        brandIds: new Set<number>(),
+        brandNames: new Set<string>(),
+        tastedBeerIds: new Set<number>(),
+        consumedCount: 0,
+        users: new Map<string, MutableUserStats>(),
+      };
+      breweryStats.set(breweryId, stats);
+    }
+
+    return stats;
+  }
+
+  for (const beer of beerIndex) {
+    if (beer.brewery_id == null) {
+      continue;
+    }
+
+    const brand = Array.isArray(beer.brands)
+      ? beer.brands[0] ?? null
+      : beer.brands ?? null;
+
+    const brandId = beer.brand_id ?? brand?.id ?? null;
+    const brandName = brand?.name?.trim() || null;
+
+    beerMeta.set(beer.id, {
+      breweryId: beer.brewery_id,
+      brandId,
+      brandName,
+    });
+
+    const stats = getBreweryStats(beer.brewery_id);
+    stats.beerIds.add(beer.id);
+
+    if (brandId != null) {
+      stats.brandIds.add(brandId);
+    }
+
+    if (brandName) {
+      stats.brandNames.add(brandName);
+    }
+  }
+
+  for (const tasting of tastingIndex) {
+    if (tasting.beer_id == null) {
+      continue;
+    }
+
+    const meta = beerMeta.get(tasting.beer_id);
+
+    if (!meta) {
+      continue;
+    }
+
+    const quantity = tasting.quantity ?? 1;
+    const stats = getBreweryStats(meta.breweryId);
+
+    stats.tastedBeerIds.add(tasting.beer_id);
+    stats.consumedCount += quantity;
+
+    if (!tasting.user_id) {
+      continue;
+    }
+
+    let userStats = stats.users.get(tasting.user_id);
+
+    if (!userStats) {
+      userStats = {
+        beerIds: new Set<number>(),
+        brandIds: new Set<number>(),
+        consumedCount: 0,
+      };
+      stats.users.set(tasting.user_id, userStats);
+    }
+
+    userStats.beerIds.add(tasting.beer_id);
+    userStats.consumedCount += quantity;
+
+    if (meta.brandId != null) {
+      userStats.brandIds.add(meta.brandId);
+    }
+  }
 
   const tableRows: BreweryTableRow[] = allBreweries.map(
     (brewery) => {
-      const consumedCount = (brewery.beers ?? []).reduce(
-        (sum, beer) =>
-          sum +
-          (beer.tastings ?? []).reduce(
-            (beerSum, tasting) =>
-              beerSum + (tasting.quantity ?? 1),
-            0
-          ),
-        0
-      );
+      const stats = breweryStats.get(brewery.id);
 
       const history = [
         ...(brewery.brewery_name_history ?? []),
@@ -257,82 +306,19 @@ export default async function BreweriesPage({
         null
       );
 
-      const userStats: BreweryTableRow["userStats"] = {};
-
-      const beerItems = (brewery.beers ?? []).map(
-        (beer) => {
-          const userTastingCounts: Record<string, number> = {};
-
-          for (const tasting of beer.tastings ?? []) {
-            const userId = tasting.user_id;
-
-            if (!userId) {
-              continue;
-            }
-
-            userTastingCounts[userId] =
-              (userTastingCounts[userId] ?? 0) +
-              (tasting.quantity ?? 1);
-          }
-
-          const beerStyle = Array.isArray(
-            beer.beer_styles
+      const userStats: BreweryTableRow["userStats"] =
+        Object.fromEntries(
+          Array.from(stats?.users.entries() ?? []).map(
+            ([userId, item]) => [
+              userId,
+              {
+                beerCount: item.beerIds.size,
+                brandCount: item.brandIds.size,
+                consumedCount: item.consumedCount,
+              },
+            ]
           )
-            ? beer.beer_styles[0] ?? null
-            : beer.beer_styles ?? null;
-
-          const brand = Array.isArray(
-            beer.brands
-          )
-            ? beer.brands[0] ?? null
-            : beer.brands ?? null;
-
-          return {
-            id: beer.id,
-            name: beer.name,
-            brandId: brand?.id ?? null,
-            brandName: brand?.name ?? null,
-            styleName: beerStyle?.name ?? null,
-            plato: beer.plato,
-            abv: beer.abv,
-            ibu: beer.ibu,
-            tastingCount: (beer.tastings ?? []).reduce(
-              (sum, tasting) =>
-                sum + (tasting.quantity ?? 1),
-              0
-            ),
-            userTastingCounts,
-          };
-        }
-      );
-
-      for (const beer of brewery.beers ?? []) {
-        const usersWithBeer = new Set<string>();
-
-        for (const tasting of beer.tastings ?? []) {
-          const userId = tasting.user_id;
-
-          if (!userId) {
-            continue;
-          }
-
-          usersWithBeer.add(userId);
-
-          if (!userStats[userId]) {
-            userStats[userId] = {
-              beerCount: 0,
-              consumedCount: 0,
-            };
-          }
-
-          userStats[userId].consumedCount +=
-            tasting.quantity ?? 1;
-        }
-
-        for (const userId of usersWithBeer) {
-          userStats[userId].beerCount += 1;
-        }
-      }
+        );
 
       const referenceStatus = getBreweryReferenceStatus({
         name: brewery.name,
@@ -350,15 +336,20 @@ export default async function BreweriesPage({
         isNomadic: brewery.is_nomadic,
         latitude: brewery.latitude,
         longitude: brewery.longitude,
-        beerCount: brewery.beers?.length ?? 0,
-        brandCount: new Set(
-          beerItems
-            .map((beer) => beer.brandId)
-            .filter((brandId): brandId is number => brandId != null)
-        ).size,
+        beerCount: stats?.beerIds.size ?? 0,
+        tastedBeerCount: stats?.tastedBeerIds.size ?? 0,
+        brandCount: stats?.brandIds.size ?? 0,
+        brandIds: Array.from(stats?.brandIds ?? []),
+        brandNames: Array.from(stats?.brandNames ?? []).sort(
+          (a, b) =>
+            a.localeCompare(b, "cs", {
+              sensitivity: "base",
+            })
+        ),
+        beers: [],
         foundedYear: brewery.founded_year,
         historyFromYear,
-        consumedCount,
+        consumedCount: stats?.consumedCount ?? 0,
         closedYear: brewery.closed_year,
         historyText:
           history.length > 0
@@ -367,12 +358,16 @@ export default async function BreweriesPage({
                 .join("\n")
             : "—",
         historySortYear: historyFromYear,
-        beers: beerItems,
         userStats,
         referenceReady: referenceStatus.ready,
         referenceMissing: referenceStatus.missing,
       };
     }
+  );
+
+  const recordedBeerCount = tableRows.reduce(
+    (sum, brewery) => sum + brewery.beerCount,
+    0
   );
 
   const visibleTableRows = selectedCountry
@@ -392,16 +387,12 @@ export default async function BreweriesPage({
 
   const visibleTastedBeerCount = visibleTableRows.reduce(
     (sum, brewery) =>
-      sum + brewery.beers.filter((beer) => beer.tastingCount > 0).length,
+      sum + brewery.tastedBeerCount,
     0
   );
 
   const visibleBrandCount = new Set(
-    visibleTableRows.flatMap((brewery) =>
-      brewery.beers
-        .map((beer) => beer.brandId)
-        .filter((brandId): brandId is number => brandId != null)
-    )
+    visibleTableRows.flatMap((brewery) => brewery.brandIds)
   ).size;
 
   return (
@@ -827,26 +818,10 @@ export default async function BreweriesPage({
             )}
           </section>
 
-          <div style={{ marginTop: "30px" }}>
-            {breweryCountryItems.length > 0 && (
-              <div style={{ marginBottom: "30px" }}>
-                <BeerWorldMap
-                  items={breweryCountryItems}
-                  title="Mapa evidovaných pivovarů"
-                  countLabel="států s pivovary"
-                  focusEurope
-                />
-              </div>
-            )}
-
-            {czechBreweryMapItems.length > 0 && (
-              <div style={{ marginBottom: "30px" }}>
-                <BreweryCzechMapClient
-                  items={czechBreweryMapItems}
-                />
-              </div>
-            )}
-          </div>
+          <BreweryLazyMapsClient
+            newSince={newsRange?.since}
+            newUntil={newsRange?.until}
+          />
         </>
       )}
     </main>
