@@ -44,12 +44,12 @@ type ExistingBeer = {
 };
 
 type TastingModalProps = {
-  beers: ExistingBeer[];
-  breweries: Brewery[];
-  brandsByBrewery: { breweryId: number; brand: { id: number; name: string } }[];
-  countries: Country[];
-  styles: BeerStyle[];
-  hops: Hop[];
+  beers?: ExistingBeer[];
+  breweries?: Brewery[];
+  brandsByBrewery?: { breweryId: number; brand: { id: number; name: string } }[];
+  countries?: Country[];
+  styles?: BeerStyle[];
+  hops?: Hop[];
 };
 
 export default function TastingModal({
@@ -59,7 +59,7 @@ export default function TastingModal({
   countries,
   styles,
   hops,
-}: TastingModalProps) {
+}: TastingModalProps = {}) {
   return (
     <TastingModalClient
       beers={beers}
