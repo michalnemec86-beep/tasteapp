@@ -2444,23 +2444,6 @@ export default async function ProfilePage({
                         tasting={
                           tasting
                         }
-                        beers={
-                          normalizedBeers
-                        }
-                        breweries={
-                          breweries ??
-                          []
-                        }
-                        countries={
-                          countries ??
-                          []
-                        }
-                        styles={
-                          styles ?? []
-                        }
-                        hops={
-                          hops ?? []
-                        }
                         updateTastingAction={
                           updateTastingInModal
                         }
