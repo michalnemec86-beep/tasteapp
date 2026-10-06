@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { fetchAllRows } from "@/lib/fetch-all-rows";
+import {
+  fetchCatalogueRows,
+  getNewCatalogueIds,
+} from "@/lib/catalogue-news";
+import { getNewsRange } from "@/lib/navigation-news";
 import { createClient } from "@/lib/supabase/server";
 
 function one<T>(value: T | T[] | null | undefined): T | null {
@@ -21,15 +26,44 @@ export async function GET(request: NextRequest) {
     );
   }
 
+  let newsRange;
+  try {
+    newsRange = getNewsRange(
+      request.nextUrl.searchParams.get("newSince") ?? undefined,
+      request.nextUrl.searchParams.get("newUntil") ?? undefined
+    );
+  } catch {
+    return NextResponse.json(
+      { error: "Invalid news range" },
+      { status: 400 }
+    );
+  }
+
+  const selectedIds = await getNewCatalogueIds(
+    supabase,
+    "breweries",
+    user.id,
+    newsRange
+  );
+
   const type = request.nextUrl.searchParams.get("type");
 
   if (type === "world") {
-    const breweries = await fetchAllRows((from, to) =>
-      supabase
-        .from("breweries")
-        .select("id, country")
-        .order("id")
-        .range(from, to)
+    const breweries = await fetchCatalogueRows(
+      (from, to, ids) => {
+        let query = supabase
+          .from("breweries")
+          .select("id, country");
+
+        if (ids) {
+          query = query.in("id", ids);
+        }
+
+        return query
+          .order("id")
+          .range(from, to);
+      },
+      selectedIds
     );
 
     const counts = new Map<string, number>();
@@ -73,17 +107,26 @@ export async function GET(request: NextRequest) {
 
   if (type === "czech") {
     const [breweries, tastingRows] = await Promise.all([
-      fetchAllRows((from, to) =>
-        supabase
-          .from("breweries")
-          .select(
-            "id, name, city, latitude, longitude, closed_year"
-          )
-          .eq("country", "Česko")
-          .not("latitude", "is", null)
-          .not("longitude", "is", null)
-          .order("id")
-          .range(from, to)
+      fetchCatalogueRows(
+        (from, to, ids) => {
+          let query = supabase
+            .from("breweries")
+            .select(
+              "id, name, city, latitude, longitude, closed_year"
+            )
+            .eq("country", "Česko")
+            .not("latitude", "is", null)
+            .not("longitude", "is", null);
+
+          if (ids) {
+            query = query.in("id", ids);
+          }
+
+          return query
+            .order("id")
+            .range(from, to);
+        },
+        selectedIds
       ),
       fetchAllRows((from, to) =>
         supabase
