@@ -17,6 +17,7 @@ function load(relative) {
   return sourceModule.exports;
 }
 const { buildProfileStats, getTastingDate } = load('lib/profileStats.ts');
+const { filterBeerCatalogItems, getBeerCatalogFacets } = load('lib/beer-catalog-page.ts');
 const { buildProfileHistoryOverview } = load('lib/profileHistoryOverview.ts');
 const { buildTasteStats } = load('lib/stats.ts');
 const { isBeerAvailableForTasting } = load('lib/beerPortfolio.ts');
@@ -167,6 +168,72 @@ test('activity stats preserve visible rankings when hop relations are omitted', 
   assert.deepEqual(result.styles.map(item => [item.id, item.count]), [[2, 2], [1, 1]]);
   assert.deepEqual(result.countries.map(item => [item.name, item.count]), [['Belgie', 2], ['Česko', 1]]);
   assert.equal(result.hops.length, 0);
+});
+
+
+test('beer catalogue server paging preserves filters, personal counts and facets', () => {
+  const beers = [
+    {
+      id: 1,
+      name: 'Žatecká 12',
+      brand: { id: 10, name: 'Značka A' },
+      brewery: { id: 100, name: 'Pivovar A', country: 'Česko' },
+      style: { id: 1, name: 'Ležák' },
+      plato: 12,
+      abv: 5,
+      ibu: null,
+      isNonAlcoholic: false,
+      canTaste: true,
+      hops: [{ id: 1, name: 'Žatecký poloraný červeňák' }],
+      totalQuantity: 8,
+      myQuantity: 3,
+      referenceReady: true,
+      referenceMissing: [],
+    },
+    {
+      id: 2,
+      name: 'Amber Ale',
+      brand: { id: 11, name: 'Značka B' },
+      brewery: { id: 101, name: 'Brewery B', country: 'Belgie' },
+      style: { id: 2, name: 'Ale' },
+      plato: 14,
+      abv: 6,
+      ibu: 30,
+      isNonAlcoholic: false,
+      canTaste: true,
+      hops: [{ id: 2, name: 'Cascade' }],
+      totalQuantity: 2,
+      myQuantity: 0,
+      referenceReady: true,
+      referenceMissing: [],
+    },
+  ];
+
+  assert.deepEqual(
+    filterBeerCatalogItems(beers, {
+      filter: 'mine',
+      sort: 'most',
+      search: '',
+      country: '',
+      letter: '',
+    }).map(item => item.id),
+    [1]
+  );
+
+  assert.deepEqual(
+    filterBeerCatalogItems(beers, {
+      filter: 'all',
+      sort: 'alpha',
+      search: 'cascade',
+      country: '',
+      letter: '',
+    }).map(item => item.id),
+    [2]
+  );
+
+  const facets = getBeerCatalogFacets(beers);
+  assert.deepEqual(facets.countries, ['Belgie', 'Česko']);
+  assert.deepEqual(facets.letters, ['A', 'Z']);
 });
 
 test('historical/discontinued beers and closed breweries cannot be selected for a new tasting', () => {
