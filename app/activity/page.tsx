@@ -347,17 +347,38 @@ export default async function ActivityPage({
 
   const statsTastingsPromise = fetchAllRows((from, to) =>
     supabase.from("tastings").select(`
-      id, user_id, quantity, packaging,
+      user_id,
+      quantity,
+      packaging,
       beer_versions (
-        breweries!beer_versions_brewery_id_fkey (id, name, country, logo_url),
-        beer_styles (id, name),
-        beer_version_hops (hops (id, name))
+        breweries!beer_versions_brewery_id_fkey (
+          id,
+          name,
+          country,
+          logo_url
+        ),
+        beer_styles (
+          id,
+          name
+        )
       ),
       beers (
-        id, name, brands (id, name),
-        breweries (id, name, country, logo_url),
-        beer_styles (id, name),
-        beer_hops (hops (id, name))
+        id,
+        name,
+        brands (
+          id,
+          name
+        ),
+        breweries (
+          id,
+          name,
+          country,
+          logo_url
+        ),
+        beer_styles (
+          id,
+          name
+        )
       )
     `).order("id").range(from, to)
   );
