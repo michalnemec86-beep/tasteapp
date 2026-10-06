@@ -50,6 +50,9 @@ type TastingModalProps = {
   countries?: Country[];
   styles?: BeerStyle[];
   hops?: Hop[];
+  initialBeerId?: number;
+  triggerLabel?: string;
+  compactTrigger?: boolean;
 };
 
 export default function TastingModal({
@@ -59,6 +62,9 @@ export default function TastingModal({
   countries,
   styles,
   hops,
+  initialBeerId,
+  triggerLabel,
+  compactTrigger,
 }: TastingModalProps = {}) {
   return (
     <TastingModalClient
@@ -68,6 +74,9 @@ export default function TastingModal({
       countries={countries}
       styles={styles}
       hops={hops}
+      initialBeerId={initialBeerId}
+      triggerLabel={triggerLabel}
+      compactTrigger={compactTrigger}
       saveTastingAction={
         saveTastingInModal
       }

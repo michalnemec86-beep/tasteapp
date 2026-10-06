@@ -11,6 +11,7 @@ import {
 } from "@/lib/supabase/server";
 import { fetchAllRows } from "@/lib/fetch-all-rows";
 import { getCurrentUser } from "@/lib/supabase/current-user";
+import { isBeerAvailableForTasting } from "@/lib/beerPortfolio";
 
 import {
   getPackagingMeta,
@@ -20,6 +21,10 @@ import {
   buildProfileStats,
   getTastingDate,
 } from "@/lib/profileStats";
+import {
+  buildProfileHistoryOverview,
+  type ProfileHistoryOverviewRow,
+} from "@/lib/profileHistoryOverview";
 
 import {
   buildTasteStats,
@@ -55,6 +60,7 @@ import ProfileHeroIdentity from "./ProfileHeroIdentity";
 import ProfileTastingControls, {
   type TastingSort,
 } from "./ProfileTastingControls";
+import ProfileTastingPager from "./ProfileTastingPager";
 import ProfileBreweriesView from "./ProfileBreweriesView";
 
 import {
@@ -77,6 +83,7 @@ type ProfilePageProps = {
     q?: string | string[];
     letter?: string | string[];
     all?: string | string[];
+    page?: string | string[];
   }>;
 };
 
@@ -133,6 +140,16 @@ export default async function ProfilePage({
       : "";
   const showAllTastings =
     resolvedSearchParams.all === "1";
+  const requestedHistoryPage =
+    typeof resolvedSearchParams.page === "string"
+      ? Number(resolvedSearchParams.page)
+      : 1;
+  const historyPage =
+    Number.isInteger(requestedHistoryPage) &&
+    requestedHistoryPage > 0
+      ? requestedHistoryPage
+      : 1;
+  const historyPageSize = 30;
 
   const supabase =
     await createClient();
@@ -186,146 +203,145 @@ export default async function ProfilePage({
   // DATA
   // ==================================================
 
-  const tastingsPromise = fetchAllRows((from, to) =>
-    supabase
-      .from("tastings")
-      .select(`
-        id,
-        user_id,
-        tasted_at,
-        tasted_on,
-        rating,
-        packaging,
-        quantity,
-        plato,
-        abv,
-        ibu,
-        place,
-        notes,
-        beer_versions (
-          id,
-          version_year,
-          brewery_id,
-          breweries!beer_versions_brewery_id_fkey (
-            id,
-            name,
-            country,
-            logo_url
-          ),
-          beer_styles (
-            id,
-            name
-          ),
-          beer_version_hops (
-            hops (
-              id,
-              name
-            )
-          ),
-          beer_version_collaborators (
-            display_order,
-            breweries (
-              id,
-              name,
-              country,
-              logo_url
-            )
-          )
-        ),
-        beers (
-          id,
-          brewery_id,
-          name,
-          is_non_alcoholic,
-          brands (
-            id,
-            name
-          ),
-          breweries (
-            id,
-            name,
-            country,
-            logo_url
-          ),
-          beer_styles (
-            id,
-            name
-          ),
-          beer_hops (
-            hops (
-              id,
-              name
-            )
-          )
-        )
-      `)
-      .eq("user_id", id)
-      .order("id")
-      .range(from, to));
-
-  const needsEditCatalog =
-    isMe &&
-    view === "beers";
-
-  const needsCountries =
-    needsEditCatalog ||
-    (
-      isMe &&
-      view === "breweries"
-    );
-
-  const beersPromise =
-    needsEditCatalog
-      ? fetchAllRows((from, to) =>
+  const tastingsPromise =
+    view === "beers"
+      ? Promise.resolve([])
+      : fetchAllRows((from, to) =>
           supabase
-            .from("beers")
+            .from("tastings")
             .select(`
               id,
-              name,
+              user_id,
+              tasted_at,
+              tasted_on,
+              rating,
+              packaging,
+              quantity,
               plato,
               abv,
               ibu,
-              is_catalog,
-              portfolio_status,
-              is_non_alcoholic,
-              brands (
+              place,
+              notes,
+              beer_versions (
                 id,
-                name
+                version_year,
+                brewery_id,
+                breweries!beer_versions_brewery_id_fkey (
+                  id,
+                  name,
+                  country,
+                  logo_url
+                ),
+                beer_styles (
+                  id,
+                  name
+                ),
+                beer_version_hops (
+                  hops (
+                    id,
+                    name
+                  )
+                ),
+                beer_version_collaborators (
+                  display_order,
+                  breweries (
+                    id,
+                    name,
+                    country,
+                    logo_url
+                  )
+                )
               ),
-              breweries (
+              beers (
                 id,
+                brewery_id,
                 name,
-                country,
-                logo_url,
-                closed_year
-              ),
-              beer_styles (
-                id,
-                name
+                is_non_alcoholic,
+                portfolio_status,
+                brands (
+                  id,
+                  name
+                ),
+                breweries (
+                  id,
+                  name,
+                  country,
+                  logo_url,
+                  closed_year
+                ),
+                beer_styles (
+                  id,
+                  name
+                ),
+                beer_hops (
+                  hops (
+                    id,
+                    name
+                  )
+                )
               )
             `)
-            .order("is_catalog", { ascending: false })
-            .order("name")
+            .eq("user_id", id)
+            .order("id")
+            .range(from, to));
+
+  const historyIndexPromise =
+    view === "beers"
+      ? fetchAllRows((from, to) =>
+          supabase
+            .from("tastings")
+            .select(`
+              id,
+              user_id,
+              tasted_at,
+              tasted_on,
+              quantity,
+              place,
+              notes,
+              beer_version_id,
+              beer_versions (
+                id,
+                brewery_id,
+                style_id,
+                breweries!beer_versions_brewery_id_fkey (
+                  id,
+                  name,
+                  country
+                ),
+                beer_styles (
+                  id,
+                  name
+                )
+              ),
+              beers (
+                id,
+                brand_id,
+                brewery_id,
+                style_id,
+                name,
+                brands (
+                  id,
+                  name
+                ),
+                breweries (
+                  id,
+                  name,
+                  country
+                ),
+                beer_styles (
+                  id,
+                  name
+                )
+              )
+            `)
+            .eq("user_id", id)
             .order("id")
             .range(from, to))
       : Promise.resolve([]);
 
-  const breweriesPromise =
-    needsEditCatalog
-      ? supabase
-          .from("breweries")
-          .select(`
-            id,
-            name,
-            country,
-            logo_url,
-            closed_year
-          `)
-          .order("name")
-      : Promise.resolve({
-          data: [],
-          error: null,
-        });
+  const needsCountries =
+    isMe &&
+    view === "breweries";
 
   const countriesPromise =
     needsCountries
@@ -340,77 +356,24 @@ export default async function ProfilePage({
           error: null,
         });
 
-  const stylesPromise =
-    needsEditCatalog
-      ? supabase
-          .from("beer_styles")
-          .select(
-            "id, name, aliases"
-          )
-          .order("name")
-      : Promise.resolve({
-          data: [],
-          error: null,
-        });
-
-  const hopsPromise =
-    needsEditCatalog
-      ? supabase
-          .from("hops")
-          .select(
-            "id, name, aliases"
-          )
-          .order("name")
-      : Promise.resolve({
-          data: [],
-          error: null,
-        });
-
   const [
     tastingsResult,
-    beersResult,
-    breweriesResult,
+    historyIndexResult,
     countriesResult,
-    stylesResult,
-    hopsResult,
   ] =
     await Promise.all([
       tastingsPromise,
-      beersPromise,
-      breweriesPromise,
+      historyIndexPromise,
       countriesPromise,
-      stylesPromise,
-      hopsPromise,
     ]);
 
-  const tastings = tastingsResult;
-  const beers = beersResult;
-
-  const {
-    data: breweries,
-    error: breweriesError,
-  } = breweriesResult;
+  const tastings =
+    tastingsResult;
 
   const {
     data: countries,
     error: countriesError,
   } = countriesResult;
-
-  const {
-    data: styles,
-    error: stylesError,
-  } = stylesResult;
-
-  const {
-    data: hops,
-    error: hopsError,
-  } = hopsResult;
-
-  if (breweriesError) {
-    throw new Error(
-      breweriesError.message
-    );
-  }
 
   if (countriesError) {
     throw new Error(
@@ -418,17 +381,197 @@ export default async function ProfilePage({
     );
   }
 
-  if (stylesError) {
-    throw new Error(
-      stylesError.message
-    );
+  let historyUniqueHopCount = 0;
+
+  if (
+    view === "beers" &&
+    historyIndexResult.length > 0
+  ) {
+    const versionIds = [
+      ...new Set(
+        historyIndexResult
+          .map((row) => row.beer_version_id)
+          .filter(
+            (value): value is number =>
+              value != null
+          )
+      ),
+    ];
+
+    const fallbackBeerIds = [
+      ...new Set(
+        historyIndexResult
+          .filter(
+            (row) =>
+              row.beer_version_id == null
+          )
+          .map(
+            (row) =>
+              singleRelation(
+                row.beers
+              )?.id
+          )
+          .filter(
+            (value): value is number =>
+              value != null
+          )
+      ),
+    ];
+
+    const hopIds =
+      new Set<number>();
+
+    const versionChunks =
+      Array.from(
+        {
+          length:
+            Math.ceil(
+              versionIds.length /
+                200
+            ),
+        },
+        (_, index) =>
+          versionIds.slice(
+            index * 200,
+            (index + 1) * 200
+          )
+      );
+
+    const beerChunks =
+      Array.from(
+        {
+          length:
+            Math.ceil(
+              fallbackBeerIds.length /
+                200
+            ),
+        },
+        (_, index) =>
+          fallbackBeerIds.slice(
+            index * 200,
+            (index + 1) * 200
+          )
+      );
+
+    const [
+      versionHopResults,
+      beerHopResults,
+    ] =
+      await Promise.all([
+        Promise.all(
+          versionChunks.map(
+            (chunk) =>
+              supabase
+                .from(
+                  "beer_version_hops"
+                )
+                .select(
+                  "hop_id"
+                )
+                .in(
+                  "beer_version_id",
+                  chunk
+                )
+          )
+        ),
+        Promise.all(
+          beerChunks.map(
+            (chunk) =>
+              supabase
+                .from(
+                  "beer_hops"
+                )
+                .select(
+                  "hop_id"
+                )
+                .in(
+                  "beer_id",
+                  chunk
+                )
+          )
+        ),
+      ]);
+
+    for (
+      const result of [
+        ...versionHopResults,
+        ...beerHopResults,
+      ]
+    ) {
+      if (result.error) {
+        throw new Error(
+          result.error.message
+        );
+      }
+
+      for (
+        const row of
+        result.data ?? []
+      ) {
+        if (
+          row.hop_id != null
+        ) {
+          hopIds.add(
+            row.hop_id
+          );
+        }
+      }
+    }
+
+    historyUniqueHopCount =
+      hopIds.size;
   }
 
-  if (hopsError) {
-    throw new Error(
-      hopsError.message
+  const historyIndexTastings =
+    historyIndexResult.map(
+      (tasting) => {
+        const beer =
+          singleRelation(
+            tasting.beers
+          );
+
+        const beerVersion =
+          singleRelation(
+            tasting.beer_versions
+          );
+
+        return {
+          ...tasting,
+          beer_versions:
+            beerVersion
+              ? {
+                  ...beerVersion,
+                  breweries:
+                    singleRelation(
+                      beerVersion.breweries
+                    ),
+                  beer_styles:
+                    singleRelation(
+                      beerVersion.beer_styles
+                    ),
+                }
+              : null,
+          beers:
+            beer
+              ? {
+                  ...beer,
+                  brands:
+                    singleRelation(
+                      beer.brands
+                    ),
+                  breweries:
+                    singleRelation(
+                      beer.breweries
+                    ),
+                  beer_styles:
+                    singleRelation(
+                      beer.beer_styles
+                    ),
+                }
+              : null,
+        };
+      }
     );
-  }
 
   const breweriesById = new Map<
     string,
@@ -437,15 +580,9 @@ export default async function ProfilePage({
       name: string;
       country: string | null;
       logo_url: string | null;
+      closed_year?: number | null;
     }
   >();
-
-  for (const brewery of breweries ?? []) {
-    breweriesById.set(
-      String(brewery.id),
-      brewery
-    );
-  }
 
   for (const tasting of tastings ?? []) {
     const beerVersion =
@@ -584,31 +721,14 @@ export default async function ProfilePage({
 
   const allTastings = globalTastings;
 
-  const normalizedBeers =
-    (beers ?? []).map(
-      (beer) => ({
-        ...beer,
-
-        breweries:
-          singleRelation(
-            beer.breweries
-          ),
-
-        brands:
-          singleRelation(
-            beer.brands
-          ),
-
-        beer_styles:
-          singleRelation(
-            beer.beer_styles
-          ),
-      })
-    );
+  const historySourceTastings =
+    view === "beers"
+      ? historyIndexTastings
+      : allTastings;
 
   const tastingCountries = Array.from(
     new Set(
-      allTastings
+      historySourceTastings
         .map(
           (tasting) =>
             (tasting.beer_versions?.breweries ?? tasting.beers?.breweries)
@@ -626,7 +746,7 @@ export default async function ProfilePage({
   }
 
   const tastingLetters = Array.from(
-    new Set(allTastings.map((tasting) => tastingInitial(tasting.beers?.name)))
+    new Set(historySourceTastings.map((tasting) => tastingInitial(tasting.beers?.name)))
   ).sort((a, b) => {
     if (a === "#") return 1;
     if (b === "#") return -1;
@@ -635,7 +755,7 @@ export default async function ProfilePage({
 
   const normalizedTastingQuery = tastingQuery.toLocaleLowerCase("cs");
 
-  const filteredTastings = allTastings
+  const filteredTastings = historySourceTastings
     .filter((tasting) => {
       const brewery =
         tasting.beer_versions?.breweries ?? tasting.beers?.breweries;
@@ -703,24 +823,356 @@ export default async function ProfilePage({
     Boolean(tastingQuery) ||
     Boolean(selectedLetter);
 
-  const visibleTastings =
+  const historyTotalCount =
     hasTastingSelection
-      ? filteredTastings
+      ? filteredTastings.length
+      : historySourceTastings.length;
+
+  const historyPageCount =
+    Math.max(
+      1,
+      Math.ceil(
+        historyTotalCount /
+          historyPageSize
+      )
+    );
+
+  const currentHistoryPage =
+    Math.min(
+      historyPage,
+      historyPageCount
+    );
+
+  const pagedHistoryIndex =
+    hasTastingSelection
+      ? filteredTastings.slice(
+          (
+            currentHistoryPage -
+            1
+          ) *
+            historyPageSize,
+          currentHistoryPage *
+            historyPageSize
+        )
       : [];
+
+  let visibleTastings =
+    globalTastings.slice(
+      0,
+      0
+    );
+
+  if (
+    view === "beers" &&
+    pagedHistoryIndex.length > 0
+  ) {
+    const pageIds =
+      pagedHistoryIndex.map(
+        (tasting) =>
+          tasting.id
+      );
+
+    const {
+      data: pageRows,
+      error: pageError,
+    } =
+      await supabase
+        .from("tastings")
+        .select(`
+          id,
+          user_id,
+          tasted_at,
+          tasted_on,
+          rating,
+          packaging,
+          quantity,
+          plato,
+          abv,
+          ibu,
+          place,
+          notes,
+          beer_versions (
+            id,
+            version_year,
+            brewery_id,
+            breweries!beer_versions_brewery_id_fkey (
+              id,
+              name,
+              country,
+              logo_url,
+              closed_year
+            ),
+            beer_styles (
+              id,
+              name
+            ),
+            beer_version_hops (
+              hops (
+                id,
+                name
+              )
+            ),
+            beer_version_collaborators (
+              display_order,
+              breweries (
+                id,
+                name,
+                country,
+                logo_url
+              )
+            )
+          ),
+          beers (
+            id,
+            brewery_id,
+            name,
+            is_non_alcoholic,
+            portfolio_status,
+            brands (
+              id,
+              name
+            ),
+            breweries (
+              id,
+              name,
+              country,
+              logo_url,
+              closed_year
+            ),
+            beer_styles (
+              id,
+              name
+            ),
+            beer_hops (
+              hops (
+                id,
+                name
+              )
+            )
+          )
+        `)
+        .eq(
+          "user_id",
+          id
+        )
+        .in(
+          "id",
+          pageIds
+        );
+
+    if (pageError) {
+      throw new Error(
+        pageError.message
+      );
+    }
+
+    const normalizedPageRows =
+      (
+        pageRows ??
+        []
+      ).map(
+        (tasting) => {
+          const beer =
+            singleRelation(
+              tasting.beers
+            );
+
+          const beerVersion =
+            singleRelation(
+              tasting.beer_versions
+            );
+
+          return {
+            ...tasting,
+            beer_versions:
+              beerVersion
+                ? {
+                    ...beerVersion,
+                    breweries:
+                      singleRelation(
+                        beerVersion.breweries
+                      ),
+                    beer_styles:
+                      singleRelation(
+                        beerVersion.beer_styles
+                      ),
+                    beer_version_hops:
+                      (
+                        beerVersion.beer_version_hops ??
+                        []
+                      ).map(
+                        (versionHop) => ({
+                          ...versionHop,
+                          hops:
+                            singleRelation(
+                              versionHop.hops
+                            ),
+                        })
+                      ),
+                    beer_version_collaborators:
+                      (
+                        beerVersion.beer_version_collaborators ??
+                        []
+                      ).map(
+                        (item) => ({
+                          ...item,
+                          breweries:
+                            singleRelation(
+                              item.breweries
+                            ),
+                        })
+                      ),
+                  }
+                : null,
+            beers:
+              beer
+                ? {
+                    ...beer,
+                    brands:
+                      singleRelation(
+                        beer.brands
+                      ),
+                    breweries:
+                      singleRelation(
+                        beer.breweries
+                      ),
+                    beer_styles:
+                      singleRelation(
+                        beer.beer_styles
+                      ),
+                    beer_hops:
+                      (
+                        beer.beer_hops ??
+                        []
+                      ).map(
+                        (beerHop) => ({
+                          ...beerHop,
+                          hops:
+                            singleRelation(
+                              beerHop.hops
+                            ),
+                        })
+                      ),
+                  }
+                : null,
+          };
+        }
+      );
+
+    const pageOrder =
+      new Map(
+        pageIds.map(
+          (
+            tastingId,
+            index
+          ) => [
+            tastingId,
+            index,
+          ]
+        )
+      );
+
+    normalizedPageRows.sort(
+      (a, b) =>
+        (
+          pageOrder.get(a.id) ??
+          0
+        ) -
+        (
+          pageOrder.get(b.id) ??
+          0
+        )
+    );
+
+    visibleTastings =
+      normalizedPageRows as typeof visibleTastings;
+  }
+
+  const historyOverviewRows =
+    historyIndexTastings.map(
+      (tasting) => ({
+        quantity:
+          tasting.quantity,
+        tasted_on:
+          tasting.tasted_on,
+        tasted_at:
+          tasting.tasted_at,
+        beer_version_id:
+          tasting.beer_version_id,
+        beers:
+          tasting.beers
+            ? {
+                id:
+                  tasting.beers.id,
+                brand_id:
+                  tasting.beers.brand_id,
+                brewery_id:
+                  tasting.beers.brewery_id,
+                style_id:
+                  tasting.beers.style_id,
+                breweries:
+                  tasting.beers.breweries
+                    ? {
+                        id:
+                          tasting.beers.breweries.id,
+                        country:
+                          tasting.beers.breweries.country,
+                      }
+                    : null,
+              }
+            : null,
+        beer_versions:
+          tasting.beer_versions
+            ? {
+                id:
+                  tasting.beer_versions.id,
+                brewery_id:
+                  tasting.beer_versions.brewery_id,
+                style_id:
+                  tasting.beer_versions.style_id,
+                breweries:
+                  tasting.beer_versions.breweries
+                    ? {
+                        id:
+                          tasting.beer_versions.breweries.id,
+                        country:
+                          tasting.beer_versions.breweries.country,
+                      }
+                    : null,
+              }
+            : null,
+      })
+    ) satisfies
+      ProfileHistoryOverviewRow[];
 
   // ==================================================
   // STATISTIKY
   // ==================================================
 
   const profileStats =
-    buildProfileStats(
-      allTastings
-    );
+    view === "beers"
+      ? buildProfileHistoryOverview(
+          historyOverviewRows,
+          historyUniqueHopCount
+        )
+      : buildProfileStats(
+          allTastings
+        );
 
   const tasteStats =
-    buildTasteStats(
-      allTastings
-    );
+    view === "beers"
+      ? {
+          beers: [],
+          brands: [],
+          breweries: [],
+          styles: [],
+          countries: [],
+          hops: [],
+          packaging: [],
+        }
+      : buildTasteStats(
+          allTastings
+        );
 
   const breweryCountriesById = new Map(
     Array.from(
@@ -855,10 +1307,12 @@ export default async function ProfilePage({
   // ==================================================
 
   const achievements =
-    buildAchievementProgress(
-      allTastings as unknown as
-        AchievementTasting[]
-    );
+    view === "medals"
+      ? buildAchievementProgress(
+          allTastings as unknown as
+            AchievementTasting[]
+        )
+      : [];
 
   /*
    * Na profilu kombinujeme:
@@ -873,13 +1327,18 @@ export default async function ProfilePage({
     data: storedAchievementRows,
     error: storedAchievementsError,
   } =
-    await supabase
-      .from("user_achievements")
-      .select("achievement_key")
-      .eq(
-        "user_id",
-        id
-      );
+    view === "medals"
+      ? await supabase
+          .from("user_achievements")
+          .select("achievement_key")
+          .eq(
+            "user_id",
+            id
+          )
+      : {
+          data: [],
+          error: null,
+        };
 
   if (storedAchievementsError) {
     throw new Error(
@@ -1841,34 +2300,38 @@ export default async function ProfilePage({
                     </div>
 
                     {isMe && (
-                      <EditTastingModalClient
-                        tasting={
-                          tasting
-                        }
-                        beers={
-                          normalizedBeers
-                        }
-                        breweries={
-                          breweries ??
-                          []
-                        }
-                        countries={
-                          countries ??
-                          []
-                        }
-                        styles={
-                          styles ?? []
-                        }
-                        hops={
-                          hops ?? []
-                        }
-                        updateTastingAction={
-                          updateTastingInModal
-                        }
-                        deleteTastingAction={
-                          deleteTastingInModal
-                        }
-                      />
+                      <div
+                        style={{
+                          display: "flex",
+                          flexWrap: "wrap",
+                          justifyContent: "flex-end",
+                          gap: "7px",
+                        }}
+                      >
+                        {tasting.beers &&
+                          isBeerAvailableForTasting(
+                            tasting.beers.portfolio_status,
+                            tasting.beers.breweries?.closed_year
+                          ) && (
+                          <TastingModal
+                            initialBeerId={tasting.beers.id}
+                            triggerLabel="↻ Zapsat znovu"
+                            compactTrigger
+                          />
+                        )}
+
+                        <EditTastingModalClient
+                          tasting={
+                            tasting
+                          }
+                          updateTastingAction={
+                            updateTastingInModal
+                          }
+                          deleteTastingAction={
+                            deleteTastingInModal
+                          }
+                        />
+                      </div>
                     )}
                   </div>
 
@@ -2054,6 +2517,13 @@ export default async function ProfilePage({
             }
           )}
         </div>
+
+        {hasTastingSelection && (
+          <ProfileTastingPager
+            currentPage={currentHistoryPage}
+            pageCount={historyPageCount}
+          />
+        )}
       </section>}
     </main>
   );

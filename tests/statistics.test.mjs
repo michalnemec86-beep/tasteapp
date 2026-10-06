@@ -17,6 +17,7 @@ function load(relative) {
   return sourceModule.exports;
 }
 const { buildProfileStats, getTastingDate } = load('lib/profileStats.ts');
+const { buildProfileHistoryOverview } = load('lib/profileHistoryOverview.ts');
 const { buildTasteStats } = load('lib/stats.ts');
 const { isBeerAvailableForTasting } = load('lib/beerPortfolio.ts');
 const hop = id => ({ hops: { id, name: `Chmel ${id}` } });
@@ -67,6 +68,61 @@ test('numeric statistics are weighted by quantity, exclude unknown numbers and h
   assert.equal(profile.strongestBeer.value, 8);
   assert.equal(profile.totalQuantity, 16);
   assert.equal(profile.monthlyActivity.at(-1).count, 16);
+});
+
+
+test('lightweight profile history overview preserves headline counts and historical dimensions', () => {
+  const rows = [
+    {
+      quantity: 2,
+      tasted_on: '2026-09-30',
+      tasted_at: '2026-09-30T12:00:00Z',
+      beer_version_id: 500,
+      beers: {
+        id: 1,
+        brand_id: 10,
+        brewery_id: 100,
+        style_id: 1,
+        breweries: { id: 100, country: 'Česko' },
+      },
+      beer_versions: {
+        id: 500,
+        brewery_id: 200,
+        style_id: 2,
+        breweries: { id: 200, country: 'Belgie' },
+      },
+    },
+    {
+      quantity: 3,
+      tasted_on: '2026-10-01',
+      tasted_at: '2026-10-01T12:00:00Z',
+      beer_version_id: null,
+      beers: {
+        id: 2,
+        brand_id: 11,
+        brewery_id: 101,
+        style_id: 3,
+        breweries: { id: 101, country: 'Česko' },
+      },
+      beer_versions: null,
+    },
+  ];
+
+  const overview = buildProfileHistoryOverview(rows, 4);
+
+  assert.equal(overview.totalQuantity, 5);
+  assert.equal(overview.uniqueBeers, 2);
+  assert.equal(overview.uniqueBrands, 2);
+  assert.equal(overview.uniqueBreweries, 2);
+  assert.equal(overview.uniqueStyles, 2);
+  assert.equal(overview.uniqueCountries, 2);
+  assert.equal(overview.uniqueHops, 4);
+  assert.equal(overview.firstTasting, '2026-09-30');
+  assert.equal(overview.lastTasting, '2026-10-01');
+  assert.deepEqual(
+    overview.monthlyActivity.map(item => [item.key, item.count]),
+    [['2026-09', 2], ['2026-10', 3]]
+  );
 });
 
 test('historical/discontinued beers and closed breweries cannot be selected for a new tasting', () => {

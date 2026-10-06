@@ -20,6 +20,17 @@ Pozdější commit přidává tuto dokumentaci; nemění funkce archivované ver
 
 ## Následné změny
 
+- 6. 10. 2026: výkon osobního profilu a záložky „Co jsem vypil“ byl odlehčen
+  zejména pro mobilní PWA. Profil nepřednačítá katalog pro zavřený formulář;
+  nový zápis používá malou nabídku posledních/častých piv a serverové hledání.
+  Historie „Co jsem vypil“ používá kompaktní serverový index a kompletní detail
+  načítá jen pro aktuálních 30 záznamů. Filtrování a řazení probíhá na serveru
+  nad kompaktním indexem, změna filtru vrací stránkování na začátek. Editace
+  dohledává jiné pivo až podle potřeby. „Zapsat znovu“ předvyplní pouze současné
+  pivo z otevřeného pivovaru; historická a ukončená piva zůstávají nepoužitelná
+  pro nový zápis. Osobní souhrny zachovávají quantity i historické brewery/style/
+  hop vazby přes beer_versions. Bez migrace a bez změny existujících dat.
+
 - 6. 10. 2026: historie názvů pivovarů používá pro začátek současného názvu
   poslední rok změny názvu, nikoli rok založení pivovaru. Při novém přejmenování
   je rok změny povinný a původnímu názvu se automaticky uloží celé období od

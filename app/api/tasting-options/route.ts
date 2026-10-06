@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 import { fetchAllRows } from "@/lib/fetch-all-rows";
 import { isBeerAvailableForTasting } from "@/lib/beerPortfolio";
@@ -19,7 +19,7 @@ function singleRelation<T>(
   return value ?? null;
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const supabase =
     await createClient();
 
@@ -39,6 +39,15 @@ export async function GET() {
       }
     );
   }
+
+  const requestedBeerValue =
+    request.nextUrl.searchParams.get("beerId");
+  const requestedBeerId =
+    requestedBeerValue &&
+    Number.isInteger(Number(requestedBeerValue)) &&
+    Number(requestedBeerValue) > 0
+      ? Number(requestedBeerValue)
+      : null;
 
   const tastingsPromise =
     fetchAllRows(
@@ -256,12 +265,13 @@ export async function GET() {
   const recommendationIds =
     [
       ...new Set([
+        ...(requestedBeerId != null ? [requestedBeerId] : []),
         ...recentIds,
         ...frequentIds,
       ]),
     ].slice(
       0,
-      RECOMMENDED_BEER_LIMIT
+      RECOMMENDED_BEER_LIMIT + (requestedBeerId != null ? 1 : 0)
     );
 
   let recommendedBeerRows:

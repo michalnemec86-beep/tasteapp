@@ -51,6 +51,7 @@ export default function ProfileTastingControls({
   }) {
     const params = new URLSearchParams(searchParams.toString());
     params.set("view", "beers");
+    params.delete("page");
 
     if (nextShowAll) {
       params.set("all", "1");
@@ -117,6 +118,7 @@ export default function ProfileTastingControls({
               params.delete("country");
               params.delete("letter");
               params.delete("all");
+              params.delete("page");
               router.replace(`${pathname}?${params.toString()}`, { scroll: false });
             }}
           >
