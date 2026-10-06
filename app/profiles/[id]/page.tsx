@@ -77,6 +77,7 @@ type ProfilePageProps = {
     q?: string | string[];
     letter?: string | string[];
     all?: string | string[];
+    page?: string | string[];
   }>;
 };
 
@@ -133,6 +134,16 @@ export default async function ProfilePage({
       : "";
   const showAllTastings =
     resolvedSearchParams.all === "1";
+  const requestedHistoryPage =
+    typeof resolvedSearchParams.page === "string"
+      ? Number(resolvedSearchParams.page)
+      : 1;
+  const historyPage =
+    Number.isInteger(requestedHistoryPage) &&
+    requestedHistoryPage > 0
+      ? requestedHistoryPage
+      : 1;
+  const historyPageSize = 30;
 
   const supabase =
     await createClient();
