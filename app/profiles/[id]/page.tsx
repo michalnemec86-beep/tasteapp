@@ -501,6 +501,198 @@ export default async function ProfilePage({
     );
   }
 
+  let historyUniqueHopCount = 0;
+
+  if (
+    view === "beers" &&
+    historyIndexResult.length > 0
+  ) {
+    const versionIds = [
+      ...new Set(
+        historyIndexResult
+          .map((row) => row.beer_version_id)
+          .filter(
+            (value): value is number =>
+              value != null
+          )
+      ),
+    ];
+
+    const fallbackBeerIds = [
+      ...new Set(
+        historyIndexResult
+          .filter(
+            (row) =>
+              row.beer_version_id == null
+          )
+          .map(
+            (row) =>
+              singleRelation(
+                row.beers
+              )?.id
+          )
+          .filter(
+            (value): value is number =>
+              value != null
+          )
+      ),
+    ];
+
+    const hopIds =
+      new Set<number>();
+
+    const versionChunks =
+      Array.from(
+        {
+          length:
+            Math.ceil(
+              versionIds.length /
+                200
+            ),
+        },
+        (_, index) =>
+          versionIds.slice(
+            index * 200,
+            (index + 1) * 200
+          )
+      );
+
+    const beerChunks =
+      Array.from(
+        {
+          length:
+            Math.ceil(
+              fallbackBeerIds.length /
+                200
+            ),
+        },
+        (_, index) =>
+          fallbackBeerIds.slice(
+            index * 200,
+            (index + 1) * 200
+          )
+      );
+
+    const [
+      versionHopResults,
+      beerHopResults,
+    ] =
+      await Promise.all([
+        Promise.all(
+          versionChunks.map(
+            (chunk) =>
+              supabase
+                .from(
+                  "beer_version_hops"
+                )
+                .select(
+                  "hop_id"
+                )
+                .in(
+                  "beer_version_id",
+                  chunk
+                )
+          )
+        ),
+        Promise.all(
+          beerChunks.map(
+            (chunk) =>
+              supabase
+                .from(
+                  "beer_hops"
+                )
+                .select(
+                  "hop_id"
+                )
+                .in(
+                  "beer_id",
+                  chunk
+                )
+          )
+        ),
+      ]);
+
+    for (
+      const result of [
+        ...versionHopResults,
+        ...beerHopResults,
+      ]
+    ) {
+      if (result.error) {
+        throw new Error(
+          result.error.message
+        );
+      }
+
+      for (
+        const row of
+        result.data ?? []
+      ) {
+        if (
+          row.hop_id != null
+        ) {
+          hopIds.add(
+            row.hop_id
+          );
+        }
+      }
+    }
+
+    historyUniqueHopCount =
+      hopIds.size;
+  }
+
+  const historyIndexTastings =
+    historyIndexResult.map(
+      (tasting) => {
+        const beer =
+          singleRelation(
+            tasting.beers
+          );
+
+        const beerVersion =
+          singleRelation(
+            tasting.beer_versions
+          );
+
+        return {
+          ...tasting,
+          beer_versions:
+            beerVersion
+              ? {
+                  ...beerVersion,
+                  breweries:
+                    singleRelation(
+                      beerVersion.breweries
+                    ),
+                  beer_styles:
+                    singleRelation(
+                      beerVersion.beer_styles
+                    ),
+                }
+              : null,
+          beers:
+            beer
+              ? {
+                  ...beer,
+                  brands:
+                    singleRelation(
+                      beer.brands
+                    ),
+                  breweries:
+                    singleRelation(
+                      beer.breweries
+                    ),
+                  beer_styles:
+                    singleRelation(
+                      beer.beer_styles
+                    ),
+                }
+              : null,
+        };
+      }
+    );
+
   const breweriesById = new Map<
     string,
     {
