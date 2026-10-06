@@ -162,6 +162,7 @@ export default function BreweryLazyMapsClient({
         open={czechOpen}
         onToggle={() => void toggleCzech()}
         preview={<CzechPreview />}
+        variant="czech"
       >
         {czechLoading ? (
           <MapLoading label="Načítám českou mapu" />
@@ -221,6 +222,7 @@ function MapPanel({
   onToggle,
   preview,
   children,
+  variant = "default",
 }: {
   title: string;
   eyebrow: string;
@@ -229,6 +231,7 @@ function MapPanel({
   onToggle: () => void;
   preview: ReactNode;
   children: ReactNode;
+  variant?: "default" | "czech";
 }) {
   return (
     <section
@@ -261,7 +264,9 @@ function MapPanel({
               ? "1px solid var(--taste-border)"
               : undefined,
             background:
-              "linear-gradient(145deg, rgba(231,166,47,0.08), transparent 54%), rgba(255,255,255,0.015)",
+              variant === "czech"
+                ? "linear-gradient(135deg, #17140f 0%, #1c1812 48%, #211b13 100%)"
+                : "linear-gradient(145deg, rgba(231,166,47,0.08), transparent 54%), rgba(255,255,255,0.015)",
           }}
         >
           {preview}
@@ -277,7 +282,9 @@ function MapPanel({
               minHeight: open ? "164px" : "122px",
               padding: open ? "20px 22px" : "14px 18px",
               background:
-                "linear-gradient(to top, rgba(12,9,6,0.92), rgba(12,9,6,0.18) 68%, rgba(12,9,6,0.04))",
+                variant === "czech"
+                  ? "linear-gradient(90deg, rgba(18,14,9,0.96) 0%, rgba(18,14,9,0.88) 33%, rgba(18,14,9,0.34) 58%, rgba(18,14,9,0.08) 100%)"
+                  : "linear-gradient(to top, rgba(12,9,6,0.92), rgba(12,9,6,0.18) 68%, rgba(12,9,6,0.04))",
             }}
           >
             <div>
@@ -297,6 +304,10 @@ function MapPanel({
                   lineHeight: 1.1,
                   fontWeight: 780,
                   letterSpacing: "-0.025em",
+                  color:
+                    variant === "czech"
+                      ? "#f5e2ad"
+                      : undefined,
                 }}
               >
                 {title}
@@ -349,36 +360,87 @@ function MapPanel({
 }
 
 function CzechPreview() {
+  const borderPath =
+    "M132 137 L158 113 L196 108 L218 91 L259 96 L291 78 L334 88 L365 72 L406 84 L442 76 L478 92 L518 88 L548 105 L590 103 L619 121 L656 127 L670 146 L646 160 L611 163 L586 182 L547 180 L519 198 L477 192 L446 207 L406 194 L369 207 L332 192 L293 198 L264 181 L225 185 L203 166 L166 164 L145 151 Z";
+
+  const markers = [
+    [206, 118, 4],
+    [228, 112, 3],
+    [251, 126, 5],
+    [274, 102, 3],
+    [298, 111, 4],
+    [322, 93, 3],
+    [344, 115, 5],
+    [368, 97, 3],
+    [392, 118, 4],
+    [418, 102, 3],
+    [441, 121, 5],
+    [466, 105, 3],
+    [490, 119, 4],
+    [515, 108, 3],
+    [541, 122, 5],
+    [566, 111, 3],
+    [592, 127, 4],
+    [618, 137, 3],
+    [235, 143, 3],
+    [262, 151, 4],
+    [287, 136, 3],
+    [312, 158, 5],
+    [338, 141, 3],
+    [363, 163, 4],
+    [389, 145, 3],
+    [416, 166, 5],
+    [442, 149, 3],
+    [470, 165, 4],
+    [498, 148, 3],
+    [525, 164, 5],
+    [552, 149, 3],
+    [579, 162, 4],
+    [605, 151, 3],
+    [282, 176, 3],
+    [329, 179, 4],
+    [374, 184, 3],
+    [421, 181, 4],
+    [468, 185, 3],
+    [515, 179, 4],
+    [559, 181, 3],
+  ] as const;
+
   return (
     <svg
       aria-hidden="true"
-      viewBox="0 0 800 260"
+      viewBox="0 0 1000 260"
       preserveAspectRatio="xMidYMid slice"
       style={{
         position: "absolute",
         inset: 0,
         width: "100%",
         height: "100%",
-        opacity: 0.58,
       }}
     >
       <defs>
-        <pattern
-          id="czech-grid"
-          width="34"
-          height="34"
-          patternUnits="userSpaceOnUse"
+        <radialGradient
+          id="czech-box-glow"
+          cx="74%"
+          cy="44%"
+          r="58%"
         >
-          <path
-            d="M 34 0 L 0 0 0 34"
-            fill="none"
-            stroke="rgba(255,255,255,0.05)"
-            strokeWidth="1"
+          <stop
+            offset="0%"
+            stopColor="rgba(160,130,76,0.18)"
           />
-        </pattern>
+          <stop
+            offset="55%"
+            stopColor="rgba(83,65,36,0.08)"
+          />
+          <stop
+            offset="100%"
+            stopColor="rgba(0,0,0,0)"
+          />
+        </radialGradient>
 
         <linearGradient
-          id="czech-fill"
+          id="czech-box-map-fill"
           x1="0"
           y1="0"
           x2="1"
@@ -386,82 +448,69 @@ function CzechPreview() {
         >
           <stop
             offset="0%"
-            stopColor="rgba(231,166,47,0.10)"
+            stopColor="rgba(191,171,112,0.48)"
           />
           <stop
             offset="100%"
-            stopColor="rgba(231,166,47,0.20)"
+            stopColor="rgba(106,93,61,0.30)"
           />
         </linearGradient>
+
+        <clipPath id="czech-box-clip">
+          <path
+            d={borderPath}
+            transform="translate(255 0)"
+          />
+        </clipPath>
       </defs>
 
       <rect
-        width="800"
+        width="1000"
         height="260"
-        fill="url(#czech-grid)"
+        fill="#15120d"
       />
 
-      <path
-        d="M132 137
-           L158 113
-           L196 108
-           L218 91
-           L259 96
-           L291 78
-           L334 88
-           L365 72
-           L406 84
-           L442 76
-           L478 92
-           L518 88
-           L548 105
-           L590 103
-           L619 121
-           L656 127
-           L670 146
-           L646 160
-           L611 163
-           L586 182
-           L547 180
-           L519 198
-           L477 192
-           L446 207
-           L406 194
-           L369 207
-           L332 192
-           L293 198
-           L264 181
-           L225 185
-           L203 166
-           L166 164
-           L145 151
-           Z"
-        fill="url(#czech-fill)"
-        stroke="rgba(255,211,111,0.78)"
-        strokeWidth="3"
-        strokeLinejoin="round"
+      <rect
+        width="1000"
+        height="260"
+        fill="url(#czech-box-glow)"
       />
 
-      {[
-        { x: 292, y: 132, r: 8 },
-        { x: 468, y: 155, r: 8 },
-        { x: 561, y: 122, r: 5 },
-        { x: 382, y: 174, r: 3.5 },
-      ].map((marker, index) => (
-        <circle
-          key={index}
-          cx={marker.x}
-          cy={marker.y}
-          r={marker.r}
-          fill={
-            index < 2
-              ? "#ffd36f"
-              : "#e7a62f"
-          }
-          stroke="rgba(58,37,19,0.82)"
-          strokeWidth="2"
+      <g transform="translate(255 0)">
+        <path
+          d={borderPath}
+          fill="url(#czech-box-map-fill)"
+          stroke="rgba(255,236,184,0.86)"
+          strokeWidth="3"
+          strokeLinejoin="round"
         />
-      ))}
+      </g>
+
+      <g
+        clipPath="url(#czech-box-clip)"
+        transform="translate(255 0)"
+      >
+        {markers.map(([x, y, r], index) => (
+          <circle
+            key={index}
+            cx={x}
+            cy={y}
+            r={r}
+            fill={
+              index % 4 === 0
+                ? "#ffd788"
+                : index % 3 === 0
+                  ? "#e9ae5c"
+                  : "#f3c779"
+            }
+            opacity={
+              index % 5 === 0
+                ? 0.95
+                : 0.8
+            }
+          />
+        ))}
+      </g>
     </svg>
   );
 }
