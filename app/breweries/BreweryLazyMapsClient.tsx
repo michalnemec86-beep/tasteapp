@@ -37,7 +37,13 @@ type WorldItem = {
 
 type PanelKind = "czech" | "world";
 
-export default function BreweryLazyMapsClient() {
+export default function BreweryLazyMapsClient({
+  newSince,
+  newUntil,
+}: {
+  newSince?: string;
+  newUntil?: string;
+}) {
   const [czechOpen, setCzechOpen] = useState(false);
   const [worldOpen, setWorldOpen] = useState(false);
 
@@ -71,8 +77,17 @@ export default function BreweryLazyMapsClient() {
     }
 
     try {
+      const params = new URLSearchParams({
+        type: kind,
+      });
+
+      if (newSince && newUntil) {
+        params.set("newSince", newSince);
+        params.set("newUntil", newUntil);
+      }
+
       const response = await fetch(
-        `/api/breweries/maps?type=${kind}`,
+        `/api/breweries/maps?${params.toString()}`,
         {
           cache: "no-store",
         }
