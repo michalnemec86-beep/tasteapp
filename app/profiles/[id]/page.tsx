@@ -11,6 +11,7 @@ import {
 } from "@/lib/supabase/server";
 import { fetchAllRows } from "@/lib/fetch-all-rows";
 import { getCurrentUser } from "@/lib/supabase/current-user";
+import { isBeerAvailableForTasting } from "@/lib/beerPortfolio";
 
 import {
   getPackagingMeta,
@@ -895,7 +896,8 @@ export default async function ProfilePage({
               id,
               name,
               country,
-              logo_url
+              logo_url,
+              closed_year
             ),
             beer_styles (
               id,
@@ -2295,17 +2297,38 @@ export default async function ProfilePage({
                     </div>
 
                     {isMe && (
-                      <EditTastingModalClient
-                        tasting={
-                          tasting
-                        }
-                        updateTastingAction={
-                          updateTastingInModal
-                        }
-                        deleteTastingAction={
-                          deleteTastingInModal
-                        }
-                      />
+                      <div
+                        style={{
+                          display: "flex",
+                          flexWrap: "wrap",
+                          justifyContent: "flex-end",
+                          gap: "7px",
+                        }}
+                      >
+                        {tasting.beers &&
+                          isBeerAvailableForTasting(
+                            tasting.beers.portfolio_status,
+                            tasting.beers.breweries?.closed_year
+                          ) && (
+                          <TastingModal
+                            initialBeerId={tasting.beers.id}
+                            triggerLabel="↻ Zapsat znovu"
+                            compactTrigger
+                          />
+                        )}
+
+                        <EditTastingModalClient
+                          tasting={
+                            tasting
+                          }
+                          updateTastingAction={
+                            updateTastingInModal
+                          }
+                          deleteTastingAction={
+                            deleteTastingInModal
+                          }
+                        />
+                      </div>
                     )}
                   </div>
 
