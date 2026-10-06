@@ -53,6 +53,7 @@ type ExistingBeer = {
   breweries: {
     id: number;
     name: string;
+    country?: string | null;
   } | null;
 
   beer_styles: {
@@ -109,11 +110,25 @@ export default function TastingModalClient({
   const router =
     useRouter();
 
+  const hasProvidedOptions =
+    Boolean(
+      beers &&
+      breweries &&
+      brandsByBrewery &&
+      countries &&
+      styles &&
+      hops
+    );
+
+  const remoteCatalogSearch =
+    !hasProvidedOptions;
+
   const [
     options,
     setOptions,
   ] = useState<TastingOptions | null>(() => {
     if (
+      hasProvidedOptions &&
       beers &&
       breweries &&
       brandsByBrewery &&
@@ -526,6 +541,9 @@ export default function TastingModalClient({
                   }
                   hops={
                     options.hops
+                  }
+                  remoteCatalogSearch={
+                    remoteCatalogSearch
                   }
                 />
               ) : (
