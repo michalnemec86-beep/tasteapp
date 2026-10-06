@@ -1366,10 +1366,12 @@ export default async function ProfilePage({
   // ==================================================
 
   const achievements =
-    buildAchievementProgress(
-      allTastings as unknown as
-        AchievementTasting[]
-    );
+    view === "medals"
+      ? buildAchievementProgress(
+          allTastings as unknown as
+            AchievementTasting[]
+        )
+      : [];
 
   /*
    * Na profilu kombinujeme:
@@ -1384,13 +1386,18 @@ export default async function ProfilePage({
     data: storedAchievementRows,
     error: storedAchievementsError,
   } =
-    await supabase
-      .from("user_achievements")
-      .select("achievement_key")
-      .eq(
-        "user_id",
-        id
-      );
+    view === "medals"
+      ? await supabase
+          .from("user_achievements")
+          .select("achievement_key")
+          .eq(
+            "user_id",
+            id
+          )
+      : {
+          data: [],
+          error: null,
+        };
 
   if (storedAchievementsError) {
     throw new Error(
