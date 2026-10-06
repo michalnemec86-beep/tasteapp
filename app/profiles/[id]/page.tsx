@@ -257,6 +257,7 @@ export default async function ProfilePage({
                 brewery_id,
                 name,
                 is_non_alcoholic,
+                portfolio_status,
                 brands (
                   id,
                   name
@@ -265,7 +266,8 @@ export default async function ProfilePage({
                   id,
                   name,
                   country,
-                  logo_url
+                  logo_url,
+                  closed_year
                 ),
                 beer_styles (
                   id,
