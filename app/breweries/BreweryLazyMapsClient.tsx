@@ -393,71 +393,18 @@ function CzechPreview() {
 
 function WorldPreview() {
   return (
-    <svg
+    <div
       aria-hidden="true"
-      viewBox="0 0 800 260"
-      preserveAspectRatio="xMidYMid slice"
       style={{
         position: "absolute",
         inset: 0,
-        width: "100%",
-        height: "100%",
-        opacity: 0.48,
+        backgroundImage:
+          'url("/images/brewery-world-preview.jpg")',
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
       }}
-    >
-      <defs>
-        <pattern
-          id="world-grid"
-          width="40"
-          height="40"
-          patternUnits="userSpaceOnUse"
-        >
-          <path
-            d="M 40 0 L 0 0 0 40"
-            fill="none"
-            stroke="rgba(255,255,255,0.07)"
-            strokeWidth="1"
-          />
-        </pattern>
-      </defs>
-
-      <rect width="800" height="260" fill="url(#world-grid)" />
-
-      <ellipse
-        cx="400"
-        cy="130"
-        rx="315"
-        ry="105"
-        fill="rgba(231,166,47,0.035)"
-        stroke="rgba(242,182,63,0.32)"
-        strokeWidth="2"
-      />
-
-      <path
-        d="M136 88 L190 66 L246 73 L269 98 L243 119 L219 144 L178 140 L151 121 Z"
-        fill="rgba(231,166,47,0.18)"
-      />
-      <path
-        d="M269 151 L302 144 L327 161 L315 205 L289 226 L276 192 Z"
-        fill="rgba(231,166,47,0.18)"
-      />
-      <path
-        d="M356 77 L401 64 L444 73 L463 93 L446 105 L415 104 L404 127 L373 122 L358 102 Z"
-        fill="rgba(231,166,47,0.18)"
-      />
-      <path
-        d="M423 126 L460 118 L492 142 L484 187 L451 211 L428 181 Z"
-        fill="rgba(231,166,47,0.18)"
-      />
-      <path
-        d="M469 82 L534 66 L609 78 L653 104 L617 124 L568 119 L535 136 L501 116 Z"
-        fill="rgba(231,166,47,0.18)"
-      />
-      <path
-        d="M612 171 L649 160 L684 177 L673 202 L636 207 Z"
-        fill="rgba(231,166,47,0.18)"
-      />
-    </svg>
+    />
   );
 }
 
