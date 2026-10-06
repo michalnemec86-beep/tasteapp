@@ -85,6 +85,9 @@ type TastingModalClientProps = {
   countries?: Country[];
   styles?: BeerStyle[];
   hops?: Hop[];
+  initialBeerId?: number;
+  triggerLabel?: string;
+  compactTrigger?: boolean;
 
   saveTastingAction: (
     formData: FormData
@@ -100,6 +103,9 @@ export default function TastingModalClient({
   countries,
   styles,
   hops,
+  initialBeerId,
+  triggerLabel = "Zapsat ochutnávku",
+  compactTrigger = false,
   saveTastingAction,
 }: TastingModalClientProps) {
   const [
@@ -173,7 +179,9 @@ export default function TastingModalClient({
     try {
       const response =
         await fetch(
-          "/api/tasting-options",
+          initialBeerId != null
+            ? `/api/tasting-options?beerId=${initialBeerId}`
+            : "/api/tasting-options",
           {
             method: "GET",
             cache: "no-store",
@@ -256,49 +264,48 @@ export default function TastingModalClient({
         onClick={
           openModal
         }
-        className="taste-button-primary"
-        style={{
-          width: "100%",
-          minHeight: "50px",
-
-          padding:
-            "11px 17px",
-
-          fontSize: "14px",
-          fontWeight: 800,
-
-          letterSpacing:
-            "-0.01em",
-        }}
+        className={
+          compactTrigger
+            ? "taste-button-secondary"
+            : "taste-button-primary"
+        }
+        style={
+          compactTrigger
+            ? {
+                minHeight: "34px",
+                padding: "7px 10px",
+                fontSize: "12px",
+                fontWeight: 750,
+              }
+            : {
+                width: "100%",
+                minHeight: "50px",
+                padding: "11px 17px",
+                fontSize: "14px",
+                fontWeight: 800,
+                letterSpacing: "-0.01em",
+              }
+        }
       >
-        <span
-          style={{
-            width: "23px",
-            height: "23px",
+        {!compactTrigger && (
+          <span
+            style={{
+              width: "23px",
+              height: "23px",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              borderRadius: "7px",
+              background: "rgba(23,16,6,0.10)",
+              fontSize: "18px",
+              lineHeight: 1,
+            }}
+          >
+            +
+          </span>
+        )}
 
-            display:
-              "inline-flex",
-
-            alignItems:
-              "center",
-
-            justifyContent:
-              "center",
-
-            borderRadius:
-              "7px",
-
-            background:
-              "rgba(23,16,6,0.10)",
-
-            fontSize: "18px",
-            lineHeight: 1,
-          }}
-        >
-          +
-        </span>
-
-        Zapsat ochutnávku
+        {triggerLabel}
       </button>
 
       {/* ==================================================
@@ -544,6 +551,9 @@ export default function TastingModalClient({
                   }
                   remoteCatalogSearch={
                     remoteCatalogSearch
+                  }
+                  initialBeerId={
+                    initialBeerId
                   }
                 />
               ) : (
