@@ -125,6 +125,50 @@ test('lightweight profile history overview preserves headline counts and histori
   );
 });
 
+
+test('activity stats preserve visible rankings when hop relations are omitted', () => {
+  const rows = [
+    {
+      user_id: 'one',
+      quantity: 2,
+      packaging: 'draft',
+      beers: {
+        id: 1,
+        name: 'Pivo A',
+        brands: { id: 10, name: 'Značka A' },
+        breweries: { id: 100, name: 'Současný pivovar', country: 'Česko', logo_url: null },
+        beer_styles: { id: 1, name: 'Ležák' },
+      },
+      beer_versions: {
+        breweries: { id: 200, name: 'Historický výrobce', country: 'Belgie', logo_url: null },
+        beer_styles: { id: 2, name: 'Ale' },
+      },
+    },
+    {
+      user_id: 'two',
+      quantity: 1,
+      packaging: 'bottle',
+      beers: {
+        id: 2,
+        name: 'Pivo B',
+        brands: { id: 11, name: 'Značka B' },
+        breweries: { id: 101, name: 'Pivovar B', country: 'Česko', logo_url: null },
+        beer_styles: { id: 1, name: 'Ležák' },
+      },
+      beer_versions: null,
+    },
+  ];
+
+  const result = buildTasteStats(rows);
+
+  assert.deepEqual(result.beers.map(item => [item.id, item.count]), [[1, 2], [2, 1]]);
+  assert.deepEqual(result.brands.map(item => [item.id, item.count]), [[10, 2], [11, 1]]);
+  assert.deepEqual(result.breweries.map(item => [item.id, item.count]), [[200, 2], [101, 1]]);
+  assert.deepEqual(result.styles.map(item => [item.id, item.count]), [[2, 2], [1, 1]]);
+  assert.deepEqual(result.countries.map(item => [item.name, item.count]), [['Belgie', 2], ['Česko', 1]]);
+  assert.equal(result.hops.length, 0);
+});
+
 test('historical/discontinued beers and closed breweries cannot be selected for a new tasting', () => {
   for (const status of ['active', 'seasonal', 'limited']) assert.equal(isBeerAvailableForTasting(status, null), true);
   for (const status of ['historical', 'discontinued']) assert.equal(isBeerAvailableForTasting(status, null), false);

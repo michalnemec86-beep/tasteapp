@@ -20,6 +20,8 @@ Pozdější commit přidává tuto dokumentaci; nemění funkce archivované ver
 
 ## Následné změny
 
+- 6. 10. 2026: stránka „Aktivita v hospodě“ byla odlehčena pro mobilní PWA i desktop. Zavřený formulář nové ochutnávky ani editace už nepřednačítají celý katalog. Timeline zůstává omezená na poslední tři měsíce a stránkovaná po 15 serverových položkách / 5 mobilních položkách. Globální statistiky dál zachovávají quantity a historické brewery/style vazby přes beer_versions, ale jejich vstupní dotaz už neposílá nepoužívané chmelové relace ani pomocná katalogová data. Žádná migrace ani změna existujících dat.
+
 - 6. 10. 2026: výkon osobního profilu a záložky „Co jsem vypil“ byl odlehčen
   zejména pro mobilní PWA. Profil nepřednačítá katalog pro zavřený formulář;
   nový zápis používá malou nabídku posledních/častých piv a serverové hledání.
