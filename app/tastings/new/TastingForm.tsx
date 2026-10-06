@@ -93,6 +93,67 @@ function normalizeText(text: string) {
     .trim();
 }
 
+function mergeById<T extends { id: number }>(
+  current: T[],
+  incoming: T[]
+) {
+  const byId = new Map(
+    current.map((item) => [item.id, item])
+  );
+
+  for (const item of incoming) {
+    byId.set(item.id, item);
+  }
+
+  return [...byId.values()];
+}
+
+function mergeBreweries(
+  current: Brewery[],
+  incoming: Brewery[]
+) {
+  const byId = new Map(
+    current.map((brewery) => [brewery.id, brewery])
+  );
+
+  for (const brewery of incoming) {
+    const existing = byId.get(brewery.id);
+    byId.set(brewery.id, {
+      ...existing,
+      ...brewery,
+      aliases: [
+        ...new Set([
+          ...(existing?.aliases ?? []),
+          ...(brewery.aliases ?? []),
+        ]),
+      ],
+    });
+  }
+
+  return [...byId.values()];
+}
+
+function mergeBreweryBrands(
+  current: BreweryBrand[],
+  incoming: BreweryBrand[]
+) {
+  const byKey = new Map(
+    current.map((link) => [
+      `${link.breweryId}:${link.brand.id}`,
+      link,
+    ])
+  );
+
+  for (const link of incoming) {
+    byKey.set(
+      `${link.breweryId}:${link.brand.id}`,
+      link
+    );
+  }
+
+  return [...byKey.values()];
+}
+
 export default function TastingForm({
   saveTastingAction,
   beers,
@@ -116,6 +177,10 @@ export default function TastingForm({
   const [collaboratorSearchLoading, setCollaboratorSearchLoading] = useState(false);
   const [brandSearchLoading, setBrandSearchLoading] = useState(false);
   const [beerSearchLoading, setBeerSearchLoading] = useState(false);
+
+  const [brewerySearchError, setBrewerySearchError] = useState(false);
+  const [brandSearchError, setBrandSearchError] = useState(false);
+  const [beerSearchError, setBeerSearchError] = useState(false);
 
   const initialBeer = beers.find((beer) => beer.id === initialBeerId) ?? null;
   const [beerName, setBeerName] = useState(initialBeer?.name ?? "");
@@ -177,11 +242,11 @@ export default function TastingForm({
   const globalBrandOptions = useMemo(() => {
     const breweriesById = new Map(catalogBreweries.map((brewery) => [brewery.id, brewery]));
     const options = new Map<string, { brewery: Brewery; brand: BreweryBrand["brand"] }>();
-    for (const link of brandsByBrewery) {
+    for (const link of catalogBrandsByBrewery) {
       const brewery = breweriesById.get(link.breweryId);
       if (brewery) options.set(`${brewery.id}:${link.brand.id}`, { brewery, brand: link.brand });
     }
-    for (const beer of beers) {
+    for (const beer of catalogBeers) {
       const brewery = breweriesById.get(beer.breweries?.id ?? -1);
       if (brewery && beer.brands) {
         options.set(`${brewery.id}:${beer.brands.id}`, { brewery, brand: beer.brands });
@@ -196,6 +261,332 @@ export default function TastingForm({
   const activeBrand =
     matchingBrands.find((brand) => brand.id === selectedBrandId) ??
     (matchingBrands.length === 1 ? matchingBrands[0] : null);
+
+
+  useEffect(() => {
+    if (!remoteCatalogSearch) return;
+
+    const query = breweryName.trim();
+
+    if (query.length < 3 || selectedBreweryId != null) {
+      setBrewerySearchLoading(false);
+      setBrewerySearchError(false);
+      return;
+    }
+
+    const controller = new AbortController();
+    const timeout = window.setTimeout(async () => {
+      setBrewerySearchLoading(true);
+      setBrewerySearchError(false);
+
+      try {
+        const response = await fetch(
+          `/api/tasting-search?type=brewery&q=${encodeURIComponent(query)}`,
+          {
+            cache: "no-store",
+            signal: controller.signal,
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("Brewery search failed");
+        }
+
+        const data = (await response.json()) as {
+          breweries?: Brewery[];
+        };
+
+        setCatalogBreweries((current) =>
+          mergeBreweries(current, data.breweries ?? [])
+        );
+      } catch (error) {
+        if (
+          error instanceof Error &&
+          error.name === "AbortError"
+        ) {
+          return;
+        }
+
+        setBrewerySearchError(true);
+      } finally {
+        if (!controller.signal.aborted) {
+          setBrewerySearchLoading(false);
+        }
+      }
+    }, 220);
+
+    return () => {
+      window.clearTimeout(timeout);
+      controller.abort();
+    };
+  }, [
+    remoteCatalogSearch,
+    breweryName,
+    selectedBreweryId,
+  ]);
+
+  useEffect(() => {
+    if (!remoteCatalogSearch) return;
+
+    const query = collaboratorQuery.trim();
+
+    if (query.length < 3) {
+      setCollaboratorSearchLoading(false);
+      return;
+    }
+
+    const controller = new AbortController();
+    const timeout = window.setTimeout(async () => {
+      setCollaboratorSearchLoading(true);
+
+      try {
+        const response = await fetch(
+          `/api/tasting-search?type=brewery&q=${encodeURIComponent(query)}`,
+          {
+            cache: "no-store",
+            signal: controller.signal,
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("Collaborator search failed");
+        }
+
+        const data = (await response.json()) as {
+          breweries?: Brewery[];
+        };
+
+        setCatalogBreweries((current) =>
+          mergeBreweries(current, data.breweries ?? [])
+        );
+      } catch {
+        // Kolaboraci nelze vytvořit ručně, takže při výpadku pouze
+        // nezobrazíme neověřené výsledky.
+      } finally {
+        if (!controller.signal.aborted) {
+          setCollaboratorSearchLoading(false);
+        }
+      }
+    }, 220);
+
+    return () => {
+      window.clearTimeout(timeout);
+      controller.abort();
+    };
+  }, [
+    remoteCatalogSearch,
+    collaboratorQuery,
+  ]);
+
+  const remoteBrandQuery =
+    activeBreweryId
+      ? ""
+      : brandName.trim();
+
+  useEffect(() => {
+    if (!remoteCatalogSearch) return;
+
+    if (
+      !activeBreweryId &&
+      remoteBrandQuery.length < 3
+    ) {
+      setBrandSearchLoading(false);
+      setBrandSearchError(false);
+      return;
+    }
+
+    const controller = new AbortController();
+    const timeout = window.setTimeout(async () => {
+      setBrandSearchLoading(true);
+      setBrandSearchError(false);
+
+      const params = new URLSearchParams({
+        type: "brand",
+      });
+
+      if (remoteBrandQuery) {
+        params.set("q", remoteBrandQuery);
+      }
+
+      if (activeBreweryId) {
+        params.set("breweryId", String(activeBreweryId));
+      }
+
+      try {
+        const response = await fetch(
+          `/api/tasting-search?${params.toString()}`,
+          {
+            cache: "no-store",
+            signal: controller.signal,
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("Brand search failed");
+        }
+
+        const data = (await response.json()) as {
+          breweries?: Brewery[];
+          brandsByBrewery?: BreweryBrand[];
+        };
+
+        setCatalogBreweries((current) =>
+          mergeBreweries(current, data.breweries ?? [])
+        );
+
+        setCatalogBrandsByBrewery((current) =>
+          mergeBreweryBrands(
+            current,
+            data.brandsByBrewery ?? []
+          )
+        );
+      } catch (error) {
+        if (
+          error instanceof Error &&
+          error.name === "AbortError"
+        ) {
+          return;
+        }
+
+        setBrandSearchError(true);
+      } finally {
+        if (!controller.signal.aborted) {
+          setBrandSearchLoading(false);
+        }
+      }
+    }, 220);
+
+    return () => {
+      window.clearTimeout(timeout);
+      controller.abort();
+    };
+  }, [
+    remoteCatalogSearch,
+    activeBreweryId,
+    remoteBrandQuery,
+  ]);
+
+  useEffect(() => {
+    if (!remoteCatalogSearch) return;
+
+    const query = beerName.trim();
+
+    if (
+      existingBeerId ||
+      (
+        !activeBreweryId &&
+        query.length < 3
+      )
+    ) {
+      setBeerSearchLoading(false);
+      setBeerSearchError(false);
+      return;
+    }
+
+    const controller = new AbortController();
+    const timeout = window.setTimeout(async () => {
+      setBeerSearchLoading(true);
+      setBeerSearchError(false);
+
+      const params = new URLSearchParams({
+        type: "beer",
+      });
+
+      if (query) {
+        params.set("q", query);
+      }
+
+      if (activeBreweryId) {
+        params.set("breweryId", String(activeBreweryId));
+      }
+
+      if (activeBrand?.id) {
+        params.set("brandId", String(activeBrand.id));
+      }
+
+      try {
+        const response = await fetch(
+          `/api/tasting-search?${params.toString()}`,
+          {
+            cache: "no-store",
+            signal: controller.signal,
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("Beer search failed");
+        }
+
+        const data = (await response.json()) as {
+          beers?: ExistingBeer[];
+        };
+
+        const incomingBeers = data.beers ?? [];
+
+        setCatalogBeers((current) =>
+          mergeById(current, incomingBeers)
+        );
+
+        setCatalogBreweries((current) =>
+          mergeBreweries(
+            current,
+            incomingBeers.flatMap((beer) =>
+              beer.breweries
+                ? [
+                    {
+                      id: beer.breweries.id,
+                      name: beer.breweries.name,
+                      country: beer.breweries.country ?? null,
+                      aliases: [],
+                    },
+                  ]
+                : []
+            )
+          )
+        );
+
+        setCatalogBrandsByBrewery((current) =>
+          mergeBreweryBrands(
+            current,
+            incomingBeers.flatMap((beer) =>
+              beer.breweries && beer.brands
+                ? [
+                    {
+                      breweryId: beer.breweries.id,
+                      brand: beer.brands,
+                    },
+                  ]
+                : []
+            )
+          )
+        );
+      } catch (error) {
+        if (
+          error instanceof Error &&
+          error.name === "AbortError"
+        ) {
+          return;
+        }
+
+        setBeerSearchError(true);
+      } finally {
+        if (!controller.signal.aborted) {
+          setBeerSearchLoading(false);
+        }
+      }
+    }, 220);
+
+    return () => {
+      window.clearTimeout(timeout);
+      controller.abort();
+    };
+  }, [
+    remoteCatalogSearch,
+    beerName,
+    existingBeerId,
+    activeBreweryId,
+    activeBrand?.id,
+  ]);
 
   const brandQuery = normalizeText(brandName);
   const brandSuggestions = (activeBrewery
@@ -216,24 +607,35 @@ export default function TastingForm({
   // ==================================================
 
   const beerQuery = normalizeText(beerName);
-  const beerSuggestions = (activeBrewery && (!brandName.trim() || activeBrand) ||
-    !activeBrewery && beerQuery.length >= 3) ? catalogBeers
-    .filter((beer) => {
-      if (activeBrewery && beer.breweries?.id !== activeBrewery.id) return false;
-      if (activeBrand && beer.brands?.id !== activeBrand.id) return false;
-      return normalizeText(beer.name).includes(beerQuery) ||
-        (!activeBrewery && normalizeText(beer.brands?.name ?? "").includes(beerQuery));
-    })
-    .sort((a, b) => {
-      const aDirect = normalizeText(a.name).includes(beerQuery);
-      const bDirect = normalizeText(b.name).includes(beerQuery);
-      if (aDirect !== bDirect) return aDirect ? -1 : 1;
-      const aReady = getBeerSuggestionReferenceStatus(a).ready;
-      const bReady = getBeerSuggestionReferenceStatus(b).ready;
-      if (aReady !== bReady) return aReady ? -1 : 1;
+  const showingRecommendations =
+    remoteCatalogSearch &&
+    !activeBrewery &&
+    beerQuery.length === 0;
 
-      return a.name.localeCompare(b.name, "cs", { sensitivity: "base" });
-    }) : [];
+  const beerSuggestions = showingRecommendations
+    ? catalogBeers.filter((beer) => recommendedBeerIds.has(beer.id))
+    : (
+        activeBrewery && (!brandName.trim() || activeBrand) ||
+        !activeBrewery && beerQuery.length >= 3
+      )
+      ? catalogBeers
+          .filter((beer) => {
+            if (activeBrewery && beer.breweries?.id !== activeBrewery.id) return false;
+            if (activeBrand && beer.brands?.id !== activeBrand.id) return false;
+            return normalizeText(beer.name).includes(beerQuery) ||
+              (!activeBrewery && normalizeText(beer.brands?.name ?? "").includes(beerQuery));
+          })
+          .sort((a, b) => {
+            const aDirect = normalizeText(a.name).includes(beerQuery);
+            const bDirect = normalizeText(b.name).includes(beerQuery);
+            if (aDirect !== bDirect) return aDirect ? -1 : 1;
+            const aReady = getBeerSuggestionReferenceStatus(a).ready;
+            const bReady = getBeerSuggestionReferenceStatus(b).ready;
+            if (aReady !== bReady) return aReady ? -1 : 1;
+
+            return a.name.localeCompare(b.name, "cs", { sensitivity: "base" });
+          })
+      : [];
 
   function selectBeer(beer: ExistingBeer) {
     setExistingBeerId(String(beer.id));
