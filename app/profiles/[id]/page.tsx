@@ -60,6 +60,7 @@ import ProfileHeroIdentity from "./ProfileHeroIdentity";
 import ProfileTastingControls, {
   type TastingSort,
 } from "./ProfileTastingControls";
+import ProfileTastingPager from "./ProfileTastingPager";
 import ProfileBreweriesView from "./ProfileBreweriesView";
 
 import {
@@ -853,68 +854,6 @@ export default async function ProfilePage({
             historyPageSize
         )
       : [];
-
-  function historyPageHref(
-    nextPage: number
-  ) {
-    const pageParams =
-      new URLSearchParams();
-
-    pageParams.set(
-      "view",
-      "beers"
-    );
-
-    if (showAllTastings) {
-      pageParams.set(
-        "all",
-        "1"
-      );
-    } else if (
-      typeof requestedSort ===
-      "string"
-    ) {
-      pageParams.set(
-        "sort",
-        tastingSort
-      );
-    }
-
-    if (selectedCountry) {
-      pageParams.set(
-        "country",
-        selectedCountry
-      );
-    }
-
-    if (tastingQuery) {
-      pageParams.set(
-        "q",
-        tastingQuery
-      );
-    }
-
-    if (selectedLetter) {
-      pageParams.set(
-        "letter",
-        selectedLetter
-      );
-    }
-
-    if (nextPage > 1) {
-      pageParams.set(
-        "page",
-        String(nextPage)
-      );
-    }
-
-    const basePath =
-      isMe
-        ? "/"
-        : `/profiles/${profile.id}`;
-
-    return `${basePath}?${pageParams.toString()}`;
-  }
 
   let visibleTastings =
     globalTastings.slice(
@@ -2575,49 +2514,15 @@ export default async function ProfilePage({
           )}
         </div>
 
-        {hasTastingSelection &&
-          historyPageCount > 1 && (
-          <div
-            aria-label="Stránkování ochutnávek"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "10px",
-              marginTop: "18px",
-            }}
-          >
-            {currentHistoryPage > 1 && (
-              <Link
-                prefetch={false}
-                href={historyPageHref(currentHistoryPage - 1)}
-                className="taste-button-secondary"
-              >
-                ← Předchozí
-              </Link>
-            )}
-
-            <span
-              style={{
-                color: "var(--taste-text-muted)",
-                fontSize: "11px",
-                minWidth: "70px",
-                textAlign: "center",
-              }}
-            >
-              {currentHistoryPage} / {historyPageCount}
-            </span>
-
-            {currentHistoryPage < historyPageCount && (
-              <Link
-                prefetch={false}
-                href={historyPageHref(currentHistoryPage + 1)}
-                className="taste-button-secondary"
-              >
-                Další →
-              </Link>
-            )}
-          </div>
+        {hasTastingSelection && (
+          <ProfileTastingPager
+            currentPage={
+              currentHistoryPage
+            }
+            pageCount={
+              historyPageCount
+            }
+          />
         )}
       </section>}
     </main>
