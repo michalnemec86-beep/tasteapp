@@ -106,36 +106,63 @@ type IndexBeer = {
     | null;
 };
 
-type DetailBeer =
-  IndexBeer & {
-    ibu: number | null;
-    is_non_alcoholic:
-      | boolean
-      | null;
-    portfolio_status:
-      | string
-      | null;
-    breweries: Relation<
-      BreweryRef & {
-        closed_year:
+type DetailBeer = {
+  id: number;
+  name: string;
+  plato: number | null;
+  abv: number | null;
+  ibu: number | null;
+  is_non_alcoholic:
+    | boolean
+    | null;
+  portfolio_status:
+    | string
+    | null;
+  brands: Relation<{
+    id: number;
+    name: string;
+  }>;
+  breweries: Relation<
+    BreweryRef & {
+      closed_year:
+        | number
+        | null;
+    }
+  >;
+  beer_styles:
+    Relation<StyleRef>;
+  beer_hops:
+    | Array<{
+        hops:
+          Relation<HopRef>;
+      }>
+    | null;
+  beer_versions:
+    | Array<{
+        id: number;
+        is_current: boolean;
+        plato:
           | number
           | null;
-      }
-    >;
-    beer_versions:
-      | Array<
-          NonNullable<
-            IndexBeer[
-              "beer_versions"
-            ]
-          >[number] & {
-            ibu:
-              | number
-              | null;
-          }
-        >
-      | null;
-  };
+        abv:
+          | number
+          | null;
+        ibu:
+          | number
+          | null;
+        breweries:
+          Relation<BreweryRef>;
+        beer_styles:
+          Relation<StyleRef>;
+        beer_version_hops:
+          | Array<{
+              hops:
+                Relation<HopRef>;
+            }>
+          | null;
+      }>
+    | null;
+};
 
 type TastingCountRow = {
   beer_id:
