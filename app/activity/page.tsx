@@ -38,7 +38,6 @@ import MobileHomeStatsCarousel from "@/components/home/MobileHomeStatsCarousel";
 import ResponsiveTimelinePager from "@/components/home/ResponsiveTimelinePager";
 import { fetchAllRows } from "@/lib/fetch-all-rows";
 import { parsePositivePage } from "@/lib/pagination";
-import { isBeerAvailableForTasting } from "@/lib/beerPortfolio";
 
 import {
   updateTastingInModal,
@@ -65,11 +64,6 @@ type BreweryRow = {
   aliases?: string[];
 };
 
-type CountryRow = {
-  id: number;
-  name: string;
-};
-
 type BeerStyleRow = {
   id: number;
   name: string;
@@ -80,37 +74,6 @@ type HopRow = {
   id: number;
   name: string;
   aliases: string[];
-};
-
-type CatalogBeerRow = {
-  id: number;
-  name: string;
-  plato: number | null;
-  abv: number | null;
-  ibu: number | null;
-  is_non_alcoholic: boolean;
-  is_catalog: boolean;
-  portfolio_status: string;
-
-  brands:
-    | { id: number; name: string }
-    | null;
-
-  breweries:
-    | BreweryRow
-    | null;
-
-  beer_styles:
-    | BeerStyleRow
-    | null;
-
-  beer_hops:
-    | {
-        hops:
-          | HopRow
-          | null;
-      }[]
-    | null;
 };
 
 type TastingBeerRow = {
@@ -441,97 +404,12 @@ export default async function ActivityPage({
     .order("id", { ascending: false })
     .range(from, to), 500, timelineFetchLimit);
 
-  const beersPromise = fetchAllRows((from, to) =>
-    supabase
-      .from("beers")
-      .select(`
-        id,
-        name,
-        plato,
-        abv,
-        ibu,
-        is_non_alcoholic,
-        is_catalog,
-        portfolio_status,
-        brands (
-          id,
-          name
-        ),
-        breweries (
-            id,
-            name,
-            country,
-            logo_url
-          ),
-        beer_styles (
-          id,
-          name
-        ),
-        beer_hops (
-          hops (
-            id,
-            name
-          )
-        )
-      `)
-      .order("is_catalog", { ascending: false })
-      .order("name")
-      .order("id")
-      .range(from, to));
-
-  const breweriesPromise =
-    supabase
-      .from("breweries")
-      .select(`
-        id,
-        name,
-        country,
-        logo_url,
-        closed_year,
-        brewery_name_history (
-          previous_name
-        ),
-        brewery_brands (
-          brands (id, name)
-        )
-      `)
-      .order("name");
-
-  const countriesPromise =
-    supabase
-      .from("countries")
-      .select(
-        "id, name"
-      )
-      .order("name");
-
-  const stylesPromise =
-    supabase
-      .from("beer_styles")
-      .select(
-        "id, name, aliases"
-      )
-      .order("name");
-
-  const hopsPromise =
-    supabase
-      .from("hops")
-      .select(
-        "id, name, aliases"
-      )
-      .order("name");
-
   const [
     profilesResult,
     tastingsResult,
     statsTastings,
     achievementsResult,
     catalogEventsResult,
-    beersResult,
-    breweriesResult,
-    countriesResult,
-    stylesResult,
-    hopsResult,
   ] =
     await Promise.all([
       profilesPromise,
@@ -539,11 +417,6 @@ export default async function ActivityPage({
       statsTastingsPromise,
       achievementsPromise,
       catalogEventsPromise,
-      beersPromise,
-      breweriesPromise,
-      countriesPromise,
-      stylesPromise,
-      hopsPromise,
     ]);
 
   const {
@@ -555,62 +428,6 @@ export default async function ActivityPage({
   const tastings = tastingsResult;
   const achievements = achievementsResult;
   const catalogEvents = catalogEventsResult;
-
-  const beers = beersResult;
-
-  const {
-    data: breweries,
-    error: breweriesError,
-  } =
-    breweriesResult;
-
-  const {
-    data: countries,
-    error: countriesError,
-  } =
-    countriesResult;
-
-  const {
-    data: styles,
-    error: stylesError,
-  } =
-    stylesResult;
-
-  const {
-    data: hops,
-    error: hopsError,
-  } =
-    hopsResult;
-
-  if (profilesError) {
-    throw new Error(
-      profilesError.message
-    );
-  }
-
-  if (breweriesError) {
-    throw new Error(
-      breweriesError.message
-    );
-  }
-
-  if (countriesError) {
-    throw new Error(
-      countriesError.message
-    );
-  }
-
-  if (stylesError) {
-    throw new Error(
-      stylesError.message
-    );
-  }
-
-  if (hopsError) {
-    throw new Error(
-      hopsError.message
-    );
-  }
 
   const allProfiles =
     (profiles ??
@@ -643,51 +460,6 @@ export default async function ActivityPage({
       hops: singleRelation(event.hops),
     };
   }) as CatalogEventRow[];
-
-  const allBeers =
-    (beers ??
-      []) as unknown as
-      CatalogBeerRow[];
-
-  const allBreweries =
-    (breweries ?? []).map((brewery) => ({
-      id: brewery.id,
-      name: brewery.name,
-      country: brewery.country,
-      logo_url: brewery.logo_url,
-      closed_year: brewery.closed_year,
-      aliases: (brewery.brewery_name_history ?? [])
-        .map((item) => item.previous_name)
-        .filter(Boolean),
-    })) as BreweryRow[];
-
-  const availableBeers = allBeers.filter(
-    (beer) =>
-      isBeerAvailableForTasting(
-        beer.portfolio_status,
-        beer.breweries?.closed_year
-      ) &&
-      Boolean(beer.brands && beer.breweries)
-  );
-
-  const availableBreweries = allBreweries.filter(
-    (brewery) => brewery.closed_year == null
-  );
-
-  const brandsByBrewery = (breweries ?? []).flatMap((brewery) =>
-    (brewery.brewery_brands ?? []).flatMap((link) => {
-      const brand = singleRelation(link.brands);
-      return brand ? [{ breweryId: brewery.id, brand }] : [];
-    })
-  );
-
-  const allStyles =
-    (styles ??
-      []) as BeerStyleRow[];
-
-  const allHops =
-    (hops ??
-      []) as HopRow[];
 
   const newlyUnlockedAchievements =
     await syncUserAchievements(
@@ -723,187 +495,8 @@ export default async function ActivityPage({
       allTastings
     );
 
-  // "Nejčastější pivovary" na domovské stránce ukazují skutečný
-  // počet ochutnávek (řádků), nikoli součet vypitých kusů.
-  // Logo a název bereme z kanonického záznamu pivovaru v evidenci,
-  // aby se vždy propsaly i ke starším ochutnávkám a historickým verzím piv.
-  const canonicalBreweriesById =
-    new Map(
-      allBreweries.map(
-        (brewery) => [
-          brewery.id,
-          brewery,
-        ]
-      )
-    );
-
-  const brandBreweryUsage =
-    new Map<
-      number,
-      Map<number, number>
-    >();
-
-  for (const tasting of allTastings) {
-    const brand =
-      tasting.beers?.brands ??
-      null;
-
-    const tastingBrewery =
-      tasting.beer_versions?.breweries ??
-      tasting.beers?.breweries ??
-      null;
-
-    if (!brand || !tastingBrewery) {
-      continue;
-    }
-
-    const usage =
-      brandBreweryUsage.get(
-        brand.id
-      ) ??
-      new Map<
-        number,
-        number
-      >();
-
-    usage.set(
-      tastingBrewery.id,
-      (
-        usage.get(
-          tastingBrewery.id
-        ) ?? 0
-      ) +
-        (
-          tasting.quantity ??
-          1
-        )
-    );
-
-    brandBreweryUsage.set(
-      brand.id,
-      usage
-    );
-  }
-
-  const linkedBreweryIdsByBrand =
-    new Map<
-      number,
-      number[]
-    >();
-
-  for (const link of brandsByBrewery) {
-    const current =
-      linkedBreweryIdsByBrand.get(
-        link.brand.id
-      ) ?? [];
-
-    if (
-      !current.includes(
-        link.breweryId
-      )
-    ) {
-      current.push(
-        link.breweryId
-      );
-    }
-
-    linkedBreweryIdsByBrand.set(
-      link.brand.id,
-      current
-    );
-  }
-
   const brandRanking =
-    globalStats.brands.map(
-      (item) => {
-        const brandId =
-          Number(item.id);
-
-        const usage =
-          brandBreweryUsage.get(
-            brandId
-          );
-
-        const rankedBreweryIds =
-          usage
-            ? Array.from(
-                usage.entries()
-              )
-                .sort(
-                  (
-                    [aId, aCount],
-                    [bId, bCount]
-                  ) => {
-                    if (
-                      bCount !==
-                      aCount
-                    ) {
-                      return (
-                        bCount -
-                        aCount
-                      );
-                    }
-
-                    return (
-                      canonicalBreweriesById
-                        .get(aId)
-                        ?.name ??
-                      ""
-                    ).localeCompare(
-                      canonicalBreweriesById
-                        .get(bId)
-                        ?.name ??
-                        "",
-                      "cs"
-                    );
-                  }
-                )
-                .map(
-                  ([
-                    breweryId,
-                  ]) =>
-                    breweryId
-                )
-            : [];
-
-        const fallbackIds =
-          linkedBreweryIdsByBrand.get(
-            brandId
-          ) ?? [];
-
-        const logoBreweryId =
-          [
-            ...rankedBreweryIds,
-            ...fallbackIds,
-          ].find(
-            (breweryId) =>
-              Boolean(
-                canonicalBreweriesById.get(
-                  breweryId
-                )?.logo_url
-              )
-          ) ??
-          rankedBreweryIds[0] ??
-          fallbackIds[0];
-
-        const logoUrl =
-          logoBreweryId != null
-            ? canonicalBreweriesById.get(
-                logoBreweryId
-              )?.logo_url ??
-              undefined
-            : undefined;
-
-        return {
-          ...item,
-          ...(logoUrl
-            ? {
-                logoUrl,
-              }
-            : {}),
-        };
-      }
-    );
+    globalStats.brands;
 
   const breweryTastingMap = new Map<
     number,
@@ -925,17 +518,10 @@ export default async function ActivityPage({
       continue;
     }
 
-    const canonicalBrewery =
-      canonicalBreweriesById.get(
-        tastingBrewery.id
-      );
-
     const breweryName =
-      canonicalBrewery?.name ??
       tastingBrewery.name;
 
     const breweryLogoUrl =
-      canonicalBrewery?.logo_url ??
       tastingBrewery.logo_url ??
       undefined;
 
@@ -1251,14 +837,7 @@ export default async function ActivityPage({
         <section id="timeline" className="order-1 xl:order-2 xl:col-span-6">
 
           <div className="taste-timeline-actions">
-            <TastingModal
-              beers={availableBeers}
-              breweries={availableBreweries}
-              brandsByBrewery={brandsByBrewery}
-              countries={countries ?? []}
-              styles={allStyles}
-              hops={allHops}
-            />
+            <TastingModal />
           </div>
 
           {visibleTimeline.length ===
@@ -1371,19 +950,7 @@ export default async function ActivityPage({
                     isOwn={
                       isOwn
                     }
-                    beers={
-                      allBeers
-                    }
-                    breweries={
-                      allBreweries
-                    }
-                    countries={countries ?? []}
-                styles={
-                      allStyles
-                    }
-                    hops={
-                      allHops
-                    }
+
                   />
                 );
               }
@@ -1512,16 +1079,13 @@ export default async function ActivityPage({
 // ==================================================
 
 function TastingTimelineCard({
-  tasting, profile, isOwn, beers, breweries, countries, styles, hops,
+  tasting,
+  profile,
+  isOwn,
 }: {
   tasting: TastingRow;
   profile: ProfileRow | null;
   isOwn: boolean;
-  beers: CatalogBeerRow[];
-  breweries: BreweryRow[];
-  countries: CountryRow[];
-  styles: BeerStyleRow[];
-  hops: HopRow[];
 }) {
   const packagingKind =
     tasting.packaging === "bottle" ? "bottle" :
@@ -1781,21 +1345,6 @@ function TastingTimelineCard({
               <EditTastingModalClient
                 tasting={
                   tasting
-                }
-                beers={
-                  beers
-                }
-                breweries={
-                  breweries
-                }
-                countries={
-                  countries
-                }
-                styles={
-                  styles
-                }
-                hops={
-                  hops
                 }
                 updateTastingAction={
                   updateTastingInModal
