@@ -274,10 +274,11 @@ export default function TastingForm({
       return;
     }
 
+    setBrewerySearchLoading(true);
+    setBrewerySearchError(false);
+
     const controller = new AbortController();
     const timeout = window.setTimeout(async () => {
-      setBrewerySearchLoading(true);
-      setBrewerySearchError(false);
 
       try {
         const response = await fetch(
@@ -335,9 +336,10 @@ export default function TastingForm({
       return;
     }
 
+    setCollaboratorSearchLoading(true);
+
     const controller = new AbortController();
     const timeout = window.setTimeout(async () => {
-      setCollaboratorSearchLoading(true);
 
       try {
         const response = await fetch(
@@ -395,10 +397,11 @@ export default function TastingForm({
       return;
     }
 
+    setBrandSearchLoading(true);
+    setBrandSearchError(false);
+
     const controller = new AbortController();
     const timeout = window.setTimeout(async () => {
-      setBrandSearchLoading(true);
-      setBrandSearchError(false);
 
       const params = new URLSearchParams({
         type: "brand",
@@ -483,10 +486,11 @@ export default function TastingForm({
       return;
     }
 
+    setBeerSearchLoading(true);
+    setBeerSearchError(false);
+
     const controller = new AbortController();
     const timeout = window.setTimeout(async () => {
-      setBeerSearchLoading(true);
-      setBeerSearchError(false);
 
       const params = new URLSearchParams({
         type: "beer",
