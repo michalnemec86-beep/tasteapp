@@ -51,7 +51,7 @@ type StatsTasting = {
   beer_versions?: {
     breweries?: StatsBrewery | null;
     beer_styles: StatsStyle | null;
-    beer_version_hops: StatsHopRow[] | null;
+    beer_version_hops?: StatsHopRow[] | null;
   } | null;
 
   beers: {
@@ -60,7 +60,7 @@ type StatsTasting = {
     brands?: StatsBrand | null;
     breweries: StatsBrewery | null;
     beer_styles: StatsStyle | null;
-    beer_hops: StatsHopRow[] | null;
+    beer_hops?: StatsHopRow[] | null;
   } | null;
 };
 
