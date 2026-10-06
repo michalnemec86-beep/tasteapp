@@ -72,6 +72,11 @@ Pozdější commit přidává tuto dokumentaci; nemění funkce archivované ver
   bezpečné; původní dočasné heslo není přijato. Běžná obnova hesla zachovává
   klientské Auth API ([postup a ověření](admin-password-reset.md)).
 
+- 6. 10. 2026: společné styly žebříčků již nepřidávají vnitřní odsazení
+  normalizovaným logům. Tím se opravuje tmavý prstenec kolem bílého loga Carlton
+  & United Breweries ve statistikách Austrálie, dalších statistikách i mobilních
+  žebříčcích ([příčina a ověření](logo-normalization.md)).
+
 ## Dokumenty k načtení
 
 - [Přehled funkcí a ověření](function-report-2026-10-02.md).

@@ -167,6 +167,11 @@
   width: 34px !important;
   height: 34px !important;
   border-radius: 50% !important;
+}
+
+/* Normalized images already fill the frame with their detected background. */
+.taste-app-shell.taste-app-shell .taste-ranking-card :is(.taste-brewery-logo-frame:not([data-logo-normalized]), .taste-ranking-logo-placeholder),
+.taste-ranking-modal-panel.taste-ranking-modal-panel :is(.taste-brewery-logo-frame:not([data-logo-normalized]), .taste-ranking-logo-placeholder) {
   padding: 3px !important;
 }
 
