@@ -197,93 +197,156 @@ export default async function ProfilePage({
   // DATA
   // ==================================================
 
-  const tastingsPromise = fetchAllRows((from, to) =>
-    supabase
-      .from("tastings")
-      .select(`
-        id,
-        user_id,
-        tasted_at,
-        tasted_on,
-        rating,
-        packaging,
-        quantity,
-        plato,
-        abv,
-        ibu,
-        place,
-        notes,
-        beer_versions (
-          id,
-          version_year,
-          brewery_id,
-          breweries!beer_versions_brewery_id_fkey (
-            id,
-            name,
-            country,
-            logo_url
-          ),
-          beer_styles (
-            id,
-            name
-          ),
-          beer_version_hops (
-            hops (
+  const tastingsPromise =
+    view === "beers"
+      ? Promise.resolve([])
+      : fetchAllRows((from, to) =>
+          supabase
+            .from("tastings")
+            .select(`
               id,
-              name
-            )
-          ),
-          beer_version_collaborators (
-            display_order,
-            breweries (
+              user_id,
+              tasted_at,
+              tasted_on,
+              rating,
+              packaging,
+              quantity,
+              plato,
+              abv,
+              ibu,
+              place,
+              notes,
+              beer_versions (
+                id,
+                version_year,
+                brewery_id,
+                breweries!beer_versions_brewery_id_fkey (
+                  id,
+                  name,
+                  country,
+                  logo_url
+                ),
+                beer_styles (
+                  id,
+                  name
+                ),
+                beer_version_hops (
+                  hops (
+                    id,
+                    name
+                  )
+                ),
+                beer_version_collaborators (
+                  display_order,
+                  breweries (
+                    id,
+                    name,
+                    country,
+                    logo_url
+                  )
+                )
+              ),
+              beers (
+                id,
+                brewery_id,
+                name,
+                is_non_alcoholic,
+                brands (
+                  id,
+                  name
+                ),
+                breweries (
+                  id,
+                  name,
+                  country,
+                  logo_url
+                ),
+                beer_styles (
+                  id,
+                  name
+                ),
+                beer_hops (
+                  hops (
+                    id,
+                    name
+                  )
+                )
+              )
+            `)
+            .eq("user_id", id)
+            .order("id")
+            .range(from, to));
+
+  const historyIndexPromise =
+    view === "beers"
+      ? fetchAllRows((from, to) =>
+          supabase
+            .from("tastings")
+            .select(`
               id,
-              name,
-              country,
-              logo_url
-            )
-          )
-        ),
-        beers (
-          id,
-          brewery_id,
-          name,
-          is_non_alcoholic,
-          brands (
-            id,
-            name
-          ),
-          breweries (
-            id,
-            name,
-            country,
-            logo_url
-          ),
-          beer_styles (
-            id,
-            name
-          ),
-          beer_hops (
-            hops (
-              id,
-              name
-            )
-          )
-        )
-      `)
-      .eq("user_id", id)
-      .order("id")
-      .range(from, to));
+              user_id,
+              tasted_at,
+              tasted_on,
+              quantity,
+              plato,
+              abv,
+              ibu,
+              place,
+              notes,
+              beer_versions (
+                id,
+                brewery_id,
+                breweries!beer_versions_brewery_id_fkey (
+                  id,
+                  name,
+                  country
+                ),
+                beer_styles (
+                  id,
+                  name
+                ),
+                beer_version_hops (
+                  hops (
+                    id
+                  )
+                )
+              ),
+              beers (
+                id,
+                brewery_id,
+                name,
+                is_non_alcoholic,
+                brands (
+                  id,
+                  name
+                ),
+                breweries (
+                  id,
+                  name,
+                  country
+                ),
+                beer_styles (
+                  id,
+                  name
+                ),
+                beer_hops (
+                  hops (
+                    id
+                  )
+                )
+              )
+            `)
+            .eq("user_id", id)
+            .order("id")
+            .range(from, to))
+      : Promise.resolve([]);
 
   const needsEditCatalog =
-    isMe &&
-    view === "beers";
+    false;
 
   const needsCountries =
-    needsEditCatalog ||
-    (
-      isMe &&
-      view === "breweries"
-    );
+    isMe &&
+    view === "breweries";
 
   const beersPromise =
     needsEditCatalog
@@ -379,6 +442,7 @@ export default async function ProfilePage({
 
   const [
     tastingsResult,
+    historyIndexResult,
     beersResult,
     breweriesResult,
     countriesResult,
@@ -387,6 +451,7 @@ export default async function ProfilePage({
   ] =
     await Promise.all([
       tastingsPromise,
+      historyIndexPromise,
       beersPromise,
       breweriesPromise,
       countriesPromise,
@@ -394,7 +459,10 @@ export default async function ProfilePage({
       hopsPromise,
     ]);
 
-  const tastings = tastingsResult;
+  const tastings =
+    view === "beers"
+      ? historyIndexResult
+      : tastingsResult;
   const beers = beersResult;
 
   const {
