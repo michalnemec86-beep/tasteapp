@@ -67,6 +67,11 @@ Pozdější commit přidává tuto dokumentaci; nemění funkce archivované ver
   neúspěšného dokončení a kontrola obnovení relace
   ([příčina a ověření](admin-password-reset.md)).
 
+- 6. 10. 2026: první nastavení hesla ukládá nové heslo a ukončení povinné změny
+  jedním Auth Admin požadavkem. Opakování po ztracené odpovědi či reloadu je
+  bezpečné; původní dočasné heslo není přijato. Běžná obnova hesla zachovává
+  klientské Auth API ([postup a ověření](admin-password-reset.md)).
+
 ## Dokumenty k načtení
 
 - [Přehled funkcí a ověření](function-report-2026-10-02.md).

@@ -16,8 +16,9 @@ import { useState } from "react";
 
 export function UpdatePasswordForm({
   className,
+  initialPasswordRequired = false,
   ...props
-}: React.ComponentPropsWithoutRef<"div">) {
+}: React.ComponentPropsWithoutRef<"div"> & { initialPasswordRequired?: boolean }) {
   const [password, setPassword] = useState("");
   const [passwordAgain, setPasswordAgain] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -26,6 +27,7 @@ export function UpdatePasswordForm({
 
   const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isLoading) return;
     setError(null);
 
     if (!passwordSaved && password.length < 8) {
@@ -43,19 +45,26 @@ export function UpdatePasswordForm({
 
     try {
       if (!passwordSaved) {
-        const { error } = await supabase.auth.updateUser({ password });
-        if (error) throw error;
+        if (initialPasswordRequired) {
+          const { data: completion, error: completionError } = await supabase.functions.invoke(
+            "complete-initial-password",
+            { body: { password } },
+          );
+          if (completionError || completion?.ok !== true) {
+            let message = completion?.message;
+            if (!message && completionError?.context instanceof Response) {
+              const response = await completionError.context.json().catch(() => null);
+              message = response?.message;
+            }
+            throw new Error(message || "Uložení hesla se nepodařilo potvrdit. Zkus to znovu; dokončené nastavení se nebude opakovat.");
+          }
+        } else {
+          const { error } = await supabase.auth.updateUser({ password });
+          if (error) throw error;
+        }
         setPasswordSaved(true);
         setPassword("");
         setPasswordAgain("");
-      }
-
-      const { data: completion, error: completionError } = await supabase.functions.invoke(
-        "complete-initial-password",
-        { body: {} },
-      );
-      if (completionError || completion?.ok !== true) {
-        throw new Error("Heslo je uložené, ale dokončení se nepodařilo. Stiskni Zkusit dokončit znovu.");
       }
 
       const { data: refreshed, error: refreshError } = await supabase.auth.refreshSession();
