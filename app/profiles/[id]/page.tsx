@@ -2577,7 +2577,7 @@ export default async function ProfilePage({
 
         {hasTastingSelection &&
           historyPageCount > 1 && (
-          <nav
+          <div
             aria-label="Stránkování ochutnávek"
             style={{
               display: "flex",
@@ -2587,34 +2587,19 @@ export default async function ProfilePage({
               marginTop: "18px",
             }}
           >
-            {currentHistoryPage > 1 ? (
+            {currentHistoryPage > 1 && (
               <Link
                 prefetch={false}
-                href={historyPageHref(
-                  currentHistoryPage -
-                    1
-                )}
+                href={historyPageHref(currentHistoryPage - 1)}
                 className="taste-button-secondary"
               >
                 ← Předchozí
               </Link>
-            ) : (
-              <span
-                className="taste-button-secondary"
-                aria-disabled="true"
-                style={{
-                  opacity: 0.4,
-                  pointerEvents: "none",
-                }}
-              >
-                ← Předchozí
-              </span>
             )}
 
             <span
               style={{
-                color:
-                  "var(--taste-text-muted)",
+                color: "var(--taste-text-muted)",
                 fontSize: "11px",
                 minWidth: "70px",
                 textAlign: "center",
@@ -2623,31 +2608,16 @@ export default async function ProfilePage({
               {currentHistoryPage} / {historyPageCount}
             </span>
 
-            {currentHistoryPage <
-            historyPageCount ? (
+            {currentHistoryPage < historyPageCount && (
               <Link
                 prefetch={false}
-                href={historyPageHref(
-                  currentHistoryPage +
-                    1
-                )}
+                href={historyPageHref(currentHistoryPage + 1)}
                 className="taste-button-secondary"
               >
                 Další →
               </Link>
-            ) : (
-              <span
-                className="taste-button-secondary"
-                aria-disabled="true"
-                style={{
-                  opacity: 0.4,
-                  pointerEvents: "none",
-                }}
-              >
-                Další →
-              </span>
             )}
-          </nav>
+          </div>
         )}
       </section>}
     </main>
