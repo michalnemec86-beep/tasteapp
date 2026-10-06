@@ -4,7 +4,7 @@ import { getBeerSuggestionReferenceStatus } from "@/lib/referenceStatus";
 
 import StarRatingInput from "@/components/ui/StarRatingInput";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { PACKAGING_OPTIONS } from "@/lib/packaging";
 import { inferBrandFromEvidence } from "@/lib/brandInference";
 
@@ -82,6 +82,7 @@ type TastingFormProps = {
   styles: BeerStyle[];
   hops: Hop[];
   initialBeerId?: number;
+  remoteCatalogSearch?: boolean;
 };
 
 function normalizeText(text: string) {
@@ -101,7 +102,21 @@ export default function TastingForm({
   styles,
   hops,
   initialBeerId,
+  remoteCatalogSearch = false,
 }: TastingFormProps) {
+  const [catalogBeers, setCatalogBeers] = useState(beers);
+  const [catalogBreweries, setCatalogBreweries] = useState(breweries);
+  const [catalogBrandsByBrewery, setCatalogBrandsByBrewery] =
+    useState(brandsByBrewery);
+  const [recommendedBeerIds] = useState(
+    () => new Set(beers.map((beer) => beer.id))
+  );
+
+  const [brewerySearchLoading, setBrewerySearchLoading] = useState(false);
+  const [collaboratorSearchLoading, setCollaboratorSearchLoading] = useState(false);
+  const [brandSearchLoading, setBrandSearchLoading] = useState(false);
+  const [beerSearchLoading, setBeerSearchLoading] = useState(false);
+
   const initialBeer = beers.find((beer) => beer.id === initialBeerId) ?? null;
   const [beerName, setBeerName] = useState(initialBeer?.name ?? "");
   const [existingBeerId, setExistingBeerId] = useState(initialBeer ? String(initialBeer.id) : "");
@@ -137,9 +152,9 @@ export default function TastingForm({
 
   const normalizedBrewery = normalizeText(breweryName);
   const activeBrewery =
-    breweries.find((brewery) =>
+    catalogBreweries.find((brewery) =>
       brewery.id === selectedBreweryId && normalizeText(brewery.name) === normalizedBrewery
-    ) ?? breweries.find((brewery) =>
+    ) ?? catalogBreweries.find((brewery) =>
       normalizeText(brewery.name) === normalizedBrewery ||
       (brewery.aliases ?? []).some((alias) => normalizeText(alias) === normalizedBrewery)
     );
@@ -148,19 +163,19 @@ export default function TastingForm({
   const brandOptions = useMemo(() => {
     if (!activeBreweryId) return [];
     const options = new Map<number, BreweryBrand["brand"]>();
-    for (const link of brandsByBrewery) {
+    for (const link of catalogBrandsByBrewery) {
       if (link.breweryId === activeBreweryId) options.set(link.brand.id, link.brand);
     }
-    for (const beer of beers) {
+    for (const beer of catalogBeers) {
       if (beer.breweries?.id === activeBreweryId && beer.brands) {
         options.set(beer.brands.id, beer.brands);
       }
     }
     return [...options.values()].sort((a, b) => a.name.localeCompare(b.name, "cs"));
-  }, [activeBreweryId, brandsByBrewery, beers]);
+  }, [activeBreweryId, catalogBrandsByBrewery, catalogBeers]);
 
   const globalBrandOptions = useMemo(() => {
-    const breweriesById = new Map(breweries.map((brewery) => [brewery.id, brewery]));
+    const breweriesById = new Map(catalogBreweries.map((brewery) => [brewery.id, brewery]));
     const options = new Map<string, { brewery: Brewery; brand: BreweryBrand["brand"] }>();
     for (const link of brandsByBrewery) {
       const brewery = breweriesById.get(link.breweryId);
@@ -173,7 +188,7 @@ export default function TastingForm({
       }
     }
     return [...options.values()];
-  }, [brandsByBrewery, breweries, beers]);
+  }, [catalogBrandsByBrewery, catalogBreweries, catalogBeers]);
 
   const matchingBrands = brandOptions.filter(
     (brand) => normalizeText(brand.name) === normalizeText(brandName)
@@ -202,7 +217,7 @@ export default function TastingForm({
 
   const beerQuery = normalizeText(beerName);
   const beerSuggestions = (activeBrewery && (!brandName.trim() || activeBrand) ||
-    !activeBrewery && beerQuery.length >= 3) ? beers
+    !activeBrewery && beerQuery.length >= 3) ? catalogBeers
     .filter((beer) => {
       if (activeBrewery && beer.breweries?.id !== activeBrewery.id) return false;
       if (activeBrand && beer.brands?.id !== activeBrand.id) return false;
@@ -276,7 +291,7 @@ export default function TastingForm({
         ? inferBrandFromEvidence(
             value,
             brandOptions,
-            beers.filter((beer) => beer.breweries?.id === activeBreweryId)
+            catalogBeers.filter((beer) => beer.breweries?.id === activeBreweryId)
               .map((beer) => ({ name: beer.name, brandId: beer.brands?.id ?? null }))
           )
         : null;
@@ -291,7 +306,7 @@ export default function TastingForm({
   // PIVOVAR
   // ==================================================
 
-  const brewerySuggestions = breweries.filter((brewery) => {
+  const brewerySuggestions = catalogBreweries.filter((brewery) => {
     if (breweryName.trim().length < 3) return false;
     const query = normalizeText(breweryName);
 
@@ -357,7 +372,7 @@ export default function TastingForm({
     setBrandOpen(true);
   }
 
-  const collaboratorSuggestions = breweries.filter((brewery) => {
+  const collaboratorSuggestions = catalogBreweries.filter((brewery) => {
     if (collaboratorQuery.trim().length < 3) return false;
     if (normalizeText(brewery.name) === normalizeText(breweryName)) return false;
     if (selectedCollaborators.some((item) => item.id === brewery.id)) return false;
