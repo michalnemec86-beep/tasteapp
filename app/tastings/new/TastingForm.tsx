@@ -877,7 +877,45 @@ export default function TastingForm({
     <form
       action={saveTastingAction}
       onSubmit={(event) => {
-        if (!existingBeerId && !plato.trim() && !abv.trim()) {
+        const catalogCheckInProgress =
+          remoteCatalogSearch &&
+          !existingBeerId &&
+          (
+            brewerySearchLoading ||
+            beerSearchLoading ||
+            (
+              Boolean(brandName.trim()) &&
+              brandSearchLoading
+            )
+          );
+
+        const catalogCheckFailed =
+          remoteCatalogSearch &&
+          !existingBeerId &&
+          (
+            (
+              !activeBrewery &&
+              breweryName.trim().length >= 3 &&
+              brewerySearchError
+            ) ||
+            beerSearchError ||
+            (
+              Boolean(brandName.trim()) &&
+              brandSearchError
+            )
+          );
+
+        if (catalogCheckInProgress) {
+          event.preventDefault();
+          setValidationError(
+            "Ještě ověřuji katalog. Počkej okamžik a ulož ochutnávku znovu."
+          );
+        } else if (catalogCheckFailed) {
+          event.preventDefault();
+          setValidationError(
+            "Katalog se nepodařilo ověřit. Zkontroluj připojení a zkus to znovu, aby nevznikla duplicitní data."
+          );
+        } else if (!existingBeerId && !plato.trim() && !abv.trim()) {
           event.preventDefault();
           setValidationError("U nového piva vyplň stupňovitost nebo alkohol.");
         } else {
@@ -930,7 +968,34 @@ export default function TastingForm({
             </div>
           )}
 
-          {breweryOpen && breweryName.trim().length >= 3 && brewerySuggestions.length === 0 && (
+          {breweryOpen &&
+            breweryName.trim().length >= 3 &&
+            brewerySuggestions.length === 0 &&
+            brewerySearchLoading && (
+            <div style={dropdownStyle}>
+              <div style={{ padding: "10px 12px", color: "var(--taste-text-muted)" }}>
+                Hledám pivovar v evidenci…
+              </div>
+            </div>
+          )}
+
+          {breweryOpen &&
+            breweryName.trim().length >= 3 &&
+            brewerySuggestions.length === 0 &&
+            !brewerySearchLoading &&
+            brewerySearchError && (
+            <div style={dropdownStyle}>
+              <div style={{ padding: "10px 12px", color: "#8b2f23" }}>
+                Evidenci pivovarů se nepodařilo ověřit. Zkus hledání znovu.
+              </div>
+            </div>
+          )}
+
+          {breweryOpen &&
+            breweryName.trim().length >= 3 &&
+            brewerySuggestions.length === 0 &&
+            !brewerySearchLoading &&
+            !brewerySearchError && (
             <div style={dropdownStyle}>
               <div style={{ padding: "10px 12px" }}>
                 ＋ Nový pivovar: <strong>{breweryName}</strong>
@@ -1023,7 +1088,21 @@ export default function TastingForm({
               </div>
             )}
 
-            {collaboratorOpen && collaboratorQuery.trim().length >= 3 && collaboratorSuggestions.length === 0 && (
+            {collaboratorOpen &&
+              collaboratorQuery.trim().length >= 3 &&
+              collaboratorSuggestions.length === 0 &&
+              collaboratorSearchLoading && (
+              <div style={dropdownStyle}>
+                <div style={{ padding: "10px 12px", color: "var(--taste-text-muted)" }}>
+                  Hledám pivovar v evidenci…
+                </div>
+              </div>
+            )}
+
+            {collaboratorOpen &&
+              collaboratorQuery.trim().length >= 3 &&
+              collaboratorSuggestions.length === 0 &&
+              !collaboratorSearchLoading && (
               <div style={dropdownStyle}>
                 <div style={{ padding: "10px 12px", color: "var(--taste-text-muted)" }}>
                   Kolaboraci vyber z existujících pivovarů.
@@ -1068,6 +1147,27 @@ export default function TastingForm({
               ))}
             </div>
           )}
+
+          {brandOpen &&
+            brandSuggestions.length === 0 &&
+            brandSearchLoading && (
+            <div style={dropdownStyle}>
+              <div style={{ padding: "10px 12px", color: "var(--taste-text-muted)" }}>
+                Hledám značku v evidenci…
+              </div>
+            </div>
+          )}
+
+          {brandOpen &&
+            brandSuggestions.length === 0 &&
+            !brandSearchLoading &&
+            brandSearchError && (
+            <div style={dropdownStyle}>
+              <div style={{ padding: "10px 12px", color: "#8b2f23" }}>
+                Evidenci značek se nepodařilo ověřit.
+              </div>
+            </div>
+          )}
         </div>
         <div style={{ marginTop: "5px", color: "var(--taste-text-muted)", fontSize: "10px", lineHeight: 1.4 }}>
           {brandWasAuto && <span>Značka doplněna z evidence. Můžeš ji změnit. </span>}
@@ -1101,7 +1201,22 @@ export default function TastingForm({
 
           {beerOpen && beerSuggestions.length > 0 && (
             <div style={dropdownStyle}>
-              {beerSuggestions.slice(0, 60).map((beer) => (
+              {showingRecommendations && (
+                <div
+                  style={{
+                    padding: "8px 12px",
+                    borderBottom: "1px solid #eee",
+                    color: "#776b60",
+                    fontSize: "10px",
+                    fontWeight: 800,
+                    letterSpacing: "0.05em",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  Nedávné a časté
+                </div>
+              )}
+              {beerSuggestions.slice(0, 30).map((beer) => (
                 <button
                   key={beer.id}
                   type="button"
@@ -1131,6 +1246,27 @@ export default function TastingForm({
                   </div>
                 </button>
               ))}
+            </div>
+          )}
+
+          {beerOpen &&
+            beerSuggestions.length === 0 &&
+            beerSearchLoading && (
+            <div style={dropdownStyle}>
+              <div style={{ padding: "10px 12px", color: "var(--taste-text-muted)" }}>
+                Hledám pivo v evidenci…
+              </div>
+            </div>
+          )}
+
+          {beerOpen &&
+            beerSuggestions.length === 0 &&
+            !beerSearchLoading &&
+            beerSearchError && (
+            <div style={dropdownStyle}>
+              <div style={{ padding: "10px 12px", color: "#8b2f23" }}>
+                Evidenci piv se nepodařilo ověřit. Zkus hledání znovu.
+              </div>
             </div>
           )}
         </div>
