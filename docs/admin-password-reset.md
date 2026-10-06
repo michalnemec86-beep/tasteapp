@@ -81,16 +81,21 @@ Supabase Auth aplikuje tento update v databázové transakci.
   pouze se scope=local, bez odhlášení původní relace.
 - Neznámý výsledek zápisu nesděluje uživateli nepravdivě, že heslo určitě bylo
   uložené. Opakování ověří stav na serveru. Po potvrzeném zápisu se vstupy vymažou
-  a případné opakování obnovuje jen relaci. Přesměrování čeká na čerstvá metadata.
+  a případné opakování obnovuje jen relaci. Auth Admin změna ruší staré refresh tokeny;
+  formulář se proto přihlásí novým heslem, než vymaže vstupy. Stejným přihlášením
+  umí potvrdit dokončení po ztracené odpovědi a odmítnutém starém tokenu.
+  Úspěšné přihlášení samo nestačí: must_change_password musí být explicitně false.
+  Přesměrování čeká na čerstvá metadata.
 - Běžná obnova zapomenutého hesla bez povinné změny nadále používá updateUser.
 - Prázdné staré požadavky nesmějí zrušit povinnou změnu. Starší otevřený formulář
   je potřeba po nasazení znovu načíst.
 
-Ověření: 90 automatických testů a produkční Next.js build prošly. Jedenáct testů
+Ověření: 93 automatických testů a produkční Next.js build prošly. Čtrnáct testů
 hesla spouští skutečný handler a formulář s kontrolovanými Auth odpověďmi: CORS,
 neplatné přihlášení, atomický obsah zápisu, zachování metadat, opakování, odmítnutí
 současného hesla, uzavření jen ověřovací session, selhání Auth/rate limitu,
-ztracená odpověď po commitnutí + reload, obnova relace a běžná obnova hesla.
+ztracená odpověď po commitnutí + reload, obnova relace, zrušený původní refresh token, ztracená odpověď + neplatná stará
+relace, odmítnutí dočasného hesla při přihlašovací obnově a běžná obnova hesla.
 Nejde o přihlášení reálného uživatele na fyzickém telefonu.
 
 Read-only kontrola produkce našla jeden starší účet s přihlášením a stále
