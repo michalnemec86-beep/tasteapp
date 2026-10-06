@@ -21,6 +21,10 @@ import BreweryEditModalClient from "./BreweryEditModalClient";
 
 type UserBreweryStats = {
   beerCount: number;
+  tastedBeerCount: number;
+  brandCount: number;
+  brandIds: number[];
+  brandNames: string[];
   consumedCount: number;
 };
 
@@ -260,6 +264,16 @@ export default function BreweryTableClient({
       null
     );
 
+  const [
+    brandListLoadingId,
+    setBrandListLoadingId,
+  ] = useState<number | null>(null);
+
+  const [
+    brandListError,
+    setBrandListError,
+  ] = useState("");
+
   function handleSort(key: SortKey) {
     setPageInUrl(1);
 
@@ -306,6 +320,63 @@ export default function BreweryTableClient({
     setSelectedCity("");
     setShowAll(true);
     setPageInUrl(1);
+  }
+
+
+  async function openBrandList(
+    brewery: BreweryTableRow
+  ) {
+    if (brandListLoadingId != null) {
+      return;
+    }
+
+    setBrandListLoadingId(brewery.id);
+    setBrandListError("");
+
+    try {
+      const response = await fetch(
+        `/api/breweries/catalog-detail?breweryId=${brewery.id}`,
+        {
+          cache: "no-store",
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          "Brewery detail request failed"
+        );
+      }
+
+      const data = (await response.json()) as {
+        beers?: BreweryBeerItem[];
+      };
+
+      let detailBeers = data.beers ?? [];
+
+      if (selectedUserId) {
+        detailBeers = detailBeers
+          .filter(
+            (beer) =>
+              (beer.userTastingCounts[selectedUserId] ?? 0) > 0
+          )
+          .map((beer) => ({
+            ...beer,
+            tastingCount:
+              beer.userTastingCounts[selectedUserId] ?? 0,
+          }));
+      }
+
+      setBrandListBrewery({
+        ...brewery,
+        beers: detailBeers,
+      });
+    } catch {
+      setBrandListError(
+        "Detail značek se nepodařilo načíst. Zkus to znovu."
+      );
+    } finally {
+      setBrandListLoadingId(null);
+    }
   }
 
   const userFilteredRows = useMemo(() => {
@@ -387,7 +458,7 @@ export default function BreweryTableClient({
             row.city,
             row.country,
             row.historyText,
-            ...row.beers.map((beer) => beer.brandName),
+            ...row.brandNames,
           ]
             .filter(Boolean)
             .join(" ")
@@ -405,29 +476,14 @@ export default function BreweryTableClient({
         const stats =
           row.userStats[selectedUserId];
 
-        const beers = row.beers
-          .filter(
-            (beer) =>
-              (beer.userTastingCounts[selectedUserId] ?? 0) > 0
-          )
-          .map((beer) => ({
-            ...beer,
-            tastingCount:
-              beer.userTastingCounts[selectedUserId] ?? 0,
-          }));
-
         return {
           ...row,
           beerCount:
             stats?.beerCount ?? 0,
-          brandCount: new Set(
-            beers
-              .map((beer) => beer.brandId)
-              .filter((brandId): brandId is number => brandId != null)
-          ).size,
+          brandCount:
+            stats?.brandCount ?? 0,
           consumedCount:
             stats?.consumedCount ?? 0,
-          beers,
         };
       });
 
@@ -1008,9 +1064,12 @@ export default function BreweryTableClient({
                         <button
                           type="button"
                           onClick={() =>
-                            setBrandListBrewery(
+                            void openBrandList(
                               brewery
                             )
+                          }
+                          disabled={
+                            brandListLoadingId === brewery.id
                           }
                           title="Zobrazit evidované značky"
                           style={{
@@ -1026,7 +1085,13 @@ export default function BreweryTableClient({
                             fontWeight:
                               "inherit",
                             cursor:
-                              "pointer",
+                              brandListLoadingId === brewery.id
+                                ? "wait"
+                                : "pointer",
+                            opacity:
+                              brandListLoadingId === brewery.id
+                                ? 0.6
+                                : 1,
                           }}
                         >
                           {brewery.brandCount}
@@ -1251,6 +1316,20 @@ export default function BreweryTableClient({
           </div>
         )}
         </>
+      )}
+
+      {brandListError && (
+        <div
+          role="alert"
+          style={{
+            marginTop: "12px",
+            color: "var(--taste-text-muted)",
+            fontSize: "11px",
+            textAlign: "center",
+          }}
+        >
+          {brandListError}
+        </div>
       )}
 
       {brandListBrewery && (
