@@ -359,20 +359,20 @@ function CzechPreview() {
         inset: 0,
         width: "100%",
         height: "100%",
-        opacity: 0.62,
+        opacity: 0.58,
       }}
     >
       <defs>
         <pattern
           id="czech-grid"
-          width="32"
-          height="32"
+          width="34"
+          height="34"
           patternUnits="userSpaceOnUse"
         >
           <path
-            d="M 32 0 L 0 0 0 32"
+            d="M 34 0 L 0 0 0 34"
             fill="none"
-            stroke="rgba(255,255,255,0.055)"
+            stroke="rgba(255,255,255,0.05)"
             strokeWidth="1"
           />
         </pattern>
@@ -390,7 +390,7 @@ function CzechPreview() {
           />
           <stop
             offset="100%"
-            stopColor="rgba(231,166,47,0.22)"
+            stopColor="rgba(231,166,47,0.20)"
           />
         </linearGradient>
       </defs>
@@ -402,78 +402,65 @@ function CzechPreview() {
       />
 
       <path
-        d="M118 136
-           C128 119 145 109 168 107
-           C181 91 202 83 226 86
-           C246 75 270 74 289 84
-           C307 75 327 67 350 70
-           C367 61 389 62 407 72
-           C425 68 443 71 458 82
-           C477 75 499 78 512 91
-           C530 88 548 92 560 105
-           C581 102 605 109 620 124
-           C641 126 659 137 666 151
-           C652 160 638 166 622 166
-           C610 181 594 190 573 191
-           C559 204 541 211 520 207
-           C505 218 484 222 465 214
-           C449 221 428 220 412 211
-           C394 219 372 220 355 210
-           C335 216 312 213 297 201
-           C276 205 255 198 244 185
-           C222 188 202 180 192 166
-           C169 169 146 162 136 149
-           C126 148 119 143 118 136
+        d="M132 137
+           L158 113
+           L196 108
+           L218 91
+           L259 96
+           L291 78
+           L334 88
+           L365 72
+           L406 84
+           L442 76
+           L478 92
+           L518 88
+           L548 105
+           L590 103
+           L619 121
+           L656 127
+           L670 146
+           L646 160
+           L611 163
+           L586 182
+           L547 180
+           L519 198
+           L477 192
+           L446 207
+           L406 194
+           L369 207
+           L332 192
+           L293 198
+           L264 181
+           L225 185
+           L203 166
+           L166 164
+           L145 151
            Z"
         fill="url(#czech-fill)"
-        stroke="rgba(255,211,111,0.82)"
+        stroke="rgba(255,211,111,0.78)"
         strokeWidth="3"
         strokeLinejoin="round"
       />
 
-      <path
-        d="M284 96 C310 113 330 131 342 153"
-        fill="none"
-        stroke="rgba(255,255,255,0.10)"
-        strokeWidth="1.2"
-      />
-      <path
-        d="M415 85 C432 112 446 143 451 188"
-        fill="none"
-        stroke="rgba(255,255,255,0.10)"
-        strokeWidth="1.2"
-      />
-      <path
-        d="M515 103 C506 128 510 154 532 185"
-        fill="none"
-        stroke="rgba(255,255,255,0.10)"
-        strokeWidth="1.2"
-      />
-
       {[
-        { x: 300, y: 134, label: "Praha", r: 7 },
-        { x: 470, y: 165, label: "Brno", r: 5 },
-        { x: 582, y: 124, label: "Ostrava", r: 5 },
-      ].map((city) => (
-        <g key={city.label}>
-          <circle
-            cx={city.x}
-            cy={city.y}
-            r={city.r}
-            fill="#ffd36f"
-            stroke="rgba(58,37,19,0.85)"
-            strokeWidth="2"
-          />
-          <text
-            x={city.x + 11}
-            y={city.y + 4}
-            fill="rgba(255,241,194,0.78)"
-            fontSize="12"
-            fontWeight="700"
-          >
-            {city.label}
-          </text>
-        </g>
+        { x: 292, y: 132, r: 8 },
+        { x: 468, y: 155, r: 8 },
+        { x: 561, y: 122, r: 5 },
+        { x: 382, y: 174, r: 3.5 },
+      ].map((marker, index) => (
+        <circle
+          key={index}
+          cx={marker.x}
+          cy={marker.y}
+          r={marker.r}
+          fill={
+            index < 2
+              ? "#ffd36f"
+              : "#e7a62f"
+          }
+          stroke="rgba(58,37,19,0.82)"
+          strokeWidth="2"
+        />
       ))}
     </svg>
   );
