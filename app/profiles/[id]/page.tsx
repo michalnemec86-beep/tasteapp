@@ -335,65 +335,9 @@ export default async function ProfilePage({
             .range(from, to))
       : Promise.resolve([]);
 
-  const needsEditCatalog =
-    false;
-
   const needsCountries =
     isMe &&
     view === "breweries";
-
-  const beersPromise =
-    needsEditCatalog
-      ? fetchAllRows((from, to) =>
-          supabase
-            .from("beers")
-            .select(`
-              id,
-              name,
-              plato,
-              abv,
-              ibu,
-              is_catalog,
-              portfolio_status,
-              is_non_alcoholic,
-              brands (
-                id,
-                name
-              ),
-              breweries (
-                id,
-                name,
-                country,
-                logo_url,
-                closed_year
-              ),
-              beer_styles (
-                id,
-                name
-              )
-            `)
-            .order("is_catalog", { ascending: false })
-            .order("name")
-            .order("id")
-            .range(from, to))
-      : Promise.resolve([]);
-
-  const breweriesPromise =
-    needsEditCatalog
-      ? supabase
-          .from("breweries")
-          .select(`
-            id,
-            name,
-            country,
-            logo_url,
-            closed_year
-          `)
-          .order("name")
-      : Promise.resolve({
-          data: [],
-          error: null,
-        });
 
   const countriesPromise =
     needsCountries
@@ -408,96 +352,28 @@ export default async function ProfilePage({
           error: null,
         });
 
-  const stylesPromise =
-    needsEditCatalog
-      ? supabase
-          .from("beer_styles")
-          .select(
-            "id, name, aliases"
-          )
-          .order("name")
-      : Promise.resolve({
-          data: [],
-          error: null,
-        });
-
-  const hopsPromise =
-    needsEditCatalog
-      ? supabase
-          .from("hops")
-          .select(
-            "id, name, aliases"
-          )
-          .order("name")
-      : Promise.resolve({
-          data: [],
-          error: null,
-        });
-
   const [
     tastingsResult,
     historyIndexResult,
-    beersResult,
-    breweriesResult,
     countriesResult,
-    stylesResult,
-    hopsResult,
   ] =
     await Promise.all([
       tastingsPromise,
       historyIndexPromise,
-      beersPromise,
-      breweriesPromise,
       countriesPromise,
-      stylesPromise,
-      hopsPromise,
     ]);
 
   const tastings =
     tastingsResult;
-  const beers = beersResult;
-
-  const {
-    data: breweries,
-    error: breweriesError,
-  } = breweriesResult;
 
   const {
     data: countries,
     error: countriesError,
   } = countriesResult;
 
-  const {
-    data: styles,
-    error: stylesError,
-  } = stylesResult;
-
-  const {
-    data: hops,
-    error: hopsError,
-  } = hopsResult;
-
-  if (breweriesError) {
-    throw new Error(
-      breweriesError.message
-    );
-  }
-
   if (countriesError) {
     throw new Error(
       countriesError.message
-    );
-  }
-
-  if (stylesError) {
-    throw new Error(
-      stylesError.message
-    );
-  }
-
-  if (hopsError) {
-    throw new Error(
-      hopsError.message
     );
   }
 
@@ -703,13 +579,6 @@ export default async function ProfilePage({
     }
   >();
 
-  for (const brewery of breweries ?? []) {
-    breweriesById.set(
-      String(brewery.id),
-      brewery
-    );
-  }
-
   for (const tasting of tastings ?? []) {
     const beerVersion =
       singleRelation(
@@ -851,28 +720,6 @@ export default async function ProfilePage({
     view === "beers"
       ? historyIndexTastings
       : allTastings;
-
-  const normalizedBeers =
-    (beers ?? []).map(
-      (beer) => ({
-        ...beer,
-
-        breweries:
-          singleRelation(
-            beer.breweries
-          ),
-
-        brands:
-          singleRelation(
-            beer.brands
-          ),
-
-        beer_styles:
-          singleRelation(
-            beer.beer_styles
-          ),
-      })
-    );
 
   const tastingCountries = Array.from(
     new Set(
