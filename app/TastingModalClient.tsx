@@ -68,13 +68,22 @@ type ExistingBeer = {
   }> | null;
 };
 
-type TastingModalClientProps = {
+type TastingOptions = {
   beers: ExistingBeer[];
   breweries: Brewery[];
   brandsByBrewery: { breweryId: number; brand: { id: number; name: string } }[];
   countries: Country[];
   styles: BeerStyle[];
   hops: Hop[];
+};
+
+type TastingModalClientProps = {
+  beers?: ExistingBeer[];
+  breweries?: Brewery[];
+  brandsByBrewery?: { breweryId: number; brand: { id: number; name: string } }[];
+  countries?: Country[];
+  styles?: BeerStyle[];
+  hops?: Hop[];
 
   saveTastingAction: (
     formData: FormData
@@ -99,6 +108,86 @@ export default function TastingModalClient({
 
   const router =
     useRouter();
+
+  const [
+    options,
+    setOptions,
+  ] = useState<TastingOptions | null>(() => {
+    if (
+      beers &&
+      breweries &&
+      brandsByBrewery &&
+      countries &&
+      styles &&
+      hops
+    ) {
+      return {
+        beers,
+        breweries,
+        brandsByBrewery,
+        countries,
+        styles,
+        hops,
+      };
+    }
+
+    return null;
+  });
+
+  const [
+    loadingOptions,
+    setLoadingOptions,
+  ] = useState(false);
+
+  const [
+    optionsError,
+    setOptionsError,
+  ] = useState("");
+
+  async function loadOptions() {
+    if (
+      options ||
+      loadingOptions
+    ) {
+      return;
+    }
+
+    setLoadingOptions(true);
+    setOptionsError("");
+
+    try {
+      const response =
+        await fetch(
+          "/api/tasting-options",
+          {
+            method: "GET",
+            cache: "no-store",
+          }
+        );
+
+      if (!response.ok) {
+        throw new Error(
+          `Tasting options request failed with status ${response.status}`
+        );
+      }
+
+      const data =
+        (await response.json()) as TastingOptions;
+
+      setOptions(data);
+    } catch {
+      setOptionsError(
+        "Podklady pro formulář se nepodařilo načíst. Zkontroluj připojení a zkus to znovu."
+      );
+    } finally {
+      setLoadingOptions(false);
+    }
+  }
+
+  function openModal() {
+    setOpen(true);
+    void loadOptions();
+  }
 
   // ==================================================
   // ZAMKNUTÍ SCROLLOVÁNÍ POZADÍ
@@ -149,8 +238,8 @@ export default function TastingModalClient({
 
       <button
         type="button"
-        onClick={() =>
-          setOpen(true)
+        onClick={
+          openModal
         }
         className="taste-button-primary"
         style={{
@@ -415,21 +504,76 @@ export default function TastingModalClient({
                   "16px 20px 20px",
               }}
             >
-              <TastingForm
-                saveTastingAction={
-                  handleSave
-                }
-                beers={beers}
-                breweries={
-                  breweries
-                }
-                brandsByBrewery={brandsByBrewery}
-                countries={
-                  countries
-                }
-                styles={styles}
-                hops={hops}
-              />
+              {options ? (
+                <TastingForm
+                  saveTastingAction={
+                    handleSave
+                  }
+                  beers={
+                    options.beers
+                  }
+                  breweries={
+                    options.breweries
+                  }
+                  brandsByBrewery={
+                    options.brandsByBrewery
+                  }
+                  countries={
+                    options.countries
+                  }
+                  styles={
+                    options.styles
+                  }
+                  hops={
+                    options.hops
+                  }
+                />
+              ) : (
+                <div
+                  style={{
+                    minHeight:
+                      "150px",
+                    display:
+                      "flex",
+                    flexDirection:
+                      "column",
+                    alignItems:
+                      "center",
+                    justifyContent:
+                      "center",
+                    gap:
+                      "12px",
+                    textAlign:
+                      "center",
+                    color:
+                      "var(--taste-text-muted)",
+                    fontSize:
+                      "12px",
+                    lineHeight:
+                      1.5,
+                  }}
+                >
+                  <div>
+                    {loadingOptions
+                      ? "Načítám podklady pro ochutnávku…"
+                      : optionsError ||
+                        "Připravuji formulář…"}
+                  </div>
+
+                  {!loadingOptions &&
+                    optionsError && (
+                    <button
+                      type="button"
+                      className="taste-button-secondary"
+                      onClick={() =>
+                        void loadOptions()
+                      }
+                    >
+                      Zkusit znovu
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>,

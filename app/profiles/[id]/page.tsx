@@ -11,7 +11,6 @@ import {
 } from "@/lib/supabase/server";
 import { fetchAllRows } from "@/lib/fetch-all-rows";
 import { getCurrentUser } from "@/lib/supabase/current-user";
-import { isBeerAvailableForTasting } from "@/lib/beerPortfolio";
 
 import {
   getPackagingMeta,
@@ -264,80 +263,108 @@ export default async function ProfilePage({
       .order("id")
       .range(from, to));
 
-  const beersPromise = fetchAllRows((from, to) =>
-    supabase
-      .from("beers")
-      .select(`
-        id,
-        name,
-        plato,
-        abv,
-        ibu,
-        is_catalog,
-        portfolio_status,
-        is_non_alcoholic,
-        brands (
-          id,
-          name
-        ),
-        breweries (
-          id,
-          name,
-          country,
-          logo_url,
-          closed_year
-        ),
-        beer_styles (
-          id,
-          name
-        )
-      `)
-      .order("is_catalog", { ascending: false })
-      .order("name")
-      .order("id")
-      .range(from, to));
+  const needsEditCatalog =
+    isMe &&
+    view === "beers";
+
+  const needsCountries =
+    needsEditCatalog ||
+    (
+      isMe &&
+      view === "breweries"
+    );
+
+  const beersPromise =
+    needsEditCatalog
+      ? fetchAllRows((from, to) =>
+          supabase
+            .from("beers")
+            .select(`
+              id,
+              name,
+              plato,
+              abv,
+              ibu,
+              is_catalog,
+              portfolio_status,
+              is_non_alcoholic,
+              brands (
+                id,
+                name
+              ),
+              breweries (
+                id,
+                name,
+                country,
+                logo_url,
+                closed_year
+              ),
+              beer_styles (
+                id,
+                name
+              )
+            `)
+            .order("is_catalog", { ascending: false })
+            .order("name")
+            .order("id")
+            .range(from, to))
+      : Promise.resolve([]);
 
   const breweriesPromise =
-    supabase
-      .from("breweries")
-      .select(`
-        id,
-        name,
-        country,
-        logo_url,
-        closed_year,
-        brewery_name_history (
-          previous_name
-        ),
-        brewery_brands (
-          brands (id, name)
-        )
-      `)
-      .order("name");
+    needsEditCatalog
+      ? supabase
+          .from("breweries")
+          .select(`
+            id,
+            name,
+            country,
+            logo_url,
+            closed_year
+          `)
+          .order("name")
+      : Promise.resolve({
+          data: [],
+          error: null,
+        });
 
   const countriesPromise =
-    supabase
-      .from("countries")
-      .select(
-        "id, name"
-      )
-      .order("name");
+    needsCountries
+      ? supabase
+          .from("countries")
+          .select(
+            "id, name"
+          )
+          .order("name")
+      : Promise.resolve({
+          data: [],
+          error: null,
+        });
 
   const stylesPromise =
-    supabase
-      .from("beer_styles")
-      .select(
-        "id, name, aliases"
-      )
-      .order("name");
+    needsEditCatalog
+      ? supabase
+          .from("beer_styles")
+          .select(
+            "id, name, aliases"
+          )
+          .order("name")
+      : Promise.resolve({
+          data: [],
+          error: null,
+        });
 
   const hopsPromise =
-    supabase
-      .from("hops")
-      .select(
-        "id, name, aliases"
-      )
-      .order("name");
+    needsEditCatalog
+      ? supabase
+          .from("hops")
+          .select(
+            "id, name, aliases"
+          )
+          .order("name")
+      : Promise.resolve({
+          data: [],
+          error: null,
+        });
 
   const [
     tastingsResult,
@@ -403,9 +430,58 @@ export default async function ProfilePage({
     );
   }
 
-  const breweriesById = new Map(
-    (breweries ?? []).map((brewery) => [String(brewery.id), brewery])
-  );
+  const breweriesById = new Map<
+    string,
+    {
+      id: number;
+      name: string;
+      country: string | null;
+      logo_url: string | null;
+    }
+  >();
+
+  for (const brewery of breweries ?? []) {
+    breweriesById.set(
+      String(brewery.id),
+      brewery
+    );
+  }
+
+  for (const tasting of tastings ?? []) {
+    const beerVersion =
+      singleRelation(
+        tasting.beer_versions
+      );
+
+    const historicalBrewery =
+      singleRelation(
+        beerVersion?.breweries
+      );
+
+    if (historicalBrewery) {
+      breweriesById.set(
+        String(historicalBrewery.id),
+        historicalBrewery
+      );
+    }
+
+    const beer =
+      singleRelation(
+        tasting.beers
+      );
+
+    const currentBrewery =
+      singleRelation(
+        beer?.breweries
+      );
+
+    if (currentBrewery) {
+      breweriesById.set(
+        String(currentBrewery.id),
+        currentBrewery
+      );
+    }
+  }
 
   const globalTastings =
     (tastings ?? []).map(
@@ -530,69 +606,6 @@ export default async function ProfilePage({
       })
     );
 
-  const availableBeers =
-    normalizedBeers.filter(
-      (beer) =>
-        isBeerAvailableForTasting(
-          beer.portfolio_status,
-          beer.breweries?.closed_year
-        ) &&
-        Boolean(
-          beer.brands &&
-          beer.breweries
-        )
-    );
-
-  const availableBreweries =
-    (breweries ?? [])
-      .filter(
-        (brewery) =>
-          brewery.closed_year == null
-      )
-      .map((brewery) => ({
-        id: brewery.id,
-        name: brewery.name,
-        aliases:
-          (
-            brewery.brewery_name_history ??
-            []
-          )
-            .map(
-              (item) =>
-                item.previous_name
-            )
-            .filter(
-              (
-                alias
-              ): alias is string =>
-                Boolean(alias)
-            ),
-      }));
-
-  const brandsByBrewery =
-    (breweries ?? [])
-      .flatMap((brewery) =>
-        (
-          brewery.brewery_brands ??
-          []
-        ).flatMap((link) => {
-          const brand =
-            singleRelation(
-              link.brands
-            );
-
-          return brand
-            ? [
-                {
-                  breweryId:
-                    brewery.id,
-                  brand,
-                },
-              ]
-            : [];
-        })
-      );
-
   const tastingCountries = Array.from(
     new Set(
       allTastings
@@ -710,7 +723,12 @@ export default async function ProfilePage({
     );
 
   const breweryCountriesById = new Map(
-    (breweries ?? []).map((brewery) => [String(brewery.id), brewery.country])
+    Array.from(
+      breweriesById.values()
+    ).map((brewery) => [
+      String(brewery.id),
+      brewery.country,
+    ])
   );
   const profileBreweryItems = tasteStats.breweries.map((brewery) => ({
     ...brewery,
@@ -1118,14 +1136,7 @@ export default async function ProfilePage({
             ) : view === "beers" ? (
               undefined
             ) : (
-              <TastingModal
-                beers={availableBeers}
-                breweries={availableBreweries}
-                brandsByBrewery={brandsByBrewery}
-                countries={countries ?? []}
-                styles={styles ?? []}
-                hops={hops ?? []}
-              />
+              <TastingModal />
             )
           ) : undefined
         }
