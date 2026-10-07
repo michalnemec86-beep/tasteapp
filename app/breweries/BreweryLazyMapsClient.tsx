@@ -189,6 +189,7 @@ export default function BreweryLazyMapsClient({
         open={worldOpen}
         onToggle={() => void toggleWorld()}
         preview={<WorldPreview />}
+        variant="czech"
       >
         {worldLoading ? (
           <MapLoading label="Načítám světovou mapu" />
@@ -398,13 +399,34 @@ function WorldPreview() {
       style={{
         position: "absolute",
         inset: 0,
-        backgroundImage:
-          'url("/images/brewery-world-preview.jpg")',
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
+        overflow: "hidden",
+        background:
+          "linear-gradient(135deg, #17140f 0%, #1c1812 48%, #211b13 100%)",
       }}
-    />
+    >
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          backgroundImage:
+            'url("/images/brewery-world-preview.jpg")',
+          backgroundSize: "auto 100%",
+          backgroundPosition: "right center",
+          backgroundRepeat: "no-repeat",
+          filter:
+            "sepia(0.12) saturate(0.9) brightness(0.82) contrast(1.04)",
+        }}
+      />
+
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          background:
+            "linear-gradient(90deg, rgba(18,14,9,0.96) 0%, rgba(18,14,9,0.82) 30%, rgba(18,14,9,0.24) 58%, rgba(18,14,9,0.02) 100%)",
+        }}
+      />
+    </div>
   );
 }
 
