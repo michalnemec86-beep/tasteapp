@@ -31,7 +31,6 @@ import type {
 
 import {
   buildAchievementProgressFromMetrics,
-  type AchievementMetric,
   type AchievementMetricSnapshot,
   type AchievementProgress,
   type AchievementSeries,
@@ -972,9 +971,6 @@ export default async function ProfilePage({
 
   const hasTastingSelection =
     view === "beers";
-
-  const historyTotalCount =
-    historyPageData.filteredTotal;
 
   const historyPageCount =
     historyPageData.pageCount;
