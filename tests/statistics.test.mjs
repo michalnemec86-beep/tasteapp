@@ -20,6 +20,7 @@ const { buildProfileStats, getTastingDate } = load('lib/profileStats.ts');
 const { filterBeerCatalogItems, getBeerCatalogFacets } = load('lib/beer-catalog-page.ts');
 const { buildProfileHistoryOverview } = load('lib/profileHistoryOverview.ts');
 const { buildTasteStats } = load('lib/stats.ts');
+const { parseStatsDashboardPayload } = load('lib/stats-dashboard.ts');
 const { isBeerAvailableForTasting } = load('lib/beerPortfolio.ts');
 const hop = id => ({ hops: { id, name: `Chmel ${id}` } });
 const tasting = overrides => ({ user_id: 'me', quantity: 2, tasted_on: '2026-09-30',
@@ -170,6 +171,57 @@ test('activity stats preserve visible rankings when hop relations are omitted', 
   assert.equal(result.hops.length, 0);
 });
 
+
+
+test('aggregated stats payload preserves full primary rows and compact comparison rows', () => {
+  const payload = parseStatsDashboardPayload({
+    primary: {
+      units: 5,
+      stats: {
+        beers: [{ id: 1, name: 'Pivo', count: 5 }],
+        brands: [{ id: 10, name: 'Značka', count: 5, logoUrl: 'logo.png' }],
+        breweries: [{ id: 20, name: 'Pivovar', count: 5 }],
+        styles: [{ id: 30, name: 'Ležák', count: 5 }],
+        countries: [{ id: 'cesko', name: 'Česko', count: 5 }],
+        hops: [{ id: 40, name: 'Žatecký', count: 5 }],
+        packaging: [{ id: 'draft', name: 'Čepované', count: 5 }],
+      },
+    },
+    comparison: {
+      units: 3,
+      stats: {
+        beers: [{ id: 1, count: 3 }],
+        brands: [{ id: 10, count: 3 }],
+        breweries: [{ id: 20, count: 3 }],
+        styles: [{ id: 30, count: 3 }],
+        countries: [{ id: 'cesko', count: 3 }],
+        hops: [{ id: 40, count: 3 }],
+        packaging: [{ id: 'draft', count: 3 }],
+      },
+    },
+    personal: {
+      units: 3,
+      stats: {
+        beers: [{ id: 1, count: 3 }],
+        brands: [{ id: 10, count: 3 }],
+        breweries: [{ id: 20, count: 3 }],
+        styles: [{ id: 30, count: 3 }],
+        countries: [{ id: 'cesko', count: 3 }],
+        hops: [{ id: 40, count: 3 }],
+        packaging: [{ id: 'draft', count: 3 }],
+      },
+    },
+    labels: { country: 'Česko' },
+  });
+
+  assert.equal(payload.primary.units, 5);
+  assert.equal(payload.primary.stats.countries[0].flag, '🇨🇿');
+  assert.equal(payload.primary.stats.brands[0].logoUrl, 'logo.png');
+  assert.equal(payload.comparison.stats.beers[0].name, '');
+  assert.equal(payload.comparison.stats.beers[0].count, 3);
+  assert.deepEqual(payload.personal.stats.beers.map(item => item.id), [1]);
+  assert.equal(payload.labels.country, 'Česko');
+});
 
 test('beer catalogue server paging preserves filters, personal counts and facets', () => {
   const beers = [

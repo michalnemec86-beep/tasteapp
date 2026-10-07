@@ -2,11 +2,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
-import { fetchAllRows } from "@/lib/fetch-all-rows";
-import {
-  buildTasteStats,
-  type RankingItem,
-} from "@/lib/stats";
+import type { RankingItem } from "@/lib/stats";
+import { parseStatsDashboardPayload } from "@/lib/stats-dashboard";
 import { isPackaging } from "@/lib/packaging";
 
 import StatsFilterBarClient from "./StatsFilterBarClient";
@@ -97,145 +94,6 @@ export default async function StatsPage({
     ? requestedSort
     : "count-desc";
 
-  const [profilesResult, tastingsResult] =
-    await Promise.all([
-      supabase
-        .from("profiles")
-        .select("id, display_name, avatar_url")
-        .order("display_name"),
-      fetchAllRows((from, to) => supabase
-        .from("tastings")
-        .select(`
-          id,
-          user_id,
-          tasted_at,
-          tasted_on,
-          packaging,
-          quantity,
-          beer_versions (
-            breweries!beer_versions_brewery_id_fkey (
-              id,
-              name,
-              country,
-              logo_url
-            ),
-            beer_styles (
-              id,
-              name
-            ),
-            beer_version_hops (
-              hops (
-                id,
-                name
-              )
-            )
-          ),
-          beers (
-            id,
-            name,
-            brands (
-              id,
-              name
-            ),
-            breweries (
-              id,
-              name,
-              country,
-              logo_url
-            ),
-            beer_styles (
-              id,
-              name
-            ),
-            beer_hops (
-              hops (
-                id,
-                name
-              )
-            )
-          )
-        `)
-        .order("id")
-        .range(from, to)),
-    ]);
-
-  const {
-    data: profiles,
-    error: profilesError,
-  } = profilesResult;
-  const tastings = tastingsResult;
-
-  if (profilesError) {
-    throw new Error(profilesError.message);
-  }
-
-  const allProfiles = profiles ?? [];
-
-  const allTastings = (tastings ?? []).map(
-    (tasting) => {
-      const beer = singleRelation(tasting.beers);
-      const beerVersion =
-        singleRelation(tasting.beer_versions);
-
-      return {
-        ...tasting,
-        beer_versions: beerVersion
-          ? {
-              ...beerVersion,
-              breweries: singleRelation(
-                beerVersion.breweries
-              ),
-              beer_styles: singleRelation(
-                beerVersion.beer_styles
-              ),
-              beer_version_hops:
-                (beerVersion.beer_version_hops ?? []).map(
-                  (versionHop) => ({
-                    ...versionHop,
-                    hops: singleRelation(
-                      versionHop.hops
-                    ),
-                  })
-                ),
-            }
-          : null,
-        beers: beer
-          ? {
-              ...beer,
-              brands: singleRelation(
-                beer.brands
-              ),
-              breweries: singleRelation(
-                beer.breweries
-              ),
-              beer_styles: singleRelation(
-                beer.beer_styles
-              ),
-              beer_hops: (beer.beer_hops ?? []).map(
-                (beerHop) => ({
-                  ...beerHop,
-                  hops: singleRelation(
-                    beerHop.hops
-                  ),
-                })
-              ),
-            }
-          : null,
-      };
-    }
-  );
-
-  const selectedProfile = requestedUser
-    ? allProfiles.find(
-        (profile) => profile.id === requestedUser
-      ) ?? null
-    : null;
-
-  const selectedUserId = selectedProfile?.id;
-  const isLockedContext =
-    requestedLocked === "1" && Boolean(selectedProfile);
-  const comparisonLabel = selectedUserId ? "celkem" : "moje";
-
   const selectedFocus = isStatsFocus(requestedFocus)
     ? requestedFocus
     : undefined;
@@ -272,97 +130,111 @@ export default async function StatsPage({
       ? requestedPackaging
       : undefined;
 
-  const periodTastings = allTastings.filter(
-    (tasting) => {
-      if (!selectedYear) {
-        return true;
-      }
-
-      if (getYear(tasting.tasted_on) !== selectedYear) {
-        return false;
-      }
-
-      if (!selectedMonth) {
-        return true;
-      }
-
-      return getMonth(tasting.tasted_on) === selectedMonth;
-    }
-  );
-
-  const packagingTastings = selectedPackaging
-    ? periodTastings.filter(
-        (tasting) =>
-          tasting.packaging === selectedPackaging
-      )
-    : periodTastings;
-
   const requestedBeerId = parsePositiveInteger(requestedBeer);
   const requestedBrandId = parsePositiveInteger(requestedBrand);
   const requestedBreweryId = parsePositiveInteger(requestedBrewery);
   const requestedStyleId = parsePositiveInteger(requestedStyle);
   const requestedHopId = parsePositiveInteger(requestedHop);
-  const normalizedRequestedCountry = requestedCountry
-    ? normalizeCountry(requestedCountry)
-    : undefined;
+  const candidateSelectedUserId =
+    parseUuid(requestedUser);
 
-  const contextFilteredTastings = packagingTastings.filter((tasting) => {
-    if (requestedBeerId && tasting.beers?.id !== requestedBeerId) {
-      return false;
-    }
+  const statsRpcParams = {
+    p_current_user: user.id,
+    p_selected_user:
+      candidateSelectedUserId ?? null,
+    p_year: selectedYear ?? null,
+    p_month: selectedMonth ?? null,
+    p_packaging:
+      selectedPackaging ?? null,
+    p_beer_id: requestedBeerId ?? null,
+    p_brand_id: requestedBrandId ?? null,
+    p_brewery_id:
+      requestedBreweryId ?? null,
+    p_style_id: requestedStyleId ?? null,
+    p_country:
+      requestedCountry?.trim() || null,
+    p_hop_id: requestedHopId ?? null,
+  };
 
-    if (requestedBrandId && tasting.beers?.brands?.id !== requestedBrandId) {
-      return false;
-    }
+  let [profilesResult, statsResult] =
+    await Promise.all([
+      supabase
+        .from("profiles")
+        .select("id, display_name, avatar_url")
+        .order("display_name"),
+      supabase.rpc(
+        "get_stats_dashboard",
+        statsRpcParams
+      ),
+    ]);
 
-    const brewery = tasting.beer_versions?.breweries ?? tasting.beers?.breweries;
-    if (requestedBreweryId && brewery?.id !== requestedBreweryId) {
-      return false;
-    }
+  const {
+    data: profiles,
+    error: profilesError,
+  } = profilesResult;
 
-    const style = tasting.beer_versions?.beer_styles ?? tasting.beers?.beer_styles;
-    if (requestedStyleId && style?.id !== requestedStyleId) {
-      return false;
-    }
+  if (profilesError) {
+    throw new Error(profilesError.message);
+  }
 
-    if (normalizedRequestedCountry && normalizeCountry(brewery?.country ?? "") !== normalizedRequestedCountry) {
-      return false;
-    }
+  if (statsResult.error) {
+    throw new Error(
+      statsResult.error.message
+    );
+  }
 
-    if (requestedHopId) {
-      const hopRows =
-        tasting.beer_versions?.beer_version_hops ??
-        tasting.beers?.beer_hops ??
-        [];
+  const allProfiles = profiles ?? [];
 
-      if (!hopRows.some((row) => row.hops?.id === requestedHopId)) {
-        return false;
+  const selectedProfile = requestedUser
+    ? allProfiles.find(
+        (profile) =>
+          profile.id === requestedUser
+      ) ?? null
+    : null;
+
+  const selectedUserId =
+    selectedProfile?.id;
+
+  // A stale or hand-written user query keeps the previous behavior:
+  // unknown profiles fall back to the shared statistics.
+  if (
+    candidateSelectedUserId &&
+    !selectedProfile
+  ) {
+    statsResult = await supabase.rpc(
+      "get_stats_dashboard",
+      {
+        ...statsRpcParams,
+        p_selected_user: null,
       }
-    }
+    );
 
-    return true;
-  });
-
-  const filteredTastings = selectedUserId
-    ? contextFilteredTastings.filter(
-        (tasting) => tasting.user_id === selectedUserId
-      )
-    : contextFilteredTastings;
-
-  const comparisonTastings = selectedUserId
-    ? contextFilteredTastings
-    : contextFilteredTastings.filter(
-        (tasting) => tasting.user_id === user.id
+    if (statsResult.error) {
+      throw new Error(
+        statsResult.error.message
       );
+    }
+  }
 
-  const rawStats = buildTasteStats(filteredTastings);
-  const comparisonStats = buildTasteStats(comparisonTastings);
-  const personalStats = buildTasteStats(contextFilteredTastings, user.id);
-  const contextSourceStats = buildTasteStats(
+  const dashboard =
+    parseStatsDashboardPayload(
+      statsResult.data
+    );
+
+  const rawStats =
+    dashboard.primary.stats;
+  const comparisonStats =
+    dashboard.comparison.stats;
+  const personalStats =
+    dashboard.personal.stats;
+
+  const isLockedContext =
+    requestedLocked === "1" &&
+    Boolean(selectedProfile);
+  const comparisonLabel =
     selectedUserId
-      ? periodTastings.filter((tasting) => tasting.user_id === selectedUserId)
-      : periodTastings
-  );
+      ? "celkem"
+      : "moje";
 
   const contextFilters = [
     requestedBeerId
@@ -370,9 +242,8 @@ export default async function StatsPage({
           param: "beer",
           label: "Pivo",
           value:
-            contextSourceStats.beers.find(
-              (item) => String(item.id) === String(requestedBeerId)
-            )?.name ?? `#${requestedBeerId}`,
+            dashboard.labels.beer ??
+            `#${requestedBeerId}`,
         }
       : null,
     requestedBrandId
@@ -380,9 +251,8 @@ export default async function StatsPage({
           param: "brand",
           label: "Značka",
           value:
-            contextSourceStats.brands.find(
-              (item) => String(item.id) === String(requestedBrandId)
-            )?.name ?? `#${requestedBrandId}`,
+            dashboard.labels.brand ??
+            `#${requestedBrandId}`,
         }
       : null,
     requestedBreweryId
@@ -390,9 +260,8 @@ export default async function StatsPage({
           param: "brewery",
           label: "Pivovar",
           value:
-            contextSourceStats.breweries.find(
-              (item) => String(item.id) === String(requestedBreweryId)
-            )?.name ?? `#${requestedBreweryId}`,
+            dashboard.labels.brewery ??
+            `#${requestedBreweryId}`,
         }
       : null,
     requestedStyleId
@@ -400,28 +269,36 @@ export default async function StatsPage({
           param: "style",
           label: "Styl",
           value:
-            contextSourceStats.styles.find(
-              (item) => String(item.id) === String(requestedStyleId)
-            )?.name ?? `#${requestedStyleId}`,
+            dashboard.labels.style ??
+            `#${requestedStyleId}`,
         }
       : null,
     requestedCountry
-      ? { param: "country", label: "Země", value: requestedCountry }
+      ? {
+          param: "country",
+          label: "Země",
+          value:
+            dashboard.labels.country ??
+            requestedCountry,
+        }
       : null,
     requestedHopId
       ? {
           param: "hop",
           label: "Chmel",
           value:
-            contextSourceStats.hops.find(
-              (item) => String(item.id) === String(requestedHopId)
-            )?.name ?? `#${requestedHopId}`,
+            dashboard.labels.hop ??
+            `#${requestedHopId}`,
         }
       : null,
   ].filter(
     (
       filter
-    ): filter is { param: string; label: string; value: string } =>
+    ): filter is {
+      param: string;
+      label: string;
+      value: string;
+    } =>
       Boolean(filter)
   );
 
@@ -529,105 +406,31 @@ export default async function StatsPage({
     ),
   };
 
-  const totalTastings = filteredTastings.reduce(
-    (sum, tasting) =>
-      sum + (tasting.quantity ?? 1),
-    0
-  );
+  const totalTastings =
+    dashboard.primary.units;
+  const totalBeers =
+    rawStats.beers.length;
+  const totalBrands =
+    rawStats.brands.length;
+  const totalBreweries =
+    rawStats.breweries.length;
+  const totalStyles =
+    rawStats.styles.length;
+  const totalCountries =
+    rawStats.countries.length;
 
-  const totalBeers = new Set(
-    filteredTastings
-      .map((tasting) => tasting.beers?.id)
-      .filter((id) => id != null)
-  ).size;
-
-  const totalBrands = new Set(
-    filteredTastings
-      .map((tasting) => tasting.beers?.brands?.id)
-      .filter((id) => id != null)
-  ).size;
-
-  const totalBreweries = new Set(
-    filteredTastings
-      .map((tasting) =>
-        tasting.beer_versions?.breweries?.id ??
-        tasting.beers?.breweries?.id
-      )
-      .filter((id) => id != null)
-  ).size;
-
-  const totalStyles = new Set(
-    filteredTastings
-      .map((tasting) =>
-        (
-          tasting.beer_versions
-            ?.beer_styles ??
-          tasting.beers
-            ?.beer_styles
-        )?.id
-      )
-      .filter((id) => id != null)
-  ).size;
-
-  const totalCountries = new Set(
-    filteredTastings
-      .map((tasting) =>
-        (tasting.beer_versions?.breweries ?? tasting.beers?.breweries)
-          ?.country
-          ?.normalize("NFD")
-          .replace(/[\u0300-\u036f]/g, "")
-          .toLowerCase()
-          .trim()
-      )
-      .filter(Boolean)
-  ).size;
-
-  const comparisonTotalTastings = comparisonTastings.reduce(
-    (sum, tasting) => sum + (tasting.quantity ?? 1),
-    0
-  );
-  const comparisonTotalBeers = new Set(
-    comparisonTastings
-      .map((tasting) => tasting.beers?.id)
-      .filter((id) => id != null)
-  ).size;
-  const comparisonTotalBrands = new Set(
-    comparisonTastings
-      .map((tasting) => tasting.beers?.brands?.id)
-      .filter((id) => id != null)
-  ).size;
-  const comparisonTotalBreweries = new Set(
-    comparisonTastings
-      .map(
-        (tasting) =>
-          tasting.beer_versions?.breweries?.id ??
-          tasting.beers?.breweries?.id
-      )
-      .filter((id) => id != null)
-  ).size;
-  const comparisonTotalStyles = new Set(
-    comparisonTastings
-      .map(
-        (tasting) =>
-          (
-            tasting.beer_versions?.beer_styles ??
-            tasting.beers?.beer_styles
-          )?.id
-      )
-      .filter((id) => id != null)
-  ).size;
-  const comparisonTotalCountries = new Set(
-    comparisonTastings
-      .map((tasting) =>
-        (tasting.beer_versions?.breweries ?? tasting.beers?.breweries)
-          ?.country
-          ?.normalize("NFD")
-          .replace(/[\u0300-\u036f]/g, "")
-          .toLowerCase()
-          .trim()
-      )
-      .filter(Boolean)
-  ).size;
+  const comparisonTotalTastings =
+    dashboard.comparison.units;
+  const comparisonTotalBeers =
+    comparisonStats.beers.length;
+  const comparisonTotalBrands =
+    comparisonStats.brands.length;
+  const comparisonTotalBreweries =
+    comparisonStats.breweries.length;
+  const comparisonTotalStyles =
+    comparisonStats.styles.length;
+  const comparisonTotalCountries =
+    comparisonStats.countries.length;
 
   const focusedView = selectedFocus
     ? {
@@ -864,7 +667,7 @@ export default async function StatsPage({
         hideProfileSelector={isLockedContext}
       />
 
-      {filteredTastings.length === 0 && (
+      {totalTastings === 0 && (
         <div
           className="taste-card"
           style={{
@@ -1053,7 +856,7 @@ export default async function StatsPage({
         />
       )}
 
-      {filteredTastings.length > 0 &&
+      {totalTastings > 0 &&
         (!selectedFocus || selectedFocus === "countries") && (
           <div style={{ marginBottom: "30px" }}>
             <StatsWorldMapPanelClient
@@ -1087,6 +890,21 @@ function getStringParam(
     : undefined;
 }
 
+function parseUuid(
+  value: string | undefined
+) {
+  if (
+    !value ||
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+      value
+    )
+  ) {
+    return undefined;
+  }
+
+  return value;
+}
+
 function parsePositiveInteger(value: string | undefined) {
   if (!value) {
     return undefined;
@@ -1094,14 +912,6 @@ function parsePositiveInteger(value: string | undefined) {
 
   const parsed = Number(value);
   return Number.isInteger(parsed) && parsed > 0 ? parsed : undefined;
-}
-
-function normalizeCountry(value: string) {
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .trim();
 }
 
 function normalizeSearchValue(
@@ -1112,30 +922,6 @@ function normalizeSearchValue(
     .replace(/[\u0300-\u036f]/g, "")
     .toLocaleLowerCase("cs")
     .trim();
-}
-
-function getYear(
-  dateString: string | null | undefined
-) {
-  if (!dateString) {
-    return null;
-  }
-
-  const year = Number(dateString.slice(0, 4));
-
-  return Number.isInteger(year) ? year : null;
-}
-
-function getMonth(
-  dateString: string | null | undefined
-) {
-  if (!dateString) {
-    return null;
-  }
-
-  const month = Number(dateString.slice(5, 7));
-
-  return Number.isInteger(month) ? month : null;
 }
 
 function isStatsFocus(

@@ -1,0 +1,3 @@
+-- Historical refinement retained to match the applied migration sequence.
+-- The final get_stats_dashboard definition is included in
+-- 20261007061034_optimize_stats_dashboard_aggregates.sql for clean replays.

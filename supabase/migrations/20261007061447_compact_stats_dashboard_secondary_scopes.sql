@@ -1,0 +1,3 @@
+-- Historical refinement retained to match the applied migration sequence.
+-- The compact secondary-scope payload is included in the final function
+-- definition stored in the first stats optimization migration.

@@ -1,0 +1,3 @@
+-- Historical refinement retained to match the applied migration sequence.
+-- The optimized grouped JSON build is included in the final function
+-- definition stored in the first stats optimization migration.
