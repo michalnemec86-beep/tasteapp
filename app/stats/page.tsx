@@ -816,15 +816,6 @@ export default async function StatsPage({
             />
           )}
 
-          {!selectedFocus && totalTastings > 0 && (
-            <StatsWorldMapPanelClient
-              items={rawStats.countries}
-              statsContextUserId={selectedUserId}
-              lockStatsContext={isLockedContext}
-              comparisonCount={comparisonStats.countries.length}
-              comparisonLabel={comparisonLabel}
-            />
-          )}
           {selectedFocus === "packaging" && (
             <RankingCardClient
               currentUserId={user.id}
@@ -842,6 +833,18 @@ export default async function StatsPage({
           )}
         </HorizontalRankingScroller>
       </section>
+
+      {!selectedFocus && totalTastings > 0 && (
+        <div style={{ marginBottom: "30px" }}>
+          <StatsWorldMapPanelClient
+            items={rawStats.countries}
+            statsContextUserId={selectedUserId}
+            lockStatsContext={isLockedContext}
+            comparisonCount={comparisonStats.countries.length}
+            comparisonLabel={comparisonLabel}
+          />
+        </div>
+      )}
 
       {!selectedFocus && (
         <PackagingSummaryCard

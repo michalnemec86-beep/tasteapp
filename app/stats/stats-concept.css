@@ -425,28 +425,9 @@ body:has(.taste-stats-concept) {
   display: none;
 }
 
-.taste-stats-concept .taste-ranking-scroll-track > :is(.taste-ranking-card, .taste-ranking-carousel-item) {
+.taste-stats-concept .taste-ranking-scroll-track > .taste-ranking-card {
   flex: 0 0 min(430px, calc(100vw - 150px));
   scroll-snap-align: start;
-}
-
-.taste-stats-concept .taste-ranking-carousel-item {
-  align-self: stretch;
-}
-
-.taste-stats-concept .taste-ranking-carousel-item[data-open="false"] {
-  display: flex;
-  flex-direction: column;
-}
-
-.taste-stats-concept .taste-ranking-carousel-item[data-open="false"] > button {
-  flex: 1;
-  display: flex;
-}
-
-.taste-stats-concept .taste-ranking-carousel-item[data-open="false"] > button > div {
-  width: 100%;
-  min-height: 100% !important;
 }
 
 .taste-stats-concept .taste-ranking-scroll-button {
@@ -872,7 +853,7 @@ body:has(.taste-stats-concept) {
     gap: 12px;
   }
 
-  .taste-stats-concept .taste-ranking-scroll-track > :is(.taste-ranking-card, .taste-ranking-carousel-item) {
+  .taste-stats-concept .taste-ranking-scroll-track > .taste-ranking-card {
     flex-basis: calc(100vw - 92px);
   }
 
@@ -1011,7 +992,7 @@ body:has(.taste-stats-concept) {
     gap: 12px;
   }
 
-  .taste-stats-concept .taste-ranking-scroll-track > :is(.taste-ranking-card, .taste-ranking-carousel-item) {
+  .taste-stats-concept .taste-ranking-scroll-track > .taste-ranking-card {
     flex-basis: 100%;
   }
 
