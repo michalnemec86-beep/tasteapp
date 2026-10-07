@@ -10,7 +10,7 @@ import {
 import { isPackaging } from "@/lib/packaging";
 
 import StatsFilterBarClient from "./StatsFilterBarClient";
-import BeerWorldMap from "./BeerWorldMap";
+import StatsWorldMapPanelClient from "./StatsWorldMapPanelClient";
 import RankingCardClient from "./RankingCardClient";
 import PackagingSummaryCard from "./PackagingSummaryCard";
 import HorizontalRankingScroller from "./HorizontalRankingScroller";
@@ -1056,7 +1056,7 @@ export default async function StatsPage({
       {filteredTastings.length > 0 &&
         (!selectedFocus || selectedFocus === "countries") && (
           <div style={{ marginBottom: "30px" }}>
-            <BeerWorldMap
+            <StatsWorldMapPanelClient
               items={rawStats.countries}
               statsContextUserId={selectedUserId}
               lockStatsContext={isLockedContext}

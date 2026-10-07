@@ -41,7 +41,7 @@ type CountryRankingItem = {
   count: number;
 };
 
-type BeerWorldMapProps = {
+export type BeerWorldMapProps = {
   items: CountryRankingItem[];
   title?: string;
   countLabel?: string;
