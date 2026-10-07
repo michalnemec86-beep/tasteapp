@@ -84,6 +84,9 @@ export default async function BreweryDetailPage({ params, searchParams }: Props)
 
   const [
     breweryResult,
+    countriesResult,
+    stylesResult,
+    hopsResult,
     outgoingResult,
     incomingResult,
     asCollaboratorResult,
@@ -103,6 +106,9 @@ export default async function BreweryDetailPage({ params, searchParams }: Props)
       `)
       .eq("id", breweryId)
       .single(),
+    supabase.from("countries").select("id, name").order("name"),
+    supabase.from("beer_styles").select("id, name, aliases").order("name"),
+    supabase.from("hops").select("id, name, aliases").order("name"),
     supabase.from("brewery_relations").select("id, from_brewery_id, to_brewery_id, relation_type, relation_year, note").eq("from_brewery_id", breweryId),
     supabase.from("brewery_relations").select("id, from_brewery_id, to_brewery_id, relation_type, relation_year, note").eq("to_brewery_id", breweryId),
     supabase
@@ -138,11 +144,15 @@ export default async function BreweryDetailPage({ params, searchParams }: Props)
   ]);
 
   if (breweryResult.error || !breweryResult.data) notFound();
-  for (const result of [outgoingResult, incomingResult, asCollaboratorResult, asPrimaryResult, commissionedResult]) {
+  for (const result of [countriesResult, stylesResult, hopsResult, outgoingResult, incomingResult, asCollaboratorResult, asPrimaryResult, commissionedResult]) {
     if (result.error) throw new Error(result.error.message);
   }
 
   const brewery = breweryResult.data;
+  const countries = countriesResult.data ?? [];
+  const styles = stylesResult.data ?? [];
+  const hops = hopsResult.data ?? [];
+
   const normalizedCountry = (brewery.country ?? "")
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
@@ -418,6 +428,8 @@ export default async function BreweryDetailPage({ params, searchParams }: Props)
               <div className="taste-brewery-portfolio-secondary">
                 <CatalogBeerCreateModalClient
                   breweryName={brewery.name}
+                  styles={styles}
+                  hops={hops}
                   createBeerAction={createCatalogBeer.bind(null, brewery.id)}
                 />
                 <div className="taste-brewery-portfolio-count" style={{ color: "var(--taste-text-muted)", fontSize: "10px" }}>
@@ -517,6 +529,8 @@ export default async function BreweryDetailPage({ params, searchParams }: Props)
                           tastingCount: beer.tastingCount,
                           portfolioStatus: beer.portfolioStatus,
                         }}
+                        styles={styles}
+                        hops={hops}
                         allowBrandAssignment={isCatalogAdmin}
                         updateBeerAction={updateCatalogBeer.bind(null, brewery.id, beer.id)}
                         deleteBeerAction={deleteCatalogBeer.bind(null, brewery.id, beer.id)}

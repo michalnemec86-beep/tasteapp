@@ -28,6 +28,8 @@ type BeerSeed = {
 type Props = {
   mode: "create" | "edit";
   breweryName: string;
+  styles: BeerStyle[];
+  hops: Hop[];
   beer?: BeerSeed;
   saveAction: (formData: FormData) => Promise<{ success: boolean; beerId: number }>;
   deleteAction?: () => Promise<{ success: boolean; beerId: number }>;
@@ -69,6 +71,8 @@ const emptyState: FormState = {
 export default function CatalogBeerModalClient({
   mode,
   breweryName,
+  styles,
+  hops,
   beer,
   saveAction,
   deleteAction,
@@ -82,8 +86,6 @@ export default function CatalogBeerModalClient({
   const [loadingDetails, setLoadingDetails] = useState(false);
   const [error, setError] = useState("");
   const [brandOptions, setBrandOptions] = useState<string[]>([]);
-  const [styleOptions, setStyleOptions] = useState<BeerStyle[]>([]);
-  const [hopOptions, setHopOptions] = useState<Hop[]>([]);
   const [brandWasMissing, setBrandWasMissing] = useState(false);
   const [breweryOptions, setBreweryOptions] = useState<Array<{
     value: string;
@@ -122,12 +124,7 @@ export default function CatalogBeerModalClient({
 
     try {
       const supabase = createClient();
-      const [
-        brandsResult,
-        breweriesResult,
-        stylesResult,
-        hopsResult,
-      ] = await Promise.all([
+      const [brandsResult, breweriesResult] = await Promise.all([
         supabase.from("brands").select("name").order("name"),
         supabase
           .from("breweries")
@@ -138,34 +135,9 @@ export default function CatalogBeerModalClient({
             )
           `)
           .order("name"),
-        supabase
-          .from("beer_styles")
-          .select("id, name, aliases")
-          .order("name"),
-        supabase
-          .from("hops")
-          .select("id, name, aliases")
-          .order("name"),
       ]);
 
-      for (const result of [
-        brandsResult,
-        breweriesResult,
-        stylesResult,
-        hopsResult,
-      ]) {
-        if (result.error) {
-          throw result.error;
-        }
-      }
-
       setBrandOptions((brandsResult.data ?? []).map((item) => item.name));
-      setStyleOptions(
-        (stylesResult.data ?? []) as BeerStyle[]
-      );
-      setHopOptions(
-        (hopsResult.data ?? []) as Hop[]
-      );
       setBreweryOptions(
         (breweriesResult.data ?? []).flatMap((item) => {
           const history = (item.brewery_name_history ?? []) as Array<{
@@ -338,7 +310,7 @@ export default function CatalogBeerModalClient({
 
                 <Field label="Pivní styl" required>
                   <input name="styleName" required list={`styles-${id}`} value={form.styleName} onChange={(e) => setField("styleName", e.target.value)} placeholder="Např. IPA" style={inputStyle} />
-                  <datalist id={`styles-${id}`}>{styleOptions.map((style) => <option key={style.id} value={style.name} />)}</datalist>
+                  <datalist id={`styles-${id}`}>{styles.map((style) => <option key={style.id} value={style.name} />)}</datalist>
                 </Field>
 
                 <Field label="Stav sortimentu" required>
@@ -375,7 +347,7 @@ export default function CatalogBeerModalClient({
 
                 <Field label="Chmely">
                   <input name="hopNames" list={`hops-${id}`} value={form.hopNames} onChange={(e) => setField("hopNames", e.target.value)} placeholder="Citra, Mosaic, Žatecký poloraný červeňák" style={inputStyle} />
-                  <datalist id={`hops-${id}`}>{hopOptions.map((hop) => <option key={hop.id} value={hop.name} />)}</datalist>
+                  <datalist id={`hops-${id}`}>{hops.map((hop) => <option key={hop.id} value={hop.name} />)}</datalist>
                 </Field>
 
                 <Field label="Spolupracující pivovary">
