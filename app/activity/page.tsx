@@ -7,8 +7,8 @@ import {
 } from "@/lib/supabase/server";
 
 import {
-  buildTasteStats,
-} from "@/lib/stats";
+  parseStatsDashboardPayload,
+} from "@/lib/stats-dashboard";
 
 import {
   getPackagingMeta,
@@ -204,6 +204,70 @@ function singleRelation<T>(value: T | T[] | null | undefined): T | null {
   return Array.isArray(value) ? value[0] ?? null : value ?? null;
 }
 
+
+function parseActivityBreweryRanking(
+  value: unknown
+) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .flatMap((row) => {
+      if (
+        !row ||
+        typeof row !== "object" ||
+        Array.isArray(row)
+      ) {
+        return [];
+      }
+
+      const item =
+        row as Record<string, unknown>;
+      const id =
+        Number(item.id);
+      const name =
+        typeof item.name === "string"
+          ? item.name
+          : "";
+      const count =
+        Number(item.tasting_count);
+      const logoUrl =
+        typeof item.logo_url === "string" &&
+        item.logo_url.trim()
+          ? item.logo_url
+          : undefined;
+
+      if (
+        !Number.isInteger(id) ||
+        id < 1 ||
+        !name ||
+        !Number.isFinite(count)
+      ) {
+        return [];
+      }
+
+      return [{
+        id,
+        name,
+        count,
+        ...(logoUrl
+          ? { logoUrl }
+          : {}),
+      }];
+    })
+    .sort((a, b) => {
+      if (b.count !== a.count) {
+        return b.count - a.count;
+      }
+
+      return a.name.localeCompare(
+        b.name,
+        "cs"
+      );
+    });
+}
+
 // HOMEPAGE
 // ==================================================
 
@@ -345,43 +409,28 @@ export default async function ActivityPage({
       .gte("tasted_on", timelineCutoffDate)
       .range(from, to), 500, timelineFetchLimit);
 
-  const statsTastingsPromise = fetchAllRows((from, to) =>
-    supabase.from("tastings").select(`
-      user_id,
-      quantity,
-      packaging,
-      beer_versions (
-        breweries!beer_versions_brewery_id_fkey (
-          id,
-          name,
-          country,
-          logo_url
-        ),
-        beer_styles (
-          id,
-          name
-        )
-      ),
-      beers (
-        id,
-        name,
-        brands (
-          id,
-          name
-        ),
-        breweries (
-          id,
-          name,
-          country,
-          logo_url
-        ),
-        beer_styles (
-          id,
-          name
-        )
-      )
-    `).order("id").range(from, to)
-  );
+  const statsDashboardPromise =
+    supabase.rpc(
+      "get_stats_dashboard",
+      {
+        p_current_user: user.id,
+        p_selected_user: null,
+        p_year: null,
+        p_month: null,
+        p_packaging: null,
+        p_beer_id: null,
+        p_brand_id: null,
+        p_brewery_id: null,
+        p_style_id: null,
+        p_country: null,
+        p_hop_id: null,
+      }
+    );
+
+  const breweryRankingPromise =
+    supabase.rpc(
+      "get_activity_brewery_tasting_ranking"
+    );
 
   const achievementsPromise = fetchAllRows((from, to) =>
     supabase
@@ -428,14 +477,16 @@ export default async function ActivityPage({
   const [
     profilesResult,
     tastingsResult,
-    statsTastings,
+    statsDashboardResult,
+    breweryRankingResult,
     achievementsResult,
     catalogEventsResult,
   ] =
     await Promise.all([
       profilesPromise,
       tastingsPromise,
-      statsTastingsPromise,
+      statsDashboardPromise,
+      breweryRankingPromise,
       achievementsPromise,
       catalogEventsPromise,
     ]);
@@ -455,7 +506,28 @@ export default async function ActivityPage({
       []) as ProfileRow[];
 
   const timelineTastings = (tastings ?? []) as unknown as TastingRow[];
-  const allTastings = statsTastings as unknown as TastingRow[];
+
+  if (statsDashboardResult.error) {
+    throw new Error(
+      statsDashboardResult.error.message
+    );
+  }
+
+  if (breweryRankingResult.error) {
+    throw new Error(
+      breweryRankingResult.error.message
+    );
+  }
+
+  const statsDashboard =
+    parseStatsDashboardPayload(
+      statsDashboardResult.data
+    );
+
+  const breweryTastingRanking =
+    parseActivityBreweryRanking(
+      breweryRankingResult.data
+    );
 
   const allAchievements =
     (achievements ??
@@ -512,137 +584,28 @@ export default async function ActivityPage({
   // ==================================================
 
   const globalStats =
-    buildTasteStats(
-      allTastings
-    );
+    statsDashboard.primary.stats;
 
   const brandRanking =
     globalStats.brands;
 
-  const breweryTastingMap = new Map<
-    number,
-    {
-      id: number;
-      name: string;
-      count: number;
-      logoUrl?: string;
-    }
-  >();
-
-  for (const tasting of allTastings) {
-    const tastingBrewery =
-      tasting.beer_versions?.breweries ??
-      tasting.beers?.breweries ??
-      null;
-
-    if (!tastingBrewery) {
-      continue;
-    }
-
-    const breweryName =
-      tastingBrewery.name;
-
-    const breweryLogoUrl =
-      tastingBrewery.logo_url ??
-      undefined;
-
-    const existing =
-      breweryTastingMap.get(
-        tastingBrewery.id
-      );
-
-    if (existing) {
-      existing.count += 1;
-
-      // Kanonická data z evidence mají přednost před daty uloženými u ochutnávky.
-      existing.name =
-        breweryName;
-
-      if (breweryLogoUrl) {
-        existing.logoUrl =
-          breweryLogoUrl;
-      }
-
-      continue;
-    }
-
-    breweryTastingMap.set(
-      tastingBrewery.id,
-      {
-        id:
-          tastingBrewery.id,
-        name:
-          breweryName,
-        count: 1,
-        ...(breweryLogoUrl
-          ? {
-              logoUrl:
-                breweryLogoUrl,
-            }
-          : {}),
-      }
-    );
-  }
-
-  const breweryTastingRanking =
-    Array.from(
-      breweryTastingMap.values()
-    ).sort((a, b) => {
-      if (
-        b.count !== a.count
-      ) {
-        return (
-          b.count -
-          a.count
-        );
-      }
-
-      return a.name.localeCompare(
-        b.name,
-        "cs"
-      );
-    });
-
   const totalTastings =
-    allTastings.reduce(
-      (
-        sum,
-        tasting
-      ) =>
-        sum +
-        (
-          tasting.quantity ??
-          1
-        ),
-      0
-    );
+    statsDashboard.primary.units;
 
-  const totalBeers = new Set(
-    allTastings.map((tasting) => tasting.beers?.id).filter((id) => id != null)
-  ).size;
+  const totalBeers =
+    globalStats.beers.length;
 
-  const totalBrands = new Set(
-    allTastings.map((tasting) => tasting.beers?.brands?.id).filter((id) => id != null)
-  ).size;
+  const totalBrands =
+    globalStats.brands.length;
 
-  const totalBreweries = new Set(
-    allTastings
-      .map((tasting) => tasting.beer_versions?.breweries?.id ?? tasting.beers?.breweries?.id)
-      .filter((id) => id != null)
-  ).size;
+  const totalBreweries =
+    globalStats.breweries.length;
 
-  const totalStyles = new Set(
-    allTastings
-      .map((tasting) => (tasting.beer_versions?.beer_styles ?? tasting.beers?.beer_styles)?.id)
-      .filter((id) => id != null)
-  ).size;
+  const totalStyles =
+    globalStats.styles.length;
 
-  const totalCountries = new Set(
-    allTastings
-      .map((tasting) => (tasting.beer_versions?.breweries ?? tasting.beers?.breweries)?.country
-        ?.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim())
-      .filter(Boolean)
-  ).size;
+  const totalCountries =
+    globalStats.countries.length;
 
   // ==================================================
   // TIMELINE
