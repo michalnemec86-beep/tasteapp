@@ -5,7 +5,6 @@ import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getNewsRange } from "@/lib/navigation-news";
 import { fetchCatalogueRows, getNewCatalogueIds } from "@/lib/catalogue-news";
-import { fetchAllRows } from "@/lib/fetch-all-rows";
 import { getBreweryReferenceStatus } from "@/lib/referenceStatus";
 import PageHero from "@/components/ui/PageHero";
 import { isAdminView } from "@/lib/adminView";
@@ -46,6 +45,200 @@ function normalizeText(value: string | null | undefined) {
     .trim();
 }
 
+
+type BreweryAggregateStats = {
+  beerCount: number;
+  tastedBeerCount: number;
+  brandCount: number;
+  brandIds: number[];
+  brandNames: string[];
+  consumedCount: number;
+  userStats: BreweryTableRow["userStats"];
+};
+
+function parseBreweryCatalogStats(
+  value: unknown
+) {
+  const result =
+    new Map<
+      number,
+      BreweryAggregateStats
+    >();
+
+  if (!Array.isArray(value)) {
+    return result;
+  }
+
+  for (const item of value) {
+    if (
+      !item ||
+      typeof item !== "object" ||
+      Array.isArray(item)
+    ) {
+      continue;
+    }
+
+    const row =
+      item as Record<string, unknown>;
+    const breweryId =
+      Number(row.brewery_id);
+
+    if (
+      !Number.isInteger(
+        breweryId
+      ) ||
+      breweryId < 1
+    ) {
+      continue;
+    }
+
+    const brandIds =
+      Array.isArray(row.brand_ids)
+        ? row.brand_ids
+            .map(Number)
+            .filter(
+              (id) =>
+                Number.isInteger(id) &&
+                id > 0
+            )
+        : [];
+
+    const brandNames =
+      Array.isArray(
+        row.brand_names
+      )
+        ? row.brand_names
+            .filter(
+              (
+                name
+              ): name is string =>
+                typeof name === "string" &&
+                Boolean(
+                  name.trim()
+                )
+            )
+            .sort(
+              (a, b) =>
+                a.localeCompare(
+                  b,
+                  "cs",
+                  {
+                    sensitivity:
+                      "base",
+                  }
+                )
+            )
+        : [];
+
+    const userStats:
+      BreweryTableRow["userStats"] =
+        {};
+
+    if (
+      row.user_stats &&
+      typeof row.user_stats ===
+        "object" &&
+      !Array.isArray(
+        row.user_stats
+      )
+    ) {
+      for (
+        const [
+          userId,
+          rawStats,
+        ] of Object.entries(
+          row.user_stats as
+            Record<
+              string,
+              unknown
+            >
+        )
+      ) {
+        if (
+          !rawStats ||
+          typeof rawStats !==
+            "object" ||
+          Array.isArray(
+            rawStats
+          )
+        ) {
+          continue;
+        }
+
+        const stats =
+          rawStats as
+            Record<
+              string,
+              unknown
+            >;
+
+        userStats[userId] = {
+          beerCount:
+            Math.max(
+              0,
+              Number(
+                stats.beerCount
+              ) || 0
+            ),
+          brandCount:
+            Math.max(
+              0,
+              Number(
+                stats.brandCount
+              ) || 0
+            ),
+          consumedCount:
+            Math.max(
+              0,
+              Number(
+                stats.consumedCount
+              ) || 0
+            ),
+        };
+      }
+    }
+
+    result.set(
+      breweryId,
+      {
+        beerCount:
+          Math.max(
+            0,
+            Number(
+              row.beer_count
+            ) || 0
+          ),
+        tastedBeerCount:
+          Math.max(
+            0,
+            Number(
+              row.tasted_beer_count
+            ) || 0
+          ),
+        brandCount:
+          Math.max(
+            0,
+            Number(
+              row.brand_count
+            ) || 0
+          ),
+        brandIds,
+        brandNames,
+        consumedCount:
+          Math.max(
+            0,
+            Number(
+              row.consumed_count
+            ) || 0
+          ),
+        userStats,
+      }
+    );
+  }
+
+  return result;
+}
+
 export default async function BreweriesPage({
   searchParams,
 }: BreweriesPageProps) {
@@ -70,8 +263,10 @@ export default async function BreweriesPage({
 
   const [
     breweries,
-    beerIndex,
-    tastingIndex,
+    {
+      data: breweryStatsRows,
+      error: breweryStatsError,
+    },
     { data: profiles, error: profilesError },
     { data: countries, error: countriesError },
   ] = await Promise.all([
@@ -108,27 +303,8 @@ export default async function BreweriesPage({
         .order("id")
         .range(from, to);
     }, newsIds),
-    fetchAllRows((from, to) =>
-      supabase
-        .from("beers")
-        .select(`
-          id,
-          brewery_id,
-          brand_id,
-          brands (
-            id,
-            name
-          )
-        `)
-        .order("id")
-        .range(from, to)
-    ),
-    fetchAllRows((from, to) =>
-      supabase
-        .from("tastings")
-        .select("beer_id, user_id, quantity")
-        .order("id")
-        .range(from, to)
+    supabase.rpc(
+      "get_brewery_catalog_stats"
     ),
     supabase
       .from("profiles")
@@ -143,6 +319,12 @@ export default async function BreweriesPage({
         ascending: true,
       }),
   ]);
+
+  if (breweryStatsError) {
+    throw new Error(
+      breweryStatsError.message
+    );
+  }
 
   if (profilesError) {
     throw new Error(profilesError.message);
@@ -164,118 +346,10 @@ export default async function BreweriesPage({
       .filter(Boolean)
   ).size;
 
-  type MutableUserStats = {
-    beerIds: Set<number>;
-    brandIds: Set<number>;
-    consumedCount: number;
-  };
-
-  type MutableBreweryStats = {
-    beerIds: Set<number>;
-    brandIds: Set<number>;
-    brandNames: Set<string>;
-    tastedBeerIds: Set<number>;
-    consumedCount: number;
-    users: Map<string, MutableUserStats>;
-  };
-
-  const breweryStats = new Map<number, MutableBreweryStats>();
-  const beerMeta = new Map<
-    number,
-    {
-      breweryId: number;
-      brandId: number | null;
-      brandName: string | null;
-    }
-  >();
-
-  function getBreweryStats(breweryId: number) {
-    let stats = breweryStats.get(breweryId);
-
-    if (!stats) {
-      stats = {
-        beerIds: new Set<number>(),
-        brandIds: new Set<number>(),
-        brandNames: new Set<string>(),
-        tastedBeerIds: new Set<number>(),
-        consumedCount: 0,
-        users: new Map<string, MutableUserStats>(),
-      };
-      breweryStats.set(breweryId, stats);
-    }
-
-    return stats;
-  }
-
-  for (const beer of beerIndex) {
-    if (beer.brewery_id == null) {
-      continue;
-    }
-
-    const brand = Array.isArray(beer.brands)
-      ? beer.brands[0] ?? null
-      : beer.brands ?? null;
-
-    const brandId = beer.brand_id ?? brand?.id ?? null;
-    const brandName = brand?.name?.trim() || null;
-
-    beerMeta.set(beer.id, {
-      breweryId: beer.brewery_id,
-      brandId,
-      brandName,
-    });
-
-    const stats = getBreweryStats(beer.brewery_id);
-    stats.beerIds.add(beer.id);
-
-    if (brandId != null) {
-      stats.brandIds.add(brandId);
-    }
-
-    if (brandName) {
-      stats.brandNames.add(brandName);
-    }
-  }
-
-  for (const tasting of tastingIndex) {
-    if (tasting.beer_id == null) {
-      continue;
-    }
-
-    const meta = beerMeta.get(tasting.beer_id);
-
-    if (!meta) {
-      continue;
-    }
-
-    const quantity = tasting.quantity ?? 1;
-    const stats = getBreweryStats(meta.breweryId);
-
-    stats.tastedBeerIds.add(tasting.beer_id);
-    stats.consumedCount += quantity;
-
-    if (!tasting.user_id) {
-      continue;
-    }
-
-    let userStats = stats.users.get(tasting.user_id);
-
-    if (!userStats) {
-      userStats = {
-        beerIds: new Set<number>(),
-        brandIds: new Set<number>(),
-        consumedCount: 0,
-      };
-      stats.users.set(tasting.user_id, userStats);
-    }
-
-    userStats.beerIds.add(tasting.beer_id);
-    userStats.consumedCount += quantity;
-
-    if (meta.brandId != null) {
-      userStats.brandIds.add(meta.brandId);
-    }
-  }
+  const breweryStats =
+    parseBreweryCatalogStats(
+      breweryStatsRows
+    );
 
   const tableRows: BreweryTableRow[] = allBreweries.map(
     (brewery) => {
@@ -306,19 +380,9 @@ export default async function BreweriesPage({
         null
       );
 
-      const userStats: BreweryTableRow["userStats"] =
-        Object.fromEntries(
-          Array.from(stats?.users.entries() ?? []).map(
-            ([userId, item]) => [
-              userId,
-              {
-                beerCount: item.beerIds.size,
-                brandCount: item.brandIds.size,
-                consumedCount: item.consumedCount,
-              },
-            ]
-          )
-        );
+      const userStats =
+        stats?.userStats ??
+        {};
 
       const referenceStatus = getBreweryReferenceStatus({
         name: brewery.name,
@@ -336,16 +400,11 @@ export default async function BreweriesPage({
         isNomadic: brewery.is_nomadic,
         latitude: brewery.latitude,
         longitude: brewery.longitude,
-        beerCount: stats?.beerIds.size ?? 0,
-        tastedBeerCount: stats?.tastedBeerIds.size ?? 0,
-        brandCount: stats?.brandIds.size ?? 0,
-        brandIds: Array.from(stats?.brandIds ?? []),
-        brandNames: Array.from(stats?.brandNames ?? []).sort(
-          (a, b) =>
-            a.localeCompare(b, "cs", {
-              sensitivity: "base",
-            })
-        ),
+        beerCount: stats?.beerCount ?? 0,
+        tastedBeerCount: stats?.tastedBeerCount ?? 0,
+        brandCount: stats?.brandCount ?? 0,
+        brandIds: stats?.brandIds ?? [],
+        brandNames: stats?.brandNames ?? [],
         beers: [],
         foundedYear: brewery.founded_year,
         historyFromYear,

@@ -22,9 +22,6 @@ import {
   type CatalogueScope,
 } from "@/lib/catalogue-scope";
 import {
-  fetchAllRows,
-} from "@/lib/fetch-all-rows";
-import {
   getBeerReferenceStatus,
 } from "@/lib/referenceStatus";
 
@@ -167,12 +164,18 @@ type DetailBeer = {
 type TastingCountRow = {
   beer_id:
     | number
+    | string
     | null;
-  user_id: string;
-  quantity:
+  total_quantity:
     | number
+    | string
+    | null;
+  my_quantity:
+    | number
+    | string
     | null;
 };
+
 
 export type BeerCatalogPageResult = {
   items: BeerCatalogItem[];
@@ -185,24 +188,23 @@ async function loadTastingCounts(
   supabase: SupabaseClient,
   userId: string
 ) {
-  const rows =
-    (
-      await fetchAllRows(
-        (from, to) =>
-          supabase
-            .from(
-              "tastings"
-            )
-            .select(
-              "beer_id, user_id, quantity"
-            )
-            .order("id")
-            .range(
-              from,
-              to
-            )
-      )
-    ) as TastingCountRow[];
+  const {
+    data,
+    error,
+  } =
+    await supabase.rpc(
+      "get_beer_catalog_tasting_counts",
+      {
+        target_user_id:
+          userId,
+      }
+    );
+
+  if (error) {
+    throw new Error(
+      error.message
+    );
+  }
 
   const totalByBeer =
     new Map<
@@ -217,41 +219,43 @@ async function loadTastingCounts(
     >();
 
   for (
-    const row of rows
+    const row of
+      (data ??
+        []) as TastingCountRow[]
   ) {
+    const beerId =
+      Number(
+        row.beer_id
+      );
+
     if (
-      row.beer_id == null
+      !Number.isInteger(
+        beerId
+      ) ||
+      beerId < 1
     ) {
       continue;
     }
 
-    const quantity =
-      row.quantity ?? 1;
-
     totalByBeer.set(
-      row.beer_id,
-      (
-        totalByBeer.get(
-          row.beer_id
-        ) ??
-        0
-      ) + quantity
+      beerId,
+      Math.max(
+        0,
+        Number(
+          row.total_quantity
+        ) || 0
+      )
     );
 
-    if (
-      row.user_id ===
-      userId
-    ) {
-      mineByBeer.set(
-        row.beer_id,
-        (
-          mineByBeer.get(
-            row.beer_id
-          ) ??
-          0
-        ) + quantity
-      );
-    }
+    mineByBeer.set(
+      beerId,
+      Math.max(
+        0,
+        Number(
+          row.my_quantity
+        ) || 0
+      )
+    );
   }
 
   return {
@@ -264,83 +268,58 @@ export async function loadBeerCatalogOverview(
   supabase: SupabaseClient,
   userId: string
 ): Promise<BeerCatalogSummary> {
-  const [
-    beerCountResult,
-    tastingRows,
-  ] =
-    await Promise.all([
-      supabase
-        .from("beers")
-        .select(
-          "id",
-          {
-            count: "exact",
-            head: true,
-          }
-        ),
-      fetchAllRows(
-        (from, to) =>
-          supabase
-            .from(
-              "tastings"
-            )
-            .select(
-              "beer_id, user_id"
-            )
-            .order("id")
-            .range(
-              from,
-              to
-            )
-      ),
-    ]);
+  const {
+    data,
+    error,
+  } =
+    await supabase.rpc(
+      "get_beer_catalog_overview",
+      {
+        target_user_id:
+          userId,
+      }
+    );
 
-  if (
-    beerCountResult.error
-  ) {
+  if (error) {
     throw new Error(
-      beerCountResult.error.message
+      error.message
     );
   }
 
-  const tasted =
-    new Set<number>();
-
-  const mine =
-    new Set<number>();
-
-  for (
-    const row of
-    tastingRows
-  ) {
-    if (
-      row.beer_id == null
-    ) {
-      continue;
-    }
-
-    tasted.add(
-      row.beer_id
-    );
-
-    if (
-      row.user_id ===
-      userId
-    ) {
-      mine.add(
-        row.beer_id
-      );
-    }
-  }
+  const source =
+    data &&
+    typeof data ===
+      "object" &&
+    !Array.isArray(data)
+      ? data as
+          Record<
+            string,
+            unknown
+          >
+      : {};
 
   return {
     total:
-      beerCountResult.count ??
-      0,
+      Math.max(
+        0,
+        Number(
+          source.total
+        ) || 0
+      ),
     tasted:
-      tasted.size,
+      Math.max(
+        0,
+        Number(
+          source.tasted
+        ) || 0
+      ),
     mine:
-      mine.size,
+      Math.max(
+        0,
+        Number(
+          source.mine
+        ) || 0
+      ),
     breweries: 0,
     countries: 0,
   };
