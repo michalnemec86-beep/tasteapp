@@ -423,28 +423,60 @@ export default async function ActivityOverviewPage({
                     )}
                   </span>
 
-                  <time
-                    dateTime={
-                      item.date
-                    }
+                  <span
                     style={{
-                      color:
-                        index ===
-                        0
-                          ? config.accent
-                          : "var(--taste-text-muted)",
-                      fontSize:
-                        "10px",
-                      fontWeight:
-                        700,
-                      fontVariantNumeric:
-                        "tabular-nums",
+                      display:
+                        "grid",
+                      justifyItems:
+                        "end",
+                      gap:
+                        "2px",
                     }}
                   >
-                    {formatDate(
-                      item.date
+                    {config.group ===
+                      "recent" &&
+                      item.count && (
+                      <span
+                        style={{
+                          color:
+                            item.count > 1
+                              ? config.accent
+                              : "var(--taste-text-muted)",
+                          fontSize:
+                            "9px",
+                          fontWeight:
+                            800,
+                          fontVariantNumeric:
+                            "tabular-nums",
+                        }}
+                      >
+                        {item.count}×
+                      </span>
                     )}
-                  </time>
+
+                    <time
+                      dateTime={
+                        item.date
+                      }
+                      style={{
+                        color:
+                          index ===
+                          0
+                            ? config.accent
+                            : "var(--taste-text-muted)",
+                        fontSize:
+                          "10px",
+                        fontWeight:
+                          700,
+                        fontVariantNumeric:
+                          "tabular-nums",
+                      }}
+                    >
+                      {formatDate(
+                        item.date
+                      )}
+                    </time>
+                  </span>
                 </Link>
               );
             }

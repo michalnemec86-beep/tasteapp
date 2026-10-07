@@ -22,6 +22,7 @@ export type ActivityRecencyItem = {
   name: string;
   date: string;
   logoUrl?: string;
+  count?: number;
 };
 
 export type ActivityViewKey =
@@ -268,6 +269,15 @@ export function parseActivityRecencyItems(
         entry.logoUrl.trim()
           ? entry.logoUrl
           : undefined;
+      const parsedCount =
+        Number(entry.count);
+      const count =
+        Number.isFinite(
+          parsedCount
+        ) &&
+        parsedCount > 0
+          ? parsedCount
+          : undefined;
 
       if (
         (
@@ -290,6 +300,9 @@ export function parseActivityRecencyItems(
         date,
         ...(logoUrl
           ? { logoUrl }
+          : {}),
+        ...(count
+          ? { count }
           : {}),
       }];
     }

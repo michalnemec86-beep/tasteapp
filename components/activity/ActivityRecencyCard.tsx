@@ -60,6 +60,14 @@ export default function ActivityRecencyCard({
 }: Props) {
   const news =
     variant === "news";
+  const maximumCount =
+    Math.max(
+      1,
+      ...items.map(
+        (item) =>
+          item.count ?? 1
+      )
+    );
 
   return (
     <section
@@ -405,25 +413,114 @@ export default function ActivityRecencyCard({
                     style={{
                       minWidth:
                         0,
-                      overflow:
-                        "hidden",
-                      textOverflow:
-                        "ellipsis",
-                      whiteSpace:
-                        "nowrap",
-                      color:
-                        "#fff",
-                      fontSize:
-                        "11.5px",
-                      fontWeight:
-                        index === 0
-                          ? 750
-                          : 650,
+                      display:
+                        "grid",
+                      gap:
+                        news
+                          ? 0
+                          : "4px",
                     }}
                   >
-                    {activityItemDisplayName(
-                      view,
-                      item
+                    <span
+                      style={{
+                        minWidth:
+                          0,
+                        overflow:
+                          "hidden",
+                        textOverflow:
+                          "ellipsis",
+                        whiteSpace:
+                          "nowrap",
+                        color:
+                          "#fff",
+                        fontSize:
+                          "11.5px",
+                        fontWeight:
+                          index === 0
+                            ? 750
+                            : 650,
+                      }}
+                    >
+                      {activityItemDisplayName(
+                        view,
+                        item
+                      )}
+                    </span>
+
+                    {!news && (
+                      <span
+                        aria-label={
+                          `Počet ochutnávek: ${item.count ?? 1}`
+                        }
+                        style={{
+                          display:
+                            "grid",
+                          gridTemplateColumns:
+                            "minmax(0,1fr) auto",
+                          alignItems:
+                            "center",
+                          gap:
+                            "7px",
+                        }}
+                      >
+                        <span
+                          aria-hidden="true"
+                          style={{
+                            position:
+                              "relative",
+                            height:
+                              "4px",
+                            overflow:
+                              "hidden",
+                            borderRadius:
+                              "999px",
+                            background:
+                              "rgba(255,255,255,.07)",
+                          }}
+                        >
+                          <span
+                            style={{
+                              position:
+                                "absolute",
+                              inset:
+                                "0 auto 0 0",
+                              width:
+                                `${Math.max(
+                                  8,
+                                  ((item.count ?? 1) /
+                                    maximumCount) *
+                                    100
+                                )}%`,
+                              borderRadius:
+                                "999px",
+                              background:
+                                `linear-gradient(90deg, ${accent}9a, ${accent})`,
+                              boxShadow:
+                                `0 0 8px ${accent}45`,
+                            }}
+                          />
+                        </span>
+
+                        <span
+                          style={{
+                            color:
+                              item.count &&
+                              item.count > 1
+                                ? accent
+                                : "var(--taste-text-muted)",
+                            fontSize:
+                              "8.5px",
+                            lineHeight:
+                              1,
+                            fontWeight:
+                              800,
+                            fontVariantNumeric:
+                              "tabular-nums",
+                          }}
+                        >
+                          {item.count ?? 1}×
+                        </span>
+                      </span>
                     )}
                   </span>
 
