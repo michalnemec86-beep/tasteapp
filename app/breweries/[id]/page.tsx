@@ -20,14 +20,17 @@ import { isAdminView, isCatalogAdminUser } from "@/lib/adminView";
 import BreweryCzechMapClient from "../BreweryCzechMapClient";
 import BreweryEditModalClient from "../BreweryEditModalClient";
 import BreweryBrandAddClient from "../BreweryBrandAddClient";
+import BreweryBrandItemClient from "../BreweryBrandItemClient";
 import BreweryLogoManagerClient from "../BreweryLogoManagerClient";
 import BreweryNameHistoryItemClient from "../BreweryNameHistoryItemClient";
 import CatalogBeerCreateModalClient from "../CatalogBeerCreateModalClient";
 import CatalogBeerEditModalClient from "../CatalogBeerEditModalClient";
 import {
   addBreweryBrand,
+  deleteBreweryBrand,
   deleteBreweryNameHistory,
   updateBrewery,
+  updateBreweryBrand,
   updateBreweryNameHistory,
 } from "../actions";
 import {
@@ -563,11 +566,21 @@ export default async function BreweryDetailPage({ params, searchParams }: Props)
 
           <div style={{ marginTop: "22px", paddingTop: "18px", borderTop: "1px solid var(--taste-border)" }}>
             <div className="taste-label taste-brewery-section-title" style={{ marginBottom: "9px" }}>Značky pivovaru</div>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "7px" }}>
+            <div style={{ display: "flex", flexWrap: "wrap", alignItems: "flex-start", gap: "10px" }}>
               {linkedBrands.sort((a, b) => a.name.localeCompare(b.name, "cs")).map((brand) => (
-                <Link prefetch={false} key={brand.id} href={withBreweryBrowse(brandHref(brand.id, brewery.id), resolvedSearchParams.browse)} id={`brand-${brand.id}`} data-focused={brand.id === focusedBrandId ? "true" : undefined} className="taste-button-secondary" style={{ padding: "6px 9px", fontSize: "10px" }}>
-                  {brand.name}
-                </Link>
+                <div
+                  id={`brand-${brand.id}`}
+                  key={brand.id}
+                >
+                  <BreweryBrandItemClient
+                    name={brand.name}
+                    href={withBreweryBrowse(brandHref(brand.id, brewery.id), resolvedSearchParams.browse)}
+                    focused={brand.id === focusedBrandId}
+                    adminView={adminView}
+                    updateAction={updateBreweryBrand.bind(null, brewery.id, brand.id)}
+                    deleteAction={deleteBreweryBrand.bind(null, brewery.id, brand.id)}
+                  />
+                </div>
               ))}
             </div>
             <BreweryBrandAddClient action={addBreweryBrand.bind(null, brewery.id)} />

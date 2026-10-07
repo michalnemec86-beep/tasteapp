@@ -143,11 +143,21 @@ async function addBreweryBrands(
 ) {
   if (brandNames.length === 0) return;
 
-  const { data: existingLinks, error: linksError } = await supabase
-    .from("brewery_brands")
-    .select("brand_id, brands ( id, name )")
-    .eq("brewery_id", breweryId);
+  const [
+    { data: existingLinks, error: linksError },
+    { data: existingBrands, error: brandsError },
+  ] = await Promise.all([
+    supabase
+      .from("brewery_brands")
+      .select("brand_id, brands ( id, name )")
+      .eq("brewery_id", breweryId),
+    supabase
+      .from("brands")
+      .select("id, name"),
+  ]);
+
   if (linksError) throw new Error(linksError.message);
+  if (brandsError) throw new Error(brandsError.message);
 
   const brandIds: number[] = [];
   for (const brandName of brandNames) {
@@ -162,25 +172,69 @@ async function addBreweryBrands(
       continue;
     }
 
-    const { data: created, error: createError } = await supabase
-      .from("brands")
-      .insert({ name: brandName })
-      .select("id")
-      .single();
-    if (createError || !created) {
-      throw new Error(createError?.message || `Značku „${brandName}“ se nepodařilo vytvořit.`);
+    const existingBrand =
+      existingBrands?.find(
+        (brand) =>
+          normalizeText(
+            brand.name
+          ) === query
+      ) ?? null;
+
+    const brandId =
+      existingBrand?.id ??
+      null;
+
+    let resolvedBrandId =
+      brandId;
+
+    if (resolvedBrandId == null) {
+      const {
+        data: created,
+        error: createError,
+      } = await supabase
+        .from("brands")
+        .insert({
+          name: brandName,
+        })
+        .select("id")
+        .single();
+
+      if (
+        createError ||
+        !created
+      ) {
+        throw new Error(
+          createError?.message ||
+            `Značku „${brandName}“ se nepodařilo vytvořit.`
+        );
+      }
+
+      resolvedBrandId =
+        created.id;
     }
 
-    const { error: linkError } = await supabase
+    const {
+      error: linkError,
+    } = await supabase
       .from("brewery_brands")
       .insert({
-        brewery_id: breweryId,
-        brand_id: created.id,
-        created_by: userId,
+        brewery_id:
+          breweryId,
+        brand_id:
+          resolvedBrandId,
+        created_by:
+          userId,
       });
-    if (linkError) throw new Error(linkError.message);
 
-    brandIds.push(created.id);
+    if (linkError) {
+      throw new Error(
+        linkError.message
+      );
+    }
+
+    brandIds.push(
+      resolvedBrandId
+    );
   }
 }
 
@@ -196,6 +250,348 @@ export async function addBreweryBrand(breweryId: number, formData: FormData) {
   await addBreweryBrands(supabase, user.id, breweryId, [name]);
   revalidatePath(`/breweries/${breweryId}`);
   revalidatePath("/breweries");
+}
+
+
+function requireBrandAdmin(
+  userId: string
+) {
+  if (
+    userId !==
+    ADMIN_USER_ID
+  ) {
+    throw new Error(
+      "Úpravu značek může provést pouze administrátor."
+    );
+  }
+}
+
+function revalidateBrandPages(
+  breweryId: number
+) {
+  revalidatePath("/");
+  revalidatePath("/beers");
+  revalidatePath("/breweries");
+  revalidatePath(
+    `/breweries/${breweryId}`
+  );
+  revalidatePath("/tastings/new");
+  revalidatePath("/profiles");
+  revalidatePath("/stats");
+}
+
+async function requireBreweryBrandLink(
+  supabase: Awaited<
+    ReturnType<
+      typeof createClient
+    >
+  >,
+  breweryId: number,
+  brandId: number
+) {
+  const {
+    data: link,
+    error,
+  } = await supabase
+    .from("brewery_brands")
+    .select("brand_id")
+    .eq(
+      "brewery_id",
+      breweryId
+    )
+    .eq(
+      "brand_id",
+      brandId
+    )
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(
+      error.message
+    );
+  }
+
+  if (!link) {
+    throw new Error(
+      "Značka není propojena s tímto pivovarem."
+    );
+  }
+}
+
+export async function updateBreweryBrand(
+  breweryId: number,
+  brandId: number,
+  formData: FormData
+) {
+  const {
+    supabase,
+    user,
+  } = await requireUser();
+
+  requireBrandAdmin(
+    user.id
+  );
+
+  const name =
+    String(
+      formData.get(
+        "brandName"
+      ) ?? ""
+    ).trim();
+
+  if (
+    !Number.isInteger(
+      breweryId
+    ) ||
+    breweryId < 1 ||
+    !Number.isInteger(
+      brandId
+    ) ||
+    brandId < 1 ||
+    !name ||
+    name.length > 120
+  ) {
+    throw new Error(
+      "Zadejte platný název značky."
+    );
+  }
+
+  await requireBreweryBrandLink(
+    supabase,
+    breweryId,
+    brandId
+  );
+
+  const [
+    {
+      data: currentBrand,
+      error: currentBrandError,
+    },
+    {
+      data: brands,
+      error: brandsError,
+    },
+  ] = await Promise.all([
+    supabase
+      .from("brands")
+      .select("id, name")
+      .eq(
+        "id",
+        brandId
+      )
+      .maybeSingle(),
+    supabase
+      .from("brands")
+      .select("id, name"),
+  ]);
+
+  if (
+    currentBrandError ||
+    !currentBrand
+  ) {
+    throw new Error(
+      currentBrandError?.message ||
+        "Značka nebyla nalezena."
+    );
+  }
+
+  if (brandsError) {
+    throw new Error(
+      brandsError.message
+    );
+  }
+
+  const duplicate =
+    (brands ?? []).find(
+      (brand) =>
+        brand.id !== brandId &&
+        normalizeText(
+          brand.name
+        ) ===
+          normalizeText(
+            name
+          )
+    );
+
+  if (duplicate) {
+    throw new Error(
+      "Značka s tímto názvem už v evidenci existuje. Existující data mají přednost, proto ji nelze vytvořit přejmenováním druhé značky."
+    );
+  }
+
+  if (
+    normalizeText(
+      currentBrand.name
+    ) ===
+    normalizeText(name) &&
+    currentBrand.name === name
+  ) {
+    return;
+  }
+
+  const {
+    data: updated,
+    error: updateError,
+  } = await supabase
+    .from("brands")
+    .update({
+      name,
+    })
+    .eq(
+      "id",
+      brandId
+    )
+    .select("id")
+    .maybeSingle();
+
+  if (
+    updateError ||
+    !updated
+  ) {
+    throw new Error(
+      updateError?.message ||
+        "Značku se nepodařilo upravit."
+    );
+  }
+
+  revalidateBrandPages(
+    breweryId
+  );
+}
+
+export async function deleteBreweryBrand(
+  breweryId: number,
+  brandId: number
+) {
+  const {
+    supabase,
+    user,
+  } = await requireUser();
+
+  requireBrandAdmin(
+    user.id
+  );
+
+  if (
+    !Number.isInteger(
+      breweryId
+    ) ||
+    breweryId < 1 ||
+    !Number.isInteger(
+      brandId
+    ) ||
+    brandId < 1
+  ) {
+    throw new Error(
+      "Neplatná značka."
+    );
+  }
+
+  await requireBreweryBrandLink(
+    supabase,
+    breweryId,
+    brandId
+  );
+
+  const [
+    {
+      count: beerCount,
+      error: beersError,
+    },
+    {
+      count: otherLinkCount,
+      error: linksError,
+    },
+  ] = await Promise.all([
+    supabase
+      .from("beers")
+      .select(
+        "id",
+        {
+          count: "exact",
+          head: true,
+        }
+      )
+      .eq(
+        "brand_id",
+        brandId
+      ),
+    supabase
+      .from(
+        "brewery_brands"
+      )
+      .select(
+        "brand_id",
+        {
+          count: "exact",
+          head: true,
+        }
+      )
+      .eq(
+        "brand_id",
+        brandId
+      )
+      .neq(
+        "brewery_id",
+        breweryId
+      ),
+  ]);
+
+  if (beersError) {
+    throw new Error(
+      beersError.message
+    );
+  }
+
+  if (linksError) {
+    throw new Error(
+      linksError.message
+    );
+  }
+
+  if (
+    (beerCount ?? 0) > 0
+  ) {
+    throw new Error(
+      `Značku nelze smazat, protože ji používá ${beerCount} ${beerCount === 1 ? "pivo" : "piv"}. Nejprve je potřeba zachovat nebo převést vazby těchto piv.`
+    );
+  }
+
+  if (
+    (otherLinkCount ?? 0) >
+      0
+  ) {
+    throw new Error(
+      "Značku nelze smazat, protože je propojena také s jiným pivovarem."
+    );
+  }
+
+  const {
+    data: deleted,
+    error: deleteError,
+  } = await supabase
+    .from("brands")
+    .delete()
+    .eq(
+      "id",
+      brandId
+    )
+    .select("id")
+    .maybeSingle();
+
+  if (
+    deleteError ||
+    !deleted
+  ) {
+    throw new Error(
+      deleteError?.message ||
+        "Značku se nepodařilo smazat."
+    );
+  }
+
+  revalidateBrandPages(
+    breweryId
+  );
 }
 
 function readBreweryFormData(
