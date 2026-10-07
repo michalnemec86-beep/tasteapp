@@ -598,3 +598,21 @@ body:has(.taste-home-concept) {
     transform: translateX(0);
   }
 }
+
+
+/* Activity page: a second, slightly more editorial carousel/grid for catalogue news. */
+.taste-activity-desktop-news-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+@media (max-width: 760px) {
+  .taste-activity-desktop-news-grid {
+    display: none !important;
+  }
+
+  .taste-activity-news-section {
+    margin-top: 16px !important;
+  }
+}

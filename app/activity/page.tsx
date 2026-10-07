@@ -7,10 +7,6 @@ import {
 } from "@/lib/supabase/server";
 
 import {
-  parseStatsDashboardPayload,
-} from "@/lib/stats-dashboard";
-
-import {
   getPackagingMeta,
   type Packaging,
 } from "@/lib/packaging";
@@ -29,7 +25,7 @@ import RatingStars from "@/components/ui/RatingStars";
 import { isRating } from "@/lib/ratings";
 import EditTastingModalClient from "../EditTastingModalClient";
 
-import StatsRankingCard, { StatsPackagingCard } from "@/components/stats/StatsRankingCard";
+import ActivityRecencyCard from "@/components/activity/ActivityRecencyCard";
 import PageHero from "@/components/ui/PageHero";
 import AppIcon from "@/components/ui/AppIcon";
 import HomeStatIcon from "@/components/home/HomeStatIcon";
@@ -38,6 +34,15 @@ import MobileHomeStatsCarousel from "@/components/home/MobileHomeStatsCarousel";
 import ResponsiveTimelinePager from "@/components/home/ResponsiveTimelinePager";
 import { fetchAllRows } from "@/lib/fetch-all-rows";
 import { parsePositivePage } from "@/lib/pagination";
+import {
+  ACTIVITY_START_DATE,
+  ACTIVITY_VIEW_CONFIG,
+  NEWS_ACTIVITY_VIEWS,
+  RECENT_ACTIVITY_VIEWS,
+  activityOverviewHref,
+  getActivityViewItems,
+  parseActivityRecencyDashboard,
+} from "@/lib/activity-recency";
 
 import {
   updateTastingInModal,
@@ -175,12 +180,14 @@ type CatalogEventRow = {
     | "beer_version_created"
     | "brand_created"
     | "brewery_created"
-    | "hop_created";
+    | "hop_created"
+    | "style_created";
   created_at: string;
   beers: { id: number; name: string; brands: { id: number; name: string } | null } | null;
   breweries: { id: number; name: string } | null;
   brands: { id: number; name: string } | null;
   hops: { id: number; name: string } | null;
+  beer_styles: { id: number; name: string } | null;
 };
 
 type TimelineEvent =
@@ -205,69 +212,6 @@ function singleRelation<T>(value: T | T[] | null | undefined): T | null {
 }
 
 
-function parseActivityBreweryRanking(
-  value: unknown
-) {
-  if (!Array.isArray(value)) {
-    return [];
-  }
-
-  return value
-    .flatMap((row) => {
-      if (
-        !row ||
-        typeof row !== "object" ||
-        Array.isArray(row)
-      ) {
-        return [];
-      }
-
-      const item =
-        row as Record<string, unknown>;
-      const id =
-        Number(item.id);
-      const name =
-        typeof item.name === "string"
-          ? item.name
-          : "";
-      const count =
-        Number(item.tasting_count);
-      const logoUrl =
-        typeof item.logo_url === "string" &&
-        item.logo_url.trim()
-          ? item.logo_url
-          : undefined;
-
-      if (
-        !Number.isInteger(id) ||
-        id < 1 ||
-        !name ||
-        !Number.isFinite(count)
-      ) {
-        return [];
-      }
-
-      return [{
-        id,
-        name,
-        count,
-        ...(logoUrl
-          ? { logoUrl }
-          : {}),
-      }];
-    })
-    .sort((a, b) => {
-      if (b.count !== a.count) {
-        return b.count - a.count;
-      }
-
-      return a.name.localeCompare(
-        b.name,
-        "cs"
-      );
-    });
-}
-
 // HOMEPAGE
 // ==================================================
 
@@ -282,16 +226,10 @@ export default async function ActivityPage({
   );
   const timelinePageSize = 15;
   const timelineFetchLimit = 5 * timelinePageSize + 1;
-  // Tři kalendářní měsíce historie zůstávají v databázi i ve statistikách.
-  const timelineCutoff = new Date();
-  const cutoffDay = timelineCutoff.getUTCDate();
-  timelineCutoff.setUTCDate(1);
-  timelineCutoff.setUTCMonth(timelineCutoff.getUTCMonth() - 3);
-  const lastDayOfCutoffMonth = new Date(Date.UTC(
-    timelineCutoff.getUTCFullYear(), timelineCutoff.getUTCMonth() + 1, 0
-  )).getUTCDate();
-  timelineCutoff.setUTCDate(Math.min(cutoffDay, lastDayOfCutoffMonth));
-  const timelineCutoffDate = timelineCutoff.toISOString().slice(0, 10);
+  const timelineCutoffDate =
+    ACTIVITY_START_DATE;
+  const timelineCutoffIso =
+    `${ACTIVITY_START_DATE}T00:00:00.000Z`;
   const supabase =
     await createClient();
 
@@ -409,27 +347,13 @@ export default async function ActivityPage({
       .gte("tasted_on", timelineCutoffDate)
       .range(from, to), 500, timelineFetchLimit);
 
-  const statsDashboardPromise =
+  const activityDashboardPromise =
     supabase.rpc(
-      "get_stats_dashboard",
+      "get_activity_recency_dashboard",
       {
-        p_current_user: user.id,
-        p_selected_user: null,
-        p_year: null,
-        p_month: null,
-        p_packaging: null,
-        p_beer_id: null,
-        p_brand_id: null,
-        p_brewery_id: null,
-        p_style_id: null,
-        p_country: null,
-        p_hop_id: null,
+        p_start_date:
+          ACTIVITY_START_DATE,
       }
-    );
-
-  const breweryRankingPromise =
-    supabase.rpc(
-      "get_activity_brewery_tasting_ranking"
     );
 
   const achievementsPromise = fetchAllRows((from, to) =>
@@ -448,7 +372,7 @@ export default async function ActivityPage({
         "show_in_timeline",
         true
       )
-      .gte("unlocked_at", timelineCutoff.toISOString())
+      .gte("unlocked_at", timelineCutoffIso)
       .order(
         "unlocked_at",
         {
@@ -465,10 +389,11 @@ export default async function ActivityPage({
       beers ( id, name, brands ( id, name ) ),
       breweries ( id, name ),
       brands ( id, name ),
-      hops ( id, name )
+      hops ( id, name ),
+      beer_styles ( id, name )
     `)
     .eq("show_in_timeline", true)
-    .gte("created_at", timelineCutoff.toISOString())
+    .gte("created_at", timelineCutoffIso)
     .neq("event_type", "beer_confirmed")
     .order("created_at", { ascending: false })
     .order("id", { ascending: false })
@@ -477,16 +402,14 @@ export default async function ActivityPage({
   const [
     profilesResult,
     tastingsResult,
-    statsDashboardResult,
-    breweryRankingResult,
+    activityDashboardResult,
     achievementsResult,
     catalogEventsResult,
   ] =
     await Promise.all([
       profilesPromise,
       tastingsPromise,
-      statsDashboardPromise,
-      breweryRankingPromise,
+      activityDashboardPromise,
       achievementsPromise,
       catalogEventsPromise,
     ]);
@@ -507,26 +430,15 @@ export default async function ActivityPage({
 
   const timelineTastings = (tastings ?? []) as unknown as TastingRow[];
 
-  if (statsDashboardResult.error) {
+  if (activityDashboardResult.error) {
     throw new Error(
-      statsDashboardResult.error.message
+      activityDashboardResult.error.message
     );
   }
 
-  if (breweryRankingResult.error) {
-    throw new Error(
-      breweryRankingResult.error.message
-    );
-  }
-
-  const statsDashboard =
-    parseStatsDashboardPayload(
-      statsDashboardResult.data
-    );
-
-  const breweryTastingRanking =
-    parseActivityBreweryRanking(
-      breweryRankingResult.data
+  const activityDashboard =
+    parseActivityRecencyDashboard(
+      activityDashboardResult.data
     );
 
   const allAchievements =
@@ -542,6 +454,7 @@ export default async function ActivityPage({
     breweries: { id: number; name: string } | Array<{ id: number; name: string }> | null;
     brands: { id: number; name: string } | Array<{ id: number; name: string }> | null;
     hops: { id: number; name: string } | Array<{ id: number; name: string }> | null;
+    beer_styles: { id: number; name: string } | Array<{ id: number; name: string }> | null;
   }>;
   const allCatalogEvents = rawCatalogEvents.map((event) => {
     const beer = singleRelation(event.beers);
@@ -551,6 +464,7 @@ export default async function ActivityPage({
       breweries: singleRelation(event.breweries),
       brands: singleRelation(event.brands),
       hops: singleRelation(event.hops),
+      beer_styles: singleRelation(event.beer_styles),
     };
   }) as CatalogEventRow[];
 
@@ -580,32 +494,11 @@ export default async function ActivityPage({
   }
 
   // ==================================================
-  // STATISTIKY
+  // ČASOVÉ PŘEHLEDY OD 1. 9. 2026
   // ==================================================
 
-  const globalStats =
-    statsDashboard.primary.stats;
-
-  const brandRanking =
-    globalStats.brands;
-
-  const totalTastings =
-    statsDashboard.primary.units;
-
-  const totalBeers =
-    globalStats.beers.length;
-
-  const totalBrands =
-    globalStats.brands.length;
-
-  const totalBreweries =
-    globalStats.breweries.length;
-
-  const totalStyles =
-    globalStats.styles.length;
-
-  const totalCountries =
-    globalStats.countries.length;
+  const activityCounts =
+    activityDashboard.counts;
 
   // ==================================================
   // TIMELINE
@@ -703,61 +596,61 @@ export default async function ActivityPage({
         imagePosition="68% 30%"
         title="Aktivita v hospodě"
         subtitle="Zapiš další ochutnávku a sleduj, co se právě děje v naší společné hospodě."
-        statsLabel="Naše společné aktivity"
+        statsLabel="Aktivita od 1. 9. 2026"
         stats={[
           {
             icon: (
               <HomeStatIcon kind="barrel" />
             ),
             accent: "#f2b63f",
-            value: totalTastings,
+            value: activityCounts.units,
             label: "Vypitých piv",
-            href: "/stats?focus=beers&metric=quantity",
+            href: "/activity#timeline",
           },
           {
             icon: (
               <HomeStatIcon kind="mug" />
             ),
             accent: "#d98a43",
-            value: totalBeers,
+            value: activityCounts.beers,
             label: "Různých piv",
-            href: "/stats?focus=beers",
+            href: activityOverviewHref("recent-beers"),
           },
           {
             icon: (
               <HomeStatIcon kind="crest" />
             ),
             accent: "#c46f38",
-            value: totalBrands,
+            value: activityCounts.brands,
             label: "Značek",
-            href: "/stats?focus=brands",
+            href: activityOverviewHref("recent-brands"),
           },
           {
             icon: (
               <HomeStatIcon kind="brewery" />
             ),
             accent: "#e88835",
-            value: totalBreweries,
+            value: activityCounts.breweries,
             label: "Pivovarů",
-            href: "/stats?focus=breweries",
+            href: activityOverviewHref("recent-breweries"),
           },
           {
             icon: (
               <HomeStatIcon kind="hop" />
             ),
             accent: "#9cad47",
-            value: totalStyles,
+            value: activityCounts.styles,
             label: "Stylů",
-            href: "/stats?focus=styles",
+            href: activityOverviewHref("recent-styles"),
           },
           {
             icon: (
               <HomeStatIcon kind="globe" />
             ),
             accent: "#d65b42",
-            value: totalCountries,
+            value: activityCounts.countries,
             label: "Států",
-            href: "/stats?focus=countries",
+            href: activityOverviewHref("recent-countries"),
           },
         ]}
       />
@@ -771,47 +664,34 @@ export default async function ActivityPage({
         {/* LEVÁ STRANA */}
 
         <aside className="taste-home-desktop-stats-column order-2 grid self-start content-start gap-4 md:grid-cols-2 xl:order-1 xl:col-span-3 xl:grid-cols-1">
+          {([
+            "recent-breweries",
+            "recent-styles",
+            "recent-packaging",
+          ] as const).map((view) => {
+            const config =
+              ACTIVITY_VIEW_CONFIG[view];
 
-          <StatsRankingCard
-            currentUserId={user.id}
-            title="Nejčastější pivovary"
-            subtitle="Podle počtu vypitých piv"
-            icon={
-              <AppIcon
-                name="brewery"
-                size={20}
+            return (
+              <ActivityRecencyCard
+                key={view}
+                view={view}
+                title={config.title}
+                subtitle={config.subtitle}
+                icon={
+                  <AppIcon
+                    name={config.icon}
+                    size={20}
+                  />
+                }
+                accent={config.accent}
+                items={getActivityViewItems(
+                  activityDashboard,
+                  view
+                )}
               />
-            }
-            accent="#e88835"
-            items={
-              breweryTastingRanking
-            }
-            getItemHref={(item) =>
-              `/breweries/${item.id}`
-            }
-          />
-
-          <StatsRankingCard
-            currentUserId={user.id}
-            title="Pivní styly"
-            subtitle="Nejčastější styly"
-            icon={
-              <AppIcon
-                name="hop"
-                size={20}
-              />
-            }
-            accent="#9cad47"
-            items={
-              globalStats.styles
-            }
-            packagingItems={
-              globalStats.packaging
-            }
-            getItemHref={(item) => styleHref(item.id)}
-          />
-
-
+            );
+          })}
         </aside>
 
         {/* ==================================================
@@ -943,117 +823,197 @@ export default async function ActivityPage({
         </section>
 
         <div className="taste-home-mobile-stats-wrap order-2">
+          <div
+            className="taste-label"
+            style={{
+              margin:
+                "0 36px 8px",
+            }}
+          >
+            Poslední dění
+          </div>
+
           <MobileHomeStatsCarousel>
-            <StatsRankingCard
-            currentUserId={user.id}
-              title="Nejčastější pivovary"
-              subtitle="Podle počtu vypitých piv"
-              icon={<AppIcon name="brewery" size={20} />}
-              accent="#e88835"
-              items={breweryTastingRanking}
-              getItemHref={(item) => `/breweries/${item.id}`}
-            />
+            {RECENT_ACTIVITY_VIEWS.map((view) => {
+              const config =
+                ACTIVITY_VIEW_CONFIG[view];
 
-            <StatsRankingCard
-            currentUserId={user.id}
-              title="Pivní styly"
-              subtitle="Nejčastější styly"
-              icon={<AppIcon name="hop" size={20} />}
-              accent="#9cad47"
-              items={globalStats.styles}
-              packagingItems={globalStats.packaging}
-              showPackaging={false}
-              getItemHref={(item) => styleHref(item.id)}
-            />
-
-            <StatsPackagingCard
-              items={globalStats.packaging}
-            />
-
-            <StatsRankingCard
-            currentUserId={user.id}
-              title="Nejčastější piva"
-              subtitle="Konkrétní piva"
-              icon={<AppIcon name="label" size={20} />}
-              accent="#e7a62f"
-              items={globalStats.beers}
-              getItemHref={(item) => `/beers/${item.id}`}
-            />
-
-            <StatsRankingCard
-            currentUserId={user.id}
-              title="Státy"
-              subtitle="Země původu pivovarů"
-              icon={<AppIcon name="globe" size={20} />}
-              accent="#d37f43"
-              items={globalStats.countries}
-              getItemHref={(item) =>
-                countryHref(item.name)
-              }
-            />
-
-            <StatsRankingCard
-            currentUserId={user.id}
-              title="Značky"
-              subtitle="Nejčastější produktové značky"
-              icon={<AppIcon name="label" size={20} />}
-              accent="#d98a43"
-              items={brandRanking}
-              getItemHref={(item) => `/brands/${item.id}`}
-            />
+              return (
+                <ActivityRecencyCard
+                  key={view}
+                  view={view}
+                  title={config.title}
+                  subtitle={config.subtitle}
+                  icon={
+                    <AppIcon
+                      name={config.icon}
+                      size={20}
+                    />
+                  }
+                  accent={config.accent}
+                  items={getActivityViewItems(
+                    activityDashboard,
+                    view
+                  )}
+                />
+              );
+            })}
           </MobileHomeStatsCarousel>
         </div>
 
         {/* PRAVÁ STRANA */}
 
         <aside className="taste-home-desktop-stats-column order-3 grid self-start content-start gap-4 md:grid-cols-2 xl:col-span-3 xl:grid-cols-1">
+          {([
+            "recent-beers",
+            "recent-countries",
+            "recent-brands",
+            "recent-hops",
+          ] as const).map((view) => {
+            const config =
+              ACTIVITY_VIEW_CONFIG[view];
 
-          <StatsRankingCard
-            currentUserId={user.id}
-            title="Nejčastější piva"
-            subtitle="Konkrétní piva"
-            icon={
-              <AppIcon
-                name="label"
-                size={20}
+            return (
+              <ActivityRecencyCard
+                key={view}
+                view={view}
+                title={config.title}
+                subtitle={config.subtitle}
+                icon={
+                  <AppIcon
+                    name={config.icon}
+                    size={20}
+                  />
+                }
+                accent={config.accent}
+                items={getActivityViewItems(
+                  activityDashboard,
+                  view
+                )}
               />
-            }
-            accent="#e7a62f"
-            items={
-              globalStats.beers
-            }
-            getItemHref={(item) => `/beers/${item.id}`}
-          />
-
-          <StatsRankingCard
-            currentUserId={user.id}
-            title="Státy"
-            subtitle="Země původu pivovarů"
-            icon={
-              <AppIcon
-                name="globe"
-                size={20}
-              />
-            }
-            accent="#d37f43"
-            items={
-              globalStats.countries
-            }
-            getItemHref={(item) => countryHref(item.name)}
-          />
-
-          <StatsRankingCard
-            currentUserId={user.id}
-            title="Značky"
-            subtitle="Nejčastější produktové značky"
-            icon={<AppIcon name="label" size={20} />}
-            accent="#d98a43"
-            items={brandRanking}
-            getItemHref={(item) => `/brands/${item.id}`}
-          />
-
+            );
+          })}
         </aside>
       </div>
+
+      <section
+        className="taste-activity-news-section"
+        style={{
+          marginTop:
+            "22px",
+        }}
+      >
+        <div
+          style={{
+            display:
+              "flex",
+            alignItems:
+              "flex-end",
+            justifyContent:
+              "space-between",
+            gap:
+              "12px",
+            marginBottom:
+              "10px",
+          }}
+        >
+          <div>
+            <div
+              className="taste-label"
+              style={{
+                marginBottom:
+                  "4px",
+              }}
+            >
+              Od 1. 9. 2026
+            </div>
+
+            <h2
+              style={{
+                margin: 0,
+                fontSize:
+                  "20px",
+                letterSpacing:
+                  "-0.02em",
+              }}
+            >
+              Novinky
+            </h2>
+          </div>
+
+          <div
+            style={{
+              color:
+                "var(--taste-text-muted)",
+              fontSize:
+                "9px",
+              textAlign:
+                "right",
+            }}
+          >
+            nové v katalogu
+            a nové země
+          </div>
+        </div>
+
+        <div className="taste-home-mobile-stats-wrap">
+          <MobileHomeStatsCarousel>
+            {NEWS_ACTIVITY_VIEWS.map((view) => {
+              const config =
+                ACTIVITY_VIEW_CONFIG[view];
+
+              return (
+                <ActivityRecencyCard
+                  key={view}
+                  view={view}
+                  title={config.title}
+                  subtitle={config.subtitle}
+                  icon={
+                    <AppIcon
+                      name={config.icon}
+                      size={20}
+                    />
+                  }
+                  accent={config.accent}
+                  items={getActivityViewItems(
+                    activityDashboard,
+                    view
+                  )}
+                  variant="news"
+                />
+              );
+            })}
+          </MobileHomeStatsCarousel>
+        </div>
+
+        <div className="taste-activity-desktop-news-grid">
+          {NEWS_ACTIVITY_VIEWS.map((view) => {
+            const config =
+              ACTIVITY_VIEW_CONFIG[view];
+
+            return (
+              <ActivityRecencyCard
+                key={view}
+                view={view}
+                title={config.title}
+                subtitle={config.subtitle}
+                icon={
+                  <AppIcon
+                    name={config.icon}
+                    size={20}
+                  />
+                }
+                accent={config.accent}
+                items={getActivityViewItems(
+                  activityDashboard,
+                  view
+                )}
+                variant="news"
+              />
+            );
+          })}
+        </div>
+      </section>
     </main>
   );
 }
@@ -1373,6 +1333,11 @@ const SYSTEM_EVENT_VISUALS = {
     eyebrow: "Systém · nový chmel",
     action: "zapsal nový chmel",
   },
+  style_created: {
+    icon: "mug",
+    eyebrow: "Systém · nový pivní styl",
+    action: "zapsal nový pivní styl",
+  },
 } as const;
 
 function CatalogTimelineIcon({
@@ -1489,6 +1454,10 @@ function CatalogTimelineCard({
         "hop_created" &&
       row.hops ? (
       <Link href={hopHref(row.hops.id)} className="taste-entity-link">{row.hops.name}</Link>
+    ) : row.event_type ===
+        "style_created" &&
+      row.beer_styles ? (
+      <Link href={styleHref(row.beer_styles.id)} className="taste-entity-link">{row.beer_styles.name}</Link>
     ) : row.beers ? (
       <Link prefetch={false}
         href={
