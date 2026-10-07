@@ -270,6 +270,43 @@ async function resolveBrandId(
   return created.id;
 }
 
+async function ensureBreweryBrandLink(
+  supabase: SupabaseClient,
+  breweryId: number,
+  brandId: number,
+  userId: string
+) {
+  const {
+    data: existing,
+    error: existingError,
+  } = await supabase
+    .from("brewery_brands")
+    .select("brand_id")
+    .eq("brewery_id", breweryId)
+    .eq("brand_id", brandId)
+    .maybeSingle();
+
+  if (existingError) {
+    throw new Error(existingError.message);
+  }
+
+  if (existing) {
+    return;
+  }
+
+  const { error: insertError } = await supabase
+    .from("brewery_brands")
+    .insert({
+      brewery_id: breweryId,
+      brand_id: brandId,
+      created_by: userId,
+    });
+
+  if (insertError && insertError.code !== "23505") {
+    throw new Error(insertError.message);
+  }
+}
+
 async function validateCollaboratorBreweryIds(
   supabase: SupabaseClient,
   ids: number[],
@@ -548,10 +585,12 @@ async function resolveBeer(
   }
 
   if (brandId !== null) {
-    const { error: brandLinkError } = await supabase
-      .from("brewery_brands")
-      .upsert({ brewery_id: breweryId, brand_id: brandId, created_by: userId });
-    if (brandLinkError) throw new Error(brandLinkError.message);
+    await ensureBreweryBrandLink(
+      supabase,
+      breweryId,
+      brandId,
+      userId
+    );
   }
 
   const { error: eventError } = await supabase.from("catalog_events").insert({

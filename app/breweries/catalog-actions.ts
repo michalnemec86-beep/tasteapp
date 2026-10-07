@@ -145,6 +145,43 @@ async function resolveBrandId(
   return created.id;
 }
 
+async function ensureBreweryBrandLink(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  breweryId: number,
+  brandId: number,
+  userId: string
+) {
+  const {
+    data: existing,
+    error: existingError,
+  } = await supabase
+    .from("brewery_brands")
+    .select("brand_id")
+    .eq("brewery_id", breweryId)
+    .eq("brand_id", brandId)
+    .maybeSingle();
+
+  if (existingError) {
+    throw new Error(existingError.message);
+  }
+
+  if (existing) {
+    return;
+  }
+
+  const { error: insertError } = await supabase
+    .from("brewery_brands")
+    .insert({
+      brewery_id: breweryId,
+      brand_id: brandId,
+      created_by: userId,
+    });
+
+  if (insertError && insertError.code !== "23505") {
+    throw new Error(insertError.message);
+  }
+}
+
 async function resolveCollaboratorIds(
   supabase: Awaited<ReturnType<typeof createClient>>,
   breweryId: number,
@@ -353,10 +390,12 @@ export async function createCatalogBeer(breweryId: number, formData: FormData) {
     await replaceVersionHops(supabase, version.id, hopIds);
     await replaceCollaborators(supabase, version.id, collaboratorIds);
 
-    const { error: linkError } = await supabase
-      .from("brewery_brands")
-      .upsert({ brewery_id: breweryId, brand_id: brandId, created_by: user.id });
-    if (linkError) throw new Error(linkError.message);
+    await ensureBreweryBrandLink(
+      supabase,
+      breweryId,
+      brandId,
+      user.id
+    );
 
     const { error: eventError } = await supabase.from("catalog_events").insert({
       actor_user_id: user.id,
