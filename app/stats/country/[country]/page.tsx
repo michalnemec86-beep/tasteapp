@@ -8,6 +8,7 @@ import HomeStatIcon from "@/components/home/HomeStatIcon";
 import "../../stats-concept.css";
 import RankingCardClient from "../../RankingCardClient";
 import PackagingSummaryCard from "../../PackagingSummaryCard";
+import HorizontalRankingScroller from "../../HorizontalRankingScroller";
 
 type CountryStatsPageProps = {
   params: Promise<{
@@ -196,8 +197,8 @@ export default async function CountryStatsPage({
         </Link>
       </section>
 
-      <section>
-        <div style={{ marginBottom: "15px" }}>
+      <section className="taste-stats-rankings">
+        <div className="taste-stats-section-heading" style={{ marginBottom: "15px" }}>
           <div className="taste-label" style={{ marginBottom: "5px" }}>
             Detail země
           </div>
@@ -214,14 +215,7 @@ export default async function CountryStatsPage({
           </h2>
         </div>
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(min(350px, 100%), 1fr))",
-            gap: "16px",
-            alignItems: "start",
-          }}
-        >
+        <HorizontalRankingScroller>
           <RankingCardClient
             currentUserId={user.id}
             title="Piva"
@@ -273,7 +267,7 @@ export default async function CountryStatsPage({
             items={stats.hops}
             personalItemIds={personalStats.hops.map((item) => item.id)}
           />
-        </div>
+        </HorizontalRankingScroller>
       </section>
 
       <PackagingSummaryCard
