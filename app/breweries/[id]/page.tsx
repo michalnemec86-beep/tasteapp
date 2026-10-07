@@ -291,6 +291,8 @@ export default async function BreweryDetailPage({ params, searchParams }: Props)
           { icon: "◆", value: brandCount, label: "Značek" },
           { icon: "✓", value: consumedBeerCount, label: "Vypitých piv" },
         ]}
+        statsScrollable
+        statsLoop
       />
 
       <BreweryBrowseNavigation breweryId={brewery.id} ownerId={user.id} />

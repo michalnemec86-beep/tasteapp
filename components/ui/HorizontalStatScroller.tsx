@@ -27,6 +27,11 @@ export default function HorizontalStatScroller({
     setCanScrollRight,
   ] = useState(false);
 
+  const [
+    hasOverflow,
+    setHasOverflow,
+  ] = useState(false);
+
   function updateScrollState() {
     const track =
       trackRef.current;
@@ -39,12 +44,21 @@ export default function HorizontalStatScroller({
       track.scrollWidth -
       track.clientWidth;
 
+    const overflow =
+      maxScroll > 3;
+
+    setHasOverflow(
+      overflow
+    );
+
     setCanScrollLeft(
+      overflow &&
       track.scrollLeft >
         3
     );
 
     setCanScrollRight(
+      overflow &&
       track.scrollLeft <
         maxScroll - 3
     );
@@ -152,8 +166,9 @@ export default function HorizontalStatScroller({
         className="taste-hero-stat-scroll-button taste-hero-stat-scroll-button-left"
         aria-label="Posunout statistiky doleva"
         disabled={
-          !loop &&
-          !canScrollLeft
+          !hasOverflow ||
+          (!loop &&
+            !canScrollLeft)
         }
         onClick={() =>
           scroll(-1)
@@ -265,8 +280,9 @@ export default function HorizontalStatScroller({
         className="taste-hero-stat-scroll-button taste-hero-stat-scroll-button-right"
         aria-label="Posunout statistiky doprava"
         disabled={
-          !loop &&
-          !canScrollRight
+          !hasOverflow ||
+          (!loop &&
+            !canScrollRight)
         }
         onClick={() =>
           scroll(1)
