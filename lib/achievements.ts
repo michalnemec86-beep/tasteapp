@@ -12,6 +12,9 @@ export type AchievementMetric =
   | "countries"
   | "hops";
 
+export type AchievementMetricSnapshot =
+  Record<AchievementMetric, number>;
+
 export type AchievementSeries =
   | "beers"
   | "breweries"
@@ -248,12 +251,29 @@ export function buildAchievementProgress(
     hops: hopIds.size,
   };
 
+  return buildAchievementProgressFromMetrics(
+    metricValues
+  );
+}
+
+export function buildAchievementProgressFromMetrics(
+  metricValues: AchievementMetricSnapshot
+): AchievementProgress[] {
   return ACHIEVEMENTS.map((achievement) => {
-    const current = metricValues[achievement.metric];
-    const unlocked = current >= achievement.target;
+    const current =
+      metricValues[
+        achievement.metric
+      ];
+    const unlocked =
+      current >=
+      achievement.target;
     const progress =
       achievement.target > 0
-        ? Math.min(1, current / achievement.target)
+        ? Math.min(
+            1,
+            current /
+              achievement.target
+          )
         : 0;
 
     return {
