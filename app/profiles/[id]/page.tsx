@@ -20,6 +20,10 @@ import {
 import {
   buildProfileStats,
   getTastingDate,
+  type ProfileStats,
+  type ProfileActivityPoint,
+  type ProfileNumericSummary,
+  type ProfileBeerRecord,
 } from "@/lib/profileStats";
 import {
   buildProfileHistoryOverview,
@@ -29,6 +33,12 @@ import {
 import {
   buildTasteStats,
 } from "@/lib/stats";
+import {
+  parseStatsDashboardPayload,
+} from "@/lib/stats-dashboard";
+import type {
+  BreweryMapItem,
+} from "@/app/breweries/BreweryCzechMap";
 
 import {
   buildAchievementProgress,
@@ -62,6 +72,8 @@ import ProfileTastingControls, {
 } from "./ProfileTastingControls";
 import ProfileTastingPager from "./ProfileTastingPager";
 import ProfileBreweriesView from "./ProfileBreweriesView";
+import ProfileLoopCarousel from "./ProfileLoopCarousel";
+import ProfileMapsClient from "./ProfileMapsClient";
 
 import {
   updateTastingInModal,
@@ -103,6 +115,282 @@ function singleRelation<T>(
   }
 
   return value ?? null;
+}
+
+type ProfileStatsOverviewRpc = {
+  firstTasting: string | null;
+  lastTasting: string | null;
+  monthlyActivity: ProfileActivityPoint[];
+  yearlyActivity: ProfileActivityPoint[];
+  mostActiveMonth: ProfileActivityPoint | null;
+  mostActiveYear: ProfileActivityPoint | null;
+  averagePerMonth: number;
+  plato: ProfileNumericSummary;
+  abv: ProfileNumericSummary;
+  ibu: ProfileNumericSummary;
+  strongestBeer: ProfileBeerRecord | null;
+  bitterestBeer: ProfileBeerRecord | null;
+  highestPlatoBeer: ProfileBeerRecord | null;
+  czechBreweries: BreweryMapItem[];
+};
+
+function parseProfileStatsOverview(
+  value: unknown
+): ProfileStatsOverviewRpc {
+  const source =
+    value &&
+    typeof value === "object" &&
+    !Array.isArray(value)
+      ? value as Record<string, unknown>
+      : {};
+
+  function numericSummary(
+    item: unknown
+  ): ProfileNumericSummary {
+    const row =
+      item &&
+      typeof item === "object" &&
+      !Array.isArray(item)
+        ? item as Record<string, unknown>
+        : {};
+
+    const finiteOrNull = (
+      candidate: unknown
+    ) => {
+      if (
+        candidate == null ||
+        candidate === ""
+      ) {
+        return null;
+      }
+
+      const parsed =
+        Number(candidate);
+
+      return Number.isFinite(parsed)
+        ? parsed
+        : null;
+    };
+
+    return {
+      average:
+        finiteOrNull(row.average),
+      min:
+        finiteOrNull(row.min),
+      max:
+        finiteOrNull(row.max),
+      count:
+        Math.max(
+          0,
+          Number(row.count) || 0
+        ),
+    };
+  }
+
+  function activityPoint(
+    item: unknown
+  ): ProfileActivityPoint | null {
+    if (
+      !item ||
+      typeof item !== "object" ||
+      Array.isArray(item)
+    ) {
+      return null;
+    }
+
+    const row =
+      item as Record<string, unknown>;
+    const key =
+      typeof row.key === "string"
+        ? row.key
+        : "";
+    const count =
+      Number(row.count);
+
+    if (
+      !key ||
+      !Number.isFinite(count)
+    ) {
+      return null;
+    }
+
+    return {
+      key,
+      count,
+    };
+  }
+
+  function activityPoints(
+    item: unknown
+  ) {
+    return Array.isArray(item)
+      ? item
+          .map(activityPoint)
+          .filter(
+            (
+              point
+            ): point is ProfileActivityPoint =>
+              point != null
+          )
+      : [];
+  }
+
+  function beerRecord(
+    item: unknown
+  ): ProfileBeerRecord | null {
+    if (
+      !item ||
+      typeof item !== "object" ||
+      Array.isArray(item)
+    ) {
+      return null;
+    }
+
+    const row =
+      item as Record<string, unknown>;
+    const beerId =
+      Number(row.beerId);
+    const beerName =
+      typeof row.beerName === "string"
+        ? row.beerName
+        : "";
+    const recordValue =
+      Number(row.value);
+
+    if (
+      !Number.isInteger(beerId) ||
+      beerId < 1 ||
+      !beerName ||
+      !Number.isFinite(recordValue)
+    ) {
+      return null;
+    }
+
+    return {
+      beerId,
+      beerName,
+      value:
+        recordValue,
+    };
+  }
+
+  const czechBreweries =
+    Array.isArray(
+      source.czechBreweries
+    )
+      ? source.czechBreweries.flatMap(
+          (item) => {
+            if (
+              !item ||
+              typeof item !== "object" ||
+              Array.isArray(item)
+            ) {
+              return [];
+            }
+
+            const row =
+              item as Record<string, unknown>;
+            const id =
+              Number(row.id);
+            const name =
+              typeof row.name === "string"
+                ? row.name
+                : "";
+            const latitude =
+              Number(row.latitude);
+            const longitude =
+              Number(row.longitude);
+
+            if (
+              !Number.isInteger(id) ||
+              id < 1 ||
+              !name ||
+              !Number.isFinite(latitude) ||
+              !Number.isFinite(longitude)
+            ) {
+              return [];
+            }
+
+            return [{
+              id,
+              name,
+              city:
+                typeof row.city === "string"
+                  ? row.city
+                  : null,
+              latitude,
+              longitude,
+              closedYear:
+                row.closedYear == null
+                  ? null
+                  : Number(row.closedYear),
+              isPersonal: true,
+            }];
+          }
+        )
+      : [];
+
+  return {
+    firstTasting:
+      typeof source.firstTasting === "string"
+        ? source.firstTasting
+        : null,
+    lastTasting:
+      typeof source.lastTasting === "string"
+        ? source.lastTasting
+        : null,
+    monthlyActivity:
+      activityPoints(
+        source.monthlyActivity
+      ),
+    yearlyActivity:
+      activityPoints(
+        source.yearlyActivity
+      ),
+    mostActiveMonth:
+      activityPoint(
+        source.mostActiveMonth
+      ),
+    mostActiveYear:
+      activityPoint(
+        source.mostActiveYear
+      ),
+    averagePerMonth:
+      Number.isFinite(
+        Number(
+          source.averagePerMonth
+        )
+      )
+        ? Number(
+            source.averagePerMonth
+          )
+        : 0,
+    plato:
+      numericSummary(
+        source.plato
+      ),
+    abv:
+      numericSummary(
+        source.abv
+      ),
+    ibu:
+      numericSummary(
+        source.ibu
+      ),
+    strongestBeer:
+      beerRecord(
+        source.strongestBeer
+      ),
+    bitterestBeer:
+      beerRecord(
+        source.bitterestBeer
+      ),
+    highestPlatoBeer:
+      beerRecord(
+        source.highestPlatoBeer
+      ),
+    czechBreweries,
+  };
 }
 
 export default async function ProfilePage({
@@ -204,9 +492,9 @@ export default async function ProfilePage({
   // ==================================================
 
   const tastingsPromise =
-    view === "beers"
-      ? Promise.resolve([])
-      : fetchAllRows((from, to) =>
+    view === "breweries" ||
+    view === "medals"
+      ? fetchAllRows((from, to) =>
           supabase
             .from("tastings")
             .select(`
@@ -283,7 +571,8 @@ export default async function ProfilePage({
             `)
             .eq("user_id", id)
             .order("id")
-            .range(from, to));
+            .range(from, to))
+      : Promise.resolve([]);
 
   const historyIndexPromise =
     view === "beers"
@@ -356,15 +645,55 @@ export default async function ProfilePage({
           error: null,
         });
 
+  const statsDashboardPromise =
+    view === "stats"
+      ? supabase.rpc(
+          "get_stats_dashboard",
+          {
+            p_current_user: user.id,
+            p_selected_user: profile.id,
+            p_year: null,
+            p_month: null,
+            p_packaging: null,
+            p_beer_id: null,
+            p_brand_id: null,
+            p_brewery_id: null,
+            p_style_id: null,
+            p_country: null,
+            p_hop_id: null,
+          }
+        )
+      : Promise.resolve({
+          data: null,
+          error: null,
+        });
+
+  const profileOverviewPromise =
+    view === "stats"
+      ? supabase.rpc(
+          "get_profile_stats_overview",
+          {
+            target_user_id: profile.id,
+          }
+        )
+      : Promise.resolve({
+          data: null,
+          error: null,
+        });
+
   const [
     tastingsResult,
     historyIndexResult,
     countriesResult,
+    statsDashboardResult,
+    profileOverviewResult,
   ] =
     await Promise.all([
       tastingsPromise,
       historyIndexPromise,
       countriesPromise,
+      statsDashboardPromise,
+      profileOverviewPromise,
     ]);
 
   const tastings =
@@ -380,6 +709,38 @@ export default async function ProfilePage({
       countriesError.message
     );
   }
+
+  if (
+    view === "stats" &&
+    statsDashboardResult.error
+  ) {
+    throw new Error(
+      statsDashboardResult.error.message
+    );
+  }
+
+  if (
+    view === "stats" &&
+    profileOverviewResult.error
+  ) {
+    throw new Error(
+      profileOverviewResult.error.message
+    );
+  }
+
+  const statsDashboard =
+    view === "stats"
+      ? parseStatsDashboardPayload(
+          statsDashboardResult.data
+        )
+      : null;
+
+  const statsOverview =
+    view === "stats"
+      ? parseProfileStatsOverview(
+          profileOverviewResult.data
+        )
+      : null;
 
   let historyUniqueHopCount = 0;
 
@@ -1150,30 +1511,82 @@ export default async function ProfilePage({
   // STATISTIKY
   // ==================================================
 
-  const profileStats =
-    view === "beers"
-      ? buildProfileHistoryOverview(
-          historyOverviewRows,
-          historyUniqueHopCount
-        )
-      : buildProfileStats(
-          allTastings
-        );
-
   const tasteStats =
-    view === "beers"
+    view === "stats" &&
+    statsDashboard
+      ? statsDashboard.primary.stats
+      : view === "beers"
+        ? {
+            beers: [],
+            brands: [],
+            breweries: [],
+            styles: [],
+            countries: [],
+            hops: [],
+            packaging: [],
+          }
+        : buildTasteStats(
+            allTastings
+          );
+
+  const profileStats: ProfileStats =
+    view === "stats" &&
+    statsDashboard &&
+    statsOverview
       ? {
-          beers: [],
-          brands: [],
-          breweries: [],
-          styles: [],
-          countries: [],
-          hops: [],
-          packaging: [],
+          totalQuantity:
+            statsDashboard.primary.units,
+          uniqueBeers:
+            tasteStats.beers.length,
+          uniqueBrands:
+            tasteStats.brands.length,
+          uniqueBreweries:
+            tasteStats.breweries.length,
+          uniqueStyles:
+            tasteStats.styles.length,
+          uniqueCountries:
+            tasteStats.countries.length,
+          uniqueHops:
+            tasteStats.hops.length,
+          firstTasting:
+            statsOverview.firstTasting,
+          lastTasting:
+            statsOverview.lastTasting,
+          monthlyActivity:
+            statsOverview.monthlyActivity,
+          yearlyActivity:
+            statsOverview.yearlyActivity,
+          mostActiveMonth:
+            statsOverview.mostActiveMonth,
+          mostActiveYear:
+            statsOverview.mostActiveYear,
+          averagePerMonth:
+            statsOverview.averagePerMonth,
+          plato:
+            statsOverview.plato,
+          abv:
+            statsOverview.abv,
+          ibu:
+            statsOverview.ibu,
+          strongestBeer:
+            statsOverview.strongestBeer,
+          bitterestBeer:
+            statsOverview.bitterestBeer,
+          highestPlatoBeer:
+            statsOverview.highestPlatoBeer,
         }
-      : buildTasteStats(
-          allTastings
-        );
+      : view === "beers"
+        ? buildProfileHistoryOverview(
+            historyOverviewRows,
+            historyUniqueHopCount
+          )
+        : buildProfileStats(
+            allTastings
+          );
+
+  const profileCzechMapItems =
+    statsOverview?.czechBreweries ??
+    [];
 
   const breweryCountriesById = new Map(
     Array.from(
@@ -1819,136 +2232,73 @@ export default async function ProfilePage({
         </div>
       </section>
 
-      <div className="taste-profile-stat-sections">
-      <div className="taste-profile-stat-slot taste-profile-stat-slot-activity taste-profile-activity-desktop">
-        <ProfileActivityCard
-        monthlyActivity={
-          profileStats.monthlyActivity
-        }
-        mostActiveMonth={
-          profileStats.mostActiveMonth
-        }
-        mostActiveYear={
-          profileStats.mostActiveYear
-        }
-        averagePerMonth={
-          profileStats.averagePerMonth
-        }
+      <section className="taste-profile-major-stats" style={{ marginBottom: "38px" }}>
+        <ProfileLoopCarousel className="taste-profile-major-carousel">
+          <div className="taste-profile-major-slide">
+            <ProfileBeerDnaCard
+              styles={tasteStats.styles}
+              profileId={profile.id}
+            />
+          </div>
+
+          <div className="taste-profile-major-slide">
+            <ProfileBreweriesCard
+              currentUserId={user.id}
+              items={tasteStats.breweries}
+              profileId={profile.id}
+            />
+          </div>
+
+          <div className="taste-profile-major-slide">
+            <ProfileBrandsCard
+              items={tasteStats.brands}
+              profileId={profile.id}
+            />
+          </div>
+        </ProfileLoopCarousel>
+      </section>
+
+      <ProfileActivityCard
+        monthlyActivity={profileStats.monthlyActivity}
+        mostActiveMonth={profileStats.mostActiveMonth}
+        mostActiveYear={profileStats.mostActiveYear}
+        averagePerMonth={profileStats.averagePerMonth}
       />
-      </div>
 
-      <div className="taste-profile-stat-slot taste-profile-stat-slot-dna">
-      <ProfileBeerDnaCard
-        styles={
-          tasteStats.styles
-        }
-        profileId={
-          profile.id
-        }
-      />
-
-      </div>
-
-      <div className="taste-profile-stat-slot taste-profile-stat-slot-technical">
       <ProfileTechnicalCard
-        plato={
-          profileStats.plato
-        }
-        abv={
-          profileStats.abv
-        }
-        ibu={
-          profileStats.ibu
-        }
+        plato={profileStats.plato}
+        abv={profileStats.abv}
+        ibu={profileStats.ibu}
       />
 
-      </div>
-
-      <div className="taste-profile-stat-slot taste-profile-stat-slot-packaging">
-      <ProfilePackagingCard
-        items={
-          tasteStats.packaging
-        }
-        profileId={
-          profile.id
-        }
-      />
-
-      </div>
-
-      <div className="taste-profile-stat-slot taste-profile-stat-slot-preferences">
-      <div className="taste-profile-preference-order">
-        <div className="taste-profile-preference-brands">
-          <ProfileBrandsCard
-            items={tasteStats.brands}
-            profileId={
-              profile.id
-            }
-          />
-        </div>
-
-        <div className="taste-profile-preference-breweries">
-          <ProfileBreweriesCard
-            currentUserId={user.id}
-            items={
-              tasteStats.breweries
-            }
-            profileId={
-              profile.id
-            }
-          />
-        </div>
-      </div>
-
-      </div>
-
-      <div className="taste-profile-stat-slot taste-profile-stat-slot-world">
-      <ProfileWorldCard
-        items={
-          tasteStats.countries
-        }
-        profileId={
-          profile.id
-        }
-      />
-
-      </div>
-
-      <div className="taste-profile-stat-slot taste-profile-stat-slot-hops">
-      <ProfileHopsCard
-        items={
-          tasteStats.hops
-        }
-        profileId={
-          profile.id
-        }
-      />
-
-      </div>
-
-      <div className="taste-profile-stat-slot taste-profile-stat-slot-records">
       <ProfileRecordsCard
-        strongestBeer={
-          profileStats.strongestBeer
-        }
-        bitterestBeer={
-          profileStats.bitterestBeer
-        }
-        highestPlatoBeer={
-          profileStats.highestPlatoBeer
-        }
-        mostActiveMonth={
-          profileStats.mostActiveMonth
-        }
-        mostActiveYear={
-          profileStats.mostActiveYear
-        }
-        firstTasting={
-          profileStats.firstTasting
-        }
+        strongestBeer={profileStats.strongestBeer}
+        bitterestBeer={profileStats.bitterestBeer}
+        highestPlatoBeer={profileStats.highestPlatoBeer}
+        mostActiveMonth={profileStats.mostActiveMonth}
+        mostActiveYear={profileStats.mostActiveYear}
+        firstTasting={profileStats.firstTasting}
       />
-      </div>
-      </div>
+
+      <ProfileMapsClient
+        worldItems={tasteStats.countries}
+        czechItems={profileCzechMapItems}
+        profileId={profile.id}
+      />
+
+      <ProfileHopsCard
+        items={tasteStats.hops}
+        profileId={profile.id}
+      />
+
+      <ProfileWorldCard
+        items={tasteStats.countries}
+      />
+
+      <ProfilePackagingCard
+        items={tasteStats.packaging}
+        profileId={profile.id}
+      />
       </>}
 
       {view === "breweries" && (

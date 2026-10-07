@@ -5,6 +5,7 @@ import { useState } from "react";
 
 import TasteLoader from "@/components/ui/TasteLoader";
 import CollapsibleMapPanel, {
+  CzechMapPreview,
   WorldMapPreview,
 } from "@/components/maps/CollapsibleMapPanel";
 import type { BreweryMapItem } from "./BreweryCzechMap";
@@ -161,7 +162,7 @@ export default function BreweryLazyMapsClient({
         description="Interaktivní mapa českých pivovarů se načte až po rozbalení."
         open={czechOpen}
         onToggle={() => void toggleCzech()}
-        preview={<CzechPreview />}
+        preview={<CzechMapPreview />}
         variant="map"
       >
         {czechLoading ? (
@@ -212,23 +213,6 @@ export default function BreweryLazyMapsClient({
         ) : null}
       </CollapsibleMapPanel>
     </div>
-  );
-}
-
-function CzechPreview() {
-  return (
-    <div
-      aria-hidden="true"
-      style={{
-        position: "absolute",
-        inset: 0,
-        backgroundImage:
-          'url("/images/brewery-czech-preview.jpg")',
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-      }}
-    />
   );
 }
 

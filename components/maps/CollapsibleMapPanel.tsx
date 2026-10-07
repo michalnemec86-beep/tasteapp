@@ -165,6 +165,23 @@ export default function CollapsibleMapPanel({
   );
 }
 
+export function CzechMapPreview() {
+  return (
+    <div
+      aria-hidden="true"
+      style={{
+        position: "absolute",
+        inset: 0,
+        backgroundImage:
+          'url("/images/brewery-czech-preview.jpg")',
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+      }}
+    />
+  );
+}
+
 export function WorldMapPreview() {
   return (
     <div

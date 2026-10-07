@@ -1379,3 +1379,91 @@ body:has(.taste-profile-concept) {
     line-height: 1.2;
   }
 }
+
+
+/* Main profile preference carousel: text/statistic sections only. */
+.taste-profile-major-carousel {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) 38px;
+  align-items: stretch;
+  gap: 9px;
+  padding-bottom: 18px;
+}
+
+.taste-profile-major-carousel .taste-profile-loop-carousel-track {
+  display: flex;
+  gap: 16px;
+  min-width: 0;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+.taste-profile-major-carousel .taste-profile-loop-carousel-track::-webkit-scrollbar {
+  display: none;
+}
+
+.taste-profile-major-carousel .taste-profile-major-slide {
+  flex: 0 0 min(720px, calc(100% - 72px));
+  min-width: 0;
+  scroll-snap-align: start;
+}
+
+.taste-profile-major-carousel .taste-profile-major-slide > .taste-profile-section {
+  height: 100%;
+  margin-bottom: 0 !important;
+}
+
+.taste-profile-major-carousel .taste-profile-loop-carousel-arrow {
+  display: block;
+  width: 38px;
+  min-height: 100%;
+  border: 1px solid rgba(229,166,78,.34);
+  border-radius: 10px;
+  background:
+    radial-gradient(circle at 50% 16%, rgba(255,220,164,.10), transparent 34%),
+    linear-gradient(180deg, rgba(86,48,22,.58), rgba(28,20,14,.96));
+  color: #f2b63f;
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow:
+    inset 0 1px rgba(255,227,174,.11),
+    0 5px 13px rgba(0,0,0,.24);
+}
+
+.taste-profile-major-carousel .taste-profile-loop-carousel-hint {
+  display: block;
+  position: absolute;
+  left: 48px;
+  right: 48px;
+  bottom: 1px;
+  color: rgba(255,255,255,.30);
+  font-size: 8px;
+  letter-spacing: .06em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+@media (max-width: 760px) {
+  .taste-profile-major-carousel {
+    grid-template-columns: 29px minmax(0, 1fr) 29px;
+    gap: 6px;
+  }
+
+  .taste-profile-major-carousel .taste-profile-loop-carousel-track {
+    gap: 8px;
+  }
+
+  .taste-profile-major-carousel .taste-profile-major-slide {
+    flex-basis: calc(100% - 2px);
+  }
+
+  .taste-profile-major-carousel .taste-profile-loop-carousel-arrow {
+    width: 29px;
+    min-height: 64px;
+    font-size: 22px;
+  }
+}
