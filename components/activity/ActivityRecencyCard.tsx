@@ -4,6 +4,8 @@ import type {
 } from "react";
 
 import AutoLogoFrame from "@/components/ui/AutoLogoFrame";
+import HomeStatIcon from "@/components/home/HomeStatIcon";
+import { BeerStyleGlassIcon } from "@/components/stats/StatsRankingCard";
 import {
   activityItemDisplayName,
   activityItemFlag,
@@ -209,20 +211,22 @@ export default function ActivityRecencyCard({
             )}
           </div>
 
-          <div
-            style={{
-              marginTop:
-                "2px",
-              color:
-                "var(--taste-text-muted)",
-              fontSize:
-                "9.5px",
-              lineHeight:
-                1.25,
-            }}
-          >
-            {subtitle}
-          </div>
+          {news && (
+            <div
+              style={{
+                marginTop:
+                  "2px",
+                color:
+                  "var(--taste-text-muted)",
+                fontSize:
+                  "9.5px",
+                lineHeight:
+                  1.25,
+              }}
+            >
+              {subtitle}
+            </div>
+          )}
         </div>
       </div>
 
@@ -268,12 +272,68 @@ export default function ActivityRecencyCard({
 
               const content = (
                 <>
-                  {item.logoUrl ? (
+                  {view === "recent-styles" ? (
+                    <span
+                      aria-hidden="true"
+                      style={{
+                        width:
+                          "34px",
+                        height:
+                          "34px",
+                        flexShrink:
+                          0,
+                        display:
+                          "inline-flex",
+                        alignItems:
+                          "center",
+                        justifyContent:
+                          "center",
+                      }}
+                    >
+                      <BeerStyleGlassIcon
+                        styleName={
+                          item.name
+                        }
+                      />
+                    </span>
+                  ) : view === "recent-packaging" ? (
+                    <span
+                      aria-hidden="true"
+                      style={{
+                        width:
+                          "34px",
+                        height:
+                          "34px",
+                        flexShrink:
+                          0,
+                        display:
+                          "inline-flex",
+                        alignItems:
+                          "center",
+                        justifyContent:
+                          "center",
+                      }}
+                    >
+                      <HomeStatIcon
+                        kind={
+                          item.id === "draft"
+                            ? "mug"
+                            : item.id === "bottle"
+                              ? "bottle"
+                              : item.id === "can"
+                                ? "can"
+                                : item.id === "pet"
+                                  ? "pet"
+                                  : "package"
+                        }
+                      />
+                    </span>
+                  ) : item.logoUrl ? (
                     <AutoLogoFrame
                       src={
                         item.logoUrl
                       }
-                      size={30}
+                      size={34}
                       padding={2}
                     />
                   ) : flag ? (
@@ -281,9 +341,9 @@ export default function ActivityRecencyCard({
                       aria-hidden="true"
                       style={{
                         width:
-                          "30px",
+                          "34px",
                         height:
-                          "30px",
+                          "34px",
                         flexShrink:
                           0,
                         display:
@@ -299,7 +359,7 @@ export default function ActivityRecencyCard({
                         background:
                           "rgba(255,255,255,.025)",
                         fontSize:
-                          "17px",
+                          "18px",
                       }}
                     >
                       {flag}
@@ -309,9 +369,9 @@ export default function ActivityRecencyCard({
                       aria-hidden="true"
                       style={{
                         width:
-                          "30px",
+                          "34px",
                         height:
-                          "30px",
+                          "34px",
                         flexShrink:
                           0,
                         display:
@@ -410,7 +470,7 @@ export default function ActivityRecencyCard({
                     display:
                       "grid",
                     gridTemplateColumns:
-                      "30px minmax(0,1fr) auto",
+                      "34px minmax(0,1fr) auto",
                     alignItems:
                       "center",
                     gap:

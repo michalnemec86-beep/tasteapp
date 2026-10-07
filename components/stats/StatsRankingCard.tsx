@@ -1490,7 +1490,7 @@ function getBeerGlassKind(
   return "snifter";
 }
 
-function BeerStyleGlassIcon({
+export function BeerStyleGlassIcon({
   styleName,
 }: {
   styleName: string;
