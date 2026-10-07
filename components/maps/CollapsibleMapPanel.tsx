@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 
 export default function CollapsibleMapPanel({
+  className,
   title,
   eyebrow,
   description,
@@ -12,6 +13,7 @@ export default function CollapsibleMapPanel({
   children,
   variant = "default",
 }: {
+  className?: string;
   title: string;
   eyebrow: string;
   description: string;
@@ -23,7 +25,8 @@ export default function CollapsibleMapPanel({
 }) {
   return (
     <section
-      className="taste-card"
+      className={["taste-card", className].filter(Boolean).join(" ")}
+      data-open={open ? "true" : "false"}
       style={{
         overflow: "hidden",
         padding: 0,

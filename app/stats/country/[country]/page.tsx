@@ -2,9 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
-import { fetchAllRows } from "@/lib/fetch-all-rows";
-import { buildTasteStats } from "@/lib/stats";
-import { normalizeCountryName } from "@/lib/country-flags";
+import { parseStatsDashboardPayload } from "@/lib/stats-dashboard";
 import PageHero from "@/components/ui/PageHero";
 import HomeStatIcon from "@/components/home/HomeStatIcon";
 import "../../stats-concept.css";
@@ -37,166 +35,74 @@ export default async function CountryStatsPage({
     notFound();
   }
 
-  const normalizedCountry = normalizeCountryName(countryName);
+  const [statsResult, catalogResult] =
+    await Promise.all([
+      supabase.rpc(
+        "get_stats_dashboard",
+        {
+          p_current_user: user.id,
+          p_selected_user: null,
+          p_year: null,
+          p_month: null,
+          p_packaging: null,
+          p_beer_id: null,
+          p_brand_id: null,
+          p_brewery_id: null,
+          p_style_id: null,
+          p_country: countryName,
+          p_hop_id: null,
+        }
+      ),
+      supabase.rpc(
+        "get_country_catalog_metrics",
+        {
+          p_country: countryName,
+        }
+      ),
+    ]);
 
-  const [breweriesResult, tastingsResult] = await Promise.all([
-    supabase
-      .from("breweries")
-      .select(`
-        id,
-        name,
-        country,
-        closed_year,
-        logo_url,
-        beers (
-          id,
-          brands (
-            id,
-            name
-          )
-        )
-      `)
-      .order("name"),
-    fetchAllRows((from, to) => supabase
-      .from("tastings")
-      .select(`
-        id,
-        user_id,
-        tasted_on,
-        packaging,
-        quantity,
-        beer_versions (
-          breweries!beer_versions_brewery_id_fkey (
-            id,
-            name,
-            country,
-            logo_url
-          ),
-          beer_styles (
-            id,
-            name
-          ),
-          beer_version_hops (
-            hops (
-              id,
-              name
-            )
-          )
-        ),
-        beers (
-          id,
-          name,
-          brands (
-            id,
-            name
-          ),
-          breweries (
-            id,
-            name,
-            country,
-            logo_url
-          ),
-          beer_styles (
-            id,
-            name
-          ),
-          beer_hops (
-            hops (
-              id,
-              name
-            )
-          )
-        )
-      `)
-      .order("id")
-      .range(from, to)),
-  ]);
-
-  if (breweriesResult.error) {
-    throw new Error(breweriesResult.error.message);
+  if (statsResult.error) {
+    throw new Error(
+      statsResult.error.message
+    );
   }
 
-  const countryBreweries = (breweriesResult.data ?? []).filter(
-    (brewery) =>
-      normalizeCountryName(brewery.country ?? "") === normalizedCountry
-  );
-
-  const allTastings = tastingsResult.map((tasting) => {
-    const beer = singleRelation(tasting.beers);
-    const beerVersion = singleRelation(tasting.beer_versions);
-
-    return {
-      ...tasting,
-      beer_versions: beerVersion
-        ? {
-            ...beerVersion,
-            breweries: singleRelation(beerVersion.breweries),
-            beer_styles: singleRelation(beerVersion.beer_styles),
-            beer_version_hops: (beerVersion.beer_version_hops ?? []).map(
-              (versionHop) => ({
-                ...versionHop,
-                hops: singleRelation(versionHop.hops),
-              })
-            ),
-          }
-        : null,
-      beers: beer
-        ? {
-            ...beer,
-            brands: singleRelation(beer.brands),
-            breweries: singleRelation(beer.breweries),
-            beer_styles: singleRelation(beer.beer_styles),
-            beer_hops: (beer.beer_hops ?? []).map((beerHop) => ({
-              ...beerHop,
-              hops: singleRelation(beerHop.hops),
-            })),
-          }
-        : null,
-    };
-  });
-
-  const countryTastings = allTastings.filter((tasting) => {
-    const brewery =
-      tasting.beer_versions?.breweries ??
-      tasting.beers?.breweries;
-
-    return (
-      normalizeCountryName(brewery?.country ?? "") === normalizedCountry
+  if (catalogResult.error) {
+    throw new Error(
+      catalogResult.error.message
     );
-  });
+  }
 
-  if (countryBreweries.length === 0 && countryTastings.length === 0) {
+  const dashboard =
+    parseStatsDashboardPayload(
+      statsResult.data
+    );
+  const catalogMetrics =
+    parseCountryCatalogMetrics(
+      catalogResult.data
+    );
+
+  if (
+    catalogMetrics.breweries === 0 &&
+    dashboard.primary.units === 0
+  ) {
     notFound();
   }
 
-  const stats = buildTasteStats(countryTastings);
-  const personalStats = buildTasteStats(countryTastings, user.id);
-
-  const tastingUnits = countryTastings.reduce(
-    (sum, tasting) => sum + (tasting.quantity ?? 1),
-    0
-  );
-
-  const tastedBeerIds = new Set(
-    countryTastings
-      .map((tasting) => tasting.beers?.id)
-      .filter((id): id is number => id != null)
-  );
-
-  const activeBreweries = countryBreweries.filter(
-    (brewery) => brewery.closed_year == null
-  ).length;
-
-  const brandIds = new Set<number>();
-
-  for (const brewery of countryBreweries) {
-    for (const beer of brewery.beers ?? []) {
-      const brand = singleRelation(beer.brands);
-      if (brand?.id != null) {
-        brandIds.add(brand.id);
-      }
-    }
-  }
+  const stats =
+    dashboard.primary.stats;
+  const personalStats =
+    dashboard.personal.stats;
+  const tastingUnits =
+    dashboard.primary.units;
+  const tastedBeerCount =
+    stats.beers.length;
+  const activeBreweries =
+    catalogMetrics.activeBreweries;
+  const brandCount =
+    catalogMetrics.brands;
+  const breweryCount =
+    catalogMetrics.breweries;
 
   return (
     <main
@@ -226,7 +132,7 @@ export default async function CountryStatsPage({
           {
             icon: <HomeStatIcon kind="brewery" />,
             accent: "#f2b63f",
-            value: countryBreweries.length,
+            value: breweryCount,
             label: "Pivovarů",
           },
           {
@@ -238,13 +144,13 @@ export default async function CountryStatsPage({
           {
             icon: <HomeStatIcon kind="mug" />,
             accent: "#e88835",
-            value: tastedBeerIds.size,
+            value: tastedBeerCount,
             label: "Ochutnaných piv",
           },
           {
             icon: <HomeStatIcon kind="crest" />,
             accent: "#d65b42",
-            value: brandIds.size,
+            value: brandCount,
             label: "Značek",
           },
         ]}
@@ -289,11 +195,6 @@ export default async function CountryStatsPage({
           Zobrazit pivovary země →
         </Link>
       </section>
-
-      <PackagingSummaryCard
-        items={stats.packaging}
-        contextParams={{ country: countryName }}
-      />
 
       <section>
         <div style={{ marginBottom: "15px" }}>
@@ -374,16 +275,45 @@ export default async function CountryStatsPage({
           />
         </div>
       </section>
+
+      <PackagingSummaryCard
+        items={stats.packaging}
+        contextParams={{ country: countryName }}
+      />
     </main>
   );
 }
 
-function singleRelation<T>(
-  value: T | T[] | null | undefined
-): T | null {
-  if (Array.isArray(value)) {
-    return value[0] ?? null;
-  }
 
-  return value ?? null;
+function parseCountryCatalogMetrics(
+  value: unknown
+) {
+  const source =
+    value &&
+    typeof value === "object" &&
+    !Array.isArray(value)
+      ? value as Record<string, unknown>
+      : {};
+
+  const breweries =
+    Number(source.breweries);
+  const activeBreweries =
+    Number(source.activeBreweries);
+  const brands =
+    Number(source.brands);
+
+  return {
+    breweries:
+      Number.isFinite(breweries)
+        ? breweries
+        : 0,
+    activeBreweries:
+      Number.isFinite(activeBreweries)
+        ? activeBreweries
+        : 0,
+    brands:
+      Number.isFinite(brands)
+        ? brands
+        : 0,
+  };
 }

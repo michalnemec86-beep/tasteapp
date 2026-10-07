@@ -815,6 +815,16 @@ export default async function StatsPage({
               personalItemIds={personalStats.hops.map((item) => item.id)}
             />
           )}
+
+          {!selectedFocus && totalTastings > 0 && (
+            <StatsWorldMapPanelClient
+              items={rawStats.countries}
+              statsContextUserId={selectedUserId}
+              lockStatsContext={isLockedContext}
+              comparisonCount={comparisonStats.countries.length}
+              comparisonLabel={comparisonLabel}
+            />
+          )}
           {selectedFocus === "packaging" && (
             <RankingCardClient
               currentUserId={user.id}
@@ -857,7 +867,7 @@ export default async function StatsPage({
       )}
 
       {totalTastings > 0 &&
-        (!selectedFocus || selectedFocus === "countries") && (
+        selectedFocus === "countries" && (
           <div style={{ marginBottom: "30px" }}>
             <StatsWorldMapPanelClient
               items={rawStats.countries}
@@ -872,15 +882,6 @@ export default async function StatsPage({
   );
 }
 
-function singleRelation<T>(
-  value: T | T[] | null | undefined
-): T | null {
-  if (Array.isArray(value)) {
-    return value[0] ?? null;
-  }
-
-  return value ?? null;
-}
 
 function getStringParam(
   value: string | string[] | undefined

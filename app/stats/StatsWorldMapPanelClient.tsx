@@ -40,6 +40,7 @@ export default function StatsWorldMapPanelClient(
 
   return (
     <CollapsibleMapPanel
+      className="taste-ranking-carousel-item"
       title="Mapa ochutnaných zemí"
       eyebrow="Pivní mapa světa"
       description="Interaktivní mapa zemí z ochutnávek se načte až po rozbalení."
