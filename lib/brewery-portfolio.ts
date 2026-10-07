@@ -73,9 +73,18 @@ export async function loadBreweryPortfolio(supabase: SupabaseClient, index: Brew
   const allIds = [...indexedIds, ...contextualIds];
   const editableBeerIds = ids.filter(id => !contextualIds.has(id) && options.closedYear == null
     && !isHistoricalBeerPortfolioStatus(uniqueIndex.find(beer => beer.id === id)?.portfolio_status));
-  const [tastings, rows, editable] = await Promise.all([
-    allIds.length ? loadRows((from, to) => supabase.from("tastings")
-      .select("id, beer_id, quantity").in("beer_id", allIds).order("id").range(from, to)) : Promise.resolve([]),
+  const [tastingTotalsResult, rows, editable] = await Promise.all([
+    allIds.length
+      ? supabase.rpc(
+          "get_beer_tasting_totals",
+          {
+            p_beer_ids: allIds,
+          }
+        )
+      : Promise.resolve({
+          data: [],
+          error: null,
+        }),
     ids.length ? loadRows((from, to) => supabase.from("beers").select(`
       id, name, brewery_id, plato, abv, ibu, is_non_alcoholic, is_catalog, portfolio_status,
       brands(id, name), beer_styles(id, name), beer_hops(hops(id, name)),
@@ -86,13 +95,26 @@ export async function loadBreweryPortfolio(supabase: SupabaseClient, index: Brew
       .select("id, beer_id").in("beer_id", editableBeerIds).eq("user_id", options.userId)
       .gte("tasted_on", "2026-09-01").order("id").range(from, to)) : Promise.resolve([]),
   ]);
+  if (tastingTotalsResult.error) {
+    throw new Error(
+      tastingTotalsResult.error.message
+    );
+  }
+
   const editIds = new Set(editable.map(row => row.beer_id));
   const totals = new Map<number, { count: number; quantity: number }>();
-  for (const tasting of tastings) {
-    const total = totals.get(tasting.beer_id) ?? { count: 0, quantity: 0 };
-    total.count++;
-    total.quantity += tasting.quantity ?? 1;
-    totals.set(tasting.beer_id, total);
+
+  for (const row of tastingTotalsResult.data ?? []) {
+    const beerId = Number(row.beer_id);
+
+    if (!Number.isInteger(beerId) || beerId < 1) {
+      continue;
+    }
+
+    totals.set(beerId, {
+      count: Math.max(0, Number(row.tasting_count) || 0),
+      quantity: Math.max(0, Number(row.quantity_total) || 0),
+    });
   }
 
   const visibleBeers = rows.map(beer => {

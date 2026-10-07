@@ -2,18 +2,6 @@
 
 import CatalogBeerModalClient from "./CatalogBeerModalClient";
 
-type BeerStyle = {
-  id: number;
-  name: string;
-  aliases: string[] | null;
-};
-
-type Hop = {
-  id: number;
-  name: string;
-  aliases: string[] | null;
-};
-
 type Beer = {
   id: number;
   name: string;
@@ -30,8 +18,6 @@ type Beer = {
 type Props = {
   breweryName: string;
   beer: Beer;
-  styles: BeerStyle[];
-  hops: Hop[];
   allowBrandAssignment?: boolean;
   updateBeerAction: (
     formData: FormData
@@ -48,8 +34,6 @@ type Props = {
 export default function CatalogBeerEditModalClient({
   breweryName,
   beer,
-  styles,
-  hops,
   allowBrandAssignment,
   updateBeerAction,
   deleteBeerAction,
@@ -59,8 +43,6 @@ export default function CatalogBeerEditModalClient({
       mode="edit"
       breweryName={breweryName}
       beer={beer}
-      styles={styles}
-      hops={hops}
       allowBrandAssignment={allowBrandAssignment}
       saveAction={updateBeerAction}
       deleteAction={deleteBeerAction}

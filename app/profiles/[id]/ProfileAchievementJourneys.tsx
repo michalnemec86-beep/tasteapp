@@ -100,16 +100,46 @@ const MEDAL_VISUALS = {
   }
 >;
 
-const SERIES_ACCENTS:
+const SERIES_VISUALS:
   Record<
     AchievementSeries,
-    string
+    {
+      accent: string;
+      border: string;
+      wash: string;
+      glow: string;
+    }
   > = {
-  beers: "#f2b63f",
-  breweries: "#e17d32",
-  styles: "#cb5940",
-  countries: "#b77a36",
-  hops: "#8ea348",
+  beers: {
+    accent: "#f2b63f",
+    border: "rgba(242,182,63,0.42)",
+    wash: "rgba(242,182,63,0.12)",
+    glow: "rgba(242,182,63,0.14)",
+  },
+  breweries: {
+    accent: "#e17d32",
+    border: "rgba(225,125,50,0.42)",
+    wash: "rgba(225,125,50,0.12)",
+    glow: "rgba(225,125,50,0.14)",
+  },
+  styles: {
+    accent: "#cb5940",
+    border: "rgba(203,89,64,0.42)",
+    wash: "rgba(203,89,64,0.12)",
+    glow: "rgba(203,89,64,0.14)",
+  },
+  countries: {
+    accent: "#b7894a",
+    border: "rgba(183,137,74,0.42)",
+    wash: "rgba(183,137,74,0.12)",
+    glow: "rgba(183,137,74,0.14)",
+  },
+  hops: {
+    accent: "#8ea348",
+    border: "rgba(142,163,72,0.44)",
+    wash: "rgba(142,163,72,0.13)",
+    glow: "rgba(142,163,72,0.15)",
+  },
 };
 
 function shortMedalName(
@@ -416,10 +446,13 @@ function JourneyRow({
         ]
       : null;
 
-  const seriesAccent =
-    SERIES_ACCENTS[
+  const seriesVisual =
+    SERIES_VISUALS[
       journey.series
     ];
+
+  const seriesAccent =
+    seriesVisual.accent;
 
   const lineProgress =
     journey.levels
@@ -457,38 +490,26 @@ function JourneyRow({
         padding:
           "18px",
         border:
-          `1px solid ${
-            currentVisual
-              ?.border ??
-            "rgba(255,255,255,0.075)"
-          }`,
+          `1px solid ${seriesVisual.border}`,
         borderRadius:
           "16px",
         background: `
           radial-gradient(
             circle at 100% 0%,
-            ${
-              currentVisual
-                ?.soft ??
-              "rgba(255,255,255,0.025)"
-            },
-            transparent 17rem
+            ${seriesVisual.wash},
+            transparent 18rem
           ),
           linear-gradient(
             145deg,
-            ${seriesAccent}0F,
-            transparent 60%
-          ),
-          rgba(19,13,8,0.38)
+            ${seriesVisual.wash},
+            rgba(19,13,8,0.20) 58%,
+            rgba(19,13,8,0.44)
+          )
         `,
         boxShadow:
           journey.earned
-            ? `0 0 22px ${
-                currentVisual
-                  ?.glow ??
-                "transparent"
-              }, inset 0 1px 0 rgba(255,245,220,0.035)`
-            : "inset 0 1px 0 rgba(255,255,255,0.025)",
+            ? `0 0 20px ${seriesVisual.glow}, inset 0 1px 0 rgba(255,245,220,0.045)`
+            : `0 0 14px ${seriesVisual.glow}, inset 0 1px 0 rgba(255,255,255,0.025)`,
       }}
     >
       <div
@@ -1068,25 +1089,6 @@ export default function ProfileAchievementJourneys({
             Hospodské ocenění
           </h2>
 
-          <p
-            style={{
-              maxWidth:
-                "650px",
-              margin:
-                "6px 0 0",
-              color:
-                "var(--taste-text-muted)",
-              fontSize:
-                "11px",
-              lineHeight:
-                1.55,
-            }}
-          >
-            Postup od prvních
-            met až k mistrovským
-            úrovním napříč
-            pivními objevy.
-          </p>
         </div>
 
         <div
