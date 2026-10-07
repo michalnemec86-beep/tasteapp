@@ -2232,15 +2232,13 @@ export default async function ProfilePage({
         </div>
       </section>
 
+      <ProfileBeerDnaCard
+        styles={tasteStats.styles}
+        profileId={profile.id}
+      />
+
       <section className="taste-profile-major-stats" style={{ marginBottom: "38px" }}>
         <ProfileLoopCarousel className="taste-profile-major-carousel">
-          <div className="taste-profile-major-slide">
-            <ProfileBeerDnaCard
-              styles={tasteStats.styles}
-              profileId={profile.id}
-            />
-          </div>
-
           <div className="taste-profile-major-slide">
             <ProfileBreweriesCard
               currentUserId={user.id}
@@ -2280,6 +2278,10 @@ export default async function ProfilePage({
         firstTasting={profileStats.firstTasting}
       />
 
+      <ProfileWorldCard
+        items={tasteStats.countries}
+      />
+
       <ProfileMapsClient
         worldItems={tasteStats.countries}
         czechItems={profileCzechMapItems}
@@ -2289,10 +2291,6 @@ export default async function ProfilePage({
       <ProfileHopsCard
         items={tasteStats.hops}
         profileId={profile.id}
-      />
-
-      <ProfileWorldCard
-        items={tasteStats.countries}
       />
 
       <ProfilePackagingCard
