@@ -107,38 +107,44 @@ const SERIES_VISUALS:
       accent: string;
       border: string;
       wash: string;
+      deep: string;
       glow: string;
     }
   > = {
   beers: {
     accent: "#f2b63f",
-    border: "rgba(242,182,63,0.42)",
-    wash: "rgba(242,182,63,0.12)",
-    glow: "rgba(242,182,63,0.14)",
+    border: "rgba(242,182,63,0.58)",
+    wash: "rgba(242,182,63,0.24)",
+    deep: "rgba(242,182,63,0.14)",
+    glow: "rgba(242,182,63,0.24)",
   },
   breweries: {
     accent: "#e17d32",
-    border: "rgba(225,125,50,0.42)",
-    wash: "rgba(225,125,50,0.12)",
-    glow: "rgba(225,125,50,0.14)",
+    border: "rgba(225,125,50,0.58)",
+    wash: "rgba(225,125,50,0.24)",
+    deep: "rgba(225,125,50,0.14)",
+    glow: "rgba(225,125,50,0.24)",
   },
   styles: {
     accent: "#cb5940",
-    border: "rgba(203,89,64,0.42)",
-    wash: "rgba(203,89,64,0.12)",
-    glow: "rgba(203,89,64,0.14)",
+    border: "rgba(203,89,64,0.58)",
+    wash: "rgba(203,89,64,0.24)",
+    deep: "rgba(203,89,64,0.14)",
+    glow: "rgba(203,89,64,0.24)",
   },
   countries: {
     accent: "#b7894a",
-    border: "rgba(183,137,74,0.42)",
-    wash: "rgba(183,137,74,0.12)",
-    glow: "rgba(183,137,74,0.14)",
+    border: "rgba(183,137,74,0.58)",
+    wash: "rgba(183,137,74,0.24)",
+    deep: "rgba(183,137,74,0.14)",
+    glow: "rgba(183,137,74,0.24)",
   },
   hops: {
     accent: "#8ea348",
-    border: "rgba(142,163,72,0.44)",
-    wash: "rgba(142,163,72,0.13)",
-    glow: "rgba(142,163,72,0.15)",
+    border: "rgba(142,163,72,0.58)",
+    wash: "rgba(142,163,72,0.24)",
+    deep: "rgba(142,163,72,0.14)",
+    glow: "rgba(142,163,72,0.24)",
   },
 };
 
@@ -497,21 +503,35 @@ function JourneyRow({
           radial-gradient(
             circle at 100% 0%,
             ${seriesVisual.wash},
-            transparent 18rem
+            transparent 16rem
           ),
           linear-gradient(
             145deg,
-            ${seriesVisual.wash},
-            rgba(19,13,8,0.20) 58%,
-            rgba(19,13,8,0.44)
+            ${seriesVisual.deep} 0%,
+            ${seriesVisual.wash} 38%,
+            rgba(19,13,8,0.34) 72%,
+            rgba(19,13,8,0.52) 100%
           )
         `,
         boxShadow:
           journey.earned
-            ? `0 0 20px ${seriesVisual.glow}, inset 0 1px 0 rgba(255,245,220,0.045)`
-            : `0 0 14px ${seriesVisual.glow}, inset 0 1px 0 rgba(255,255,255,0.025)`,
+            ? `0 0 24px ${seriesVisual.glow}, inset 0 1px 0 rgba(255,245,220,0.06)`
+            : `0 0 16px ${seriesVisual.glow}, inset 0 1px 0 rgba(255,255,255,0.03)`,
       }}
     >
+      <div
+        aria-hidden="true"
+        style={{
+          height: "3px",
+          margin: "-4px 0 14px",
+          borderRadius: "999px",
+          background:
+            `linear-gradient(90deg, ${seriesVisual.accent}, ${seriesVisual.accent}66 58%, transparent)`,
+          boxShadow:
+            `0 0 12px ${seriesVisual.glow}`,
+        }}
+      />
+
       <div
         className="
           grid
