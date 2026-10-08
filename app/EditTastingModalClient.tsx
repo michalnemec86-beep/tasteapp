@@ -73,7 +73,7 @@ type Tasting = {
 
   place: string | null;
   place_id?: number | null;
-  place_category?: "home" | "pub" | "festival" | null;
+  place_category?: string | null;
   notes: string | null;
 
   beers: {
@@ -880,11 +880,12 @@ export default function EditTastingModalClient({
               {/* PARAMETRY */}
 
               <div
+                className="taste-form-strength"
                 style={{
                   display: "grid",
                   gridTemplateColumns:
                     "repeat(3, minmax(0, 1fr))",
-                  gap: "12px",
+                  gap: "7px",
                 }}
               >
                 <div style={fieldStyle}>
@@ -1039,8 +1040,13 @@ export default function EditTastingModalClient({
                   <label style={labelStyle}>Místo (nepovinné)</label>
                   <PlacePicker initialPlace={tasting.place}
                     initialPlaceId={tasting.place_id ?? null}
-                    initialCategory={tasting.place_category ??
-                      (tasting.place?.trim().toLocaleLowerCase("cs") === "doma" ? "home" : null)}
+                    initialCategory={
+                      tasting.place_category === "home" ||
+                      tasting.place_category === "pub" ||
+                      tasting.place_category === "festival"
+                        ? tasting.place_category
+                        : tasting.place?.trim().toLocaleLowerCase("cs") === "doma" ? "home" : null
+                    }
                   />
                   <StarRatingInput defaultValue={tasting.rating} />
                   <label style={labelStyle} htmlFor={`edit-notes-${tasting.id}`}>Poznámka (nepovinné)</label>
