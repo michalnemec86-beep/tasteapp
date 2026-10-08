@@ -26,6 +26,7 @@ Pozdější commit přidává tuto dokumentaci; nemění funkce archivované ver
   kompaktní ikonou se čtečkovým popisem. Součet quantity nadále ukazuje
   původní odznak u názvu piva; jednotlivá hodnocení, místo, poznámky
   a oprávněné editace/smazání zůstávají po rozbalení dostupné.
+  Odkaz na hodnocení v patičce zůstává dostupný jako ikona hvězdy.
   Pouze změna vykreslení, bez zásahu do dat a statistik.
 
 - 8. 10. 2026: časová osa Aktivity seskupuje pro zobrazení více ochutnávek
