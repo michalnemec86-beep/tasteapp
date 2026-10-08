@@ -30,11 +30,44 @@
 .taste-form-strength > div { min-width: 0; }
 .taste-form-strength label { font-size: 11px !important; min-height: 30px; }
 .taste-form-strength input { box-sizing: border-box; min-width: 0; max-width: 100%; width: 100%; padding: 10px 6px !important; font-size: 14px; }
-.taste-form-required-grid { display: grid; grid-template-columns: minmax(0, 1fr) 90px; gap: 9px 12px; }
-.taste-form-required-grid > div { min-width: 0; margin-bottom: 0 !important; }
-.taste-form-required-grid input, .taste-form-required-grid select { min-width: 0; max-width: 100%; width: 100%; box-sizing: border-box; }
-.taste-form-required-count { grid-row: 1; grid-column: 2; }
+.taste-form-required-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(76px, 90px);
+  gap: 10px;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+.taste-form-required-grid > div { min-width: 0; max-width: 100%; margin-bottom: 0 !important; }
+.taste-form-required-grid input,
+.taste-form-required-grid select {
+  display: block;
+  box-sizing: border-box;
+  min-width: 0 !important;
+  max-width: 100%;
+  width: 100%;
+}
+.taste-form-required-date { grid-row: 1; grid-column: 1; min-width: 0; }
+.taste-form-required-date input[type="date"] {
+  width: min(100%, 190px) !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  padding: 10px 4px !important;
+  font-size: 14px !important;
+  overflow: hidden;
+  font-variant-numeric: tabular-nums;
+}
+.taste-form-required-count { grid-row: 1; grid-column: 2; min-width: 0; }
+.taste-form-required-count input[type="number"] { padding: 10px 6px !important; font-size: 15px; }
 .taste-form-required-packaging { grid-column: 1 / -1; grid-row: 2; }
+.taste-form-rating-section, .taste-form-place-section { margin-top: 14px; }
+.taste-form-rating-section + .taste-form-place-section {
+  padding-top: 6px;
+  border-top: 1px solid var(--taste-border);
+}
+.taste-form-rating-section .taste-form-section-heading,
+.taste-form-place-section .taste-form-section-heading { margin-bottom: 8px; }
 .taste-place-choices { display: flex; flex-wrap: wrap; gap: 7px; margin: 10px 0; }
 .taste-place-choice, .taste-place-clear {
   font: inherit; font-size: 12px; min-height: 38px; padding: 7px 10px;
