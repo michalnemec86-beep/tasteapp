@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { HopMark } from "@/components/brand/PivnikMark";
-import { Download, Settings } from "lucide-react";
+import { Bell, Settings } from "lucide-react";
 import useNavigationNews from "./useNavigationNews";
 import { getNewsHref } from "@/lib/navigation-news";
 import { disablePush } from "@/lib/push-news-client";
@@ -115,6 +115,16 @@ export default function AppNav({
       >
         <BrandLink />
 
+        <div className="taste-nav-personal-shell">
+          <Link
+            href="/"
+            className="taste-profile-nav-link taste-nav-personal-link"
+            aria-current={isActive("/me") ? "page" : undefined}
+          >
+            <NavCaption title="Můj pivní deník" context="osobní záznamy" />
+          </Link>
+        </div>
+
         <div
           style={{
             flex: 1,
@@ -127,25 +137,24 @@ export default function AppNav({
             padding: "10px 0",
           }}
         >
-          <NavLink href="/activity" active={isActive("/activity")} newsCount={counts.activity} onClick={() => reopenSection("/activity")}>Aktivita v hospodě</NavLink>
-          <NavLink href="/stats" active={isActive("/stats")}>Co a jak pijeme</NavLink>
-          <NavLink href="/ratings" active={isActive("/ratings")}>Hodnocení</NavLink>
-          <NavLink href="/places" active={isActive("/places")}>Místa</NavLink>
-          <NavLink href={getNewsHref("beers", news)} active={isActive("/beers")} newsCount={counts.beers} onClick={() => reopenSection(getNewsHref("beers", news))}>Pivní lístek</NavLink>
-          <NavLink href={getNewsHref("breweries", news)} active={isActive("/breweries")} newsCount={counts.breweries} onClick={() => reopenSection(getNewsHref("breweries", news))}>Pivovary</NavLink>
-          <NavLink href="/profiles" active={isActive("/profiles")}>Štamgasti</NavLink>
+          <NavLink href="/stats" active={isActive("/stats")}><NavCaption title="Co a jak pijeme" context="aktuální dění" /></NavLink>
+          <NavLink href={getNewsHref("breweries", news)} active={isActive("/breweries")} newsCount={counts.breweries} onClick={() => reopenSection(getNewsHref("breweries", news))}><NavCaption title="Pivovary" context="přehled a statistiky" /></NavLink>
+          <NavLink href={getNewsHref("beers", news)} active={isActive("/beers")} newsCount={counts.beers} onClick={() => reopenSection(getNewsHref("beers", news))}><NavCaption title="Pivní lístek" context="evidence piv" /></NavLink>
+          <NavLink href="/places" active={isActive("/places")}><NavCaption title="Místa" context="naše hospody a fesťáky" /></NavLink>
+          <NavLink href="/ratings" active={isActive("/ratings")}><NavCaption title="Hodnocení" /></NavLink>
+          <NavLink href="/profiles" active={isActive("/profiles")}><NavCaption title="Štamgasti" /></NavLink>
         </div>
 
         <Link
-          href="/"
-          className="taste-profile-nav-link"
-          aria-current={isActive("/me") ? "page" : undefined}
+          href="/activity"
+          className="taste-nav-activity-shortcut taste-settings-link"
+          aria-label="Aktivita v hospodě"
+          title="Aktivita v hospodě"
+          aria-current={isActive("/activity") ? "page" : undefined}
+          onClick={() => reopenSection("/activity")}
         >
-          Můj pivní deník
-        </Link>
-
-        <Link href="/install" className="taste-settings-link" aria-label="Nainstalovat Pivník" title="Nainstalovat Pivník" aria-current={isActive("/install") ? "page" : undefined}>
-          <Download size={19} aria-hidden="true" />
+          <Bell size={19} aria-hidden="true" />
+          <NewsBadge count={counts.activity} />
         </Link>
 
         <Link
@@ -220,16 +229,28 @@ export default function AppNav({
 
       {mobileOpen && (
         <div className="taste-mobile-menu">
-          <MobileNavLink href="/" active={isActive("/me")}>Můj pivní deník</MobileNavLink>
-          <MobileNavLink href="/activity" active={isActive("/activity")} newsCount={counts.activity} onClick={() => reopenSection("/activity")}>Aktivita v hospodě</MobileNavLink>
-          <MobileNavLink href="/stats" active={isActive("/stats")}>Co a jak pijeme</MobileNavLink>
-          <MobileNavLink href="/ratings" active={isActive("/ratings")}>Hodnocení</MobileNavLink>
-          <MobileNavLink href="/places" active={isActive("/places")}>Místa</MobileNavLink>
-          <MobileNavLink href={getNewsHref("beers", news)} active={isActive("/beers")} newsCount={counts.beers} onClick={() => reopenSection(getNewsHref("beers", news))}>Pivní lístek</MobileNavLink>
-          <MobileNavLink href={getNewsHref("breweries", news)} active={isActive("/breweries")} newsCount={counts.breweries} onClick={() => reopenSection(getNewsHref("breweries", news))}>Pivovary</MobileNavLink>
-          <MobileNavLink href="/profiles" active={isActive("/profiles")}>Štamgasti</MobileNavLink>
-          <MobileNavLink href="/install" active={isActive("/install")}>Nainstalovat Pivník</MobileNavLink>
-          <MobileNavLink href="/settings" active={isActive("/settings")}>Nastavení</MobileNavLink>
+          <div className="taste-mobile-personal-group">
+            <MobileNavLink href="/" active={isActive("/me")}>
+              <NavCaption title="Můj pivní deník" context="osobní záznamy" />
+            </MobileNavLink>
+          </div>
+
+          <div className="taste-mobile-main-group">
+            <MobileNavLink href="/stats" active={isActive("/stats")}><NavCaption title="Co a jak pijeme" context="aktuální dění" /></MobileNavLink>
+            <MobileNavLink href={getNewsHref("breweries", news)} active={isActive("/breweries")} newsCount={counts.breweries} onClick={() => reopenSection(getNewsHref("breweries", news))}><NavCaption title="Pivovary" context="přehled a statistiky" /></MobileNavLink>
+            <MobileNavLink href={getNewsHref("beers", news)} active={isActive("/beers")} newsCount={counts.beers} onClick={() => reopenSection(getNewsHref("beers", news))}><NavCaption title="Pivní lístek" context="evidence piv" /></MobileNavLink>
+            <MobileNavLink href="/places" active={isActive("/places")}><NavCaption title="Místa" context="naše hospody a fesťáky" /></MobileNavLink>
+            <MobileNavLink href="/ratings" active={isActive("/ratings")}><NavCaption title="Hodnocení" /></MobileNavLink>
+            <MobileNavLink href="/profiles" active={isActive("/profiles")}><NavCaption title="Štamgasti" /></MobileNavLink>
+          </div>
+
+          <div className="taste-mobile-utility-group">
+            <MobileNavLink href="/activity" active={isActive("/activity")} newsCount={counts.activity} onClick={() => reopenSection("/activity")}>Aktivita v hospodě</MobileNavLink>
+            <MobileNavLink href="/settings" active={isActive("/settings")}>Nastavení</MobileNavLink>
+            <div className="taste-mobile-install-subitem">
+              <MobileNavLink href="/install" active={isActive("/install")}>Nainstalovat Pivník</MobileNavLink>
+            </div>
+          </div>
           <button type="button" onClick={handleLogout} className="taste-mobile-menu-logout">
             Odhlásit
           </button>
@@ -380,6 +401,15 @@ function NavLink({
         />
       )}
     </Link>
+  );
+}
+
+function NavCaption({ title, context }: { title: string; context?: string }) {
+  return (
+    <span className="taste-nav-caption">
+      <span className="taste-nav-caption-title">{title}</span>
+      {context && <span className="taste-nav-caption-context">({context})</span>}
+    </span>
   );
 }
 

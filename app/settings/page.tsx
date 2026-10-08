@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import { Download } from "lucide-react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { isAdminView, isCatalogAdminUser } from "@/lib/adminView";
@@ -37,6 +39,16 @@ export default async function SettingsPage() {
         adminView={await isAdminView(user.id)}
       />
       <div className="taste-settings-grid taste-settings-push-grid"><PushNewsSettings userId={user.id} /></div>
+      <section className="taste-settings-install-card" aria-label="Instalace aplikace">
+        <div>
+          <h2>Instalace Pivníku</h2>
+          <p>Otevři návod k instalaci aplikace na iPhone nebo Android.</p>
+        </div>
+        <Link href="/install" className="taste-settings-install-link">
+          <Download size={18} aria-hidden="true" />
+          Nainstalovat Pivník
+        </Link>
+      </section>
     </main>
   );
 }

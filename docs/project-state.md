@@ -20,6 +20,20 @@ Pozdější commit přidává tuto dokumentaci; nemění funkce archivované ver
 
 ## Následné změny
 
+- 8. 10. 2026: navigace desktopu i mobilu přeskupena do nového
+  pořadí. Oddělený zlatý odkaz „Můj pivní deník (osobní záznamy)“;
+  hlavní položky v pořadí „Co a jak pijeme (aktuální dění)“,
+  „Pivovary (přehled a statistiky)“, „Pivní lístek (evidence piv)“,
+  „Místa (naše hospody a fesťáky)“, „Hodnocení“ a „Štamgasti“.
+  Doplňkové popisky jsou druhý řádek menším písmem pro zachování
+  místa na mobilu. „Aktivita v hospodě“ zůstává v doplňkové navigaci
+  se stávajícím novinkovým počítadlem (na desktopu samostatná ikona),
+  nikoli mezi šesti hlavními položkami; žádné oznámení se neztrácí.
+  Mobilní instalace je v menu pod Nastavením; z desktopu vede
+  instalace ze stránky Nastavení. Všechny původní cesty, stav
+  návštěv a filtrování katalogových novinek zachovány.
+  Jde pouze o UI, bez změn dat, API a databáze.
+
 - 8. 10. 2026: oprava volby místa v modalu nové ochutnávky. Starší CSS
   `new-tasting-overrides.css` skrývalo každé přímé pole `name="place"`
   i s rodičovským prvkem přes `:has(> input[name="place"])`. Po výběru
