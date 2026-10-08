@@ -20,6 +20,17 @@ Pozdější commit přidává tuto dokumentaci; nemění funkce archivované ver
 
 ## Následné změny
 
+- 8. 10. 2026: na přání upraveny oba modaly zapsání i editace
+  ochutnávky. Rozbalovací panel má jednotný nadpis „Informace o ochutnaném
+  pivu“ a je při každém otevření výchozí sbalený. Pro nové pivo s
+  chybějící povinnou zemí nebo parametrem ho validace sama rozbalí.
+  Datum a počet mají vlastní nekolizní mobilní sloupce se zmenšeným
+  datovým inputem. Hodnocení a místo jsou dvě nezávislé části; poznámka
+  byla odstraněna z uživatelských formulářů, ale server starší
+  `tastings.notes` zachovává při ostatních editacích. Přepínače místa:
+  Hospoda/Festival otevřou vyhledávací pole, Doma jen aktivní volbu a
+  neveřejný textový příznak. Bez migrace a změn existujících dat.
+
 - 8. 10. 2026: mobilní nový i editační formulář ochutnávky má oddělené
   povinné údaje a sbalitelné doplňkové informace. Pivovar/značka/pivo
   zůstávají vpředu; parametry katalogového piva se vizuálně upozadí a
