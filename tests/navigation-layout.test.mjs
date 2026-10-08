@@ -8,7 +8,8 @@ const navCss = read("app/app-nav.css");
 const settings = read("app/settings/page.tsx");
 
 const namedSections = [
-  ["Co a jak pijeme", "aktuální dění"],
+  ["Aktivita v hospodě", "aktuální dění"],
+  ["Co a jak pijeme", "Vše z Pivníku na jednom místě"],
   ["Pivovary", "přehled a statistiky"],
   ["Pivní lístek", "evidence piv"],
   ["Místa", "naše hospody a fesťáky"],
@@ -21,9 +22,9 @@ function sectionOrder(source) {
     .map(match => [match[1], match[2] ?? null]);
 }
 
-test("personal diary is separated before exactly the six ordered public sections", () => {
+test("personal diary is separated before exactly seven ordered public sections", () => {
   const desktop = nav.split('<div className="taste-nav-personal-shell">')[1]
-    ?.split('className="taste-nav-activity-shortcut')[0];
+    ?.split('        <Link\n          href="/settings"')[0];
   const mobile = nav.split('<div className="taste-mobile-personal-group">')[1]
     ?.split('<div className="taste-mobile-utility-group">')[0];
   assert.ok(desktop && mobile);
@@ -37,22 +38,25 @@ test("personal diary is separated before exactly the six ordered public sections
 });
 
 test("existing route and news badge links are preserved in reordered navigation", () => {
+  assert.match(nav, /<NavLink href="\/activity"[^>]*newsCount=\{counts\.activity\}[^>]*onClick=/);
+  assert.match(nav, /<MobileNavLink href="\/activity"[^>]*newsCount=\{counts\.activity\}[^>]*onClick=/);
   assert.match(nav, /<NavLink href="\/stats"/);
   assert.match(nav, /<NavLink href=\{getNewsHref\("breweries", news\)\}[^>]*newsCount=\{counts\.breweries\}/);
   assert.match(nav, /<NavLink href=\{getNewsHref\("beers", news\)\}[^>]*newsCount=\{counts\.beers\}/);
   assert.match(nav, /<NavLink href="\/places"/);
   assert.match(nav, /<NavLink href="\/ratings"/);
   assert.match(nav, /<NavLink href="\/profiles"/);
-  assert.match(nav, /href="\/activity"[\s\S]*newsCount=\{counts\.activity\}/);
-  assert.match(nav, /className="taste-nav-activity-shortcut taste-settings-link"/);
+  assert.doesNotMatch(nav, /taste-nav-activity-shortcut/);
 });
 
-test("installation is below Settings on mobile and reachable within Settings on desktop", () => {
+test("installation appears only inside Settings and nowhere in navigation", () => {
   const utility = nav.split('<div className="taste-mobile-utility-group">')[1]
     ?.split('<button type="button" onClick={handleLogout}')[0];
   assert.ok(utility);
-  assert.ok(utility.indexOf('href="/settings"') < utility.indexOf('href="/install"'));
-  assert.match(utility, /className="taste-mobile-install-subitem"/);
-  assert.doesNotMatch(nav, /className="taste-settings-link" aria-label="Nainstalovat Pivník"/);
+  assert.match(utility, /href="\/settings"/);
+  assert.doesNotMatch(nav, /href="\/install"/);
+  assert.doesNotMatch(nav, /Nainstalovat Pivník/);
+  assert.doesNotMatch(nav, /taste-mobile-install-subitem/);
   assert.match(settings, /href="\/install" className="taste-settings-install-link"/);
+  assert.match(settings, /Nainstalovat Pivník/);
 });

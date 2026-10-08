@@ -20,6 +20,17 @@ Pozdější commit přidává tuto dokumentaci; nemění funkce archivované ver
 
 ## Následné změny
 
+- 8. 10. 2026: následná korekce navigace podle upřesnění zadání.
+  „Aktivita v hospodě (aktuální dění)“ je první položkou hlavního
+  menu hned za odděleným osobním deníkem, ve stejném provedení jako
+  ostatní sekce, nikoliv vedlejší odkaz či samostatná ikona.
+  „Co a jak pijeme (Vše z Pivníku na jednom místě)“ následuje jako
+  druhá položka. Pořadí dalších stránek je beze změny. Instalace
+  Pivníku byla odstraněna z mobilní i desktopové navigace: možnost
+  „Nainstalovat Pivník“ je jen **uvnitř stránky Nastavení**.
+  Oznámení u Aktivity, Pivovarů a Pivního lístku i jejich původní
+  odkazy zůstávají funkční. UI změna bez zásahu do databáze.
+
 - 8. 10. 2026: navigace desktopu i mobilu přeskupena do nového
   pořadí. Oddělený zlatý odkaz „Můj pivní deník (osobní záznamy)“;
   hlavní položky v pořadí „Co a jak pijeme (aktuální dění)“,
