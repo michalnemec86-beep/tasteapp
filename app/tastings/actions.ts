@@ -896,8 +896,10 @@ export async function updateTastingInModal(formData: FormData) {
       plato: values.platoValue ? Number(values.platoValue) : null,
       abv: values.abvValue ? Number(values.abvValue) : null,
       ibu: values.ibuValue ? Number(values.ibuValue) : null,
-      place: values.place || null,
-      notes: values.notes || null,
+      // Legacy edit dialogs do not expose place or notes. An omitted field
+      // must never silently erase information saved in an earlier tasting.
+      ...(formData.has("place") ? { place: values.place || null } : {}),
+      ...(formData.has("notes") ? { notes: values.notes || null } : {}),
     })
     .eq("id", tastingId)
     .eq("user_id", user.id);

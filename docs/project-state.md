@@ -20,6 +20,13 @@ Pozdější commit přidává tuto dokumentaci; nemění funkce archivované ver
 
 ## Následné změny
 
+- 8. 10. 2026: ochrana existujícího místa a poznámky při editaci
+  ochutnávky. Editační modal zatím nemá vstupy pro tyto údaje;
+  server je proto při běžné editaci ostatních údajů nesmí přepsat na NULL.
+  Pokud pole klient skutečně odešle, lze ho nadále upravit i vymazat.
+  Neproběhla změna existujících ochutnávek, návrh katalogu míst zatím
+  zůstává otevřený. Viz `tests/tasting-edit-preserve-fields.test.mjs`.
+
 - 8. 10. 2026: nový zápis ochutnávky má okamžitý stav „Ukládám ochutnávku…“
   s indikátorem, po odeslání blokuje další kliknutí a po chybě umožňuje
   zopakování bez změny identifikátoru požadavku. Každý formulář používá vlastní
