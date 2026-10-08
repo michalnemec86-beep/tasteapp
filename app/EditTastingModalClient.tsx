@@ -5,6 +5,7 @@ import { getBeerSuggestionReferenceStatus } from "@/lib/referenceStatus";
 import { notifyAchievementsUpdated } from "@/lib/achievement-notifications";
 
 import StarRatingInput from "@/components/ui/StarRatingInput";
+import PlacePicker from "@/components/tastings/PlacePicker";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -866,6 +867,9 @@ export default function EditTastingModalClient({
                 value={breweryName}
               />
 
+              <details className="taste-form-catalog">
+                <summary>Údaje piva převzaté z katalogu</summary>
+                <div className="taste-form-catalog-body" data-auto="true">
               <div style={fieldStyle}>
                 <label style={labelStyle}>Značka</label>
                 <input name="brandName" value={brandName} readOnly aria-readonly="true" style={{ ...inputStyle, color: "var(--taste-text-muted)", background: "rgba(255,255,255,.025)" }} />
@@ -945,21 +949,11 @@ export default function EditTastingModalClient({
                 </div>
               </div>
 
-              <hr
-                style={{
-                  margin: "30px 0",
-                  opacity: 0.25,
-                }}
-              />
+                </div>
+              </details>
 
-              <h3
-                style={{
-                  margin:
-                    "0 0 18px",
-                }}
-              >
-                Ochutnávka
-              </h3>
+              <div className="taste-form-section-heading"><strong>Ochutnávka</strong><span>Povinné údaje</span></div>
+              <div className="taste-form-required-grid">
 
               {/* DATUM */}
 
@@ -981,7 +975,7 @@ export default function EditTastingModalClient({
 
               {/* OBAL */}
 
-              <div style={fieldStyle}>
+              <div style={fieldStyle} className="taste-form-required-packaging">
                 <label style={labelStyle}>
                   Podání / obal *
                 </label>
@@ -1017,7 +1011,7 @@ export default function EditTastingModalClient({
 
               {/* POČET */}
 
-              <div style={fieldStyle}>
+              <div style={fieldStyle} className="taste-form-required-count">
                 <label style={labelStyle}>
                   Počet *
                 </label>
@@ -1036,7 +1030,21 @@ export default function EditTastingModalClient({
                 />
               </div>
 
-              <StarRatingInput defaultValue={tasting.rating} />
+              </div>
+              <details className="taste-form-optional">
+                <summary>Další údaje <span>Místo, hodnocení, poznámka</span></summary>
+                <div className="taste-form-optional-body">
+                  <label style={labelStyle}>Místo (nepovinné)</label>
+                  <PlacePicker initialPlace={tasting.place} initialCategory={
+                    tasting.place?.trim().toLocaleLowerCase("cs") === "doma" ? "home" : null
+                  } />
+                  <StarRatingInput defaultValue={tasting.rating} />
+                  <label style={labelStyle} htmlFor={`edit-notes-${tasting.id}`}>Poznámka (nepovinné)</label>
+                  <textarea id={`edit-notes-${tasting.id}`} name="notes"
+                    defaultValue={tasting.notes ?? ""} rows={2} maxLength={2000}
+                    className="taste-place-input" placeholder="Volitelná poznámka" />
+                </div>
+              </details>
 
       <button
                 type="submit"
