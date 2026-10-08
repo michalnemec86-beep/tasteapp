@@ -20,6 +20,16 @@ Pozdější commit přidává tuto dokumentaci; nemění funkce archivované ver
 
 ## Následné změny
 
+- 8. 10. 2026: oprava volby místa v modalu nové ochutnávky. Starší CSS
+  `new-tasting-overrides.css` skrývalo každé přímé pole `name="place"`
+  i s rodičovským prvkem přes `:has(> input[name="place"])`. Po výběru
+  Hospoda/Festival se tak skrylo vyhledávací pole, po výběru Doma celý
+  výběr včetně tlačítek. Zastaralé pravidlo i jeho import odstraněny.
+  Sdílená komponenta PlacePicker dál zobrazuje tři přepínače; pouze
+  Hospoda/Festival přidávají viditelný textový vstup, Doma ukládá
+  neveřejnou předvolbu. Doplněn regresní test proti opětovnému zavedení
+  skrývajícího CSS. Bez zásahu do uložených ochutnávek a databáze.
+
 - 8. 10. 2026: na přání upraveny oba modaly zapsání i editace
   ochutnávky. Rozbalovací panel má jednotný nadpis „Informace o ochutnaném
   pivu“ a je při každém otevření výchozí sbalený. Pro nové pivo s
