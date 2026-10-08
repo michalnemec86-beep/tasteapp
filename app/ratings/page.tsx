@@ -49,6 +49,6 @@ export default async function RatingsPage({ searchParams }: {
   });
   const beerParam = typeof params.beer === "string" && /^\d+$/.test(params.beer) ? params.beer : "";
   return <main className="taste-stats-concept taste-ratings-concept">
-    <RatingsClient key={beerParam} rows={rows} initialBeer={beerParam}/>
+    <RatingsClient key={beerParam} rows={rows} initialBeer={beerParam} currentUserId={user.id}/>
   </main>;
 }
