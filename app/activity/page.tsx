@@ -1,6 +1,6 @@
 import { beerHref, styleHref, hopHref, countryHref } from "@/lib/entity-navigation";
 import Link from "next/link";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Star } from "lucide-react";
 import { redirect } from "next/navigation";
 
 import {
@@ -1047,6 +1047,7 @@ function TastingTimelineCard({
   const packagingLabel = isGrouped && groupPackaging === null
     ? "Různé způsoby podání"
     : getPackagingMeta(groupPackaging)?.label ?? "Neurčený způsob podání";
+  const hasGroupRating = isGrouped && groupTastings.some(item => isRating(item.rating));
   const multipleBreweries = new Set(groupTastings.map(item =>
     item.beer_versions?.breweries?.id ?? item.beers?.breweries?.id ?? null
   )).size > 1;
@@ -1366,6 +1367,16 @@ function TastingTimelineCard({
             </div>
           )}
             {!isGrouped && isRating(tasting.rating) && <Link className="taste-timeline-rating" href={`/ratings?beer=${tasting.beers?.id}`}><RatingStars rating={tasting.rating} compact /></Link>}
+            {hasGroupRating && (
+              <Link
+                className="taste-timeline-rating"
+                href={`/ratings?beer=${tasting.beers?.id}`}
+                aria-label="Hodnocení tohoto piva"
+                title="Hodnocení tohoto piva"
+              >
+                <Star size={17} aria-hidden="true" />
+              </Link>
+            )}
           </div>
         </div>
       </article>
