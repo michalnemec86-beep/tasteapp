@@ -120,6 +120,7 @@ body:has(.taste-places-concept) { background: #080807; }
   border-collapse: collapse;
   font-size: 13px;
 }
+.taste-places-history .taste-places-table { min-width: 0; }
 .taste-places-table thead {
   background: linear-gradient(140deg, rgba(105,63,29,.32), rgba(34,25,17,.85));
   color: #f4ca87;
