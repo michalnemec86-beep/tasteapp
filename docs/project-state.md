@@ -20,6 +20,19 @@ Pozdější commit přidává tuto dokumentaci; nemění funkce archivované ver
 
 ## Následné změny
 
+- 8. 10. 2026: oprava doložené dvojité ochutnávky ze 7. 10. 2026.
+  Dva prakticky totožné záznamy téhož uživatele a piva vznikly přibližně
+  2,5 sekundy po sobě, oba s quantity=2 a rating=3/5. Ponechána starší
+  ochutnávka id=2611; novější id=2612 odstraněna až po transakčním
+  ověření všech údajů a uložení původního řádku do neveřejné tabulky
+  `private.tasting_correction_audit` (retained_tasting_id=2611).
+  Výsledek: u dané dvojice z 4 na 2 kusy a ze 2 na 1 hodnocení.
+  Původní celosystémové počty 2560 záznamů / 2860 kusů / 7 hodnocení,
+  po opravě 2559 / 2858 / 6. Audit nepřístupný běžným účtům;
+  tabulka vedena v migraci `20261008063750_create_private_tasting_correction_audit.sql`.
+  Při podobné opravě vždy porovnat identitu, čas, hodnoty i importní
+  vazby; nikdy automaticky neodstraňovat všechny shody pivo+den.
+
 - 8. 10. 2026: seskupený příspěvek na timeline už nemá rozbalovací šipku
   ani seznam dílčích ochutnávek. Ukazuje součet skutečně vypitých piv
   a případné hodnocení z poslední hodnocené ochutnávky skupiny (včetně
