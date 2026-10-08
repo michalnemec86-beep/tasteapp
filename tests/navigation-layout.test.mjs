@@ -32,6 +32,8 @@ test("personal diary is separated before exactly the six ordered public sections
   assert.deepEqual(sectionOrder(mobile), expected);
   assert.match(navCss, /\.taste-nav-personal-shell[\s\S]*border-right/);
   assert.match(navCss, /\.taste-mobile-personal-group[\s\S]*border-bottom/);
+  assert.match(navCss, /max-height: calc\(100dvh - 60px - env\(safe-area-inset-top\)\)/);
+  assert.match(navCss, /overflow-y: auto;/);
 });
 
 test("existing route and news badge links are preserved in reordered navigation", () => {
