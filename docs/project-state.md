@@ -20,6 +20,15 @@ Pozdější commit přidává tuto dokumentaci; nemění funkce archivované ver
 
 ## Následné změny
 
+- 8. 10. 2026: stránka Místa používá společný fotografický
+  `PageHero` s odsouhlaseným obrázkem, v němž se zleva prolíná
+  moderní hospoda a zprava tradiční irský pub. Fotografie byla
+  optimalizována do `public/images/heroes/places.webp`
+  (1400 × 788 px, přibližně 165 kB); původní PNG se neměnilo.
+  Zachovány úvodní texty, společný katalog, všechny počty
+  ochutnávek, editace i správa historických míst. Pouze prezentační
+  změna bez databázových migrací. Doplněn regresní test.
+
 - 8. 10. 2026: následná korekce navigace podle upřesnění zadání.
   „Aktivita v hospodě (aktuální dění)“ je první položkou hlavního
   menu hned za odděleným osobním deníkem, ve stejném provedení jako
