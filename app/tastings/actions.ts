@@ -28,6 +28,9 @@ type TastingFormValues = {
   quantity: number;
   rating: number | null;
   place: string;
+  placeCategory: "home" | "pub" | "festival" | null;
+  placeId: number | null;
+  placeChanged: boolean;
   notes: string;
   hopNames: string[];
   collaboratorBreweryIds: number[];
@@ -58,6 +61,19 @@ function readTastingFormData(formData: FormData): TastingFormValues {
   const quantityValue = String(formData.get("quantity") ?? "").trim();
   const rating = parseRating(formData.get("rating"));
   const place = String(formData.get("place") || "").trim();
+  const rawPlaceCategory = String(formData.get("placeCategory") || "");
+  if (rawPlaceCategory && !["home", "pub", "festival"].includes(rawPlaceCategory)) {
+    throw new Error("Neplatná kategorie místa.");
+  }
+  const placeCategory = rawPlaceCategory
+    ? rawPlaceCategory as "home" | "pub" | "festival" : null;
+  const rawPlaceId = String(formData.get("placeId") || "").trim();
+  const placeId = rawPlaceId ? Number(rawPlaceId) : null;
+  if (placeId !== null && (!Number.isSafeInteger(placeId) || placeId < 1)) {
+    throw new Error("Neplatné ID místa.");
+  }
+  const placeChanged = formData.get("placeChanged") === "1";
+  if (place.length > 160) throw new Error("Název místa je příliš dlouhý.");
   const notes = String(formData.get("notes") || "").trim();
 
   const hopNames = formData
@@ -119,6 +135,9 @@ function readTastingFormData(formData: FormData): TastingFormValues {
     quantity,
     rating,
     place,
+    placeCategory,
+    placeId,
+    placeChanged,
     notes,
     hopNames,
     collaboratorBreweryIds,
@@ -755,6 +774,50 @@ function revalidateTastingPages(userId: string) {
   revalidatePath(`/profiles/${userId}`);
 }
 
+// The text snapshot in tastings.place always survives even if a place is later renamed.
+// Home is never created as a public catalog entry.
+async function resolveTastingPlace(
+  supabase: SupabaseClient,
+  userId: string,
+  values: TastingFormValues
+): Promise<{ place: string | null; place_id: number | null; place_category: "home" | "pub" | "festival" | null }> {
+  if (values.placeCategory === "home") {
+    return { place: "Doma", place_id: null, place_category: "home" };
+  }
+  const name = values.place.trim();
+  const category = values.placeCategory;
+  if (!category || !name) {
+    return { place: name || null, place_id: null, place_category: category };
+  }
+  if (name.length < 2) throw new Error("Název místa musí mít alespoň dvě písmena.");
+
+  if (values.placeId) {
+    const { data: selected, error } = await supabase.from("places")
+      .select("id, name, category")
+      .eq("id", values.placeId)
+      .eq("category", category).maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!selected || selected.name !== name) {
+      throw new Error("Vybrané místo už neodpovídá katalogu. Vyber jej znovu.");
+    }
+    return { place: selected.name, place_id: selected.id, place_category: category };
+  }
+
+  // On retries reuse an earlier proposal by this user; do not create duplicates.
+  const { data: own, error: ownError } = await supabase.from("places")
+    .select("id, name").eq("created_by", userId)
+    .eq("category", category).ilike("name", name).limit(10);
+  if (ownError) throw new Error(ownError.message);
+  const existing = own?.find(item => item.name.toLocaleLowerCase("cs") === name.toLocaleLowerCase("cs"));
+  if (existing) return { place: existing.name, place_id: existing.id, place_category: category };
+
+  const { data: created, error: createError } = await supabase.from("places")
+    .insert({ name, category, created_by: userId, approved: false })
+    .select("id, name").single();
+  if (createError || !created) throw new Error(createError?.message ?? "Místo se nepodařilo uložit.");
+  return { place: created.name, place_id: created.id, place_category: category };
+}
+
 async function saveTastingCore(formData: FormData) {
   const supabase = await createClient();
   const user = await getCurrentUser(supabase);
@@ -799,6 +862,8 @@ async function saveTastingCore(formData: FormData) {
     if (previousRatedTasting?.rating === newRating) newRating = null;
   }
 
+  const tastingPlace = await resolveTastingPlace(supabase, user.id, values);
+
   const collaboratorBreweryIds = values.existingBeerId
     ? []
     : await validateCollaboratorBreweryIds(
@@ -820,7 +885,7 @@ async function saveTastingCore(formData: FormData) {
       plato: values.platoValue ? Number(values.platoValue) : null,
       abv: values.abvValue ? Number(values.abvValue) : null,
       ibu: values.ibuValue ? Number(values.ibuValue) : null,
-      place: values.place || null,
+      ...tastingPlace,
       notes: values.notes || null,
     })
     .select("id, beer_version_id")
@@ -903,6 +968,10 @@ export async function updateTastingInModal(formData: FormData) {
   if (selectedBeerError) throw new Error(selectedBeerError.message);
   if (!selectedBeer) throw new Error("Vybrané pivo už v katalogu neexistuje.");
 
+  const placeUpdate = formData.has("placeChanged")
+    ? (values.placeChanged ? await resolveTastingPlace(supabase, user.id, values) : {})
+    : (formData.has("place") ? { place: values.place || null } : {});
+
   const { error: updateError } = await supabase
     .from("tastings")
     .update({
@@ -914,9 +983,8 @@ export async function updateTastingInModal(formData: FormData) {
       plato: values.platoValue ? Number(values.platoValue) : null,
       abv: values.abvValue ? Number(values.abvValue) : null,
       ibu: values.ibuValue ? Number(values.ibuValue) : null,
-      // Legacy edit dialogs do not expose place or notes. An omitted field
-      // must never silently erase information saved in an earlier tasting.
-      ...(formData.has("place") ? { place: values.place || null } : {}),
+      // Preserve previously saved places when the user did not touch the picker.
+      ...placeUpdate,
       ...(formData.has("notes") ? { notes: values.notes || null } : {}),
     })
     .eq("id", tastingId)
