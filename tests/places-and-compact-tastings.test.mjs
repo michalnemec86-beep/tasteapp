@@ -1,6 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync, existsSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { join } from "node:path";
 
 const source = path => readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 const create = source("app/tastings/new/TastingForm.tsx");
@@ -98,4 +100,38 @@ test("place text field appears only for pub and festival and home uses a hidden 
   assert.doesNotMatch(picker, /category === "pub" \|\| category === "festival" \|\| name\.trim\(\)/);
   assert.match(picker, /if \(next === category\) return/);
   assert.match(picker, /setName\(next === "home" \|\| category !== null \? "" : name\)/);
+});
+
+
+test("place choices cannot disappear from new tasting when a place input is mounted", () => {
+  // Previous regression: an old CSS selector hid the pub/festival name field,
+  // and selecting Home hid the entire picker (including all category buttons).
+  assert.equal(existsSync(fileURLToPath(new URL("../app/new-tasting-overrides.css", import.meta.url))), false);
+  assert.doesNotMatch(source("app/layout.tsx"), /new-tasting-overrides[.]css/);
+
+  const cssRoot = fileURLToPath(new URL("../app/", import.meta.url));
+  const cssFiles = [];
+  function traverse(dir) {
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      const full = join(dir, entry.name);
+      if (entry.isDirectory()) traverse(full);
+      else if (entry.name.endsWith(".css")) cssFiles.push(full);
+    }
+  }
+  traverse(cssRoot);
+  for (const cssFile of cssFiles) {
+    assert.doesNotMatch(
+      readFileSync(cssFile, "utf8"),
+      /div\s*:\s*has\(\s*>\s*input\[name\s*=\s*["']place["']\]\s*\)/i,
+      "CSS must not hide the parent of name=place: " + cssFile
+    );
+  }
+
+  // Category buttons must sit outside the home/pub/festival conditional
+  // so changing the selected category cannot remove the controls.
+  const buttons = picker.indexOf('className="taste-place-choices"');
+  const conditional = picker.indexOf('{category === "home" ? (');
+  assert.ok(buttons !== -1 && conditional > buttons);
+  assert.match(picker, /category === "pub" \|\| category === "festival"/);
+  assert.match(picker, /<input type="hidden" name="place" value="Doma" \/>/);
 });
