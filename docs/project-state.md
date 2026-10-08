@@ -20,6 +20,19 @@ Pozdější commit přidává tuto dokumentaci; nemění funkce archivované ver
 
 ## Následné změny
 
+- 8. 10. 2026: časová osa Aktivity seskupuje pro zobrazení více ochutnávek
+  stejného uživatele, téhož katalogového piva a stejného kalendářního dne do
+  jednoho příspěvku. V souhrnu se sčítá quantity; po rozbalení jsou všechny
+  původní záznamy, jejich hodnocení, poznámky, způsoby podání a samostatné
+  úpravy. K seskupení není třeba půlnoční úloha ani zásah do databáze.
+  Při přidávání existujícího piva se načítá poslední vlastní hodnocení
+  uživatele jako samostatná informace. Novou známku lze přidat výslovným
+  tlačítkem „Hodnotit znovu“, nikdy automatickým předvyplněním.
+  Stránka Hodnocení u konkrétního piva nově ukazuje také osobní průměr a
+  počet hodnocených ochutnávek; globální logika hlasu na ochutnávku se nemění.
+  Bez migrace a bez změny starých dat. V mobilní PWA je nutno ověřit
+  rozbalování, editace a opakované hodnocení.
+
 - 8. 10. 2026: ochrana existujícího místa a poznámky při editaci
   ochutnávky. Editační modal zatím nemá vstupy pro tyto údaje;
   server je proto při běžné editaci ostatních údajů nesmí přepsat na NULL.
