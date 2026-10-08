@@ -23,7 +23,7 @@ test("new and edit tasting reuse same optional location input and compact sectio
 });
 
 test("catalog metadata remains mounted when visually collapsed", () => {
-  assert.match(create, /<details key=\{existingBeerId \? "catalog" : "new-beer"\}/);
+  assert.match(create, /<details ref=\{beerInformationRef\} key=\{existingBeerId \? "catalog" : "new-beer"\}/);
   assert.match(create, /<input[^>]*type="hidden" name="existingBeerId"/);
   assert.match(edit, /<details className="taste-form-catalog"/);
 });
