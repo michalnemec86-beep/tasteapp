@@ -1008,6 +1008,8 @@ export default async function ProfilePage({
             abv,
             ibu,
             place,
+            place_id,
+            place_category,
             notes,
             beer_versions (
               id,

@@ -20,6 +20,28 @@ Pozdější commit přidává tuto dokumentaci; nemění funkce archivované ver
 
 ## Následné změny
 
+- 8. 10. 2026: mobilní nový i editační formulář ochutnávky má oddělené
+  povinné údaje a sbalitelné doplňkové informace. Pivovar/značka/pivo
+  zůstávají vpředu; parametry katalogového piva se vizuálně upozadí a
+  po zvolení existujícího piva sbalí, ale hodnoty formuláře zůstávají
+  zachované. Stupňovitost, alkohol a IBU jsou v kompaktním řádku.
+  Nepovinné místo používá společný výběr Hospoda/Doma/Festival,
+  našeptávání katalogových míst i nedávných vlastních názvů; Doma se
+  nikdy nezakládá jako veřejná katalogová entita. Poznámka je dostupná
+  v novém i editačním formuláři, beze změny starých poznámek.
+
+- 8. 10. 2026: první fáze systémového katalogu Místa.
+  `public.places` eviduje jméno, město, stát, kategorii, ověření a autora;
+  tabulka má RLS, návrhy mohou vytvářet přihlášení, správu smí jen
+  katalogový administrátor. Ochutnávky mají nepovinné `place_id` a
+  `place_category`, ale starý text `tastings.place` zůstává zachován.
+  Stránka `/places` ukazuje počet záznamů (ne součet quantity) u vazeb
+  na katalog, oddělenou starou nezařazenou evidenci vidí pouze admin.
+  Žádná stará hodnota se automaticky nepáruje ani nepřepisuje; město a
+  stát nevyplněných návrhů může později doplnit admin. Migrace
+  `20261008071548_places_catalog_and_optional_tasting_links.sql`.
+  Mobilní PWA vyžaduje fyzický test hledání, editace a ukládání.
+
 - 8. 10. 2026: oprava doložené dvojité ochutnávky ze 7. 10. 2026.
   Dva prakticky totožné záznamy téhož uživatele a piva vznikly přibližně
   2,5 sekundy po sobě, oba s quantity=2 a rating=3/5. Ponechána starší

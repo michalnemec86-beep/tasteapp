@@ -3,6 +3,7 @@
 import { getBeerSuggestionReferenceStatus } from "@/lib/referenceStatus";
 
 import StarRatingInput from "@/components/ui/StarRatingInput";
+import PlacePicker from "@/components/tastings/PlacePicker";
 import RatingStars from "@/components/ui/RatingStars";
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -1000,6 +1001,7 @@ export default function TastingForm({
       <input type="hidden" name="existingBeerId" value={existingBeerId} />
       <input type="hidden" name="skipBrandInference" value={brandManuallyEdited && !brandName.trim() ? "on" : ""} />
 
+      <div className="taste-form-section-heading"><strong>Pivo</strong><span>Pivovar, značka a název</span></div>
       {/* PIVOVAR */}
       <div style={fieldStyle}>
         <label style={labelStyle}>Pivovar *</label>
@@ -1341,6 +1343,9 @@ export default function TastingForm({
         </div>
       </div>
 
+      <details key={existingBeerId ? "catalog" : "new-beer"} open={!existingBeerId} className="taste-form-catalog">
+        <summary>{existingBeerId ? "Údaje piva doplněné z katalogu" : "Parametry a informace o novém pivu"}</summary>
+        <div className="taste-form-catalog-body" data-auto={existingBeerId ? "true" : "false"}>
       {/* ZEMĚ */}
       <div style={fieldStyle}>
         <label style={labelStyle}>Země původu pivovaru{!existingBeerId && !activeBrewery ? " *" : ""}</label>
@@ -1443,8 +1448,9 @@ export default function TastingForm({
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-          gap: "12px",
+          gap: "7px",
         }}
+        className="taste-form-strength"
       >
         <div style={fieldStyle}>
           <label style={labelStyle}>Stupňovitost °P</label>
@@ -1600,10 +1606,12 @@ export default function TastingForm({
         </div>
       </div>
 
+        </div>
+      </details>
       {/* OCHUTNÁVKA */}
-      <hr style={{ margin: "32px 0", opacity: 0.3 }} />
-      <h2 style={{ marginBottom: "20px" }}>Ochutnávka</h2>
+      <div className="taste-form-section-heading"><strong>Ochutnávka</strong><span>Povinné údaje</span></div>
 
+      <div className="taste-form-required-grid">
       <div style={fieldStyle}>
         <label style={labelStyle}>Datum ochutnávky *</label>
         <input
@@ -1615,7 +1623,7 @@ export default function TastingForm({
         />
       </div>
 
-      <div style={fieldStyle}>
+      <div style={fieldStyle} className="taste-form-required-packaging">
         <label style={labelStyle}>Podání / obal *</label>
         <select name="packaging" defaultValue="" required style={inputStyle}>
           <option value="" disabled>Vyber způsob podání</option>
@@ -1627,7 +1635,7 @@ export default function TastingForm({
         </select>
       </div>
 
-      <div style={fieldStyle}>
+      <div style={fieldStyle} className="taste-form-required-count">
         <label style={labelStyle}>Počet *</label>
         <input
           type="number"
@@ -1640,14 +1648,12 @@ export default function TastingForm({
         />
       </div>
 
-      <div style={fieldStyle}>
-        <label style={labelStyle}>Místo</label>
-        <input
-          name="place"
-          placeholder="Např. doma, hospoda, festival..."
-          style={inputStyle}
-        />
       </div>
+      <details className="taste-form-optional">
+        <summary>Další údaje <span>Místo, hodnocení, poznámka</span></summary>
+        <div className="taste-form-optional-body">
+          <label style={labelStyle}>Místo (nepovinné)</label>
+          <PlacePicker />
 
       {!ratingLookupReady && (
         <p role="status" style={{ ...fieldStyle, color: "var(--taste-text-muted)", fontSize: 12 }}>
@@ -1678,6 +1684,11 @@ export default function TastingForm({
         <StarRatingInput key={`rating:${existingBeerId}:${rateAgain}`} previousRating={personalLastRating?.rating} />
       )}
 
+          <label style={labelStyle} htmlFor="tasting-notes">Poznámka (nepovinné)</label>
+          <textarea id="tasting-notes" name="notes" rows={2} maxLength={2000}
+            className="taste-place-input" placeholder="Volitelná poznámka k ochutnávce" />
+        </div>
+      </details>
       <TastingSubmitButton />
       {validationError && <p role="alert" style={{ color: "var(--taste-amber-bright)", marginTop: 10 }}>{validationError}</p>}
     </form>

@@ -130,6 +130,7 @@ export default function AppNav({
           <NavLink href="/activity" active={isActive("/activity")} newsCount={counts.activity} onClick={() => reopenSection("/activity")}>Aktivita v hospodě</NavLink>
           <NavLink href="/stats" active={isActive("/stats")}>Co a jak pijeme</NavLink>
           <NavLink href="/ratings" active={isActive("/ratings")}>Hodnocení</NavLink>
+          <NavLink href="/places" active={isActive("/places")}>Místa</NavLink>
           <NavLink href={getNewsHref("beers", news)} active={isActive("/beers")} newsCount={counts.beers} onClick={() => reopenSection(getNewsHref("beers", news))}>Pivní lístek</NavLink>
           <NavLink href={getNewsHref("breweries", news)} active={isActive("/breweries")} newsCount={counts.breweries} onClick={() => reopenSection(getNewsHref("breweries", news))}>Pivovary</NavLink>
           <NavLink href="/profiles" active={isActive("/profiles")}>Štamgasti</NavLink>
@@ -223,6 +224,7 @@ export default function AppNav({
           <MobileNavLink href="/activity" active={isActive("/activity")} newsCount={counts.activity} onClick={() => reopenSection("/activity")}>Aktivita v hospodě</MobileNavLink>
           <MobileNavLink href="/stats" active={isActive("/stats")}>Co a jak pijeme</MobileNavLink>
           <MobileNavLink href="/ratings" active={isActive("/ratings")}>Hodnocení</MobileNavLink>
+          <MobileNavLink href="/places" active={isActive("/places")}>Místa</MobileNavLink>
           <MobileNavLink href={getNewsHref("beers", news)} active={isActive("/beers")} newsCount={counts.beers} onClick={() => reopenSection(getNewsHref("beers", news))}>Pivní lístek</MobileNavLink>
           <MobileNavLink href={getNewsHref("breweries", news)} active={isActive("/breweries")} newsCount={counts.breweries} onClick={() => reopenSection(getNewsHref("breweries", news))}>Pivovary</MobileNavLink>
           <MobileNavLink href="/profiles" active={isActive("/profiles")}>Štamgasti</MobileNavLink>

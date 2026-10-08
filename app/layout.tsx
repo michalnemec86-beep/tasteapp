@@ -24,6 +24,7 @@ import "./desktop-polish.css";
 import "./home-concept.css";
 import "./visual-system.css";
 import "./rating-controls.css";
+import "./tasting-form-compact.css";
 import "./achievement-celebration.css";
 import "./pwa.css";
 
