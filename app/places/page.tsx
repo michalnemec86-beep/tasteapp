@@ -117,7 +117,7 @@ export default async function PlacesPage() {
         </div>
       </section>
 
-      <section style={{ marginTop: 30 }}>
+      {admin && <section style={{ marginTop: 30 }}>
         <h2 style={{ fontSize: 18, marginBottom: 8 }}>Historická místa bez ověřené vazby ({oldPlaces.length})</h2>
         <p style={{ color: "var(--taste-text-muted)", fontSize: 12, lineHeight: 1.6 }}>
           Původní názvy se zobrazují odděleně, bez automatického přiřazení města či kategorie.
@@ -137,7 +137,7 @@ export default async function PlacesPage() {
             ))}</tbody>
           </table>
         </div>
-      </section>
+      </section>}
     </main>
   );
 }
