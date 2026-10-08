@@ -768,6 +768,7 @@ function revalidateTastingPages(userId: string) {
   revalidatePath("/breweries");
   revalidatePath("/stats");
   revalidatePath("/ratings");
+  revalidatePath("/places");
   revalidatePath("/activity");
   revalidatePath("/tastings");
   revalidatePath("/profiles");
