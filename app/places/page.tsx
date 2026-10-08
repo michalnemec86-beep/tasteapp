@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { fetchAllRows } from "@/lib/fetch-all-rows";
 import { isCatalogAdminUser } from "@/lib/adminView";
-import PageHero from "@/components/ui/PageHero";
+import "./places-concept.css";
 import { createPlace, updatePlace } from "./actions";
 
 export const metadata: Metadata = { title: "Místa" };
@@ -54,20 +54,20 @@ export default async function PlacesPage() {
   const oldPlaces = [...legacy.values()].sort((a,b) => b.count - a.count || a.name.localeCompare(b.name,"cs"));
 
   return (
-    <main className="taste-stats-concept" style={{ maxWidth: 1180, margin: "0 auto", padding: "28px 16px 80px" }}>
-      <PageHero
-        eyebrow="Kam chodíme na pivo"
-        title="Místa"
-        subtitle="Hospody a festivaly zaznamenané při ochutnávkách. Domácí ochutnávky jsou soukromé a veřejná adresa se k nim nikdy nevytváří."
-        imageUrl="/images/heroes/places.webp"
-        imagePosition="center 54%"
-        visualVariant="catalog"
-      />
+    <main className="taste-places-concept">
+      <header className="taste-places-intro">
+        <div className="taste-label">Kam chodíme na pivo</div>
+        <h1>Místa</h1>
+        <p>
+          Hospody a festivaly zaznamenané při ochutnávkách. Domácí ochutnávky jsou soukromé
+          a veřejná adresa se k nim nikdy nevytváří.
+        </p>
+      </header>
 
       {admin && (
-        <details className="taste-form-optional" style={{ marginBottom: 20 }}>
+        <details className="taste-places-add taste-places-card">
           <summary>Přidat místo do katalogu</summary>
-          <form action={createPlace} className="taste-form-optional-body"
+          <form action={createPlace} className="taste-places-optional-body"
             style={{ display: "grid", gap: 9, gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))" }}>
             <input name="name" aria-label="Název" placeholder="Jméno místa" required minLength={2} maxLength={160} className="taste-place-input" />
             <input name="city" aria-label="Město" placeholder="Město" maxLength={120} className="taste-place-input" />
@@ -81,29 +81,29 @@ export default async function PlacesPage() {
         </details>
       )}
 
-      <section>
-        <h2 style={{ fontSize: 19, marginBottom: 12 }}>Společný katalog ({places.length})</h2>
-        <div style={{ overflowX: "auto", border: "1px solid var(--taste-border)", borderRadius: 12 }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13, minWidth: 580 }}>
-            <thead><tr style={{ textAlign: "left", borderBottom: "1px solid var(--taste-border)" }}>
+      <section className="taste-places-catalog taste-places-card">
+        <h2>Společný katalog ({places.length})</h2>
+        <div className="taste-places-table-scroll">
+          <table className="taste-places-table">
+            <thead><tr>
               {["Jméno", "Město", "Stát", "Kategorie", "Ochutnávky", ...(admin ? ["Správa"] : [])].map(h =>
-                <th key={h} scope="col" style={{ padding: "12px 10px" }}>{h}</th>)}
+                <th key={h} scope="col">{h}</th>)}
             </tr></thead>
             <tbody>
               {places.map(place => (
-                <tr key={place.id} style={{ borderBottom: "1px solid var(--taste-border)" }}>
-                  <td style={{ padding: "12px 10px", fontWeight: 650 }}>
+                <tr key={place.id}>
+                  <td>
                     {place.name}
                     {!place.approved && <small style={{ color: "var(--taste-text-muted)", display: "block" }}>Čeká na ověření</small>}
                   </td>
-                  <td style={{ padding: "12px 10px" }}>{place.city || "–"}</td>
-                  <td style={{ padding: "12px 10px" }}>{place.country || "–"}</td>
-                  <td style={{ padding: "12px 10px" }}>{categoryLabel(place.category)}</td>
-                  <td style={{ padding: "12px 10px", fontWeight: 700 }}>{counts.get(place.id) ?? 0}</td>
-                  {admin && <td style={{ padding: "8px 10px" }}>
-                    <details>
-                      <summary style={{ cursor: "pointer" }}>Upravit</summary>
-                      <form action={updatePlace} style={{ display: "grid", gap: 5, minWidth: 210, paddingTop: 8 }}>
+                  <td>{place.city || "–"}</td>
+                  <td>{place.country || "–"}</td>
+                  <td>{categoryLabel(place.category)}</td>
+                  <td className="taste-places-count">{counts.get(place.id) ?? 0}</td>
+                  {admin && <td>
+                    <details className="taste-places-row-editor">
+                      <summary>Upravit</summary>
+                      <form action={updatePlace} className="taste-places-edit-form">
                         <input type="hidden" name="placeId" value={place.id} />
                         <input className="taste-place-input" name="name" aria-label="Název" defaultValue={place.name} required minLength={2} maxLength={160}/>
                         <input className="taste-place-input" name="city" aria-label="Město" defaultValue={place.city} maxLength={120}/>
@@ -118,7 +118,7 @@ export default async function PlacesPage() {
                   </td>}
                 </tr>
               ))}
-              {places.length === 0 && <tr><td colSpan={admin ? 6 : 5} style={{ padding: 20, color: "var(--taste-text-muted)" }}>
+              {places.length === 0 && <tr><td colSpan={admin ? 6 : 5} className="taste-places-table-empty">
                 Zatím žádné katalogové místo. Přidá se první konkrétní hospodou či festivalem při nové ochutnávce.
               </td></tr>}
             </tbody>
@@ -126,26 +126,30 @@ export default async function PlacesPage() {
         </div>
       </section>
 
-      {admin && <section style={{ marginTop: 30 }}>
-        <h2 style={{ fontSize: 18, marginBottom: 8 }}>Historická místa bez ověřené vazby ({oldPlaces.length})</h2>
-        <p style={{ color: "var(--taste-text-muted)", fontSize: 12, lineHeight: 1.6 }}>
-          Původní názvy se zobrazují odděleně, bez automatického přiřazení města či kategorie.
-          Počty odpovídají původním záznamům. Připojení ke společnému katalogu vyžaduje ruční ověření.
-        </p>
-        <div style={{ overflowX: "auto", border: "1px solid var(--taste-border)", borderRadius: 12 }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
-            <thead><tr style={{ textAlign: "left" }}>
-              <th scope="col" style={{ padding: 10 }}>Původní název</th>
-              <th scope="col" style={{ padding: 10, textAlign: "right" }}>Ochutnávky</th>
-            </tr></thead>
-            <tbody>{oldPlaces.map(place => (
-              <tr key={place.name} style={{ borderTop: "1px solid var(--taste-border)" }}>
-                <td style={{ padding: "9px 10px" }}>{place.name}</td>
-                <td style={{ padding: "9px 10px", textAlign: "right", fontWeight: 700 }}>{place.count}</td>
-              </tr>
-            ))}</tbody>
-          </table>
-        </div>
+      {admin && <section className="taste-places-history-section">
+        <details className="taste-places-history taste-places-card">
+          <summary>Historická místa bez ověřené vazby ({oldPlaces.length})</summary>
+          <div className="taste-places-optional-body">
+            <p className="taste-places-help">
+              Původní názvy se zobrazují odděleně, bez automatického přiřazení města či kategorie.
+              Počty odpovídají původním záznamům. Připojení ke společnému katalogu vyžaduje ruční ověření.
+            </p>
+            <div className="taste-places-table-scroll">
+              <table className="taste-places-table">
+                <thead><tr>
+                  <th scope="col">Původní název</th>
+                  <th scope="col" style={{ textAlign: "right" }}>Ochutnávky</th>
+                </tr></thead>
+                <tbody>{oldPlaces.map(place => (
+                  <tr key={place.name}>
+                    <td>{place.name}</td>
+                    <td className="taste-places-count" style={{ textAlign: "right" }}>{place.count}</td>
+                  </tr>
+                ))}</tbody>
+              </table>
+            </div>
+          </div>
+        </details>
       </section>}
     </main>
   );
