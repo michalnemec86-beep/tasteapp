@@ -102,17 +102,6 @@
 .taste-nav-caption-title { display: block; font-size: inherit; line-height: 1.16; font-weight: inherit; white-space: nowrap; }
 .taste-nav-caption-context { display: block; font-size: 10px; font-weight: 500; line-height: 1.18; color: var(--taste-text-muted); white-space: nowrap; }
 .taste-nav-personal-link .taste-nav-caption-context { color: #f7d6a2; }
-.taste-nav-activity-shortcut { position: relative; }
-.taste-nav-activity-shortcut .taste-nav-news-badge {
-  position: absolute;
-  top: -8px;
-  right: -8px;
-  min-width: 17px;
-  height: 17px;
-  margin: 0;
-  padding: 0 4px;
-  font-size: 9px;
-}
 
 @media (max-width: 760px) {
   .taste-nav-desktop {
@@ -237,8 +226,6 @@
     border-top: 1px solid rgba(231,166,47,.23);
   }
   .taste-mobile-utility-group .taste-mobile-nav-link { min-height: 44px; }
-  .taste-mobile-install-subitem { margin-left: 12px; padding-left: 10px; border-left: 1px solid rgba(231,166,47,.26); }
-  .taste-mobile-install-subitem .taste-mobile-nav-link { font-size: 12px; color: var(--taste-text-muted); }
 
   .taste-mobile-menu-button {
     position: relative;
