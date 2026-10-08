@@ -4,7 +4,9 @@ import { getBeerSuggestionReferenceStatus } from "@/lib/referenceStatus";
 
 import StarRatingInput from "@/components/ui/StarRatingInput";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useFormStatus } from "react-dom";
+import { Loader2 } from "lucide-react";
 import { PACKAGING_OPTIONS } from "@/lib/packaging";
 import { inferBrandFromEvidence } from "@/lib/brandInference";
 
@@ -214,6 +216,9 @@ export default function TastingForm({
   const [styleOpen, setStyleOpen] = useState(false);
   const [hopOpen, setHopOpen] = useState(false);
   const [validationError, setValidationError] = useState("");
+  // Keep one stable key for this form, including retries after a lost response.
+  const submissionIdRef = useRef<string | null>(null);
+  const submitInFlightRef = useRef(false);
 
   const normalizedBrewery = normalizeText(breweryName);
   const activeBrewery =
@@ -877,9 +882,20 @@ export default function TastingForm({
     );
   }
 
+  async function submitTasting(formData: FormData) {
+    try {
+      await saveTastingAction(formData);
+    } catch (error) {
+      submitInFlightRef.current = false;
+      setValidationError(
+        error instanceof Error ? error.message : "Ochutnávku se nepodařilo uložit. Zkus to znovu."
+      );
+    }
+  }
+
   return (
     <form
-      action={saveTastingAction}
+      action={submitTasting}
       onSubmit={(event) => {
         const catalogCheckInProgress =
           remoteCatalogSearch &&
@@ -922,7 +938,14 @@ export default function TastingForm({
         } else if (!existingBeerId && !plato.trim() && !abv.trim()) {
           event.preventDefault();
           setValidationError("U nového piva vyplň stupňovitost nebo alkohol.");
+        } else if (submitInFlightRef.current) {
+          // React may not have rendered the pending state before a rapid second tap.
+          event.preventDefault();
         } else {
+          submitInFlightRef.current = true;
+          if (!submissionIdRef.current) submissionIdRef.current = crypto.randomUUID();
+          const input = event.currentTarget.elements.namedItem("submissionId");
+          if (input instanceof HTMLInputElement) input.value = submissionIdRef.current;
           setValidationError("");
         }
       }}
@@ -932,6 +955,7 @@ export default function TastingForm({
         }
       }}
     >
+      <input type="hidden" name="submissionId" />
       <input type="hidden" name="existingBeerId" value={existingBeerId} />
       <input type="hidden" name="skipBrandInference" value={brandManuallyEdited && !brandName.trim() ? "on" : ""} />
 
@@ -1586,25 +1610,47 @@ export default function TastingForm({
 
       <StarRatingInput />
 
-      <button
-        type="submit"
-        style={{
-          width: "100%",
-          padding: "14px 18px",
-          border: "1px solid currentColor",
-          borderRadius: "10px",
-          background: "transparent",
-          color: "inherit",
-          fontSize: "16px",
-          fontWeight: "bold",
-          cursor: "pointer",
-          marginTop: "8px",
-        }}
-      >
-        🍺 Uložit ochutnávku
-      </button>
+      <TastingSubmitButton />
       {validationError && <p role="alert" style={{ color: "var(--taste-amber-bright)", marginTop: 10 }}>{validationError}</p>}
     </form>
+  );
+}
+
+function TastingSubmitButton() {
+  const { pending } = useFormStatus();
+
+  return (
+    <button
+      type="submit"
+      disabled={pending}
+      aria-busy={pending}
+      style={{
+        width: "100%",
+        padding: "14px 18px",
+        border: "1px solid currentColor",
+        borderRadius: "10px",
+        background: "transparent",
+        color: "inherit",
+        fontSize: "16px",
+        fontWeight: "bold",
+        cursor: pending ? "wait" : "pointer",
+        opacity: pending ? 0.72 : 1,
+        marginTop: "8px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: "8px",
+      }}
+    >
+      {pending ? (
+        <span role="status" aria-live="polite" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <Loader2 size={18} className="animate-spin" aria-hidden="true" />
+          Ukládám ochutnávku…
+        </span>
+      ) : (
+        "🍺 Uložit ochutnávku"
+      )}
+    </button>
   );
 }
 
