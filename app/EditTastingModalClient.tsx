@@ -870,7 +870,7 @@ export default function EditTastingModalClient({
               />
 
               <details className="taste-form-catalog">
-                <summary>Údaje piva převzaté z katalogu</summary>
+                <summary>Informace o ochutnaném pivu</summary>
                 <div className="taste-form-catalog-body" data-auto="true">
               <div style={fieldStyle}>
                 <label style={labelStyle}>Značka</label>
@@ -960,7 +960,7 @@ export default function EditTastingModalClient({
 
               {/* DATUM */}
 
-              <div style={fieldStyle}>
+              <div style={fieldStyle} className="taste-form-required-date">
                 <label style={labelStyle}>
                   Datum ochutnávky *
                 </label>
@@ -1034,27 +1034,28 @@ export default function EditTastingModalClient({
               </div>
 
               </div>
-              <details className="taste-form-optional">
-                <summary>Další údaje <span>Místo, hodnocení, poznámka</span></summary>
-                <div className="taste-form-optional-body">
-                  <label style={labelStyle}>Místo (nepovinné)</label>
-                  <PlacePicker initialPlace={tasting.place}
-                    initialPlaceId={tasting.place_id ?? null}
-                    initialCategory={
-                      tasting.place_category === "home" ||
-                      tasting.place_category === "pub" ||
-                      tasting.place_category === "festival"
-                        ? tasting.place_category
-                        : tasting.place?.trim().toLocaleLowerCase("cs") === "doma" ? "home" : null
-                    }
-                  />
-                  <StarRatingInput defaultValue={tasting.rating} />
-                  <label style={labelStyle} htmlFor={`edit-notes-${tasting.id}`}>Poznámka (nepovinné)</label>
-                  <textarea id={`edit-notes-${tasting.id}`} name="notes"
-                    defaultValue={tasting.notes ?? ""} rows={2} maxLength={2000}
-                    className="taste-place-input" placeholder="Volitelná poznámka" />
+              <section className="taste-form-rating-section" aria-label="Hodnocení piva">
+                <div className="taste-form-section-heading">
+                  <strong>Hodnocení piva</strong><span>Nepovinné</span>
                 </div>
-              </details>
+                <StarRatingInput defaultValue={tasting.rating} />
+              </section>
+
+              <section className="taste-form-place-section" aria-label="Místo ochutnávky">
+                <div className="taste-form-section-heading">
+                  <strong>Místo</strong><span>Nepovinné</span>
+                </div>
+                <PlacePicker initialPlace={tasting.place}
+                  initialPlaceId={tasting.place_id ?? null}
+                  initialCategory={
+                    tasting.place_category === "home" ||
+                    tasting.place_category === "pub" ||
+                    tasting.place_category === "festival"
+                      ? tasting.place_category
+                      : tasting.place?.trim().toLocaleLowerCase("cs") === "doma" ? "home" : null
+                  }
+                />
+              </section>
 
       <button
                 type="submit"
