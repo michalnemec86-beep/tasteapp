@@ -88,6 +88,32 @@
   outline: none;
 }
 
+
+/* The personal diary is a distinct destination, separate from the shared catalogue. */
+.taste-nav-personal-shell {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  padding-right: 16px;
+  border-right: 1px solid rgba(231,166,47,.34);
+}
+.taste-nav-personal-link { min-height: 49px; padding: 8px 12px; }
+.taste-nav-caption { display: inline-flex; flex-direction: column; align-items: flex-start; gap: 3px; min-width: 0; }
+.taste-nav-caption-title { display: block; font-size: inherit; line-height: 1.16; font-weight: inherit; white-space: nowrap; }
+.taste-nav-caption-context { display: block; font-size: 10px; font-weight: 500; line-height: 1.18; color: var(--taste-text-muted); white-space: nowrap; }
+.taste-nav-personal-link .taste-nav-caption-context { color: #f7d6a2; }
+.taste-nav-activity-shortcut { position: relative; }
+.taste-nav-activity-shortcut .taste-nav-news-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  min-width: 17px;
+  height: 17px;
+  margin: 0;
+  padding: 0 4px;
+  font-size: 9px;
+}
+
 @media (max-width: 760px) {
   .taste-nav-desktop {
     display: none !important;
@@ -178,6 +204,37 @@
     color: var(--taste-text);
     outline: none;
   }
+
+  .taste-mobile-personal-group,
+  .taste-mobile-main-group,
+  .taste-mobile-utility-group {
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+  }
+  .taste-mobile-personal-group {
+    margin: 4px 0 6px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid rgba(231,166,47,.35);
+  }
+  .taste-mobile-personal-group .taste-mobile-nav-link {
+    background: linear-gradient(120deg, rgba(245,184,63,.18), rgba(168,98,33,.06));
+    border: 1px solid rgba(245,184,63,.37);
+    color: var(--taste-text);
+    min-height: 57px;
+  }
+  .taste-mobile-personal-group .taste-nav-caption-title { font-weight: 850; }
+  .taste-mobile-personal-group .taste-nav-caption-context { color: #e6b66c; }
+  .taste-mobile-main-group .taste-mobile-nav-link { min-height: 54px; }
+  .taste-mobile-menu .taste-nav-caption-context { font-size: 11px; }
+  .taste-mobile-utility-group {
+    margin-top: 8px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(231,166,47,.23);
+  }
+  .taste-mobile-utility-group .taste-mobile-nav-link { min-height: 44px; }
+  .taste-mobile-install-subitem { margin-left: 12px; padding-left: 10px; border-left: 1px solid rgba(231,166,47,.26); }
+  .taste-mobile-install-subitem .taste-mobile-nav-link { font-size: 12px; color: var(--taste-text-muted); }
 
   .taste-mobile-menu-button {
     position: relative;
