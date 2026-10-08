@@ -1666,7 +1666,7 @@ export default function TastingForm({
           </div>
           <RatingStars rating={personalLastRating.rating} />
           <p style={{ margin: "7px 0 10px", fontSize: 12, color: "var(--taste-text-muted)" }}>
-            Původní hodnocení zůstane zachované. Nové se započítá samostatně.
+            Původní hodnocení zůstane zachované. Jiné hvězdy vytvoří nový hlas, stejné nikoliv.
           </p>
           <button type="button" onClick={() => setRateAgain(value => !value)}
             style={{ ...inputStyle, width: "auto", padding: "8px 12px", cursor: "pointer", borderRadius: 8 }}>
@@ -1675,7 +1675,7 @@ export default function TastingForm({
         </div>
       )}
       {ratingLookupReady && (!personalLastRating || rateAgain) && (
-        <StarRatingInput key={`rating:${existingBeerId}:${rateAgain}`} />
+        <StarRatingInput key={`rating:${existingBeerId}:${rateAgain}`} previousRating={personalLastRating?.rating} />
       )}
 
       <TastingSubmitButton />
