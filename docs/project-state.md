@@ -27,7 +27,10 @@ Pozdější commit přidává tuto dokumentaci; nemění funkce archivované ver
   úpravy. K seskupení není třeba půlnoční úloha ani zásah do databáze.
   Při přidávání existujícího piva se načítá poslední vlastní hodnocení
   uživatele jako samostatná informace. Novou známku lze přidat výslovným
-  tlačítkem „Hodnotit znovu“, nikdy automatickým předvyplněním.
+  tlačítkem „Hodnotit znovu“. Pokud zůstane stejný počet hvězd jako
+  při předchozím vlastním hodnocení, nová ochutnávka se uloží bez
+  nového hlasu. Teprve změna počtu hvězd přidá další hodnocení.
+  Pravidlo ověřuje klient i server a staré záznamy se nemění.
   Stránka Hodnocení u konkrétního piva nově ukazuje také osobní průměr a
   počet hodnocených ochutnávek; globální logika hlasu na ochutnávku se nemění.
   Bez migrace a bez změny starých dat. V mobilní PWA je nutno ověřit

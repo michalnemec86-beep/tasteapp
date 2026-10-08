@@ -781,6 +781,24 @@ async function saveTastingCore(formData: FormData) {
 
   const { beerId, breweryId } = await resolveCatalogData(supabase, values, user.id);
 
+  // Read the latest actual personal vote. Keeping the same stars on a new
+  // tasting is not a new vote, even if an older client submits them.
+  let newRating = values.rating;
+  if (newRating !== null) {
+    const { data: previousRatedTasting, error: previousRatingError } = await supabase
+      .from("tastings")
+      .select("rating")
+      .eq("user_id", user.id)
+      .eq("beer_id", beerId)
+      .not("rating", "is", null)
+      .order("rated_at", { ascending: false, nullsFirst: false })
+      .order("id", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (previousRatingError) throw new Error(previousRatingError.message);
+    if (previousRatedTasting?.rating === newRating) newRating = null;
+  }
+
   const collaboratorBreweryIds = values.existingBeerId
     ? []
     : await validateCollaboratorBreweryIds(
@@ -798,7 +816,7 @@ async function saveTastingCore(formData: FormData) {
       tasted_on: values.tastedOn,
       packaging: values.packaging,
       quantity: values.quantity,
-      rating: values.rating,
+      rating: newRating,
       plato: values.platoValue ? Number(values.platoValue) : null,
       abv: values.abvValue ? Number(values.abvValue) : null,
       ibu: values.ibuValue ? Number(values.ibuValue) : null,
