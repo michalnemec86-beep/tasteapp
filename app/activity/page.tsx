@@ -1,5 +1,6 @@
 import { beerHref, styleHref, hopHref, countryHref } from "@/lib/entity-navigation";
 import Link from "next/link";
+import { ChevronDown } from "lucide-react";
 import { redirect } from "next/navigation";
 
 import {
@@ -1046,7 +1047,6 @@ function TastingTimelineCard({
   const packagingLabel = isGrouped && groupPackaging === null
     ? "Různé způsoby podání"
     : getPackagingMeta(groupPackaging)?.label ?? "Neurčený způsob podání";
-  const ratedGroupTastings = groupTastings.filter(item => isRating(item.rating));
   const multipleBreweries = new Set(groupTastings.map(item =>
     item.beer_versions?.breweries?.id ?? item.beers?.breweries?.id ?? null
   )).size > 1;
@@ -1294,15 +1294,25 @@ function TastingTimelineCard({
 
           {isGrouped && (
             <div className="taste-timeline-note">
-              <div style={{ marginBottom: 8 }}>
-                {groupTastings.length} {groupTastings.length >= 2 && groupTastings.length <= 4 ? "ochutnávky" : "ochutnávek"} v jednom dni · celkem {totalQuantity} {totalQuantity === 1 ? "pivo" : totalQuantity <= 4 ? "piva" : "piv"}.
-                {ratedGroupTastings.length > 0 && (
-                  <span> · {ratedGroupTastings.length} hodnocení</span>
-                )}
-              </div>
               <details>
-                <summary style={{ cursor: "pointer", fontWeight: 700 }}>
-                  Zobrazit jednotlivé ochutnávky
+                <summary
+                  aria-label="Rozbalit detaily ochutnávek"
+                  title="Detaily ochutnávek"
+                  style={{
+                    cursor: "pointer",
+                    listStyle: "none",
+                    width: 44,
+                    height: 44,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    marginLeft: "auto",
+                    border: "1px solid var(--taste-border)",
+                    borderRadius: 10,
+                    color: "var(--taste-text-muted)",
+                  }}
+                >
+                  <ChevronDown size={20} aria-hidden="true" />
                 </summary>
                 <ul style={{ listStyle: "none", padding: 0, margin: "10px 0 0" }}>
                   {groupTastings.map((entry) => (
@@ -1356,11 +1366,6 @@ function TastingTimelineCard({
             </div>
           )}
             {!isGrouped && isRating(tasting.rating) && <Link className="taste-timeline-rating" href={`/ratings?beer=${tasting.beers?.id}`}><RatingStars rating={tasting.rating} compact /></Link>}
-            {isGrouped && ratedGroupTastings.length > 0 && (
-              <Link className="taste-timeline-rating" href={`/ratings?beer=${tasting.beers?.id}`}>
-                {ratedGroupTastings.length}× hodnoceno
-              </Link>
-            )}
           </div>
         </div>
       </article>
