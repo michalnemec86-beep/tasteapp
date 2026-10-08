@@ -14,7 +14,6 @@ import { getCurrentUser } from "@/lib/supabase/current-user";
 
 import "leaflet/dist/leaflet.css";
 import "./globals.css";
-import "./new-tasting-overrides.css";
 import "./homepage-timeline-theme.css";
 import "./preimport-ui-tweaks.css";
 import "./modal-responsive.css";
