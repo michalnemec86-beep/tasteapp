@@ -1294,6 +1294,7 @@ function TastingTimelineCard({
           )}
 
 
+          {(isOwn && !isGrouped || latestRatedTasting) && (
           <div className="taste-timeline-footer">
           {isOwn && !isGrouped && (
             <div className="taste-timeline-edit">
@@ -1321,6 +1322,7 @@ function TastingTimelineCard({
               </Link>
             )}
           </div>
+          )}
         </div>
       </article>
     </div>
