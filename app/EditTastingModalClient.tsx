@@ -72,6 +72,8 @@ type Tasting = {
   ibu: number | null;
 
   place: string | null;
+  place_id?: number | null;
+  place_category?: "home" | "pub" | "festival" | null;
   notes: string | null;
 
   beers: {
@@ -1035,9 +1037,11 @@ export default function EditTastingModalClient({
                 <summary>Další údaje <span>Místo, hodnocení, poznámka</span></summary>
                 <div className="taste-form-optional-body">
                   <label style={labelStyle}>Místo (nepovinné)</label>
-                  <PlacePicker initialPlace={tasting.place} initialCategory={
-                    tasting.place?.trim().toLocaleLowerCase("cs") === "doma" ? "home" : null
-                  } />
+                  <PlacePicker initialPlace={tasting.place}
+                    initialPlaceId={tasting.place_id ?? null}
+                    initialCategory={tasting.place_category ??
+                      (tasting.place?.trim().toLocaleLowerCase("cs") === "doma" ? "home" : null)}
+                  />
                   <StarRatingInput defaultValue={tasting.rating} />
                   <label style={labelStyle} htmlFor={`edit-notes-${tasting.id}`}>Poznámka (nepovinné)</label>
                   <textarea id={`edit-notes-${tasting.id}`} name="notes"
