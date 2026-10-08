@@ -13,7 +13,7 @@ import { filterRatings, formatRating, rankRatings, type RatedTasting, type Ratin
 const EMPTY_FILTERS: RatingFilters = { country: "", style: "", packaging: "", beer: "" };
 const PAGE_SIZE = 10;
 
-export default function RatingsClient({ rows, initialBeer = "" }: { rows: RatedTasting[]; initialBeer?: string }) {
+export default function RatingsClient({ rows, initialBeer = "", currentUserId }: { rows: RatedTasting[]; initialBeer?: string; currentUserId: string }) {
   const [filters, setFilters] = useState<RatingFilters>({ ...EMPTY_FILTERS, beer: initialBeer });
   const [page, setPage] = useState(1);
   const filtered = useMemo(() => filterRatings(rows, filters), [rows, filters]);
@@ -30,6 +30,13 @@ export default function RatingsClient({ rows, initialBeer = "" }: { rows: RatedT
   }
   const hasFilters = Object.values(filters).some(Boolean);
   const selectedBeer = rows.find(row => String(row.beerId) === filters.beer);
+  // Every personally rated tasting contributes one vote, irrespective of quantity.
+  const myBeerRatings = filters.beer
+    ? rows.filter(row => row.userId === currentUserId && String(row.beerId) === filters.beer)
+    : [];
+  const myBeerAverage = myBeerRatings.length
+    ? myBeerRatings.reduce((sum, row) => sum + row.rating, 0) / myBeerRatings.length
+    : null;
 
   return <>
     <PageHero eyebrow="Jak nám chutná" title="Hodnocení" subtitle="Piva očima štamgastů. Každá hodnocená ochutnávka má jeden hlas."
@@ -53,6 +60,15 @@ export default function RatingsClient({ rows, initialBeer = "" }: { rows: RatedT
       {hasFilters && <button className="taste-ratings-reset" onClick={() => { setFilters(EMPTY_FILTERS); setPage(1); }}>Zrušit filtry</button>}
       {filters.beer && <div className="taste-ratings-selected-beer">Pivo: {selectedBeer?.beerName || "Vybrané pivo"}<button onClick={() => changeFilter("beer", "")} aria-label="Zrušit filtr piva">×</button></div>}
     </section>
+
+    {filters.beer && (
+      <div className="taste-ratings-selected-beer" style={{ marginBottom: 18, padding: "12px 16px" }}>
+        <strong>Moje hodnocení tohoto piva:</strong>{" "}
+        {myBeerAverage !== null
+          ? <span>{formatRating(myBeerAverage)}/5 · {myBeerRatings.length}× hodnoceno</span>
+          : <span>Zatím bez vlastního hodnocení</span>}
+      </div>
+    )}
 
     <RatingCarousel labels={["Nejlepší piva", "Nejhorší piva"]} variant="main">
       <BeerRanking title="10 nejlepších piv" items={best.slice(0,10)} worst={false}/>
