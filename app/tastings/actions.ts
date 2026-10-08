@@ -759,6 +759,26 @@ async function saveTastingCore(formData: FormData) {
   const supabase = await createClient();
   const user = await getCurrentUser(supabase);
   const values = readTastingFormData(formData);
+  const rawSubmissionId = String(formData.get("submissionId") || "").trim();
+  if (rawSubmissionId && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(rawSubmissionId)) {
+    throw new Error("Neplatný identifikátor ukládání ochutnávky.");
+  }
+  // Older clients can still submit without an idempotency key.
+  const submissionId = rawSubmissionId || null;
+
+  // A retry after the first request completed must not create a second tasting,
+  // nor repeat any catalog writes performed while resolving the beer.
+  if (submissionId) {
+    const { data: alreadySaved, error: lookupError } = await supabase
+      .from("tastings")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("submission_id", submissionId)
+      .maybeSingle();
+    if (lookupError) throw new Error(lookupError.message);
+    if (alreadySaved) return { success: true };
+  }
+
   const { beerId, breweryId } = await resolveCatalogData(supabase, values, user.id);
 
   const collaboratorBreweryIds = values.existingBeerId
@@ -773,6 +793,7 @@ async function saveTastingCore(formData: FormData) {
     .from("tastings")
     .insert({
       user_id: user.id,
+      submission_id: submissionId,
       beer_id: beerId,
       tasted_on: values.tastedOn,
       packaging: values.packaging,
@@ -787,6 +808,17 @@ async function saveTastingCore(formData: FormData) {
     .select("id, beer_version_id")
     .single();
 
+  if (tastingError?.code === "23505" && submissionId) {
+    // The unique (user_id, submission_id) index also protects concurrent posts.
+    const { data: alreadySaved, error: lookupError } = await supabase
+      .from("tastings")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("submission_id", submissionId)
+      .maybeSingle();
+    if (lookupError) throw new Error(lookupError.message);
+    if (alreadySaved) return { success: true };
+  }
   if (tastingError || !insertedTasting) {
     throw new Error(tastingError?.message || "Ochutnávku se nepodařilo uložit.");
   }
