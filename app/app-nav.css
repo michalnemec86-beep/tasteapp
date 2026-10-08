@@ -171,7 +171,11 @@
   .taste-mobile-menu {
     display: grid;
     gap: 6px;
-    padding: 8px 12px 14px;
+    max-height: calc(100dvh - 60px - env(safe-area-inset-top));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    padding: 8px 12px calc(14px + env(safe-area-inset-bottom));
     border-top: 1px solid rgba(231,166,47,0.18);
     background:
       linear-gradient(180deg, rgba(31,19,11,0.99), rgba(18,11,7,0.99));
