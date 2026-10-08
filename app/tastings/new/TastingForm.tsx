@@ -218,6 +218,7 @@ export default function TastingForm({
   const [styleOpen, setStyleOpen] = useState(false);
   const [hopOpen, setHopOpen] = useState(false);
   const [validationError, setValidationError] = useState("");
+  const beerInformationRef = useRef<HTMLDetailsElement>(null);
   const [lastRating, setLastRating] = useState<{ beerId: string; rating: number; ratedAt: string; tastedOn: string } | null>(null);
   const [ratingLookupCompletedFor, setRatingLookupCompletedFor] = useState("");
   const [ratingLookupFailedFor, setRatingLookupFailedFor] = useState("");
@@ -977,9 +978,14 @@ export default function TastingForm({
           setValidationError(
             "Katalog se nepodařilo ověřit. Zkontroluj připojení a zkus to znovu, aby nevznikla duplicitní data."
           );
+        } else if (!existingBeerId && !activeBrewery && !breweryCountry.trim()) {
+          event.preventDefault();
+          beerInformationRef.current?.setAttribute("open", "");
+          setValidationError("U nového pivovaru vyplň zemi původu v Informacích o ochutnaném pivu.");
         } else if (!existingBeerId && !plato.trim() && !abv.trim()) {
           event.preventDefault();
-          setValidationError("U nového piva vyplň stupňovitost nebo alkohol.");
+          beerInformationRef.current?.setAttribute("open", "");
+          setValidationError("U nového piva vyplň stupňovitost nebo alkohol v Informacích o ochutnaném pivu.");
         } else if (submitInFlightRef.current) {
           // React may not have rendered the pending state before a rapid second tap.
           event.preventDefault();
@@ -1343,8 +1349,8 @@ export default function TastingForm({
         </div>
       </div>
 
-      <details key={existingBeerId ? "catalog" : "new-beer"} open={!existingBeerId} className="taste-form-catalog">
-        <summary>{existingBeerId ? "Údaje piva doplněné z katalogu" : "Parametry a informace o novém pivu"}</summary>
+      <details ref={beerInformationRef} key={existingBeerId ? "catalog" : "new-beer"} className="taste-form-catalog">
+        <summary>Informace o ochutnaném pivu</summary>
         <div className="taste-form-catalog-body" data-auto={existingBeerId ? "true" : "false"}>
       {/* ZEMĚ */}
       <div style={fieldStyle}>
@@ -1364,7 +1370,6 @@ export default function TastingForm({
             placeholder="Např. Česko"
             autoComplete="off"
             readOnly={Boolean(existingBeerId)}
-            required={!existingBeerId && !activeBrewery}
             style={{
               ...inputStyle,
               opacity: existingBeerId ? 0.72 : 1,
@@ -1612,7 +1617,7 @@ export default function TastingForm({
       <div className="taste-form-section-heading"><strong>Ochutnávka</strong><span>Povinné údaje</span></div>
 
       <div className="taste-form-required-grid">
-      <div style={fieldStyle}>
+      <div style={fieldStyle} className="taste-form-required-date">
         <label style={labelStyle}>Datum ochutnávky *</label>
         <input
           type="date"
@@ -1649,12 +1654,10 @@ export default function TastingForm({
       </div>
 
       </div>
-      <details className="taste-form-optional">
-        <summary>Další údaje <span>Místo, hodnocení, poznámka</span></summary>
-        <div className="taste-form-optional-body">
-          <label style={labelStyle}>Místo (nepovinné)</label>
-          <PlacePicker />
-
+      <section className="taste-form-rating-section" aria-label="Hodnocení piva">
+        <div className="taste-form-section-heading">
+          <strong>Hodnocení piva</strong><span>Nepovinné</span>
+        </div>
       {!ratingLookupReady && (
         <p role="status" style={{ ...fieldStyle, color: "var(--taste-text-muted)", fontSize: 12 }}>
           Ověřuji předchozí hodnocení…
@@ -1683,12 +1686,15 @@ export default function TastingForm({
       {ratingLookupReady && (!personalLastRating || rateAgain) && (
         <StarRatingInput key={`rating:${existingBeerId}:${rateAgain}`} previousRating={personalLastRating?.rating} />
       )}
+      </section>
 
-          <label style={labelStyle} htmlFor="tasting-notes">Poznámka (nepovinné)</label>
-          <textarea id="tasting-notes" name="notes" rows={2} maxLength={2000}
-            className="taste-place-input" placeholder="Volitelná poznámka k ochutnávce" />
+      <section className="taste-form-place-section" aria-label="Místo ochutnávky">
+        <div className="taste-form-section-heading">
+          <strong>Místo</strong><span>Nepovinné</span>
         </div>
-      </details>
+        <PlacePicker />
+      </section>
+
       <TastingSubmitButton />
       {validationError && <p role="alert" style={{ color: "var(--taste-amber-bright)", marginTop: 10 }}>{validationError}</p>}
     </form>
