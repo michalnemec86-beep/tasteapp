@@ -63,10 +63,13 @@ export default function PlacePicker({
   }, [category, name, focused]);
 
   function selectCategory(next: PlaceCategory) {
+    if (next === category) return;
     setChanged(true);
     setCategory(next);
     setPlaceId(null);
-    setName(next === "home" ? "" : category === "home" ? "" : name);
+    // A pub name must never accidentally become a festival name (or vice versa).
+    // Keep only unclassified legacy text when the user is assigning its category.
+    setName(next === "home" || category !== null ? "" : name);
     setMatches([]);
     setFocused(false);
   }
@@ -95,11 +98,8 @@ export default function PlacePicker({
         )}
       </div>
       {category === "home" ? (
-        <>
-          <input type="hidden" name="place" value="Doma" />
-          <p className="taste-place-help">Soukromá předvolba. Žádná adresa se neukládá do katalogu.</p>
-        </>
-      ) : (category === "pub" || category === "festival" || name.trim()) ? (
+        <input type="hidden" name="place" value="Doma" />
+      ) : (category === "pub" || category === "festival") ? (
         <div className="taste-place-autocomplete">
           <input
             type="text" name="place" value={name} maxLength={160}
@@ -133,11 +133,12 @@ export default function PlacePicker({
           {category && <p className="taste-place-help">
             Vyber místo z nabídky nebo napiš nové. Nová hospoda či festival se navrhne do společného katalogu.
           </p>}
-          {!category && <p className="taste-place-help">Původní text místa. Pro zařazení vyber kategorii.</p>}
         </div>
-      ) : (
-        <p className="taste-place-help">Nepovinné. Vyber kategorii, pokud chceš místo uvést.</p>
-      )}
+      ) : initialPlace?.trim() ? (
+        <p className="taste-place-help">
+          Dříve zapsané místo: {name}. Pro jeho úpravu nebo zařazení vyber Hospodu či Festival.
+        </p>
+      ) : null}
     </div>
   );
 }
