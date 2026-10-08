@@ -1,6 +1,6 @@
 # Pivník - současný stav a návaznost práce
 
-Aktualizováno: 5. 10. 2026. Toto je výchozí přehled pro další práci na projektu.
+Aktualizováno: 8. 10. 2026. Toto je výchozí přehled pro další práci na projektu.
 
 ## Dohodnutý stav
 
@@ -19,6 +19,17 @@ Funkční základ archivované verze: 65ed1f0f6938ae4a87d53623e2123485c52812e6.
 Pozdější commit přidává tuto dokumentaci; nemění funkce archivované verze.
 
 ## Následné změny
+
+- 8. 10. 2026: nový zápis ochutnávky má okamžitý stav „Ukládám ochutnávku…“
+  s indikátorem, po odeslání blokuje další kliknutí a po chybě umožňuje
+  zopakování bez změny identifikátoru požadavku. Každý formulář používá vlastní
+  UUID; server ověřuje dřívější uložení a unikátní index
+  `tastings(user_id, submission_id)` zachytí i současné požadavky. Historické
+  záznamy mají nový sloupec NULL; stejnou kombinaci piva/dne lze legitimně
+  uložit opakovaně, pokud jde o novou ochutnávku. Migrace
+  `20261008051313_add_tasting_submission_id.sql` neprovádí změny historie ani
+  statistics. Nutno fyzicky ověřit rychlý dvojklik a pomalou síť na telefonech
+  (PWA). Viz `docs/tasting-save-idempotency.md`.
 
 - 6. 10. 2026: stránka „Pivovary“ byla odlehčena pro mobilní PWA. Mapové boxy jsou ve výchozím stavu sbalené, nejdřív Česko a potom svět, a používají jen lehký statický náhled. Souřadnice, osobní příznak českých pivovarů i světová agregace se načítají až při prvním rozbalení; po sbalení zůstávají data v klientské paměti. Rozsah „Nové pivovary“ se zachovává i v lazy mapách. Hlavní tabulka už nenačítá u všech pivovarů detailní piva, styly, technické údaje a vnořené ochutnávky. Počty a filtry skládá z kompaktního indexu piv/značek a ochutnávek, zatímco detail značek a piv se načte až po kliknutí na počet značek konkrétního pivovaru. Bez migrace a bez změny existujících dat.
 
