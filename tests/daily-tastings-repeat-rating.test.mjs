@@ -8,6 +8,8 @@ const activity = read("app/activity/page.tsx");
 const form = read("app/tastings/new/TastingForm.tsx");
 const api = read("app/api/tasting-last-rating/route.ts");
 const ratings = read("lib/ratings.ts");
+const actions = read("app/tastings/actions.ts");
+const stars = read("components/ui/StarRatingInput.tsx");
 
 test("daily timeline grouping is visual-only and uses user, beer and day", () => {
   assert.match(group, /user_id\}\|beer:\$\{tasting\.beers\.id\}\|day:\$\{tasting\.tasted_on\}/);
@@ -40,4 +42,17 @@ test("personal repeated scores are averaged without counting quantity", () => {
   assert.match(client, /myBeerRatings\.reduce\(\(sum, row\) => sum \+ row\.rating, 0\) \/ myBeerRatings\.length/);
   assert.match(client, /row\.userId === currentUserId/);
   assert.match(page, /currentUserId=\{user\.id\}/);
+});
+
+test("a repeat of the same personal score is not a new vote", () => {
+  const create = actions.split("async function saveTastingCore(")[1]
+    ?.split("export async function updateTastingInModal(")[0];
+  assert.ok(create, "tasting creation logic must exist");
+  assert.match(create, /\.eq\("user_id", user\.id\)/);
+  assert.match(create, /\.eq\("beer_id", beerId\)/);
+  assert.match(create, /if \(previousRatedTasting\?\.rating === newRating\) newRating = null/);
+  assert.match(create, /rating: newRating/);
+  assert.match(stars, /isRating\(previousRating\) && rating === previousRating/);
+  assert.match(stars, /name=\{unchangedPrevious \? undefined : "rating"\}/);
+  assert.match(form, /previousRating=\{personalLastRating\?\.rating\}/);
 });
