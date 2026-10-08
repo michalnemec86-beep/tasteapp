@@ -3,6 +3,7 @@
 import { getBeerSuggestionReferenceStatus } from "@/lib/referenceStatus";
 
 import StarRatingInput from "@/components/ui/StarRatingInput";
+import RatingStars from "@/components/ui/RatingStars";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
@@ -216,9 +217,49 @@ export default function TastingForm({
   const [styleOpen, setStyleOpen] = useState(false);
   const [hopOpen, setHopOpen] = useState(false);
   const [validationError, setValidationError] = useState("");
+  const [lastRating, setLastRating] = useState<{ beerId: string; rating: number; ratedAt: string; tastedOn: string } | null>(null);
+  const [ratingLookupCompletedFor, setRatingLookupCompletedFor] = useState("");
+  const [ratingLookupFailedFor, setRatingLookupFailedFor] = useState("");
+  const [rateAgain, setRateAgain] = useState(false);
   // Keep one stable key for this form, including retries after a lost response.
   const submissionIdRef = useRef<string | null>(null);
   const submitInFlightRef = useRef(false);
+
+  // Load only this logged-in user's latest score for the selected catalog beer.
+  // The historical score is informative, never prefilled into the new rating.
+  useEffect(() => {
+    setRateAgain(false);
+    setLastRating(null);
+    setRatingLookupCompletedFor("");
+    setRatingLookupFailedFor("");
+    if (!existingBeerId) return;
+
+    const controller = new AbortController();
+    async function loadPersonalLastRating() {
+      try {
+        const response = await fetch(`/api/tasting-last-rating?beerId=${encodeURIComponent(existingBeerId)}`, {
+          cache: "no-store",
+          signal: controller.signal,
+        });
+        if (!response.ok) throw new Error("Could not read previous rating");
+        const result = (await response.json()) as {
+          lastRating: { rating: number; ratedAt: string; tastedOn: string } | null;
+        };
+        if (!controller.signal.aborted) {
+          setLastRating(result.lastRating ? { ...result.lastRating, beerId: existingBeerId } : null);
+        }
+      } catch {
+        if (!controller.signal.aborted) setRatingLookupFailedFor(existingBeerId);
+      } finally {
+        if (!controller.signal.aborted) setRatingLookupCompletedFor(existingBeerId);
+      }
+    }
+    void loadPersonalLastRating();
+    return () => controller.abort();
+  }, [existingBeerId]);
+
+  const personalLastRating = lastRating?.beerId === existingBeerId ? lastRating : null;
+  const ratingLookupReady = !existingBeerId || ratingLookupCompletedFor === existingBeerId;
 
   const normalizedBrewery = normalizeText(breweryName);
   const activeBrewery =
@@ -1608,7 +1649,34 @@ export default function TastingForm({
         />
       </div>
 
-      <StarRatingInput />
+      {!ratingLookupReady && (
+        <p role="status" style={{ ...fieldStyle, color: "var(--taste-text-muted)", fontSize: 12 }}>
+          Ověřuji předchozí hodnocení…
+        </p>
+      )}
+      {ratingLookupFailedFor === existingBeerId && existingBeerId && (
+        <p role="status" style={{ ...fieldStyle, color: "var(--taste-text-muted)", fontSize: 12 }}>
+          Předchozí hodnocení se nepodařilo načíst. Nové můžeš zadat nezávisle.
+        </p>
+      )}
+      {personalLastRating && (
+        <div style={{ ...fieldStyle, padding: "12px 14px", border: "1px solid var(--taste-border)", borderRadius: 10 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 6 }}>
+            Naposledy hodnoceno {new Date(personalLastRating.ratedAt).toLocaleDateString("cs-CZ")}
+          </div>
+          <RatingStars rating={personalLastRating.rating} />
+          <p style={{ margin: "7px 0 10px", fontSize: 12, color: "var(--taste-text-muted)" }}>
+            Původní hodnocení zůstane zachované. Nové se započítá samostatně.
+          </p>
+          <button type="button" onClick={() => setRateAgain(value => !value)}
+            style={{ ...inputStyle, width: "auto", padding: "8px 12px", cursor: "pointer", borderRadius: 8 }}>
+            {rateAgain ? "Bez nového hodnocení" : "Hodnotit znovu"}
+          </button>
+        </div>
+      )}
+      {ratingLookupReady && (!personalLastRating || rateAgain) && (
+        <StarRatingInput key={`rating:${existingBeerId}:${rateAgain}`} />
+      )}
 
       <TastingSubmitButton />
       {validationError && <p role="alert" style={{ color: "var(--taste-amber-bright)", marginTop: 10 }}>{validationError}</p>}

@@ -23,6 +23,7 @@ import {
 import TastingModal from "../TastingModal";
 import RatingStars from "@/components/ui/RatingStars";
 import { isRating } from "@/lib/ratings";
+import { groupDailyTastings } from "@/lib/tasting-timeline-groups";
 import EditTastingModalClient from "../EditTastingModalClient";
 
 import ActivityRecencyCard from "@/components/activity/ActivityRecencyCard";
@@ -195,6 +196,8 @@ type TimelineEvent =
       type: "tasting";
       sortAt: number;
       tasting: TastingRow;
+      tastings: TastingRow[];
+      totalQuantity: number;
     }
   | {
       type: "achievement";
@@ -506,20 +509,14 @@ export default async function ActivityPage({
 
   const timeline:
     TimelineEvent[] = [
-    ...timelineTastings
-      .map(
-        (tasting) => ({
-          type:
-            "tasting" as const,
-
-          sortAt:
-            getTastingTimelineTime(
-              tasting
-            ),
-
-          tasting,
-        })
-      ),
+    ...groupDailyTastings(timelineTastings, getTastingTimelineTime)
+      .map((group) => ({
+        type: "tasting" as const,
+        sortAt: group.sortAt,
+        tasting: group.tasting,
+        tastings: group.tastings,
+        totalQuantity: group.totalQuantity,
+      })),
 
     ...allAchievements.map(
       (achievement) => ({
@@ -808,6 +805,8 @@ export default async function ActivityPage({
                     tasting={
                       tasting
                     }
+                    groupTastings={event.tastings}
+                    totalQuantity={event.totalQuantity}
                     profile={
                       profile
                     }
@@ -1024,24 +1023,33 @@ export default async function ActivityPage({
 
 function TastingTimelineCard({
   tasting,
+  groupTastings,
+  totalQuantity,
   profile,
   isOwn,
 }: {
   tasting: TastingRow;
+  groupTastings: TastingRow[];
+  totalQuantity: number;
   profile: ProfileRow | null;
   isOwn: boolean;
 }) {
+  const isGrouped = groupTastings.length > 1;
+  const groupPackaging = groupTastings.every(item => item.packaging === tasting.packaging)
+    ? tasting.packaging : null;
   const packagingKind =
-    tasting.packaging === "bottle" ? "bottle" :
-    tasting.packaging === "can" ? "can" :
-    tasting.packaging === "pet" ? "pet" :
-    tasting.packaging === "draft" ? "mug" : "package";
+    groupPackaging === "bottle" ? "bottle" :
+    groupPackaging === "can" ? "can" :
+    groupPackaging === "pet" ? "pet" :
+    groupPackaging === "draft" ? "mug" : "package";
 
-  const packagingLabel =
-    getPackagingMeta(
-      tasting.packaging
-    )?.label ??
-    "Neurčený způsob podání";
+  const packagingLabel = isGrouped && groupPackaging === null
+    ? "Různé způsoby podání"
+    : getPackagingMeta(groupPackaging)?.label ?? "Neurčený způsob podání";
+  const ratedGroupTastings = groupTastings.filter(item => isRating(item.rating));
+  const multipleBreweries = new Set(groupTastings.map(item =>
+    item.beer_versions?.breweries?.id ?? item.beers?.breweries?.id ?? null
+  )).size > 1;
 
   const brewery =
     tasting.beer_versions?.breweries ??
@@ -1100,8 +1108,7 @@ function TastingTimelineCard({
       Boolean(value)
   );
 
-  const quantity =
-    tasting.quantity ?? 1;
+  const quantity = totalQuantity;
 
   const nickname =
     profile?.display_name ??
@@ -1181,7 +1188,7 @@ function TastingTimelineCard({
                 "Neznámé pivo"
               )}
 
-              {brewery && (
+              {brewery && !multipleBreweries && (
                 <>
                   <span className="taste-timeline-main-separator">
                     {" "}–{" "}
@@ -1200,7 +1207,9 @@ function TastingTimelineCard({
                 </>
               )}
 
-              {collaborators.map(
+              {multipleBreweries && <span className="taste-timeline-main-separator"> · různí výrobci</span>}
+
+              {!isGrouped && collaborators.map(
                 (item) => (
                   <span
                     key={
@@ -1254,7 +1263,7 @@ function TastingTimelineCard({
             </div>
           )}
 
-          {(tasting.place ||
+          {!isGrouped && (tasting.place ||
             tasting.notes) && (
             <div className="taste-timeline-note">
               {tasting.place && (
@@ -1283,8 +1292,55 @@ function TastingTimelineCard({
             </div>
           )}
 
+          {isGrouped && (
+            <div className="taste-timeline-note">
+              <div style={{ marginBottom: 8 }}>
+                {groupTastings.length} {groupTastings.length >= 2 && groupTastings.length <= 4 ? "ochutnávky" : "ochutnávek"} v jednom dni · celkem {totalQuantity} {totalQuantity === 1 ? "pivo" : totalQuantity <= 4 ? "piva" : "piv"}.
+                {ratedGroupTastings.length > 0 && (
+                  <span> · {ratedGroupTastings.length} hodnocení</span>
+                )}
+              </div>
+              <details>
+                <summary style={{ cursor: "pointer", fontWeight: 700 }}>
+                  Zobrazit jednotlivé ochutnávky
+                </summary>
+                <ul style={{ listStyle: "none", padding: 0, margin: "10px 0 0" }}>
+                  {groupTastings.map((entry) => (
+                    <li key={entry.id} style={{ padding: "10px 0", borderTop: "1px solid var(--taste-border)" }}>
+                      <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8 }}>
+                        <span>{getPackagingMeta(entry.packaging)?.label ?? "Neurčené podání"} · {entry.quantity ?? 1}×</span>
+                        {isRating(entry.rating)
+                          ? <RatingStars rating={entry.rating}/>
+                          : <span style={{ color: "var(--taste-text-muted)" }}>Bez hodnocení</span>}
+                      </div>
+                      {multipleBreweries && (
+                        <div>{entry.beer_versions?.breweries?.name ?? entry.beers?.breweries?.name}</div>
+                      )}
+                      {(entry.place || entry.notes) && (
+                        <div style={{ marginTop: 4 }}>
+                          {entry.place && <span>📍 {entry.place}</span>}
+                          {entry.place && entry.notes && " · "}
+                          {entry.notes}
+                        </div>
+                      )}
+                      {isOwn && (
+                        <div style={{ marginTop: 6 }}>
+                          <EditTastingModalClient
+                            tasting={entry}
+                            updateTastingAction={updateTastingInModal}
+                            deleteTastingAction={deleteTastingInModal}
+                          />
+                        </div>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </details>
+            </div>
+          )}
+
           <div className="taste-timeline-footer">
-          {isOwn && (
+          {isOwn && !isGrouped && (
             <div className="taste-timeline-edit">
               <EditTastingModalClient
                 tasting={
@@ -1299,7 +1355,12 @@ function TastingTimelineCard({
               />
             </div>
           )}
-            {isRating(tasting.rating) && <Link className="taste-timeline-rating" href={`/ratings?beer=${tasting.beers?.id}`}><RatingStars rating={tasting.rating} compact /></Link>}
+            {!isGrouped && isRating(tasting.rating) && <Link className="taste-timeline-rating" href={`/ratings?beer=${tasting.beers?.id}`}><RatingStars rating={tasting.rating} compact /></Link>}
+            {isGrouped && ratedGroupTastings.length > 0 && (
+              <Link className="taste-timeline-rating" href={`/ratings?beer=${tasting.beers?.id}`}>
+                {ratedGroupTastings.length}× hodnoceno
+              </Link>
+            )}
           </div>
         </div>
       </article>
