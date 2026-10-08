@@ -125,3 +125,38 @@
   font-weight: 800;
   letter-spacing: .02em;
 }
+
+/* Installation lives under Settings; no extra top-level desktop navigation icon. */
+.taste-settings-install-card {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  margin-top: 22px;
+  padding: 20px 23px;
+  border: 1px solid rgba(231,166,47,.24);
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(52,34,20,.80), rgba(19,14,10,.92));
+}
+.taste-settings-install-card h2 { margin: 0 0 5px; font-size: 18px; }
+.taste-settings-install-card p { margin: 0; font-size: 12px; line-height: 1.5; color: var(--taste-text-muted); }
+.taste-settings-install-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 43px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(245,184,63,.47);
+  color: var(--taste-amber-bright);
+  background: rgba(231,166,47,.08);
+  font-weight: 750;
+  text-decoration: none;
+  font-size: 13px;
+}
+.taste-settings-install-link:hover, .taste-settings-install-link:focus-visible {
+  border-color: var(--taste-amber-bright);
+  background: rgba(231,166,47,.16);
+}
