@@ -16,21 +16,30 @@ export default async function PlacesPage() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/auth/login");
 
-  const [catalogResult, history] = await Promise.all([
+  const admin = isCatalogAdminUser(user.id);
+  const [catalogResult, linkedTastings, legacyTastings] = await Promise.all([
     supabase.from("places").select("id, name, city, country, category, approved")
       .order("name", { ascending: true }),
     fetchAllRows((from, to) => supabase.from("tastings")
-      .select("place_id, place, place_category").range(from, to), 500),
+      .select("place_id").not("place_id", "is", null).range(from, to), 500),
+    admin
+      ? fetchAllRows((from, to) => supabase.from("tastings")
+          .select("place, place_category").is("place_id", null)
+          .not("place", "is", null).range(from, to), 500)
+      : Promise.resolve([] as { place: string | null; place_category: string | null }[]),
   ]);
   if (catalogResult.error) throw new Error(catalogResult.error.message);
 
   const counts = new Map<number, number>();
-  const legacy = new Map<string, { name: string; count: number }>();
-  for (const tasting of history) {
+  for (const tasting of linkedTastings) {
     if (tasting.place_id != null) {
       counts.set(tasting.place_id, (counts.get(tasting.place_id) ?? 0) + 1);
-    } else if (tasting.place?.trim() && tasting.place_category !== "home" &&
-               tasting.place.trim().toLocaleLowerCase("cs") !== "doma") {
+    }
+  }
+  const legacy = new Map<string, { name: string; count: number }>();
+  for (const tasting of legacyTastings) {
+    if (tasting.place?.trim() && tasting.place_category !== "home" &&
+        tasting.place.trim().toLocaleLowerCase("cs") !== "doma") {
       const name = tasting.place.trim();
       const key = name.toLocaleLowerCase("cs");
       const found = legacy.get(key);
@@ -42,7 +51,6 @@ export default async function PlacesPage() {
   const places = (catalogResult.data ?? []).sort((a,b) =>
     (counts.get(b.id) ?? 0) - (counts.get(a.id) ?? 0) || a.name.localeCompare(b.name, "cs"));
   const oldPlaces = [...legacy.values()].sort((a,b) => b.count - a.count || a.name.localeCompare(b.name,"cs"));
-  const admin = isCatalogAdminUser(user.id);
 
   return (
     <main className="taste-stats-concept" style={{ maxWidth: 1180, margin: "0 auto", padding: "28px 16px 80px" }}>
