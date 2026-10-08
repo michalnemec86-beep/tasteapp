@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { fetchAllRows } from "@/lib/fetch-all-rows";
 import { isCatalogAdminUser } from "@/lib/adminView";
+import PageHero from "@/components/ui/PageHero";
 import { createPlace, updatePlace } from "./actions";
 
 export const metadata: Metadata = { title: "Místa" };
@@ -54,14 +55,14 @@ export default async function PlacesPage() {
 
   return (
     <main className="taste-stats-concept" style={{ maxWidth: 1180, margin: "0 auto", padding: "28px 16px 80px" }}>
-      <header style={{ marginBottom: 25 }}>
-        <div className="taste-label">Kam chodíme na pivo</div>
-        <h1 style={{ fontSize: "clamp(28px, 5vw, 40px)", margin: "8px 0" }}>Místa</h1>
-        <p style={{ color: "var(--taste-text-muted)", fontSize: 13 }}>
-          Hospody a festivaly zaznamenané při ochutnávkách. Domácí ochutnávky jsou soukromé
-          a veřejná adresa se k nim nikdy nevytváří.
-        </p>
-      </header>
+      <PageHero
+        eyebrow="Kam chodíme na pivo"
+        title="Místa"
+        subtitle="Hospody a festivaly zaznamenané při ochutnávkách. Domácí ochutnávky jsou soukromé a veřejná adresa se k nim nikdy nevytváří."
+        imageUrl="/images/heroes/places.webp"
+        imagePosition="center 54%"
+        visualVariant="catalog"
+      />
 
       {admin && (
         <details className="taste-form-optional" style={{ marginBottom: 20 }}>
