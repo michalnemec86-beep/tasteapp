@@ -140,6 +140,8 @@ type TastingRow = {
   place:
     | string
     | null;
+  place_id: number | null;
+  place_category: "home" | "pub" | "festival" | null;
 
   notes:
     | string
@@ -277,6 +279,8 @@ export default async function ActivityPage({
         abv,
         ibu,
         place,
+        place_id,
+        place_category,
         notes,
         beer_versions (
           id,
