@@ -247,7 +247,9 @@ export default function AppNav({
           <div className="taste-mobile-utility-group">
             <MobileNavLink href="/activity" active={isActive("/activity")} newsCount={counts.activity} onClick={() => reopenSection("/activity")}>Aktivita v hospodě</MobileNavLink>
             <MobileNavLink href="/settings" active={isActive("/settings")}>Nastavení</MobileNavLink>
-            <MobileNavLink href="/install" active={isActive("/install")}>Nainstalovat Pivník</MobileNavLink>
+            <div className="taste-mobile-install-subitem">
+              <MobileNavLink href="/install" active={isActive("/install")}>Nainstalovat Pivník</MobileNavLink>
+            </div>
           </div>
           <button type="button" onClick={handleLogout} className="taste-mobile-menu-logout">
             Odhlásit
