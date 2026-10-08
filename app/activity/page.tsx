@@ -1295,7 +1295,7 @@ function TastingTimelineCard({
           {isGrouped && (
             <div className="taste-timeline-note">
               <div style={{ marginBottom: 8 }}>
-                {groupTastings.length} ochutnávky v jednom dni, celkem {totalQuantity} piv.
+                {groupTastings.length} {groupTastings.length >= 2 && groupTastings.length <= 4 ? "ochutnávky" : "ochutnávek"} v jednom dni · celkem {totalQuantity} {totalQuantity === 1 ? "pivo" : totalQuantity <= 4 ? "piva" : "piv"}.
                 {ratedGroupTastings.length > 0 && (
                   <span> · {ratedGroupTastings.length} hodnocení</span>
                 )}
