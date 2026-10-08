@@ -30,6 +30,7 @@ test("grouped timeline cards stay compact without verbose copy but retain access
   assert.match(activity, /<summary[\s\S]*?aria-label="Rozbalit detaily ochutnávek"/);
   assert.match(activity, /<ChevronDown size=\{20\} aria-hidden="true" \/>/);
   assert.match(activity, /groupTastings\.map\(\(entry\)/);
+  assert.match(activity, /aria-label="Hodnocení tohoto piva"/);
   assert.match(activity, /const quantity =\s*totalQuantity/);
 });
 test("personal last rating is scoped to account and beer", () => {
