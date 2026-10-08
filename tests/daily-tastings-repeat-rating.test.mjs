@@ -29,7 +29,15 @@ test("personal last rating is scoped to account and beer", () => {
 test("old stars are read-only, rating again is an explicit action", () => {
   assert.match(form, /Naposledy hodnoceno/);
   assert.match(form, /Hodnotit znovu/);
-  assert.match(form, /RatingStars rating=\{lastRating\.rating\}/);
+  assert.match(form, /RatingStars rating=\{personalLastRating\.rating\}/);
   assert.match(form, /rateAgain/);
   assert.match(ratings, /bucket\.sum \+= row\.rating; bucket\.count\+\+/);
+});
+
+test("personal repeated scores are averaged without counting quantity", () => {
+  const client = read("app/ratings/RatingsClient.tsx");
+  const page = read("app/ratings/page.tsx");
+  assert.match(client, /myBeerRatings\.reduce\(\(sum, row\) => sum \+ row\.rating, 0\) \/ myBeerRatings\.length/);
+  assert.match(client, /row\.userId === currentUserId/);
+  assert.match(page, /currentUserId=\{user\.id\}/);
 });
