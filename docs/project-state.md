@@ -20,20 +20,28 @@ Pozdější commit přidává tuto dokumentaci; nemění funkce archivované ver
 
 ## Následné změny
 
+- 8. 10. 2026: seskupený příspěvek na timeline už nemá rozbalovací šipku
+  ani seznam dílčích ochutnávek. Ukazuje součet skutečně vypitých piv
+  a případné hodnocení z poslední hodnocené ochutnávky skupiny (včetně
+  případu, kdy ostatní ochutnávky nebyly hodnoceny). Nepočítá nový průměr
+  ani další hlas. Jednotlivé záznamy a editace zůstávají v uživatelské
+  historii „Co jsem vypil“. Jen úprava zobrazení; data beze změny.
+
 - 8. 10. 2026: seskupené příspěvky na timeline již nezobrazují slovní
   souhrn počtu denních ochutnávek/piv/hodnocení, dlouhý text u rozbalení
   ani text v patičce „× hodnoceno“. Detail jednotlivých záznamů se otevírá
-  kompaktní ikonou se čtečkovým popisem. Součet quantity nadále ukazuje
-  původní odznak u názvu piva; jednotlivá hodnocení, místo, poznámky
-  a oprávněné editace/smazání zůstávají po rozbalení dostupné.
-  Odkaz na hodnocení v patičce zůstává dostupný jako ikona hvězdy.
+  dříve kompaktní ikonou. Následná změna uvedená výše odstranila
+  i samotné rozbalení. Součet quantity se stále zobrazuje u názvu piva;
+  namísto samotné ikony hvězdy se uvádí skutečné poslední hodnocení
+  ze skupiny. Jednotlivé záznamy jsou nadále v osobní historii.
   Pouze změna vykreslení, bez zásahu do dat a statistik.
 
 - 8. 10. 2026: časová osa Aktivity seskupuje pro zobrazení více ochutnávek
   stejného uživatele, téhož katalogového piva a stejného kalendářního dne do
-  jednoho příspěvku. V souhrnu se sčítá quantity; po rozbalení jsou všechny
-  původní záznamy, jejich hodnocení, poznámky, způsoby podání a samostatné
-  úpravy. K seskupení není třeba půlnoční úloha ani zásah do databáze.
+  jednoho příspěvku. V souhrnu se sčítá quantity. Dílčí záznamy a
+  samostatné úpravy nadále existují v osobní historii (už nejsou
+  rozbalitelné přímo na timeline). K seskupení není třeba půlnoční úloha
+  ani zásah do databáze.
   Při přidávání existujícího piva se načítá poslední vlastní hodnocení
   uživatele jako samostatná informace. Novou známku lze přidat výslovným
   tlačítkem „Hodnotit znovu“. Pokud zůstane stejný počet hvězd jako
@@ -43,7 +51,7 @@ Pozdější commit přidává tuto dokumentaci; nemění funkce archivované ver
   Stránka Hodnocení u konkrétního piva nově ukazuje také osobní průměr a
   počet hodnocených ochutnávek; globální logika hlasu na ochutnávku se nemění.
   Bez migrace a bez změny starých dat. V mobilní PWA je nutno ověřit
-  rozbalování, editace a opakované hodnocení.
+  zobrazení hodnocení, editace v historii a opakované hodnocení.
 
 - 8. 10. 2026: ochrana existujícího místa a poznámky při editaci
   ochutnávky. Editační modal zatím nemá vstupy pro tyto údaje;

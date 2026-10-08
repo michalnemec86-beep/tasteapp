@@ -1,6 +1,5 @@
 import { beerHref, styleHref, hopHref, countryHref } from "@/lib/entity-navigation";
 import Link from "next/link";
-import { ChevronDown, Star } from "lucide-react";
 import { redirect } from "next/navigation";
 
 import {
@@ -1047,7 +1046,8 @@ function TastingTimelineCard({
   const packagingLabel = isGrouped && groupPackaging === null
     ? "Různé způsoby podání"
     : getPackagingMeta(groupPackaging)?.label ?? "Neurčený způsob podání";
-  const hasGroupRating = isGrouped && groupTastings.some(item => isRating(item.rating));
+  // Groups are ordered newest first: display the most recent rated tasting, not a combined score.
+  const latestRatedTasting = groupTastings.find(item => isRating(item.rating));
   const multipleBreweries = new Set(groupTastings.map(item =>
     item.beer_versions?.breweries?.id ?? item.beers?.breweries?.id ?? null
   )).size > 1;
@@ -1293,63 +1293,8 @@ function TastingTimelineCard({
             </div>
           )}
 
-          {isGrouped && (
-            <div className="taste-timeline-note">
-              <details>
-                <summary
-                  aria-label="Rozbalit detaily ochutnávek"
-                  title="Detaily ochutnávek"
-                  style={{
-                    cursor: "pointer",
-                    listStyle: "none",
-                    width: 44,
-                    height: 44,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    marginLeft: "auto",
-                    border: "1px solid var(--taste-border)",
-                    borderRadius: 10,
-                    color: "var(--taste-text-muted)",
-                  }}
-                >
-                  <ChevronDown size={20} aria-hidden="true" />
-                </summary>
-                <ul style={{ listStyle: "none", padding: 0, margin: "10px 0 0" }}>
-                  {groupTastings.map((entry) => (
-                    <li key={entry.id} style={{ padding: "10px 0", borderTop: "1px solid var(--taste-border)" }}>
-                      <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8 }}>
-                        <span>{getPackagingMeta(entry.packaging)?.label ?? "Neurčené podání"} · {entry.quantity ?? 1}×</span>
-                        {isRating(entry.rating)
-                          ? <RatingStars rating={entry.rating}/>
-                          : <span style={{ color: "var(--taste-text-muted)" }}>Bez hodnocení</span>}
-                      </div>
-                      {multipleBreweries && (
-                        <div>{entry.beer_versions?.breweries?.name ?? entry.beers?.breweries?.name}</div>
-                      )}
-                      {(entry.place || entry.notes) && (
-                        <div style={{ marginTop: 4 }}>
-                          {entry.place && <span>📍 {entry.place}</span>}
-                          {entry.place && entry.notes && " · "}
-                          {entry.notes}
-                        </div>
-                      )}
-                      {isOwn && (
-                        <div style={{ marginTop: 6 }}>
-                          <EditTastingModalClient
-                            tasting={entry}
-                            updateTastingAction={updateTastingInModal}
-                            deleteTastingAction={deleteTastingInModal}
-                          />
-                        </div>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              </details>
-            </div>
-          )}
 
+          {(isOwn && !isGrouped || latestRatedTasting) && (
           <div className="taste-timeline-footer">
           {isOwn && !isGrouped && (
             <div className="taste-timeline-edit">
@@ -1366,18 +1311,18 @@ function TastingTimelineCard({
               />
             </div>
           )}
-            {!isGrouped && isRating(tasting.rating) && <Link className="taste-timeline-rating" href={`/ratings?beer=${tasting.beers?.id}`}><RatingStars rating={tasting.rating} compact /></Link>}
-            {hasGroupRating && (
+            {latestRatedTasting && isRating(latestRatedTasting.rating) && (
               <Link
                 className="taste-timeline-rating"
                 href={`/ratings?beer=${tasting.beers?.id}`}
-                aria-label="Hodnocení tohoto piva"
+                aria-label={`Hodnocení tohoto piva: ${latestRatedTasting.rating} z 5`}
                 title="Hodnocení tohoto piva"
               >
-                <Star size={17} aria-hidden="true" />
+                <RatingStars rating={latestRatedTasting.rating} compact />
               </Link>
             )}
           </div>
+          )}
         </div>
       </article>
     </div>
