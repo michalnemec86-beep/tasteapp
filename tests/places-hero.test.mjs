@@ -6,11 +6,17 @@ const source = path => readFileSync(new URL(`../${path}`, import.meta.url), "utf
 const places = source("app/places/page.tsx");
 const asset = new URL("../public/images/heroes/places.webp", import.meta.url);
 
-test("places share the same PageHero design as other catalogue and stats pages", () => {
-  assert.match(places, /import PageHero from "@\/components\/ui\/PageHero";/);
-  assert.match(places, /<PageHero[\s\S]*?title="Místa"[\s\S]*?imageUrl="\/images\/heroes\/places\.webp"/);
-  assert.match(places, /visualVariant="catalog"/);
-  assert.doesNotMatch(places, /<h1[^>]*>Místa<\/h1>/);
+test("places photo is the full-page background, not a boxed hero", () => {
+  const css = source("app/places/places-concept.css");
+  assert.match(places, /import "\.\/places-concept\.css";/);
+  assert.match(places, /<main className="taste-places-concept">/);
+  assert.match(places, /<header className="taste-places-intro">/);
+  assert.match(places, /<h1>Místa<\/h1>/);
+  assert.doesNotMatch(places, /<PageHero|import PageHero/);
+  assert.match(css, /\.taste-app-shell:has\(\.taste-places-concept\)::before/);
+  assert.match(css, /url\("\/images\/heroes\/places\.webp"\)/);
+  assert.match(css, /linear-gradient\(180deg,[^;]*#100d0a 83%\)/);
+  assert.match(css, /@media \(max-width: 760px\)/);
 });
 
 test("approved modern/Irish pub image is included and optimized for web", () => {
@@ -21,10 +27,21 @@ test("approved modern/Irish pub image is included and optimized for web", () => 
   assert.ok(statSync(asset).size < 250_000, "avoid large PNG loading costs");
 });
 
-test("adding the hero does not remove places, tasting counts or admin editing", () => {
+test("restyling the page keeps the places catalogue and admin operations", () => {
   assert.match(places, /counts\.set\(tasting\.place_id/);
   assert.match(places, /<h2[^>]*>Společný katalog/);
   assert.match(places, /<form action=\{createPlace\}/);
   assert.match(places, /<form action=\{updatePlace\}/);
   assert.match(places, /\{admin && <section/);
+});
+
+test("historical places stay admin-only and start inside a collapsed native disclosure", () => {
+  const historical = places.split('{admin && <section className="taste-places-history-section">')[1];
+  assert.ok(historical, "historical places are restricted to administrators");
+  assert.match(historical, /<details className="taste-places-history taste-places-card">/);
+  assert.match(historical, /<summary>Historická místa bez ověřené vazby \(\{oldPlaces\.length\}\)<\/summary>/);
+  assert.doesNotMatch(historical, /<details[^>]*\bopen\b/);
+  assert.match(historical, /oldPlaces\.map\(place =>/);
+  assert.match(historical, /\{place\.count\}/);
+  assert.match(source("app/places/places-concept.css"), /\.taste-places-history \.taste-places-table \{ min-width: 0; \}/);
 });

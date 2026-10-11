@@ -20,6 +20,17 @@ Pozdější commit přidává tuto dokumentaci; nemění funkce archivované ver
 
 ## Následné změny
 
+- 8. 10. 2026: stránka Místa byla vizuálně sjednocena s ostatními
+  přehledy. Odsouhlasené foto moderní hospody a irského pubu je
+  nyní přímým pozadím stránky (nikoli vloženým hero boxem) s plynulým
+  ztmavením do `#100d0a`; společný tmavý rám aplikace a měděné
+  panely navazují na Pivovary a Pivní lístek. Nový styl
+  `app/places/places-concept.css` má samostatné mobilní nastavení.
+  Adminova sekce „Historická místa bez ověřené vazby“ se zobrazuje
+  pod standardním `<details>` výchozím sbaleným panelem. Samotné
+  názvy, počty, vazby, formuláře, RLS, databáze i statistiky
+  ochutnávek zůstávají nezměněné. Regresní testy aktualizovány.
+
 - 8. 10. 2026: stránka Místa používá společný fotografický
   `PageHero` s odsouhlaseným obrázkem, v němž se zleva prolíná
   moderní hospoda a zprava tradiční irský pub. Fotografie byla
