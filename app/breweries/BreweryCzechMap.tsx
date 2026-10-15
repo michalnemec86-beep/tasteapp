@@ -20,7 +20,8 @@ export type BreweryMapItem = {
   latitude: number;
   longitude: number;
   closedYear: number | null;
-  isNomadic: boolean;
+  // Older map feeds (e.g. personal statistics) may not yet provide the flag.
+  isNomadic?: boolean;
   isPersonal: boolean;
 };
 
