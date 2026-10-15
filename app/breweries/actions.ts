@@ -699,6 +699,10 @@ function readBreweryFormData(
     );
   }
 
+  if ((latitude === null) !== (longitude === null)) {
+    throw new Error("Souřadnice musí obsahovat zeměpisnou šířku i délku.");
+  }
+
   return {
     name,
     city,
@@ -780,8 +784,8 @@ export async function createBrewery(
         values.city || null,
       country:
         canonicalCountry,
-      address:
-        values.isNomadic ? null : values.address || null,
+      // A brewery keeps exactly one address. Preserve the supplied address even for nomadic brands.
+      address: values.address || null,
       website:
         values.website || null,
       is_nomadic: values.isNomadic,
@@ -789,14 +793,8 @@ export async function createBrewery(
         values.foundedYear,
       closed_year:
         values.closedYear,
-      latitude:
-        values.isNomadic || !isAdmin
-          ? null
-          : values.latitude,
-      longitude:
-        values.isNomadic || !isAdmin
-          ? null
-          : values.longitude,
+      latitude: isAdmin ? values.latitude : null,
+      longitude: isAdmin ? values.longitude : null,
     })
     .select("id")
     .single();
@@ -868,9 +866,10 @@ export async function updateBrewery(
   const city = String(formData.get("city") ?? "").trim();
   const country = String(formData.get("country") ?? "").trim();
 
-  const address = String(
-    formData.get("address") ?? ""
-  ).trim();
+  // Older forms may omit the address; never clear an existing single address implicitly.
+  const address = formData.has("address")
+    ? String(formData.get("address") ?? "").trim()
+    : currentBrewery.address ?? "";
 
   const website = String(
     formData.get("website") ?? ""
@@ -1004,6 +1003,10 @@ export async function updateBrewery(
     throw new Error(
       "Zeměpisná délka musí být mezi -180 a 180."
     );
+  }
+
+  if ((latitude === null) !== (longitude === null)) {
+    throw new Error("Souřadnice musí obsahovat zeměpisnou šířku i délku.");
   }
 
   if (
@@ -1210,10 +1213,7 @@ export async function updateBrewery(
         effectiveName,
       city: city || null,
       country: canonicalCountry,
-      address:
-        currentBrewery.is_nomadic
-          ? null
-          : address || null,
+      address: address || null,
       website:
         website || null,
       founded_year:
