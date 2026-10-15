@@ -169,9 +169,8 @@ export default async function BreweryDetailPage({ params, searchParams }: Props)
     "czech republic",
   ].includes(normalizedCountry);
 
-  // Coordinates on a nomadic brewery may represent a contact or an old host site.
+  // Keep the one recorded GPS point, also for nomadic breweries.
   const hasMapCoordinates =
-    !brewery.is_nomadic &&
     typeof brewery.latitude === "number" &&
     Number.isFinite(brewery.latitude) &&
     typeof brewery.longitude === "number" &&
@@ -336,7 +335,8 @@ export default async function BreweryDetailPage({ params, searchParams }: Props)
               </Link>
             ) : null}
           />
-          <DetailItem label={brewery.is_nomadic ? "Typ pivovaru" : "Adresa"} value={brewery.is_nomadic ? "Letající pivovar" : brewery.address} />
+          <DetailItem label="Typ pivovaru" value={brewery.is_nomadic ? "Letající pivovar" : "Kamenný pivovar"} />
+          <DetailItem label="Adresa" value={brewery.address} />
           <DetailItem label="Web" value={brewery.website} />
           <DetailItem
             label="Rok založení"
@@ -369,6 +369,7 @@ export default async function BreweryDetailPage({ params, searchParams }: Props)
                         latitude: brewery.latitude as number,
                         longitude: brewery.longitude as number,
                         closedYear: brewery.closed_year,
+                        isNomadic: brewery.is_nomadic,
                         isPersonal: false,
                       },
                     ]
@@ -390,11 +391,9 @@ export default async function BreweryDetailPage({ params, searchParams }: Props)
                 }}
               >
                 <span>
-                  {brewery.is_nomadic
-                    ? "Letající pivovar nemá jedno vlastní výrobní místo, proto jej na mapě výroby nezakreslujeme."
-                    : adminView
-                      ? "Pivovar zatím nemá souřadnice. Doplň je přes „Upravit pivovar“ a bod se na mapě zobrazí."
-                      : "Poloha tohoto pivovaru zatím není na mapě zakreslená."}
+                  {adminView
+                    ? "Pivovar zatím nemá souřadnice. Doplň je přes „Upravit pivovar“ a bod se na mapě zobrazí."
+                    : "Poloha tohoto pivovaru zatím není na mapě zakreslená."}
                 </span>
               </div>
             )}
