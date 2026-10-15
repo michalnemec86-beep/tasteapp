@@ -14,7 +14,7 @@ Ownership groups and parent corporations are out of scope. A company owning seve
 
 A brewery is the canonical brewery identity for a given beer version and period. It may have its own production site or be a verified nomadic/flying brewery.
 
-Nomadic breweries are first-class brewery identities. They use `breweries.is_nomadic = true`, participate normally in brewery statistics and display `Letající pivovar` instead of a production address. A contract host brewery may be retained as research context, but must not create a second brewery-statistics count for the same tasting.
+Nomadic breweries are first-class brewery identities. They use `breweries.is_nomadic = true` and participate normally in brewery statistics. The brewery catalogue has exactly one optional `breweries.address` and one optional GPS pair (`latitude`, `longitude`) per brewery. An existing single address/GPS must be preserved, including for a nomadic brewery. If distinct contact and verified production locations are known, prefer the actual production location in those single fields; never invent an address or GPS. Where a nomadic brewery has no own production site, the sole recorded contact or historically sourced point may be retained and must not be described as its own brewhouse. A contract host brewery may be retained as research context, but must not create a second brewery-statistics count for the same tasting. Ordinary form edits must never erase existing location data merely because a brewery is nomadic or because an older form omits a field.
 
 Examples:
 - Pivovar Staropramen

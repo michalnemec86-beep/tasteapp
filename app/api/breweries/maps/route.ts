@@ -112,11 +112,9 @@ export async function GET(request: NextRequest) {
           let query = supabase
             .from("breweries")
             .select(
-              "id, name, city, latitude, longitude, closed_year"
+              "id, name, city, latitude, longitude, closed_year, is_nomadic"
             )
             .eq("country", "Česko")
-            // The Czech map marks actual production sites, not contacts of nomadic brands.
-            .eq("is_nomadic", false)
             .not("latitude", "is", null)
             .not("longitude", "is", null);
 
@@ -167,6 +165,7 @@ export async function GET(request: NextRequest) {
           latitude: brewery.latitude,
           longitude: brewery.longitude,
           closedYear: brewery.closed_year,
+          isNomadic: brewery.is_nomadic,
           isPersonal: personalBreweryIds.has(brewery.id),
         },
       ];

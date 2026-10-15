@@ -345,9 +345,8 @@ export default function BreweryEditModalClient({
                       <input
                         name="address"
                         defaultValue={brewery.address ?? ""}
-                        disabled={brewery.isNomadic}
-                        placeholder={brewery.isNomadic ? "Letající pivovar" : undefined}
-                        style={brewery.isNomadic ? lockedInputStyle : inputStyle}
+                        placeholder="Jediná adresa, přednostně místo výroby"
+                        style={inputStyle}
                       />
                     </Field>
 
