@@ -169,7 +169,9 @@ export default async function BreweryDetailPage({ params, searchParams }: Props)
     "czech republic",
   ].includes(normalizedCountry);
 
+  // Coordinates on a nomadic brewery may represent a contact or an old host site.
   const hasMapCoordinates =
+    !brewery.is_nomadic &&
     typeof brewery.latitude === "number" &&
     Number.isFinite(brewery.latitude) &&
     typeof brewery.longitude === "number" &&
@@ -388,9 +390,11 @@ export default async function BreweryDetailPage({ params, searchParams }: Props)
                 }}
               >
                 <span>
-                  {adminView
-                    ? "Pivovar zatím nemá souřadnice. Doplň je přes „Upravit pivovar“ a bod se na mapě zobrazí."
-                    : "Poloha tohoto pivovaru zatím není na mapě zakreslená."}
+                  {brewery.is_nomadic
+                    ? "Letající pivovar nemá jedno vlastní výrobní místo, proto jej na mapě výroby nezakreslujeme."
+                    : adminView
+                      ? "Pivovar zatím nemá souřadnice. Doplň je přes „Upravit pivovar“ a bod se na mapě zobrazí."
+                      : "Poloha tohoto pivovaru zatím není na mapě zakreslená."}
                 </span>
               </div>
             )}

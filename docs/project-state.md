@@ -20,6 +20,8 @@ Pozdější commit přidává tuto dokumentaci; nemění funkce archivované ver
 
 ## Následné změny
 
+- 15. 10. 2026: audit českých pivovarů: pro létající Veleňský pivovar byla doložena výroba od roku 2021 bez dokončené vlastní varny, opravena klasifikace v databázi bez změny adresy, piv a ochutnávek. Česká mapa výrobních míst (API i jednotlivý profil) nyní nezakresluje létající pivovary ani tehdy, mají-li zachované starší kontaktní/historické GPS. Jde pouze o filtr prezentace; uložené souřadnice, katalogová identita a pivní statistiky se nemažou. Regresní test: `tests/brewery-map-production-sites.test.mjs`. Radouš: veřejný aktuální web dokládá pokračující výrobu v Druztové od prosince 2019, ale stará karta nyní obsahuje šťáhlavskou historickou adresu a rok ukončení 2019. Neřešit izolovaně bez pozdějšího rozhodnutí o historickém versus aktuálním výrobním místě. Kvasar: platná výroba Sentice 219, dosavadní uložená Sentice 51 vyžaduje samostatnou adresní korekci. Výtopna: vlastní značková piva bez doložené vlastní varny; zatím neurčovat výrobní GPS ani nepřepisovat typ bez potvrzení.
+
 - 8. 10. 2026: stránka Místa byla vizuálně sjednocena s ostatními
   přehledy. Odsouhlasené foto moderní hospody a irského pubu je
   nyní přímým pozadím stránky (nikoli vloženým hero boxem) s plynulým
