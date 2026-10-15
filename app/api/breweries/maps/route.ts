@@ -115,6 +115,8 @@ export async function GET(request: NextRequest) {
               "id, name, city, latitude, longitude, closed_year"
             )
             .eq("country", "Česko")
+            // The Czech map marks actual production sites, not contacts of nomadic brands.
+            .eq("is_nomadic", false)
             .not("latitude", "is", null)
             .not("longitude", "is", null);
 
