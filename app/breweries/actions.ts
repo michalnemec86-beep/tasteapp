@@ -899,20 +899,15 @@ export async function updateBrewery(
     user.id ===
     ADMIN_USER_ID;
 
+  // Missing fields in older edit forms must not erase the one stored GPS point.
   const latitude =
-    isAdmin
-      ? readOptionalNumber(
-          formData,
-          "latitude"
-        )
+    isAdmin && formData.has("latitude")
+      ? readOptionalNumber(formData, "latitude")
       : currentBrewery.latitude;
 
   const longitude =
-    isAdmin
-      ? readOptionalNumber(
-          formData,
-          "longitude"
-        )
+    isAdmin && formData.has("longitude")
+      ? readOptionalNumber(formData, "longitude")
       : currentBrewery.longitude;
 
   const renameChangedYear =
@@ -1005,7 +1000,11 @@ export async function updateBrewery(
     );
   }
 
-  if ((latitude === null) !== (longitude === null)) {
+  if (
+    isAdmin &&
+    (formData.has("latitude") || formData.has("longitude")) &&
+    (latitude === null) !== (longitude === null)
+  ) {
     throw new Error("Souřadnice musí obsahovat zeměpisnou šířku i délku.");
   }
 
