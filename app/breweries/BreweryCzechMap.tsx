@@ -20,6 +20,7 @@ export type BreweryMapItem = {
   latitude: number;
   longitude: number;
   closedYear: number | null;
+  isNomadic: boolean;
   isPersonal: boolean;
 };
 
@@ -291,11 +292,12 @@ export default function BreweryCzechMap({
                 offset={[0, -8]}
                 opacity={1}
               >
-                {brewery.name}{!isSingle && brewery.isPersonal ? " · máš v evidenci" : ""}
+                {brewery.name}{brewery.isNomadic ? " · létající pivovar (evidovaná poloha)" : ""}{!isSingle && brewery.isPersonal ? " · máš v evidenci" : ""}
               </Tooltip>
 
               <Popup>
                 <strong>{brewery.name}</strong>
+                {brewery.isNomadic && <><br />Létající pivovar · evidovaná poloha</>}
 
                 {brewery.city && (
                   <>
