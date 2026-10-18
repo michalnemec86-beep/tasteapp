@@ -31,6 +31,21 @@ function norm(s: string) {
   return canonical(s).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("cs")
     .replace(/[°º]/g, " stupnu ").replace(/[^a-z0-9]+/g, " ").trim().replace(/\s+/g, " ");
 }
+// Comparison key only. Keep norm() unchanged to preserve existing candidate unique keys.
+function catalogMatchKey(value: string): string {
+  return norm(value).replace(/\b(\d+(?:[,.]\d+)?)\s+stupnu\b/g, "$1");
+}
+// A style or flavour following the same beer name is a possible existing
+// beer, not proof of a genuinely new catalogue item. Never auto-merge variants.
+function likelyCatalogMatch(foundName: string, existingName: string): boolean {
+  const found = catalogMatchKey(foundName);
+  const existing = catalogMatchKey(existingName);
+  if (!found || !existing) return false;
+  if (found === existing) return true;
+  if (!found.startsWith(existing + " ")) return false;
+  const suffix = found.slice(existing.length + 1);
+  return /^(?:svetly lezak|polotmavy lezak|tmavy lezak|pale ale|fruited sour|pastry sour|ale|ipa|neipa|sour|stout|porter|lager|pils|lezak)\b/.test(suffix);
+}
 function isBeer(s: string, mode: Source["extraction_mode"]) {
   if (s.length < 4 || s.length > 150 || /^[^\p{L}\p{N}]*(?:Nealko|Piva|Pivo)\s*$/iu.test(s)) return false;
   if (/dárkov|poukaz|merch|\b\d+\s*pack\b|\bpack\b|set\b|sklenic|tričko|čepic|vratná|kauce|výčep|košík|cena|kontakt|festival|hodnocení|čtěte více|novinky|menu|naše piva|otevírací/i.test(s)) return false;
@@ -156,7 +171,7 @@ Deno.serve(async req => {
           const { data: existing, error: eError } = await db.from("radar_candidates").select("id").eq("brewery_id",source.brewery_id).eq("normalized_name",normalized_name).maybeSingle();
           if (eError) throw new Error("Candidate lookup failed");
           if (existing) { await db.from("radar_candidates").update({last_seen_at:new Date().toISOString()}).eq("id",existing.id); continue; }
-          const similar = known.find(b => norm(b.beer_name) === normalized_name)
+          const similar = known.find(b => likelyCatalogMatch(name, b.beer_name))
             ?? known.find(b => norm(b.beer_name).includes(normalized_name) || normalized_name.includes(norm(b.beer_name)))
             ?? (normalized_name.startsWith("nealko") ? known.find(b => norm(b.beer_name).startsWith("nealko")) : undefined);
           const { error } = await db.from("radar_candidates").insert({
