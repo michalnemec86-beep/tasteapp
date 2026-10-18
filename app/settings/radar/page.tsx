@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import type { CSSProperties } from "react";
 import { notFound, redirect } from "next/navigation";
 import { isAdminView, isCatalogAdminUser } from "@/lib/adminView";
 import { createClient } from "@/lib/supabase/server";
@@ -41,8 +42,8 @@ export default async function RadarPage({ searchParams }: { searchParams: Promis
   const labels = new Map((canonical ?? []).map(b=>[b.id,b.name] as const));
   const pending = candidates.filter(c=>c.status==="new"||c.status==="possible_match");
   const { scan } = await searchParams;
-  const card: React.CSSProperties = { padding:"16px",border:"1px solid rgba(231,166,47,.25)",borderRadius:"14px",background:"rgba(31,23,16,.75)",marginBottom:"14px" };
-  const button: React.CSSProperties = { padding:"8px 12px",border:"1px solid rgba(231,166,47,.45)",borderRadius:"8px",background:"rgba(231,166,47,.12)",color:"inherit",cursor:"pointer" };
+  const card: CSSProperties = { padding:"16px",border:"1px solid rgba(231,166,47,.25)",borderRadius:"14px",background:"rgba(31,23,16,.75)",marginBottom:"14px" };
+  const button: CSSProperties = { padding:"8px 12px",border:"1px solid rgba(231,166,47,.45)",borderRadius:"8px",background:"rgba(231,166,47,.12)",color:"inherit",cursor:"pointer" };
 
   return (
     <main className="taste-settings-page" style={{maxWidth:1100}}>
