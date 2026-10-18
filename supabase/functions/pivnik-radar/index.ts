@@ -33,7 +33,7 @@ function norm(s: string) {
 }
 function isBeer(s: string, mode: Source["extraction_mode"]) {
   if (s.length < 4 || s.length > 150 || /^[^\p{L}\p{N}]*(?:Nealko|Piva|Pivo)\s*$/iu.test(s)) return false;
-  if (/dárkov|poukaz|merch|set\b|sklenic|tričko|čepic|vratná|kauce|výčep|košík|cena|kontakt|festival|hodnocení|čtěte více|novinky|menu|naše piva|otevírací/i.test(s)) return false;
+  if (/dárkov|poukaz|merch|\b\d+\s*pack\b|\bpack\b|set\b|sklenic|tričko|čepic|vratná|kauce|výčep|košík|cena|kontakt|festival|hodnocení|čtěte více|novinky|menu|naše piva|otevírací/i.test(s)) return false;
   if (mode === "news") return /novinka na čepu:\s*.+/i.test(s);
   return /(?:\d{1,2}(?:[,.]\d+)?\s*°|\b(?:IPA|NEIPA|ALE|STOUT|PORTER|LEŽÁK|LAGER|PILS|SOUR|NEALKO|MUFLON|ŠTUDÁK|KRAVAŤÁK|ŠTRAMÁK|KYSELÁK|R\.I\.P\.A\.K)\b)/iu.test(s);
 }
