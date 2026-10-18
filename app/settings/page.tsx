@@ -36,8 +36,17 @@ export default async function SettingsPage() {
         realName={profile.real_name}
         email={user.email ?? ""}
         canSwitchView={isCatalogAdminUser(user.id)}
-        adminView={await isAdminView(user.id)}
+        adminView={adminView}
       />
+      {isCatalogAdminUser(user.id) && adminView && (
+        <section className="taste-settings-install-card" aria-label="Radar administrace">
+          <div>
+            <h2>PIVNÍK RADAR</h2>
+            <p>Interní sledování sortimentu, nové nálezy a kontrola zdrojů.</p>
+          </div>
+          <Link href="/settings/radar" className="taste-settings-install-link">Otevřít Radar</Link>
+        </section>
+      )}
       <div className="taste-settings-grid taste-settings-push-grid"><PushNewsSettings userId={user.id} /></div>
       <section className="taste-settings-install-card" aria-label="Instalace aplikace">
         <div>
