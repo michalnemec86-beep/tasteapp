@@ -26,6 +26,8 @@ export default async function SettingsPage() {
     return <main className="taste-settings-page"><p>Profil se nepodařilo načíst. Zkus stránku obnovit.</p></main>;
   }
 
+  const adminView = await isAdminView(user.id);
+
   return (
     <main className="taste-settings-page">
       <div className="taste-settings-heading">
