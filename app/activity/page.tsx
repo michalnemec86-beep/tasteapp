@@ -230,7 +230,7 @@ export default async function ActivityPage({
     parsePositivePage((await searchParams).timelinePage),
     5
   );
-  const timelinePageSize = 15;
+  const timelinePageSize = 30;
   const timelineFetchLimit = 5 * timelinePageSize + 1;
   const timelineCutoffDate =
     ACTIVITY_START_DATE;
