@@ -12,7 +12,8 @@ import {
   useSearchParams,
 } from "next/navigation";
 
-const MOBILE_PAGE_SIZE = 5;
+const MOBILE_PAGE_SIZE = 10;
+const SERVER_PAGE_SIZE = 30;
 const DESKTOP_PAGE_SIZE = 15;
 
 export default function ResponsiveTimelinePager({
@@ -75,11 +76,6 @@ export default function ResponsiveTimelinePager({
   }, []);
 
   useEffect(() => {
-    if (!isMobile) {
-      setLocalPage(0);
-      return;
-    }
-
     const requestedSlice =
       Number(
         searchParams.get(
@@ -94,7 +90,7 @@ export default function ResponsiveTimelinePager({
         ? Math.max(
             1,
             Math.min(
-              3,
+              SERVER_PAGE_SIZE / (isMobile ? MOBILE_PAGE_SIZE : DESKTOP_PAGE_SIZE),
               Math.trunc(
                 requestedSlice
               )
@@ -143,36 +139,20 @@ export default function ResponsiveTimelinePager({
     isMobile
       ? Math.max(
           1,
-          Math.min(
-            15,
-            Math.ceil(
-              totalEntries /
-                MOBILE_PAGE_SIZE
-            )
-          )
+          Math.ceil(totalEntries / MOBILE_PAGE_SIZE)
         )
       : Math.max(
           1,
-          Math.min(
-            5,
-            Math.ceil(
-              totalEntries /
-                DESKTOP_PAGE_SIZE
-            )
-          )
+          Math.ceil(totalEntries / DESKTOP_PAGE_SIZE)
         );
 
   const currentPage =
-    isMobile
-      ? (serverPage - 1) *
-          3 +
-        safeLocalPage +
-        1
-      : serverPage;
+    (serverPage - 1) * (SERVER_PAGE_SIZE / pageSize) +
+    safeLocalPage + 1;
 
   function goToServerPage(
     nextServerPage: number,
-    mobileSlice = 1
+    nextSlice = 1
   ) {
     const params =
       new URLSearchParams(
@@ -195,13 +175,12 @@ export default function ResponsiveTimelinePager({
     }
 
     if (
-      isMobile &&
-      mobileSlice > 1
+      nextSlice > 1
     ) {
       params.set(
         "timelineSlice",
         String(
-          mobileSlice
+          nextSlice
         )
       );
     } else {
@@ -220,7 +199,6 @@ export default function ResponsiveTimelinePager({
 
   function goNewer() {
     if (
-      isMobile &&
       safeLocalPage > 0
     ) {
       setLocalPage(
@@ -234,14 +212,13 @@ export default function ResponsiveTimelinePager({
     ) {
       goToServerPage(
         serverPage - 1,
-        isMobile ? 3 : 1
+        SERVER_PAGE_SIZE / pageSize
       );
     }
   }
 
   function goOlder() {
     if (
-      isMobile &&
       safeLocalPage <
         localPageCount - 1
     ) {
