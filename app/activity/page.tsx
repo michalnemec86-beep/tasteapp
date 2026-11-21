@@ -187,7 +187,7 @@ type CatalogEventRow = {
     | "style_created";
   created_at: string;
   beers: { id: number; name: string; brands: { id: number; name: string } | null } | null;
-  breweries: { id: number; name: string } | null;
+  breweries: { id: number; name: string; logo_url: string | null } | null;
   brands: { id: number; name: string } | null;
   hops: { id: number; name: string } | null;
   beer_styles: { id: number; name: string } | null;
@@ -394,7 +394,7 @@ export default async function ActivityPage({
     .select(`
       id, actor_user_id, event_type, created_at,
       beers ( id, name, brands ( id, name ) ),
-      breweries ( id, name ),
+      breweries ( id, name, logo_url ),
       brands ( id, name ),
       hops ( id, name ),
       beer_styles ( id, name )
@@ -458,7 +458,7 @@ export default async function ActivityPage({
     event_type: CatalogEventRow["event_type"];
     created_at: string;
     beers: ({ id: number; name: string; brands: { id: number; name: string } | Array<{ id: number; name: string }> | null } | Array<{ id: number; name: string; brands: { id: number; name: string } | Array<{ id: number; name: string }> | null }>) | null;
-    breweries: { id: number; name: string } | Array<{ id: number; name: string }> | null;
+    breweries: { id: number; name: string; logo_url: string | null } | Array<{ id: number; name: string; logo_url: string | null }> | null;
     brands: { id: number; name: string } | Array<{ id: number; name: string }> | null;
     hops: { id: number; name: string } | Array<{ id: number; name: string }> | null;
     beer_styles: { id: number; name: string } | Array<{ id: number; name: string }> | null;
@@ -1123,7 +1123,7 @@ function TastingTimelineCard({
     profile?.real_name?.trim();
 
   return (
-    <div className="taste-timeline-entry">
+    <div className="taste-timeline-entry taste-timeline-tasting">
       <article className="taste-timeline-card">
         <header className="taste-timeline-card-header">
           <span
@@ -1143,6 +1143,7 @@ function TastingTimelineCard({
           </span>
 
           <div className="taste-timeline-person-line">
+            <span className="taste-timeline-entry-kind">Ochutnávka</span>
             <Link
               href={
                 "/profiles/" +
@@ -1152,6 +1153,7 @@ function TastingTimelineCard({
             >
               {nickname}
             </Link>
+            <span className="taste-timeline-entry-kind">Získané ocenění</span>
 
             {realName &&
               realName !==
@@ -1175,6 +1177,12 @@ function TastingTimelineCard({
         </header>
 
         <div className="taste-timeline-card-body">
+          {brewery?.logo_url && !multipleBreweries && (
+            <Link href={`/breweries/${brewery.id}`} className="taste-timeline-brewery-logo" aria-label={`Pivovar ${brewery.name}`}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={brewery.logo_url} alt={`Logo pivovaru ${brewery.name}`} loading="lazy" />
+            </Link>
+          )}
           <div className="taste-timeline-main-line">
             <h3 className="taste-timeline-beer-name taste-timeline-main-title">
               {tasting.beers?.id ? (
@@ -1402,9 +1410,15 @@ function CatalogTimelineCard({
       <div className="taste-timeline-entry taste-timeline-system">
         <article className="taste-timeline-card taste-timeline-system-single-card">
           <div className="taste-timeline-system-one-line">
-            <CatalogTimelineIcon kind="brewery" />
+            {row.breweries.logo_url ? (
+              <Link href={`/breweries/${row.breweries.id}`} className="taste-timeline-brewery-logo taste-timeline-system-logo" aria-label={`Pivovar ${row.breweries.name}`}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={row.breweries.logo_url} alt={`Logo pivovaru ${row.breweries.name}`} loading="lazy" />
+              </Link>
+            ) : <CatalogTimelineIcon kind="brewery" />}
 
             <div className="taste-timeline-system-one-line-copy">
+              <span className="taste-timeline-entry-kind">Nový pivovar</span>{" "}
               Uživatel{" "}
               <Link
                 href={
@@ -1515,9 +1529,7 @@ function CatalogTimelineCard({
               {nickname}
             </Link>
             <span className="taste-timeline-realname">
-              {
-                visual.eyebrow
-              }
+              {visual.eyebrow}
             </span>
           </div>
 
@@ -1551,7 +1563,6 @@ function CatalogTimelineCard({
           </h3>
 
           <div className="taste-timeline-system-description">
-            {nickname}{" "}
             {visual.action}
 
             {row.event_type.startsWith(
