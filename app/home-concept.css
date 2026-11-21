@@ -616,3 +616,186 @@ body:has(.taste-home-concept) {
     margin-top: 16px !important;
   }
 }
+
+
+/* Timeline redesign: tasting cards lead, catalogue / award notifications recede. */
+.taste-home-concept .taste-timeline-list {
+  gap: 17px;
+  padding-top: 10px;
+}
+.taste-home-concept .taste-timeline-tasting .taste-timeline-card {
+  border-color: rgba(201, 166, 91, .56);
+  border-left: 3px solid #a7bb5c;
+  border-radius: 13px;
+  box-shadow: 0 9px 23px rgba(0,0,0,.28), inset 0 1px rgba(255,239,201,.07);
+}
+.taste-home-concept .taste-timeline-tasting .taste-timeline-card-header {
+  grid-template-columns: 39px minmax(0,1fr) auto;
+  padding: 12px 14px;
+  background: linear-gradient(100deg,#302313,#241a12 62%,#1b1711);
+}
+.taste-home-concept .taste-timeline-tasting .taste-timeline-card-body {
+  display: flow-root;
+  padding: 15px 16px 14px;
+}
+.taste-home-concept .taste-timeline-tasting .taste-timeline-beer-name {
+  font-size: 16px;
+  line-height: 1.38;
+}
+.taste-home-concept .taste-timeline-tasting .taste-timeline-person-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 3px 8px;
+  white-space: normal;
+}
+.taste-home-concept .taste-timeline-entry-kind {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 2px 7px;
+  border-radius: 5px;
+  color: #e4eabf;
+  background: rgba(151,174,77,.13);
+  border: 1px solid rgba(151,174,77,.24);
+  text-transform: uppercase;
+  letter-spacing: .055em;
+  font-size: 9px;
+  font-weight: 800;
+}
+.taste-home-concept .taste-timeline-tasting .taste-timeline-entry-kind {
+  flex-basis: 100%;
+}
+.taste-home-concept .taste-timeline-nickname-plain {
+  font-size: 13px;
+}
+.taste-home-concept .taste-timeline-date {
+  align-self: center;
+  padding: 5px 8px;
+  border: 1px solid rgba(223,178,108,.25);
+  border-radius: 7px;
+  background: rgba(0,0,0,.20);
+  color: #f8e2b7;
+  font-size: 11.5px;
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+}
+.taste-home-concept .taste-timeline-brewery-logo {
+  float: left;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 65px;
+  height: 65px;
+  padding: 5px;
+  margin: 0 12px 7px 0;
+  border: 1px solid rgba(227,196,139,.26);
+  border-radius: 11px;
+  background: rgba(255,246,220,.075);
+  overflow: hidden;
+}
+.taste-home-concept .taste-timeline-brewery-logo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.taste-home-concept .taste-timeline-system-logo {
+  float: none;
+  width: 39px;
+  height: 39px;
+  margin: 0;
+  padding: 3px;
+}
+.taste-home-concept .taste-timeline-system .taste-timeline-card {
+  border: 1px solid rgba(166,160,147,.25);
+  border-left: 3px solid rgba(154,157,157,.65);
+  border-radius: 9px;
+  background: #141414;
+  box-shadow: 0 3px 11px rgba(0,0,0,.18);
+}
+.taste-home-concept .taste-timeline-system .taste-timeline-card-header {
+  background: linear-gradient(100deg,#242321,#1b1a19);
+  border-bottom-color: rgba(205,200,191,.10);
+  padding: 8px 12px;
+}
+.taste-home-concept .taste-timeline-system .taste-timeline-card-body {
+  background: rgba(24,23,21,.96);
+  padding: 9px 13px 11px;
+}
+.taste-home-concept .taste-timeline-system .taste-timeline-packaging-illustrated {
+  border-color: rgba(188,185,175,.22);
+  background: rgba(185,182,172,.06);
+  box-shadow: none;
+}
+.taste-home-concept .taste-timeline-system .taste-timeline-beer-name {
+  font-size: 13.5px;
+  font-weight: 750;
+}
+.taste-home-concept .taste-timeline-system .taste-timeline-system-description {
+  font-size: 11px;
+  color: rgba(255,255,255,.64);
+}
+.taste-home-concept .taste-timeline-system .taste-timeline-entry-kind {
+  color: #d1cec5;
+  background: rgba(190,187,175,.08);
+  border-color: rgba(190,187,175,.19);
+}
+.taste-home-concept .taste-timeline-system .taste-timeline-date {
+  color: #d7d2c8;
+  border-color: rgba(200,195,180,.15);
+}
+.taste-home-concept .taste-timeline-achievement .taste-timeline-card {
+  border-left-color: #b99b56;
+}
+.taste-home-concept .taste-timeline-system-one-line {
+  padding: 10px 12px;
+  gap: 10px;
+}
+.taste-home-concept .taste-timeline-system-one-line-copy {
+  white-space: normal;
+  overflow: visible;
+  line-height: 1.5;
+}
+.taste-home-concept .taste-timeline-system-one-line-copy .taste-timeline-entry-kind {
+  margin-right: 6px;
+}
+.taste-home-concept .taste-timeline-tasting::after {
+  border-color: #a7bb5c;
+}
+.taste-home-concept .taste-timeline-system::after {
+  border-color: #93918a;
+  box-shadow: none;
+}
+@media (max-width: 639px) {
+  .taste-home-concept .taste-timeline-list { gap: 14px; }
+  .taste-home-concept .taste-timeline-tasting .taste-timeline-card-header {
+    grid-template-columns: 35px minmax(0,1fr) auto;
+    gap: 7px;
+    padding: 9px;
+  }
+  .taste-home-concept .taste-timeline-date {
+    font-size: 10px;
+    padding: 4px 6px;
+  }
+  .taste-home-concept .taste-timeline-tasting .taste-timeline-card-body {
+    padding: 12px;
+  }
+  .taste-home-concept .taste-timeline-brewery-logo {
+    width: 54px;
+    height: 54px;
+    margin-right: 10px;
+  }
+  .taste-home-concept .taste-timeline-system-logo {
+    width: 35px;
+    height: 35px;
+    margin: 0;
+  }
+  .taste-home-concept .taste-timeline-system-one-line {
+    grid-template-columns: 35px minmax(0,1fr);
+  }
+  .taste-home-concept .taste-timeline-system-one-line > .taste-timeline-date {
+    grid-column: 2;
+    justify-self: start;
+  }
+}
