@@ -33,6 +33,7 @@ import HomeStatIcon from "@/components/home/HomeStatIcon";
 import AchievementNotificationRefresh from "@/app/AchievementNotificationRefresh";
 import MobileHomeStatsCarousel from "@/components/home/MobileHomeStatsCarousel";
 import ResponsiveTimelinePager from "@/components/home/ResponsiveTimelinePager";
+import AutoLogoFrame from "@/components/ui/AutoLogoFrame";
 import { fetchAllRows } from "@/lib/fetch-all-rows";
 import { parsePositivePage } from "@/lib/pagination";
 import {
@@ -1179,8 +1180,7 @@ function TastingTimelineCard({
         <div className="taste-timeline-card-body">
           {brewery?.logo_url && !multipleBreweries && (
             <Link href={`/breweries/${brewery.id}`} className="taste-timeline-brewery-logo" aria-label={`Pivovar ${brewery.name}`}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={brewery.logo_url} alt={`Logo pivovaru ${brewery.name}`} loading="lazy" />
+              <AutoLogoFrame src={brewery.logo_url} alt={`Logo pivovaru ${brewery.name}`} size={65} padding={3} className="taste-timeline-normalized-logo" />
             </Link>
           )}
           <div className="taste-timeline-main-line">
@@ -1412,8 +1412,7 @@ function CatalogTimelineCard({
           <div className="taste-timeline-system-one-line">
             {row.breweries.logo_url ? (
               <Link href={`/breweries/${row.breweries.id}`} className="taste-timeline-brewery-logo taste-timeline-system-logo" aria-label={`Pivovar ${row.breweries.name}`}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={row.breweries.logo_url} alt={`Logo pivovaru ${row.breweries.name}`} loading="lazy" />
+                <AutoLogoFrame src={row.breweries.logo_url} alt={`Logo pivovaru ${row.breweries.name}`} size={39} padding={2} className="taste-timeline-normalized-logo" />
               </Link>
             ) : <CatalogTimelineIcon kind="brewery" />}
 
